@@ -689,11 +689,40 @@ export function OfferWizard({
 
               {form.offerType === 'buy_x_get_y' && (
                 <div className="space-y-4 border-t pt-4">
-                  <h3 className="font-medium">Configuration X achetes = Y offert</h3>
+                  <h3 className="font-medium">Configuration X achetés = Y offert</h3>
+
+                  {/* Mode selector */}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateForm({ buyXGetYType: 'category_choice' })}
+                      className={`flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        form.buyXGetYType === 'category_choice'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">Par catégorie</div>
+                      <div className="text-xs text-gray-500 mt-0.5">2 pizzas = 1 boisson offerte</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateForm({ buyXGetYType: 'specific_items' })}
+                      className={`flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        form.buyXGetYType === 'specific_items'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">Articles spécifiques</div>
+                      <div className="text-xs text-gray-500 mt-0.5">Articles précis uniquement</div>
+                    </button>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Quantite requise
+                        Quantité requise
                       </label>
                       <input
                         type="number"
@@ -706,7 +735,7 @@ export function OfferWizard({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Quantite offerte
+                        Quantité offerte
                       </label>
                       <input
                         type="number"
@@ -718,42 +747,129 @@ export function OfferWizard({
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Articles declencheurs (selectionnez un ou plusieurs)
-                    </label>
-                    <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1">
-                      {menuItems.map((item) => (
-                        <label key={item.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={form.triggerItems.includes(item.id)}
-                            onChange={() => toggleTriggerItem(item.id)}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm">{item.name}</span>
+
+                  {/* Category choice mode */}
+                  {form.buyXGetYType === 'category_choice' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Catégories déclencheurs (articles à acheter)
                         </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Article(s) offert(s)
-                    </label>
-                    <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1">
-                      {menuItems.map((item) => (
-                        <label key={item.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={form.rewardItems.includes(item.id)}
-                            onChange={() => toggleRewardItem(item.id)}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm">{item.name} ({formatPrice(item.price)})</span>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Sélectionnez une ou plusieurs catégories. Le client doit acheter des articles de ces catégories.
+                        </p>
+                        <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50">
+                          {categories.map((cat) => {
+                            const isSelected = form.triggerCategoryIds.includes(cat.id);
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  const newIds = isSelected
+                                    ? form.triggerCategoryIds.filter(id => id !== cat.id)
+                                    : [...form.triggerCategoryIds, cat.id];
+                                  updateForm({ triggerCategoryIds: newIds });
+                                }}
+                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                  isSelected
+                                    ? 'bg-primary-500 text-white border-primary-500'
+                                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
+                                }`}
+                              >
+                                {cat.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {form.triggerCategoryIds.length > 1 && (
+                          <p className="text-xs text-amber-600 mt-2">
+                            Les articles de {categories.filter(c => form.triggerCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')} comptent
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Catégories récompense (articles offerts)
                         </label>
-                      ))}
-                    </div>
-                  </div>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Le client pourra choisir un article parmi ces catégories.
+                        </p>
+                        <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50">
+                          {categories.map((cat) => {
+                            const isSelected = form.rewardCategoryIds.includes(cat.id);
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  const newIds = isSelected
+                                    ? form.rewardCategoryIds.filter(id => id !== cat.id)
+                                    : [...form.rewardCategoryIds, cat.id];
+                                  updateForm({ rewardCategoryIds: newIds });
+                                }}
+                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                  isSelected
+                                    ? 'bg-green-500 text-white border-green-500'
+                                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                                }`}
+                              >
+                                {cat.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {form.rewardCategoryIds.length > 1 && (
+                          <p className="text-xs text-green-600 mt-2">
+                            Le client choisira parmi {categories.filter(c => form.rewardCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Specific items mode */}
+                  {form.buyXGetYType === 'specific_items' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Articles déclencheurs (sélectionnez un ou plusieurs)
+                        </label>
+                        <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1">
+                          {menuItems.map((item) => (
+                            <label key={item.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={form.triggerItems.includes(item.id)}
+                                onChange={() => toggleTriggerItem(item.id)}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-sm">{item.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Article(s) offert(s)
+                        </label>
+                        <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1">
+                          {menuItems.map((item) => (
+                            <label key={item.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={form.rewardItems.includes(item.id)}
+                                onChange={() => toggleRewardItem(item.id)}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-sm">{item.name} ({formatPrice(item.price)})</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

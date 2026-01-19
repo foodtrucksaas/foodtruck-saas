@@ -50,7 +50,9 @@ function formatOfferSummary(offer: OfferWithItems): string {
       return `${offer.offer_items?.length || 0} articles pour ${formatPrice(config.fixed_price || 0)}`;
     case 'buy_x_get_y':
       const reward = config.reward_type === 'free' ? 'offert' : `-${formatPrice(config.reward_value || 0)}`;
-      return `${config.trigger_quantity} achetes = ${config.reward_quantity} ${reward}`;
+      const isCategoryBased = config.type === 'category_choice';
+      const triggerLabel = isCategoryBased ? 'achetés' : 'acheté(s)';
+      return `${config.trigger_quantity} ${triggerLabel} = ${config.reward_quantity} ${reward}${isCategoryBased ? ' (catégorie)' : ''}`;
     case 'happy_hour':
       const discount = config.discount_type === 'percentage'
         ? `-${config.discount_value}%`

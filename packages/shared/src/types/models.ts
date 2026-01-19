@@ -455,6 +455,10 @@ export interface BuyXGetYConfig {
   reward_quantity: number;
   reward_type: 'free' | 'discount';
   reward_value?: number; // Centimes si discount
+  // Category-based mode (OR logic - customer picks from any of these categories)
+  type?: 'specific_items' | 'category_choice'; // Default: specific_items for backwards compat
+  trigger_category_ids?: string[]; // Categories whose items trigger the offer
+  reward_category_ids?: string[]; // Categories from which reward can be chosen
 }
 
 export interface HappyHourConfig {

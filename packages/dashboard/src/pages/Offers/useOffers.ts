@@ -58,10 +58,13 @@ export interface OfferFormState {
   bundleCategories: BundleCategoryConfig[]; // For category_choice mode
   bundleFreeOptions: boolean; // If true, all supplements on items are free in this bundle
   // Buy X Get Y
+  buyXGetYType: 'specific_items' | 'category_choice';
   triggerQuantity: string;
-  triggerItems: string[];
+  triggerItems: string[]; // For specific_items mode
+  triggerCategoryIds: string[]; // For category_choice mode (OR logic)
   rewardType: 'free' | 'discount';
-  rewardItems: string[];
+  rewardItems: string[]; // For specific_items mode
+  rewardCategoryIds: string[]; // For category_choice mode (OR logic)
   rewardQuantity: string;
   rewardValue: string;
   // Happy Hour
@@ -99,10 +102,13 @@ const initialFormState: OfferFormState = {
   bundleItems: [],
   bundleCategories: [],
   bundleFreeOptions: false,
+  buyXGetYType: 'category_choice', // Default to new mode
   triggerQuantity: '3',
   triggerItems: [],
+  triggerCategoryIds: [],
   rewardType: 'free',
   rewardItems: [],
+  rewardCategoryIds: [],
   rewardQuantity: '1',
   rewardValue: '',
   happyHourDiscountType: 'percentage',
@@ -199,7 +205,21 @@ export function useOffers() {
           fixed_price: Math.round(parseFloat(form.bundleFixedPrice || '0') * 100),
         };
       case 'buy_x_get_y':
+        if (form.buyXGetYType === 'category_choice') {
+          return {
+            type: 'category_choice',
+            trigger_quantity: parseInt(form.triggerQuantity) || 3,
+            reward_quantity: parseInt(form.rewardQuantity) || 1,
+            reward_type: form.rewardType,
+            reward_value: form.rewardType === 'discount'
+              ? Math.round(parseFloat(form.rewardValue || '0') * 100)
+              : undefined,
+            trigger_category_ids: form.triggerCategoryIds,
+            reward_category_ids: form.rewardCategoryIds,
+          };
+        }
         return {
+          type: 'specific_items',
           trigger_quantity: parseInt(form.triggerQuantity) || 3,
           reward_quantity: parseInt(form.rewardQuantity) || 1,
           reward_type: form.rewardType,
@@ -263,11 +283,20 @@ export function useOffers() {
         }
         break;
       case 'buy_x_get_y':
-        if (form.triggerItems.length === 0) {
-          return 'Selectionnez au moins un article declencheur';
-        }
-        if (form.rewardItems.length === 0) {
-          return 'Selectionnez au moins un article recompense';
+        if (form.buyXGetYType === 'category_choice') {
+          if (form.triggerCategoryIds.length === 0) {
+            return 'Sélectionnez au moins une catégorie déclencheur';
+          }
+          if (form.rewardCategoryIds.length === 0) {
+            return 'Sélectionnez au moins une catégorie récompense';
+          }
+        } else {
+          if (form.triggerItems.length === 0) {
+            return 'Sélectionnez au moins un article déclencheur';
+          }
+          if (form.rewardItems.length === 0) {
+            return 'Sélectionnez au moins un article récompense';
+          }
         }
         break;
       case 'happy_hour':
@@ -366,7 +395,8 @@ export function useOffers() {
             quantity: item.quantity,
           });
         });
-      } else if (form.offerType === 'buy_x_get_y') {
+      } else if (form.offerType === 'buy_x_get_y' && form.buyXGetYType === 'specific_items') {
+        // Only save offer_items for specific_items mode
         form.triggerItems.forEach((menuItemId) => {
           items.push({
             offer_id: offerId,
@@ -383,6 +413,7 @@ export function useOffers() {
             quantity: parseInt(form.rewardQuantity) || 1,
           });
         });
+        // For category_choice mode, categories are stored in config.trigger_category_ids and config.reward_category_ids
       }
 
       if (items.length > 0) {
@@ -475,12 +506,20 @@ export function useOffers() {
         newForm.rewardQuantity = (config.reward_quantity || 1).toString();
         newForm.rewardType = config.reward_type || 'free';
         newForm.rewardValue = config.reward_value ? (config.reward_value / 100).toString() : '';
-        newForm.triggerItems = (offer.offer_items || [])
-          .filter((i) => i.role === 'trigger')
-          .map((i) => i.menu_item_id);
-        newForm.rewardItems = (offer.offer_items || [])
-          .filter((i) => i.role === 'reward')
-          .map((i) => i.menu_item_id);
+
+        if (config.type === 'category_choice' && config.trigger_category_ids) {
+          newForm.buyXGetYType = 'category_choice';
+          newForm.triggerCategoryIds = config.trigger_category_ids || [];
+          newForm.rewardCategoryIds = config.reward_category_ids || [];
+        } else {
+          newForm.buyXGetYType = 'specific_items';
+          newForm.triggerItems = (offer.offer_items || [])
+            .filter((i) => i.role === 'trigger')
+            .map((i) => i.menu_item_id);
+          newForm.rewardItems = (offer.offer_items || [])
+            .filter((i) => i.role === 'reward')
+            .map((i) => i.menu_item_id);
+        }
         break;
       case 'happy_hour':
         newForm.happyHourDiscountType = config.discount_type || 'percentage';
