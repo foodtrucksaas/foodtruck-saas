@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+build
+.next
+.nuxt
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Misc
+*.tsbuildinfo
+.turbo
+
+# Capacitor - iOS
+packages/dashboard/ios/App/Pods
+packages/dashboard/ios/App/App/public
+packages/dashboard/ios/App/App/capacitor.config.json
+packages/dashboard/ios/App/Podfile.lock
+*.xcworkspace
+xcuserdata
+
+# Capacitor - Android
+packages/dashboard/android/app/src/main/assets/public
+packages/dashboard/android/app/src/main/assets/capacitor.config.json
+packages/dashboard/android/.gradle
+packages/dashboard/android/app/build
+packages/dashboard/android/build
+packages/dashboard/android/local.properties

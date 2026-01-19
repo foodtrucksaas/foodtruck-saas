@@ -1,0 +1,45 @@
+{
+  "name": "foodtruck-saas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SaaS platform for foodtruck management",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:client": "pnpm --filter @foodtruck/client dev",
+    "dev:dashboard": "pnpm --filter @foodtruck/dashboard dev",
+    "build": "pnpm -r build",
+    "build:client": "pnpm --filter @foodtruck/client build",
+    "build:dashboard": "pnpm --filter @foodtruck/dashboard build",
+    "test": "pnpm -r test",
+    "test:shared": "pnpm --filter @foodtruck/shared test",
+    "test:dashboard": "pnpm --filter @foodtruck/dashboard test",
+    "test:client": "pnpm --filter @foodtruck/client test",
+    "test:coverage": "pnpm -r test:coverage",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:migrate": "supabase migration up",
+    "supabase:gen-types": "supabase gen types typescript --local > packages/shared/src/types/database.types.ts"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^14.2.0",
+    "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "eslint": "^8.55.0",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.2",
+    "vitest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.12.0"
+}

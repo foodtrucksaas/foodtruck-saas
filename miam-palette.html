@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palette miam.co</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #FAFAFA;
+      padding: 40px;
+      color: #2D2D2D;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+    }
+    h1 span {
+      color: #FF6B35;
+    }
+    h2 {
+      margin: 40px 0 20px;
+      font-size: 1.3rem;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .color-card {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background: white;
+    }
+    .color-preview {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .color-info {
+      padding: 16px;
+    }
+    .color-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .color-hex {
+      color: #6B7280;
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+    .color-usage {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #9CA3AF;
+    }
+
+    /* Couleurs primaires */
+    .primary-main { background: #FF6B35; }
+    .primary-dark { background: #E55A2B; }
+    .primary-light { background: #FF8C5A; }
+
+    /* Couleurs secondaires */
+    .secondary-dark { background: #2D2D2D; color: white; }
+    .secondary-medium { background: #6B7280; }
+    .secondary-light { background: #9CA3AF; }
+
+    /* Fonds */
+    .bg-white { background: #FFFFFF; color: #2D2D2D; border: 1px solid #E5E7EB; }
+    .bg-cream { background: #FAFAFA; color: #2D2D2D; border: 1px solid #E5E7EB; }
+    .bg-gray { background: #F3F4F6; color: #2D2D2D; border: 1px solid #E5E7EB; }
+
+    /* États */
+    .success { background: #10B981; }
+    .warning { background: #F59E0B; }
+    .error { background: #EF4444; }
+    .info { background: #3B82F6; }
+
+    /* Démo boutons */
+    .demo-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-top: 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #FF6B35;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #E55A2B;
+    }
+    .btn-secondary {
+      background: #2D2D2D;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #404040;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #FF6B35;
+      border: 2px solid #FF6B35;
+    }
+    .btn-outline:hover {
+      background: #FF6B35;
+      color: white;
+    }
+
+    /* Démo card commande */
+    .order-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      border: 1px solid #E5E7EB;
+      max-width: 350px;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .order-status {
+      background: #FFF7ED;
+      color: #FF6B35;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .order-number {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    .order-total {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 12px;
+      font-weight: 700;
+      color: #FF6B35;
+    }
+
+    /* Logo demo */
+    .logo-demo {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 800;
+    }
+    .logo-light {
+      color: #FF6B35;
+    }
+    .logo-dark {
+      background: #2D2D2D;
+      color: #FF6B35;
+      padding: 20px 30px;
+      border-radius: 12px;
+    }
+    .logo-reverse {
+      background: #FF6B35;
+      color: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1><span>miam</span>.co — Palette de couleurs</h1>
+
+  <h2>🎨 Couleurs principales</h2>
+  <div class="palette">
+    <div class="color-card">
+      <div class="color-preview primary-main">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Orange Principal</div>
+        <div class="color-hex">#FF6B35</div>
+        <div class="color-usage">Boutons, liens, accents</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview primary-dark">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Orange Foncé</div>
+        <div class="color-hex">#E55A2B</div>
+        <div class="color-usage">Hover, pressed states</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview primary-light">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Orange Clair</div>
+        <div class="color-hex">#FF8C5A</div>
+        <div class="color-usage">Backgrounds légers, badges</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>⚫ Textes & Neutres</h2>
+  <div class="palette">
+    <div class="color-card">
+      <div class="color-preview secondary-dark">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Anthracite</div>
+        <div class="color-hex">#2D2D2D</div>
+        <div class="color-usage">Titres, texte principal</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview secondary-medium" style="color:white">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Gris Moyen</div>
+        <div class="color-hex">#6B7280</div>
+        <div class="color-usage">Texte secondaire, labels</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview secondary-light" style="color:white">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Gris Clair</div>
+        <div class="color-hex">#9CA3AF</div>
+        <div class="color-usage">Placeholders, icônes inactives</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>📄 Fonds</h2>
+  <div class="palette">
+    <div class="color-card">
+      <div class="color-preview bg-white">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Blanc</div>
+        <div class="color-hex">#FFFFFF</div>
+        <div class="color-usage">Cards, modals</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview bg-cream">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Blanc Cassé</div>
+        <div class="color-hex">#FAFAFA</div>
+        <div class="color-usage">Background principal</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview bg-gray">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Gris Background</div>
+        <div class="color-hex">#F3F4F6</div>
+        <div class="color-usage">Sections, séparateurs</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>✅ États & Feedback</h2>
+  <div class="palette">
+    <div class="color-card">
+      <div class="color-preview success">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Succès</div>
+        <div class="color-hex">#10B981</div>
+        <div class="color-usage">Commande prête, validation</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview warning">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Attention</div>
+        <div class="color-hex">#F59E0B</div>
+        <div class="color-usage">En préparation, alertes</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview error">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Erreur</div>
+        <div class="color-hex">#EF4444</div>
+        <div class="color-usage">Annulé, erreurs</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-preview info">Aa</div>
+      <div class="color-info">
+        <div class="color-name">Info</div>
+        <div class="color-hex">#3B82F6</div>
+        <div class="color-usage">Notifications, infos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2 style="margin-top: 0;">🖱️ Boutons</h2>
+    <button class="btn btn-primary">Commander</button>
+    <button class="btn btn-secondary">Voir le menu</button>
+    <button class="btn btn-outline">En savoir plus</button>
+  </div>
+
+  <div class="demo-section">
+    <h2 style="margin-top: 0;">🍕 Exemple Card Commande</h2>
+    <div class="order-card">
+      <div class="order-header">
+        <span class="order-number">#CMD-042</span>
+        <span class="order-status">En préparation</span>
+      </div>
+      <div class="order-item">
+        <span>2x Pizza Margherita</span>
+        <span>24,00 €</span>
+      </div>
+      <div class="order-item">
+        <span>1x Tiramisu</span>
+        <span>6,00 €</span>
+      </div>
+      <div class="order-total">
+        <span>Total</span>
+        <span>30,00 €</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2 style="margin-top: 0;">✏️ Logo Variations</h2>
+    <div class="logo-demo">
+      <div class="logo logo-light">miam.co</div>
+      <div class="logo logo-dark">miam.co</div>
+      <div class="logo logo-reverse">miam.co</div>
+    </div>
+  </div>
+
+</body>
+</html>
