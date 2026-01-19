@@ -230,6 +230,56 @@ export function OfferWizard({
     return menuItems.filter(item => item.category_id && categoryIds.includes(item.category_id) && item.is_available);
   };
 
+  // Buy X Get Y category functions
+  const [expandedTrigger, setExpandedTrigger] = useState(false);
+  const [expandedReward, setExpandedReward] = useState(false);
+
+  const toggleTriggerExcludedItem = (itemId: string) => {
+    const newExcluded = form.triggerExcludedItems.includes(itemId)
+      ? form.triggerExcludedItems.filter(id => id !== itemId)
+      : [...form.triggerExcludedItems, itemId];
+    updateForm({ triggerExcludedItems: newExcluded });
+  };
+
+  const toggleRewardExcludedItem = (itemId: string) => {
+    const newExcluded = form.rewardExcludedItems.includes(itemId)
+      ? form.rewardExcludedItems.filter(id => id !== itemId)
+      : [...form.rewardExcludedItems, itemId];
+    updateForm({ rewardExcludedItems: newExcluded });
+  };
+
+  const toggleTriggerExcludedSize = (itemId: string, sizeId: string) => {
+    const currentExcluded = form.triggerExcludedSizes[itemId] || [];
+    const newExcludedSizes = { ...form.triggerExcludedSizes };
+    if (currentExcluded.includes(sizeId)) {
+      newExcludedSizes[itemId] = currentExcluded.filter(id => id !== sizeId);
+      if (newExcludedSizes[itemId].length === 0) delete newExcludedSizes[itemId];
+    } else {
+      newExcludedSizes[itemId] = [...currentExcluded, sizeId];
+    }
+    updateForm({ triggerExcludedSizes: newExcludedSizes });
+  };
+
+  const toggleRewardExcludedSize = (itemId: string, sizeId: string) => {
+    const currentExcluded = form.rewardExcludedSizes[itemId] || [];
+    const newExcludedSizes = { ...form.rewardExcludedSizes };
+    if (currentExcluded.includes(sizeId)) {
+      newExcludedSizes[itemId] = currentExcluded.filter(id => id !== sizeId);
+      if (newExcludedSizes[itemId].length === 0) delete newExcludedSizes[itemId];
+    } else {
+      newExcludedSizes[itemId] = [...currentExcluded, sizeId];
+    }
+    updateForm({ rewardExcludedSizes: newExcludedSizes });
+  };
+
+  const isTriggerSizeExcluded = (itemId: string, sizeId: string): boolean => {
+    return form.triggerExcludedSizes[itemId]?.includes(sizeId) || false;
+  };
+
+  const isRewardSizeExcluded = (itemId: string, sizeId: string): boolean => {
+    return form.rewardExcludedSizes[itemId]?.includes(sizeId) || false;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -751,7 +801,7 @@ export function OfferWizard({
                   {/* Category choice mode */}
                   {form.buyXGetYType === 'category_choice' && (
                     <>
-                      {/* Trigger categories section */}
+                      {/* TRIGGER SECTION - Articles à acheter */}
                       <div className="border rounded-lg overflow-hidden">
                         <div className="p-3 bg-primary-50">
                           <label className="block text-sm font-medium text-primary-700 mb-2">
@@ -770,7 +820,7 @@ export function OfferWizard({
                                       : [...form.triggerCategoryIds, cat.id];
                                     updateForm({ triggerCategoryIds: newIds });
                                   }}
-                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                  className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
                                     isSelected
                                       ? 'bg-primary-500 text-white border-primary-500'
                                       : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
@@ -781,84 +831,122 @@ export function OfferWizard({
                               );
                             })}
                           </div>
+                          {form.triggerCategoryIds.length > 1 && (
+                            <p className="text-xs text-amber-600 mt-2">
+                              Les articles de {categories.filter(c => form.triggerCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')} comptent
+                            </p>
+                          )}
                         </div>
 
-                        {/* Trigger items configuration */}
-                        {form.triggerCategoryIds.length > 0 && (
-                          <div className="p-3 border-t">
-                            <p className="text-xs text-gray-500 mb-2">Cochez les articles/tailles éligibles:</p>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {menuItems
-                                .filter(item => item.category_id && form.triggerCategoryIds.includes(item.category_id))
-                                .map((item) => {
-                                  const isExcluded = form.triggerExcludedItems.includes(item.id);
-                                  const category = categories.find(c => c.id === item.category_id);
-                                  const sizeOptions = getSizeOptions(category);
+                        {/* Clickable section to expand trigger items */}
+                        {form.triggerCategoryIds.length > 0 && (() => {
+                          const triggerItems = getItemsForCategories(form.triggerCategoryIds);
+                          const selectedCategories = categories.filter(c => form.triggerCategoryIds.includes(c.id));
+                          const categoryWithSizes = selectedCategories.find(c => getSizeOptions(c));
+                          const sizeOptions = categoryWithSizes ? getSizeOptions(categoryWithSizes) : null;
+                          const eligibleCount = triggerItems.filter(i => !form.triggerExcludedItems.includes(i.id)).length;
 
-                                  return (
-                                    <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
-                                      <div className="flex items-center gap-3">
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            const newExcluded = isExcluded
-                                              ? form.triggerExcludedItems.filter(id => id !== item.id)
-                                              : [...form.triggerExcludedItems, item.id];
-                                            updateForm({ triggerExcludedItems: newExcluded });
-                                          }}
-                                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                                            !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
-                                          }`}
-                                        >
-                                          {!isExcluded && <Check className="w-3 h-3" />}
-                                        </button>
-                                        <span className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}>
-                                          {item.name}
-                                        </span>
-                                      </div>
+                          return (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setExpandedTrigger(!expandedTrigger)}
+                                className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors border-t"
+                              >
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                    {eligibleCount} article{eligibleCount > 1 ? 's' : ''} éligible{eligibleCount > 1 ? 's' : ''}
+                                  </span>
+                                  {sizeOptions && (
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                                      {sizeOptions.length} taille{sizeOptions.length > 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-primary-600 font-medium">
+                                  {expandedTrigger ? 'Fermer' : 'Configurer'}
+                                  {expandedTrigger ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                              </button>
 
-                                      {/* Size options */}
-                                      {!isExcluded && sizeOptions && (
-                                        <div className="mt-2 ml-8 flex flex-wrap gap-2">
-                                          {sizeOptions.map((size) => {
-                                            const sizeIsExcluded = form.triggerExcludedSizes[item.id]?.includes(size.id);
-                                            return (
-                                              <button
-                                                key={size.id}
-                                                type="button"
-                                                onClick={() => {
-                                                  const currentExcluded = form.triggerExcludedSizes[item.id] || [];
-                                                  const newExcludedSizes = { ...form.triggerExcludedSizes };
-                                                  if (sizeIsExcluded) {
-                                                    newExcludedSizes[item.id] = currentExcluded.filter(id => id !== size.id);
-                                                    if (newExcludedSizes[item.id].length === 0) delete newExcludedSizes[item.id];
-                                                  } else {
-                                                    newExcludedSizes[item.id] = [...currentExcluded, size.id];
-                                                  }
-                                                  updateForm({ triggerExcludedSizes: newExcludedSizes });
-                                                }}
-                                                className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                                                  sizeIsExcluded
-                                                    ? 'bg-gray-100 text-gray-400 line-through'
-                                                    : 'bg-green-100 text-green-700'
-                                                }`}
-                                              >
-                                                {!sizeIsExcluded && <Check className="w-3 h-3" />}
-                                                {size.name}
-                                              </button>
-                                            );
-                                          })}
+                              {/* Expanded: trigger items configuration */}
+                              {expandedTrigger && triggerItems.length > 0 && (
+                                <div className="p-3 border-t space-y-2">
+                                  <div className="text-xs text-gray-500 pb-2 border-b">
+                                    Cochez les articles/tailles qui déclenchent l'offre
+                                  </div>
+                                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {triggerItems.map((item) => {
+                                      const isExcluded = form.triggerExcludedItems.includes(item.id);
+                                      const itemCategory = categories.find(c => c.id === item.category_id);
+                                      const itemSizeOptions = getSizeOptions(itemCategory);
+
+                                      return (
+                                        <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
+                                          <div className="flex items-center gap-3">
+                                            <button
+                                              type="button"
+                                              onClick={() => toggleTriggerExcludedItem(item.id)}
+                                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                                                !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                                              }`}
+                                            >
+                                              {!isExcluded && <Check className="w-3 h-3" />}
+                                            </button>
+                                            <div className="flex-1 min-w-0">
+                                              <span className={`text-sm ${isExcluded ? 'line-through text-gray-400' : ''}`}>
+                                                {item.name}
+                                              </span>
+                                              <span className="text-xs text-gray-400 ml-2">
+                                                ({formatPrice(item.price)})
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          {/* Per-size configuration */}
+                                          {!isExcluded && itemSizeOptions && (
+                                            <div className="mt-2 ml-8 flex flex-wrap gap-2">
+                                              {itemSizeOptions.map((size) => {
+                                                const sizeIsExcluded = isTriggerSizeExcluded(item.id, size.id);
+                                                return (
+                                                  <button
+                                                    key={size.id}
+                                                    type="button"
+                                                    onClick={() => toggleTriggerExcludedSize(item.id, size.id)}
+                                                    className={`flex items-center gap-1.5 rounded px-2 py-1 ${
+                                                      sizeIsExcluded ? 'bg-gray-100 opacity-60' : 'bg-gray-50'
+                                                    }`}
+                                                  >
+                                                    <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                                                      !sizeIsExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 bg-white'
+                                                    }`}>
+                                                      {!sizeIsExcluded && <Check className="w-2.5 h-2.5" />}
+                                                    </span>
+                                                    <span className={`text-xs font-medium ${sizeIsExcluded ? 'text-gray-400 line-through' : 'text-gray-600'}`}>
+                                                      {size.name}
+                                                    </span>
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        )}
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {expandedTrigger && triggerItems.length === 0 && (
+                                <div className="p-3 border-t text-sm text-gray-500 text-center">
+                                  Aucun article dans ces catégories
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
-                      {/* Reward categories section */}
+                      {/* REWARD SECTION - Articles offerts */}
                       <div className="border rounded-lg overflow-hidden">
                         <div className="p-3 bg-green-50">
                           <label className="block text-sm font-medium text-green-700 mb-2">
@@ -877,7 +965,7 @@ export function OfferWizard({
                                       : [...form.rewardCategoryIds, cat.id];
                                     updateForm({ rewardCategoryIds: newIds });
                                   }}
-                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                  className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
                                     isSelected
                                       ? 'bg-green-500 text-white border-green-500'
                                       : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
@@ -888,81 +976,119 @@ export function OfferWizard({
                               );
                             })}
                           </div>
+                          {form.rewardCategoryIds.length > 1 && (
+                            <p className="text-xs text-green-600 mt-2">
+                              Le client choisira parmi {categories.filter(c => form.rewardCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')}
+                            </p>
+                          )}
                         </div>
 
-                        {/* Reward items configuration */}
-                        {form.rewardCategoryIds.length > 0 && (
-                          <div className="p-3 border-t">
-                            <p className="text-xs text-gray-500 mb-2">Cochez les articles/tailles éligibles comme récompense:</p>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {menuItems
-                                .filter(item => item.category_id && form.rewardCategoryIds.includes(item.category_id))
-                                .map((item) => {
-                                  const isExcluded = form.rewardExcludedItems.includes(item.id);
-                                  const category = categories.find(c => c.id === item.category_id);
-                                  const sizeOptions = getSizeOptions(category);
+                        {/* Clickable section to expand reward items */}
+                        {form.rewardCategoryIds.length > 0 && (() => {
+                          const rewardItems = getItemsForCategories(form.rewardCategoryIds);
+                          const selectedCategories = categories.filter(c => form.rewardCategoryIds.includes(c.id));
+                          const categoryWithSizes = selectedCategories.find(c => getSizeOptions(c));
+                          const sizeOptions = categoryWithSizes ? getSizeOptions(categoryWithSizes) : null;
+                          const eligibleCount = rewardItems.filter(i => !form.rewardExcludedItems.includes(i.id)).length;
 
-                                  return (
-                                    <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
-                                      <div className="flex items-center gap-3">
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            const newExcluded = isExcluded
-                                              ? form.rewardExcludedItems.filter(id => id !== item.id)
-                                              : [...form.rewardExcludedItems, item.id];
-                                            updateForm({ rewardExcludedItems: newExcluded });
-                                          }}
-                                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                                            !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
-                                          }`}
-                                        >
-                                          {!isExcluded && <Check className="w-3 h-3" />}
-                                        </button>
-                                        <span className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}>
-                                          {item.name} ({formatPrice(item.price)})
-                                        </span>
-                                      </div>
+                          return (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setExpandedReward(!expandedReward)}
+                                className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors border-t"
+                              >
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                    {eligibleCount} article{eligibleCount > 1 ? 's' : ''} éligible{eligibleCount > 1 ? 's' : ''}
+                                  </span>
+                                  {sizeOptions && (
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                                      {sizeOptions.length} taille{sizeOptions.length > 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                  {expandedReward ? 'Fermer' : 'Configurer'}
+                                  {expandedReward ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                              </button>
 
-                                      {/* Size options */}
-                                      {!isExcluded && sizeOptions && (
-                                        <div className="mt-2 ml-8 flex flex-wrap gap-2">
-                                          {sizeOptions.map((size) => {
-                                            const sizeIsExcluded = form.rewardExcludedSizes[item.id]?.includes(size.id);
-                                            return (
-                                              <button
-                                                key={size.id}
-                                                type="button"
-                                                onClick={() => {
-                                                  const currentExcluded = form.rewardExcludedSizes[item.id] || [];
-                                                  const newExcludedSizes = { ...form.rewardExcludedSizes };
-                                                  if (sizeIsExcluded) {
-                                                    newExcludedSizes[item.id] = currentExcluded.filter(id => id !== size.id);
-                                                    if (newExcludedSizes[item.id].length === 0) delete newExcludedSizes[item.id];
-                                                  } else {
-                                                    newExcludedSizes[item.id] = [...currentExcluded, size.id];
-                                                  }
-                                                  updateForm({ rewardExcludedSizes: newExcludedSizes });
-                                                }}
-                                                className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                                                  sizeIsExcluded
-                                                    ? 'bg-gray-100 text-gray-400 line-through'
-                                                    : 'bg-green-100 text-green-700'
-                                                }`}
-                                              >
-                                                {!sizeIsExcluded && <Check className="w-3 h-3" />}
-                                                {size.name}
-                                              </button>
-                                            );
-                                          })}
+                              {/* Expanded: reward items configuration */}
+                              {expandedReward && rewardItems.length > 0 && (
+                                <div className="p-3 border-t space-y-2">
+                                  <div className="text-xs text-gray-500 pb-2 border-b">
+                                    Cochez les articles/tailles que le client peut recevoir gratuitement
+                                  </div>
+                                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {rewardItems.map((item) => {
+                                      const isExcluded = form.rewardExcludedItems.includes(item.id);
+                                      const itemCategory = categories.find(c => c.id === item.category_id);
+                                      const itemSizeOptions = getSizeOptions(itemCategory);
+
+                                      return (
+                                        <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
+                                          <div className="flex items-center gap-3">
+                                            <button
+                                              type="button"
+                                              onClick={() => toggleRewardExcludedItem(item.id)}
+                                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                                                !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                                              }`}
+                                            >
+                                              {!isExcluded && <Check className="w-3 h-3" />}
+                                            </button>
+                                            <div className="flex-1 min-w-0">
+                                              <span className={`text-sm ${isExcluded ? 'line-through text-gray-400' : ''}`}>
+                                                {item.name}
+                                              </span>
+                                              <span className="text-xs text-gray-400 ml-2">
+                                                ({formatPrice(item.price)})
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          {/* Per-size configuration */}
+                                          {!isExcluded && itemSizeOptions && (
+                                            <div className="mt-2 ml-8 flex flex-wrap gap-2">
+                                              {itemSizeOptions.map((size) => {
+                                                const sizeIsExcluded = isRewardSizeExcluded(item.id, size.id);
+                                                return (
+                                                  <button
+                                                    key={size.id}
+                                                    type="button"
+                                                    onClick={() => toggleRewardExcludedSize(item.id, size.id)}
+                                                    className={`flex items-center gap-1.5 rounded px-2 py-1 ${
+                                                      sizeIsExcluded ? 'bg-gray-100 opacity-60' : 'bg-gray-50'
+                                                    }`}
+                                                  >
+                                                    <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                                                      !sizeIsExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 bg-white'
+                                                    }`}>
+                                                      {!sizeIsExcluded && <Check className="w-2.5 h-2.5" />}
+                                                    </span>
+                                                    <span className={`text-xs font-medium ${sizeIsExcluded ? 'text-gray-400 line-through' : 'text-gray-600'}`}>
+                                                      {size.name}
+                                                    </span>
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        )}
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {expandedReward && rewardItems.length === 0 && (
+                                <div className="p-3 border-t text-sm text-gray-500 text-center">
+                                  Aucun article dans ces catégories
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </>
                   )}
