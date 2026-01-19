@@ -751,79 +751,217 @@ export function OfferWizard({
                   {/* Category choice mode */}
                   {form.buyXGetYType === 'category_choice' && (
                     <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Catégories déclencheurs (articles à acheter)
-                        </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          Sélectionnez une ou plusieurs catégories. Le client doit acheter des articles de ces catégories.
-                        </p>
-                        <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50">
-                          {categories.map((cat) => {
-                            const isSelected = form.triggerCategoryIds.includes(cat.id);
-                            return (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => {
-                                  const newIds = isSelected
-                                    ? form.triggerCategoryIds.filter(id => id !== cat.id)
-                                    : [...form.triggerCategoryIds, cat.id];
-                                  updateForm({ triggerCategoryIds: newIds });
-                                }}
-                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                  isSelected
-                                    ? 'bg-primary-500 text-white border-primary-500'
-                                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
-                                }`}
-                              >
-                                {cat.name}
-                              </button>
-                            );
-                          })}
+                      {/* Trigger categories section */}
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="p-3 bg-primary-50">
+                          <label className="block text-sm font-medium text-primary-700 mb-2">
+                            Catégories déclencheurs (articles à acheter)
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {categories.map((cat) => {
+                              const isSelected = form.triggerCategoryIds.includes(cat.id);
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const newIds = isSelected
+                                      ? form.triggerCategoryIds.filter(id => id !== cat.id)
+                                      : [...form.triggerCategoryIds, cat.id];
+                                    updateForm({ triggerCategoryIds: newIds });
+                                  }}
+                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                    isSelected
+                                      ? 'bg-primary-500 text-white border-primary-500'
+                                      : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
+                                  }`}
+                                >
+                                  {cat.name}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        {form.triggerCategoryIds.length > 1 && (
-                          <p className="text-xs text-amber-600 mt-2">
-                            Les articles de {categories.filter(c => form.triggerCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')} comptent
-                          </p>
+
+                        {/* Trigger items configuration */}
+                        {form.triggerCategoryIds.length > 0 && (
+                          <div className="p-3 border-t">
+                            <p className="text-xs text-gray-500 mb-2">Cochez les articles/tailles éligibles:</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {menuItems
+                                .filter(item => item.category_id && form.triggerCategoryIds.includes(item.category_id))
+                                .map((item) => {
+                                  const isExcluded = form.triggerExcludedItems.includes(item.id);
+                                  const category = categories.find(c => c.id === item.category_id);
+                                  const sizeOptions = getSizeOptions(category);
+
+                                  return (
+                                    <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
+                                      <div className="flex items-center gap-3">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newExcluded = isExcluded
+                                              ? form.triggerExcludedItems.filter(id => id !== item.id)
+                                              : [...form.triggerExcludedItems, item.id];
+                                            updateForm({ triggerExcludedItems: newExcluded });
+                                          }}
+                                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                                            !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                                          }`}
+                                        >
+                                          {!isExcluded && <Check className="w-3 h-3" />}
+                                        </button>
+                                        <span className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}>
+                                          {item.name}
+                                        </span>
+                                      </div>
+
+                                      {/* Size options */}
+                                      {!isExcluded && sizeOptions && (
+                                        <div className="mt-2 ml-8 flex flex-wrap gap-2">
+                                          {sizeOptions.map((size) => {
+                                            const sizeIsExcluded = form.triggerExcludedSizes[item.id]?.includes(size.id);
+                                            return (
+                                              <button
+                                                key={size.id}
+                                                type="button"
+                                                onClick={() => {
+                                                  const currentExcluded = form.triggerExcludedSizes[item.id] || [];
+                                                  const newExcludedSizes = { ...form.triggerExcludedSizes };
+                                                  if (sizeIsExcluded) {
+                                                    newExcludedSizes[item.id] = currentExcluded.filter(id => id !== size.id);
+                                                    if (newExcludedSizes[item.id].length === 0) delete newExcludedSizes[item.id];
+                                                  } else {
+                                                    newExcludedSizes[item.id] = [...currentExcluded, size.id];
+                                                  }
+                                                  updateForm({ triggerExcludedSizes: newExcludedSizes });
+                                                }}
+                                                className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
+                                                  sizeIsExcluded
+                                                    ? 'bg-gray-100 text-gray-400 line-through'
+                                                    : 'bg-green-100 text-green-700'
+                                                }`}
+                                              >
+                                                {!sizeIsExcluded && <Check className="w-3 h-3" />}
+                                                {size.name}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
                         )}
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Catégories récompense (articles offerts)
-                        </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          Le client pourra choisir un article parmi ces catégories.
-                        </p>
-                        <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50">
-                          {categories.map((cat) => {
-                            const isSelected = form.rewardCategoryIds.includes(cat.id);
-                            return (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => {
-                                  const newIds = isSelected
-                                    ? form.rewardCategoryIds.filter(id => id !== cat.id)
-                                    : [...form.rewardCategoryIds, cat.id];
-                                  updateForm({ rewardCategoryIds: newIds });
-                                }}
-                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                  isSelected
-                                    ? 'bg-green-500 text-white border-green-500'
-                                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
-                                }`}
-                              >
-                                {cat.name}
-                              </button>
-                            );
-                          })}
+                      {/* Reward categories section */}
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="p-3 bg-green-50">
+                          <label className="block text-sm font-medium text-green-700 mb-2">
+                            Catégories récompense (articles offerts)
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {categories.map((cat) => {
+                              const isSelected = form.rewardCategoryIds.includes(cat.id);
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const newIds = isSelected
+                                      ? form.rewardCategoryIds.filter(id => id !== cat.id)
+                                      : [...form.rewardCategoryIds, cat.id];
+                                    updateForm({ rewardCategoryIds: newIds });
+                                  }}
+                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                    isSelected
+                                      ? 'bg-green-500 text-white border-green-500'
+                                      : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                                  }`}
+                                >
+                                  {cat.name}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        {form.rewardCategoryIds.length > 1 && (
-                          <p className="text-xs text-green-600 mt-2">
-                            Le client choisira parmi {categories.filter(c => form.rewardCategoryIds.includes(c.id)).map(c => c.name).join(' OU ')}
-                          </p>
+
+                        {/* Reward items configuration */}
+                        {form.rewardCategoryIds.length > 0 && (
+                          <div className="p-3 border-t">
+                            <p className="text-xs text-gray-500 mb-2">Cochez les articles/tailles éligibles comme récompense:</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {menuItems
+                                .filter(item => item.category_id && form.rewardCategoryIds.includes(item.category_id))
+                                .map((item) => {
+                                  const isExcluded = form.rewardExcludedItems.includes(item.id);
+                                  const category = categories.find(c => c.id === item.category_id);
+                                  const sizeOptions = getSizeOptions(category);
+
+                                  return (
+                                    <div key={item.id} className={`p-2 rounded-lg ${isExcluded ? 'bg-gray-100 opacity-60' : 'bg-white border'}`}>
+                                      <div className="flex items-center gap-3">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newExcluded = isExcluded
+                                              ? form.rewardExcludedItems.filter(id => id !== item.id)
+                                              : [...form.rewardExcludedItems, item.id];
+                                            updateForm({ rewardExcludedItems: newExcluded });
+                                          }}
+                                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                                            !isExcluded ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                                          }`}
+                                        >
+                                          {!isExcluded && <Check className="w-3 h-3" />}
+                                        </button>
+                                        <span className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}>
+                                          {item.name} ({formatPrice(item.price)})
+                                        </span>
+                                      </div>
+
+                                      {/* Size options */}
+                                      {!isExcluded && sizeOptions && (
+                                        <div className="mt-2 ml-8 flex flex-wrap gap-2">
+                                          {sizeOptions.map((size) => {
+                                            const sizeIsExcluded = form.rewardExcludedSizes[item.id]?.includes(size.id);
+                                            return (
+                                              <button
+                                                key={size.id}
+                                                type="button"
+                                                onClick={() => {
+                                                  const currentExcluded = form.rewardExcludedSizes[item.id] || [];
+                                                  const newExcludedSizes = { ...form.rewardExcludedSizes };
+                                                  if (sizeIsExcluded) {
+                                                    newExcludedSizes[item.id] = currentExcluded.filter(id => id !== size.id);
+                                                    if (newExcludedSizes[item.id].length === 0) delete newExcludedSizes[item.id];
+                                                  } else {
+                                                    newExcludedSizes[item.id] = [...currentExcluded, size.id];
+                                                  }
+                                                  updateForm({ rewardExcludedSizes: newExcludedSizes });
+                                                }}
+                                                className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
+                                                  sizeIsExcluded
+                                                    ? 'bg-gray-100 text-gray-400 line-through'
+                                                    : 'bg-green-100 text-green-700'
+                                                }`}
+                                              >
+                                                {!sizeIsExcluded && <Check className="w-3 h-3" />}
+                                                {size.name}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </>

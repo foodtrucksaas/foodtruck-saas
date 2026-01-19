@@ -1,7 +1,5 @@
--- Update get_applicable_offers to support category-based buy_x_get_y offers
+-- Update get_applicable_offers to support excluded items and sizes for buy_x_get_y
 -- Now supports:
--- - type: 'specific_items' (default, uses offer_items table)
--- - type: 'category_choice' (uses trigger_category_ids and reward_category_ids from config)
 -- - trigger_excluded_items / trigger_excluded_sizes: items/sizes NOT eligible as triggers
 -- - reward_excluded_items / reward_excluded_sizes: items/sizes NOT eligible as rewards
 

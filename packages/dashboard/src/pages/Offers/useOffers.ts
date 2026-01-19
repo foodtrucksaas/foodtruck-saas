@@ -62,9 +62,13 @@ export interface OfferFormState {
   triggerQuantity: string;
   triggerItems: string[]; // For specific_items mode
   triggerCategoryIds: string[]; // For category_choice mode (OR logic)
+  triggerExcludedItems: string[]; // Items NOT eligible as triggers
+  triggerExcludedSizes: Record<string, string[]>; // itemId -> excluded sizeIds
   rewardType: 'free' | 'discount';
   rewardItems: string[]; // For specific_items mode
   rewardCategoryIds: string[]; // For category_choice mode (OR logic)
+  rewardExcludedItems: string[]; // Items NOT eligible as rewards
+  rewardExcludedSizes: Record<string, string[]>; // itemId -> excluded sizeIds
   rewardQuantity: string;
   rewardValue: string;
   // Happy Hour
@@ -106,9 +110,13 @@ const initialFormState: OfferFormState = {
   triggerQuantity: '3',
   triggerItems: [],
   triggerCategoryIds: [],
+  triggerExcludedItems: [],
+  triggerExcludedSizes: {},
   rewardType: 'free',
   rewardItems: [],
   rewardCategoryIds: [],
+  rewardExcludedItems: [],
+  rewardExcludedSizes: {},
   rewardQuantity: '1',
   rewardValue: '',
   happyHourDiscountType: 'percentage',
@@ -215,7 +223,11 @@ export function useOffers() {
               ? Math.round(parseFloat(form.rewardValue || '0') * 100)
               : undefined,
             trigger_category_ids: form.triggerCategoryIds,
+            trigger_excluded_items: form.triggerExcludedItems.length > 0 ? form.triggerExcludedItems : undefined,
+            trigger_excluded_sizes: Object.keys(form.triggerExcludedSizes).length > 0 ? form.triggerExcludedSizes : undefined,
             reward_category_ids: form.rewardCategoryIds,
+            reward_excluded_items: form.rewardExcludedItems.length > 0 ? form.rewardExcludedItems : undefined,
+            reward_excluded_sizes: Object.keys(form.rewardExcludedSizes).length > 0 ? form.rewardExcludedSizes : undefined,
           };
         }
         return {
@@ -510,7 +522,11 @@ export function useOffers() {
         if (config.type === 'category_choice' && config.trigger_category_ids) {
           newForm.buyXGetYType = 'category_choice';
           newForm.triggerCategoryIds = config.trigger_category_ids || [];
+          newForm.triggerExcludedItems = config.trigger_excluded_items || [];
+          newForm.triggerExcludedSizes = config.trigger_excluded_sizes || {};
           newForm.rewardCategoryIds = config.reward_category_ids || [];
+          newForm.rewardExcludedItems = config.reward_excluded_items || [];
+          newForm.rewardExcludedSizes = config.reward_excluded_sizes || {};
         } else {
           newForm.buyXGetYType = 'specific_items';
           newForm.triggerItems = (offer.offer_items || [])

@@ -458,7 +458,11 @@ export interface BuyXGetYConfig {
   // Category-based mode (OR logic - customer picks from any of these categories)
   type?: 'specific_items' | 'category_choice'; // Default: specific_items for backwards compat
   trigger_category_ids?: string[]; // Categories whose items trigger the offer
+  trigger_excluded_items?: string[]; // Items NOT eligible as triggers
+  trigger_excluded_sizes?: Record<string, string[]>; // itemId -> list of excluded sizeIds
   reward_category_ids?: string[]; // Categories from which reward can be chosen
+  reward_excluded_items?: string[]; // Items NOT eligible as rewards
+  reward_excluded_sizes?: Record<string, string[]>; // itemId -> list of excluded sizeIds
 }
 
 export interface HappyHourConfig {
