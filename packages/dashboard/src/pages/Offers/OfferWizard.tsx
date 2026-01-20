@@ -753,7 +753,7 @@ export function OfferWizard({
                       }`}
                     >
                       <div className="font-semibold">Par catégorie</div>
-                      <div className="text-xs text-gray-500 mt-0.5">2 pizzas = 1 boisson offerte</div>
+                      <div className="text-xs text-gray-500 mt-0.5">Ex: 2 pizzas = 1 boisson offerte</div>
                     </button>
                     <button
                       type="button"
