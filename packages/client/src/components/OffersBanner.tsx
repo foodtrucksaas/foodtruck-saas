@@ -7,7 +7,10 @@ interface OffersBannerProps {
 }
 
 export default function OffersBanner({ offers }: OffersBannerProps) {
-  if (offers.length === 0) return null;
+  // Filter out promo_code offers - they need to be entered by the customer
+  const visibleOffers = offers.filter(o => o.offer_type !== 'promo_code');
+
+  if (visibleOffers.length === 0) return null;
 
   const formatOfferReward = (offer: ApplicableOffer) => {
     if (offer.free_item_name) {
@@ -21,7 +24,7 @@ export default function OffersBanner({ offers }: OffersBannerProps) {
 
   return (
     <div className="space-y-2">
-      {offers.map((offer) => {
+      {visibleOffers.map((offer) => {
         const isApplicable = offer.is_applicable;
         const progress = offer.progress_required > 0
           ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)

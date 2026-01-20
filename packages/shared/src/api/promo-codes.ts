@@ -35,12 +35,13 @@ export function createPromoCodesApi(supabase: TypedSupabaseClient) {
       return result;
     },
 
-    // Count active promo codes for a foodtruck
+    // Count active promo codes for a foodtruck (now checks offers table)
     async countActive(foodtruckId: string): Promise<number> {
       const { count, error } = await supabase
-        .from('promo_codes')
+        .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('foodtruck_id', foodtruckId)
+        .eq('offer_type', 'promo_code')
         .eq('is_active', true);
 
       if (error) throw error;
