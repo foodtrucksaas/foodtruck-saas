@@ -18,6 +18,7 @@ export interface CartItemForOffers {
   category_id: string | null;
   quantity: number;
   price: number;
+  size_id?: string | null;
 }
 
 export function createOffersApi(supabase: TypedSupabaseClient) {

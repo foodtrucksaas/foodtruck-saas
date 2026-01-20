@@ -49,6 +49,7 @@ export function useOffers(
             category_id: item.menuItem.category_id,
             quantity: item.quantity,
             price: basePrice + supplementsTotal,
+            size_id: sizeOption?.optionId || null,
           };
         });
 

@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, Gift, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatPrice, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
-import DealsBanner from '../components/DealsBanner';
+import OffersBanner from '../components/OffersBanner';
 
 // Hooks
 import {
@@ -12,7 +12,7 @@ import {
   useTimeSlots,
   usePromoCode,
   useLoyalty,
-  useDeals,
+  useOffers,
   useBundleDetection,
   calculateLoyaltyDiscount,
 } from '../hooks';
@@ -82,11 +82,11 @@ export default function Checkout() {
   } = useLoyalty(foodtruckId, form.email);
 
   const {
-    applicableDeals,
-    loading: dealsLoading,
-    bestDeal,
-    totalDealDiscount,
-  } = useDeals(foodtruckId, items);
+    applicableOffers,
+    loading: offersLoading,
+    bestOffer,
+    totalOfferDiscount,
+  } = useOffers(foodtruckId, items, total, form.email);
 
   const {
     bestBundle,
@@ -129,7 +129,7 @@ export default function Checkout() {
 
   const promoDiscount = appliedPromo?.discount || 0;
   const bundleDiscount = totalBundleSavings;
-  const finalTotal = Math.max(0, total - promoDiscount - loyaltyDiscount - totalDealDiscount - bundleDiscount);
+  const finalTotal = Math.max(0, total - promoDiscount - loyaltyDiscount - totalOfferDiscount - bundleDiscount);
 
   // Get selected slot for display
   const selectedSlot = slots.find(s => `${s.time}|${s.scheduleId}` === form.pickupTime);
@@ -186,13 +186,13 @@ export default function Checkout() {
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
       promo_code_id: appliedPromo?.id,
-      discount_amount: promoDiscount + loyaltyDiscount + totalDealDiscount,
+      discount_amount: promoDiscount + loyaltyDiscount + totalOfferDiscount,
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
-      deal_id: bestDeal?.deal_id || undefined,
-      deal_discount: totalDealDiscount || undefined,
-      deal_free_item_name: bestDeal?.reward_item_name || undefined,
+      deal_id: bestOffer?.offer_id || undefined,
+      deal_discount: totalOfferDiscount || undefined,
+      deal_free_item_name: bestOffer?.free_item_name || undefined,
       bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
       items: items.flatMap((item) => {
         // For bundles, send each selection as a separate item with bundle info
@@ -311,8 +311,8 @@ export default function Checkout() {
           total={total}
           promoDiscount={promoDiscount}
           loyaltyDiscount={loyaltyDiscount}
-          dealDiscount={totalDealDiscount}
-          dealName={bestDeal?.deal_name}
+          dealDiscount={totalOfferDiscount}
+          dealName={bestOffer?.offer_name}
           bundleDiscount={bundleDiscount}
           bundleName={bestBundle?.bundle.name}
           finalTotal={finalTotal}
@@ -476,8 +476,8 @@ export default function Checkout() {
           </div>
         )}
 
-        {/* Deals Section */}
-        {applicableDeals.length > 0 && (
+        {/* Offers Section */}
+        {applicableOffers.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
             <h2 className="font-bold text-anthracite mb-4 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-success-50 flex items-center justify-center">
@@ -485,13 +485,13 @@ export default function Checkout() {
               </div>
               Offres disponibles
             </h2>
-            {dealsLoading ? (
+            {offersLoading ? (
               <div className="flex items-center gap-2 text-gray-400 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Chargement...</span>
               </div>
             ) : (
-              <DealsBanner deals={applicableDeals} />
+              <OffersBanner offers={applicableOffers} />
             )}
           </div>
         )}

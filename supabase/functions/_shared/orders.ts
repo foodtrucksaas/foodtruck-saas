@@ -327,7 +327,7 @@ export async function validatePromoCode(
 }
 
 /**
- * Validate deal if used
+ * Validate deal or offer if used
  */
 export async function validateDeal(
   foodtruckId: string,
@@ -350,7 +350,7 @@ export async function validateDeal(
 
   const supabase = createSupabaseAdmin();
 
-  // Fetch the deal
+  // First try to fetch from deals table (legacy)
   const { data: deal, error } = await supabase
     .from('deals')
     .select('*, categories(name)')
@@ -358,8 +358,47 @@ export async function validateDeal(
     .eq('foodtruck_id', foodtruckId)
     .single();
 
+  // If not found in deals, try offers table
   if (error || !deal) {
-    return errorResponse('Formule invalide');
+    const { data: offer, error: offerError } = await supabase
+      .from('offers')
+      .select('*')
+      .eq('id', dealId)
+      .eq('foodtruck_id', foodtruckId)
+      .single();
+
+    if (offerError || !offer) {
+      return errorResponse('Formule/offre invalide');
+    }
+
+    // Validate offer is active
+    if (!offer.is_active) {
+      return errorResponse('Cette offre n\'est plus active');
+    }
+
+    // For offers, we trust the client-side calculation from get_applicable_offers
+    // The SQL function already validated the cart items
+    // Just do a basic sanity check that the discount is reasonable
+    const menuMap = new Map(menuItems.map(m => [m.id, m]));
+    let cartTotal = 0;
+    for (const item of items) {
+      const menuItem = menuMap.get(item.menu_item_id);
+      if (!menuItem) continue;
+      let unitPrice = menuItem.price;
+      if (item.selected_options) {
+        for (const opt of item.selected_options) {
+          unitPrice += opt.price_modifier;
+        }
+      }
+      cartTotal += unitPrice * item.quantity;
+    }
+
+    // Discount should never exceed cart total
+    if (dealDiscount > cartTotal) {
+      return errorResponse('La réduction ne peut pas dépasser le total du panier');
+    }
+
+    return null; // Offer is valid
   }
 
   // Check if active
