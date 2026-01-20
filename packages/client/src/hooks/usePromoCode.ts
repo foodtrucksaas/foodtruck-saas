@@ -38,7 +38,8 @@ export function usePromoCode(
     setPromoError(null);
 
     try {
-      const result = await api.promoCodes.validate(
+      // Use new offers system for promo codes
+      const result = await api.offers.validatePromoCode(
         foodtruckId,
         promoCode.trim(),
         customerEmail || 'anonymous@temp.com',
@@ -51,10 +52,10 @@ export function usePromoCode(
       }
 
       setAppliedPromo({
-        id: result.promo_code_id!,
+        id: result.offer_id!,
         code: promoCode.trim().toUpperCase(),
         discount: result.calculated_discount!,
-        discountType: result.discount_type!,
+        discountType: result.discount_type! as 'percentage' | 'fixed',
         discountValue: result.discount_value!,
       });
       setPromoCode('');
