@@ -365,17 +365,17 @@ export default function FoodtruckPage() {
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-5">
-            {/* Bundles / Menus */}
-            {(bundles.length > 0 || specificItemsBundles.length > 0) && (
+            {/* Unified Offers Section */}
+            {(bundles.length > 0 || specificItemsBundles.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 rounded-md bg-primary-100 flex items-center justify-center">
-                    <ShoppingBag className="w-3.5 h-3.5 text-primary-500" />
+                    <Gift className="w-3.5 h-3.5 text-primary-500" />
                   </div>
-                  <h2 className="text-base font-bold text-anthracite">Nos formules</h2>
+                  <h2 className="text-base font-bold text-anthracite">Nos offres</h2>
                 </div>
                 <div className="grid gap-3">
-                  {/* Category choice bundles */}
+                  {/* Category choice bundles - clickable */}
                   {bundles.map((bundle) => {
                     const categoryCount = bundle.config.bundle_categories?.length || 0;
                     const categoryNames = bundle.config.bundle_categories
@@ -396,7 +396,7 @@ export default function FoodtruckPage() {
                               <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
                             )}
                             <p className="text-xs text-primary-600 mt-2 font-medium">
-                              {categoryNames || `${categoryCount} articles au choix`}
+                              👆 Cliquez pour composer • {categoryNames || `${categoryCount} articles au choix`}
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
@@ -414,7 +414,7 @@ export default function FoodtruckPage() {
                     );
                   })}
 
-                  {/* Specific items bundles */}
+                  {/* Specific items bundles - clickable */}
                   {specificItemsBundles.map((bundle) => {
                     const itemNames = bundle.offer_items
                       .map(oi => {
@@ -437,7 +437,7 @@ export default function FoodtruckPage() {
                               <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
                             )}
                             <p className="text-xs text-primary-600 mt-2 font-medium">
-                              {itemNames}
+                              👆 Cliquez pour composer • {itemNames}
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
@@ -454,25 +454,13 @@ export default function FoodtruckPage() {
                       </button>
                     );
                   })}
-                </div>
-              </div>
-            )}
 
-            {/* Available Offers (excluding bundles and promo codes) */}
-            {visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-md bg-green-100 flex items-center justify-center">
-                    <Gift className="w-3.5 h-3.5 text-green-600" />
-                  </div>
-                  <h2 className="text-base font-bold text-anthracite">Offres en cours</h2>
-                </div>
-                <div className="grid gap-3">
+                  {/* Other offers (buy_x_get_y, happy_hour, threshold) - auto-applied */}
                   {visibleOffers
                     .filter(o => o.offer_type !== 'bundle')
                     .map((offer) => {
                       const isApplicable = offer.is_applicable;
-                      const hasProgress = offer.progress_required > 0 && offer.progress_current > 0;
+                      const hasProgress = offer.progress_required > 0;
                       const progress = offer.progress_required > 0
                         ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
                         : 0;
@@ -494,13 +482,12 @@ export default function FoodtruckPage() {
                               {offer.description && (
                                 <p className="text-sm text-gray-600 mt-0.5">{offer.description}</p>
                               )}
-                              {offer.free_item_name && (
-                                <p className={`text-xs mt-2 font-medium ${isApplicable ? 'text-green-600' : 'text-primary-600'}`}>
-                                  {offer.free_item_name}
+                              {/* Progress bar or auto-apply message */}
+                              {isApplicable ? (
+                                <p className="text-xs text-green-600 mt-2 font-medium">
+                                  ✓ Offre appliquée ! {offer.free_item_name && `• ${offer.free_item_name}`}
                                 </p>
-                              )}
-                              {/* Progress bar */}
-                              {!isApplicable && hasProgress && (
+                              ) : hasProgress ? (
                                 <div className="mt-2">
                                   <div className="h-1.5 bg-white/50 rounded-full overflow-hidden">
                                     <div
@@ -509,9 +496,13 @@ export default function FoodtruckPage() {
                                     />
                                   </div>
                                   <p className="text-xs text-primary-600 mt-1 font-medium">
-                                    {offer.progress_current}/{offer.progress_required} - Plus que {offer.progress_required - offer.progress_current} !
+                                    {offer.progress_current}/{offer.progress_required} • Ajoutez au panier, l'offre s'appliquera
                                   </p>
                                 </div>
+                              ) : (
+                                <p className="text-xs text-primary-600 mt-2 font-medium">
+                                  🛒 Ajoutez au panier, l'offre s'appliquera automatiquement
+                                </p>
                               )}
                             </div>
                             {isApplicable && offer.calculated_discount > 0 && (
