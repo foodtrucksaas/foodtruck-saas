@@ -400,16 +400,20 @@ export default function BuyXGetYSelectionModal({
         const allOptions = [...sel.selectedOptions];
 
         // Add size option if selected
+        // IMPORTANT: priceModifier for size options must be the FULL price (base + modifier)
+        // because CartContext uses it directly as the base price
         if (sel.selectedSizeId && sizeOptions) {
           const sizeOption = sizeOptions.find(s => s.id === sel.selectedSizeId);
           if (sizeOption) {
             const sizeGroup = getSizeGroup(category);
+            // Full price = menuItem base price + size modifier
+            const fullSizePrice = sel.menuItem.price + (sizeOption.price_modifier || 0);
             allOptions.push({
               optionId: sizeOption.id,
               optionGroupId: sizeGroup?.id || '',
               name: sizeOption.name,
               groupName: sizeGroup?.name || 'Taille',
-              priceModifier: sizeOption.price_modifier || 0,
+              priceModifier: fullSizePrice,
               isSizeOption: true,
             });
           }
@@ -431,16 +435,19 @@ export default function BuyXGetYSelectionModal({
         const allOptions = [...sel.selectedOptions];
 
         // Add size option if selected
+        // IMPORTANT: priceModifier for size options must be the FULL price (base + modifier)
         if (sel.selectedSizeId && sizeOptions) {
           const sizeOption = sizeOptions.find(s => s.id === sel.selectedSizeId);
           if (sizeOption) {
             const sizeGroup = getSizeGroup(category);
+            // Full price = menuItem base price + size modifier
+            const fullSizePrice = sel.menuItem.price + (sizeOption.price_modifier || 0);
             allOptions.push({
               optionId: sizeOption.id,
               optionGroupId: sizeGroup?.id || '',
               name: sizeOption.name,
               groupName: sizeGroup?.name || 'Taille',
-              priceModifier: sizeOption.price_modifier || 0,
+              priceModifier: fullSizePrice,
               isSizeOption: true,
             });
           }
