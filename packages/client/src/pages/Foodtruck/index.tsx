@@ -751,37 +751,40 @@ export default function FoodtruckPage() {
       {/* Cart Bar */}
       {itemCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100">
-          {/* Show applied discount */}
-          {appliedDiscount > 0 && appliedDiscountName && (
-            <div className="flex items-center justify-between mb-2 px-1">
-              <div className="flex items-center gap-1.5 text-green-600">
-                <Tag className="w-4 h-4" />
-                <span className="text-sm font-medium">{appliedDiscountName}</span>
-              </div>
-              <span className="text-sm font-bold text-green-600">-{formatPrice(appliedDiscount)}</span>
-            </div>
-          )}
           <Link
             to={`/${foodtruckId}/checkout`}
-            className="w-full py-3 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold flex items-center justify-between transition-all active:scale-[0.98]"
+            className="w-full rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"
             style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
           >
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              <span className="text-sm">Voir le panier</span>
-              <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold">
-                {itemCount}
-              </span>
-            </div>
-            <div className="text-right">
-              {appliedDiscount > 0 ? (
-                <>
-                  <span className="text-xs line-through opacity-70 mr-2">{formatPrice(total)}</span>
-                  <span className="font-bold">{formatPrice(finalTotal)}</span>
-                </>
-              ) : (
-                <span className="font-bold">{formatPrice(total)}</span>
-              )}
+            {/* Discount banner integrated in button */}
+            {appliedDiscount > 0 && appliedDiscountName && (
+              <div className="bg-green-500 px-4 py-1.5 flex items-center justify-center gap-2 text-white text-sm">
+                <Tag className="w-3.5 h-3.5" />
+                <span className="font-medium truncate">{appliedDiscountName}</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap">
+                  -{formatPrice(appliedDiscount)}
+                </span>
+              </div>
+            )}
+            {/* Main button content */}
+            <div className="flex items-center justify-between py-3 px-4">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="text-sm">Voir le panier</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold">
+                  {itemCount}
+                </span>
+              </div>
+              <div className="text-right flex items-center gap-2">
+                {appliedDiscount > 0 ? (
+                  <>
+                    <span className="text-xs line-through opacity-70">{formatPrice(total)}</span>
+                    <span className="font-bold text-lg">{formatPrice(finalTotal)}</span>
+                  </>
+                ) : (
+                  <span className="font-bold text-lg">{formatPrice(total)}</span>
+                )}
+              </div>
             </div>
           </Link>
         </div>
