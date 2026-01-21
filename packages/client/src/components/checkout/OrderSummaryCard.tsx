@@ -12,7 +12,6 @@ interface OrderSummaryCardProps {
   dealName?: string;
   bundleDiscount: number;
   bundleName?: string;
-  bundlePrice?: number;
   finalTotal: number;
   selectedDate: Date;
   selectedSlot: SlotWithLocation | undefined;
@@ -31,7 +30,6 @@ export function OrderSummaryCard({
   dealName,
   bundleDiscount,
   bundleName,
-  bundlePrice,
   finalTotal,
   selectedDate,
   selectedSlot,
@@ -148,9 +146,9 @@ export function OrderSummaryCard({
           </div>
         )}
         {bundleDiscount > 0 && (
-          <div className="flex justify-between text-primary-600">
+          <div className="flex justify-between text-success-600">
             <span>{bundleName || 'Menu'}</span>
-            <span className="font-medium">{bundlePrice ? formatPrice(bundlePrice) : `-${formatPrice(bundleDiscount)}`}</span>
+            <span className="font-medium">-{formatPrice(bundleDiscount)}</span>
           </div>
         )}
         {loyaltyDiscount > 0 && (

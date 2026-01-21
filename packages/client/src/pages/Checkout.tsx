@@ -325,7 +325,6 @@ export default function Checkout() {
           dealName={appliedOfferDiscount > 0 ? bestOffer?.offer_name : undefined}
           bundleDiscount={appliedBundleDiscount}
           bundleName={appliedBundleDiscount > 0 ? bestBundle?.bundle.name : undefined}
-          bundlePrice={appliedBundleDiscount > 0 ? bestBundle?.bundlePrice : undefined}
           finalTotal={finalTotal}
           selectedDate={selectedDate}
           selectedSlot={selectedSlot}
