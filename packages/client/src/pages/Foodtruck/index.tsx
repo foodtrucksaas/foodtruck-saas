@@ -9,6 +9,7 @@ import {
   ShoppingBag,
   Star,
   Navigation,
+  Tag,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -16,6 +17,8 @@ import {
   DAY_NAMES,
 } from '@foodtruck/shared';
 import MapComponent from '../../components/Map';
+import { useCart } from '../../contexts/CartContext';
+import { useOffers, useBundleDetection } from '../../hooks';
 import { useFoodtruck } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
@@ -82,6 +85,26 @@ export default function FoodtruckPage() {
     handleSpecificBundleConfirm,
     closeSpecificBundleModal,
   } = useFoodtruck(foodtruckId);
+
+  // Get cart items for offer detection
+  const { items } = useCart();
+
+  // Detect applicable offers in real-time
+  const {
+    bestOffer,
+    totalOfferDiscount,
+  } = useOffers(foodtruckId, items, total);
+
+  const {
+    bestBundle,
+    totalBundleSavings,
+  } = useBundleDetection(foodtruckId, items);
+
+  // Calculate best discount (offers and bundles don't stack)
+  const useBundleAsDiscount = (totalBundleSavings || 0) > (totalOfferDiscount || 0);
+  const appliedDiscount = useBundleAsDiscount ? totalBundleSavings : totalOfferDiscount;
+  const appliedDiscountName = useBundleAsDiscount ? bestBundle?.bundle.name : bestOffer?.offer_name;
+  const finalTotal = Math.max(0, total - appliedDiscount);
 
   // Track active category based on scroll position
   useEffect(() => {
@@ -615,6 +638,16 @@ export default function FoodtruckPage() {
       {/* Cart Bar */}
       {itemCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100">
+          {/* Show applied discount */}
+          {appliedDiscount > 0 && appliedDiscountName && (
+            <div className="flex items-center justify-between mb-2 px-1">
+              <div className="flex items-center gap-1.5 text-green-600">
+                <Tag className="w-4 h-4" />
+                <span className="text-sm font-medium">{appliedDiscountName}</span>
+              </div>
+              <span className="text-sm font-bold text-green-600">-{formatPrice(appliedDiscount)}</span>
+            </div>
+          )}
           <Link
             to={`/${foodtruckId}/checkout`}
             className="w-full py-3 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold flex items-center justify-between transition-all active:scale-[0.98]"
@@ -627,7 +660,16 @@ export default function FoodtruckPage() {
                 {itemCount}
               </span>
             </div>
-            <span className="font-bold">{formatPrice(total)}</span>
+            <div className="text-right">
+              {appliedDiscount > 0 ? (
+                <>
+                  <span className="text-xs line-through opacity-70 mr-2">{formatPrice(total)}</span>
+                  <span className="font-bold">{formatPrice(finalTotal)}</span>
+                </>
+              ) : (
+                <span className="font-bold">{formatPrice(total)}</span>
+              )}
+            </div>
           </Link>
         </div>
       )}
