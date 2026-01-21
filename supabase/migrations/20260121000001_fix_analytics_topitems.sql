@@ -1,6 +1,9 @@
 -- Fix get_analytics function to ensure topItems.amount is never null
 -- and properly calculates the total including options
 
+-- Drop and recreate to avoid parameter default conflicts
+DROP FUNCTION IF EXISTS get_analytics(UUID, DATE, DATE);
+
 CREATE OR REPLACE FUNCTION get_analytics(
   p_foodtruck_id UUID,
   p_start_date DATE,
