@@ -4,8 +4,6 @@ import { createLocationsApi } from './locations';
 import { createOrdersApi } from './orders';
 import { createMenuApi } from './menu';
 import { createFoodtrucksApi } from './foodtrucks';
-import { createPromoCodesApi } from './promo-codes';
-import { createDealsApi } from './deals';
 import { createLoyaltyApi } from './loyalty';
 import { createOffersApi } from './offers';
 
@@ -17,8 +15,6 @@ export type { LocationsApi } from './locations';
 export type { OrdersApi, OrderFilters } from './orders';
 export type { MenuApi } from './menu';
 export type { FoodtrucksApi } from './foodtrucks';
-export type { PromoCodesApi } from './promo-codes';
-export type { DealsApi } from './deals';
 export type { LoyaltyApi } from './loyalty';
 export type { OffersApi, CartItemForOffers } from './offers';
 
@@ -30,8 +26,6 @@ export function createApi(supabase: TypedSupabaseClient) {
     orders: createOrdersApi(supabase),
     menu: createMenuApi(supabase),
     foodtrucks: createFoodtrucksApi(supabase),
-    promoCodes: createPromoCodesApi(supabase),
-    deals: createDealsApi(supabase),
     loyalty: createLoyaltyApi(supabase),
     offers: createOffersApi(supabase),
   };
@@ -45,8 +39,6 @@ export { createLocationsApi } from './locations';
 export { createOrdersApi } from './orders';
 export { createMenuApi } from './menu';
 export { createFoodtrucksApi } from './foodtrucks';
-export { createPromoCodesApi } from './promo-codes';
-export { createDealsApi } from './deals';
 export { createLoyaltyApi } from './loyalty';
 export { createOffersApi } from './offers';
 export {

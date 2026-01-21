@@ -241,6 +241,19 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
     // Statistics
     // ============================================
 
+    // Count active promo codes for a foodtruck
+    async countActivePromoCodes(foodtruckId: string): Promise<number> {
+      const { count, error } = await supabase
+        .from('offers')
+        .select('id', { count: 'exact', head: true })
+        .eq('foodtruck_id', foodtruckId)
+        .eq('offer_type', 'promo_code')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      return count || 0;
+    },
+
     // Get offer statistics
     async getStats(offerId: string): Promise<{
       total_uses: number;

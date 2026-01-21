@@ -4,7 +4,7 @@ import {
 } from 'recharts';
 import { Calendar, ChevronDown, Download, Clock, MapPin } from 'lucide-react';
 import { Package, ShoppingBag, TrendingUp, TrendingDown, Users } from 'lucide-react';
-import { formatPrice } from '@foodtruck/shared';
+import { formatPrice, safeDivide, safeNumber } from '@foodtruck/shared';
 import { useAnalytics, DATE_PRESETS } from './useAnalytics';
 
 // Chart wrapper that only renders when container has valid dimensions
@@ -170,7 +170,7 @@ export default function Analytics() {
               {analytics.amountByLocation.slice(0, 5).map((loc, idx) => (
                 <div key={idx} className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 truncate flex-1">{loc.locationName}</span>
-                  <div className="text-right ml-2"><p className="text-sm font-semibold">{formatPrice(loc.amount)}</p><p className="text-xs text-gray-400">{loc.orderCount} cmd</p></div>
+                  <div className="text-right ml-2"><p className="text-sm font-semibold">{formatPrice(safeNumber(loc.amount))}</p><p className="text-xs text-gray-400">{loc.orderCount} cmd</p></div>
                 </div>
               ))}
             </div>
@@ -184,14 +184,14 @@ export default function Analytics() {
         {analytics?.topItems && analytics.topItems.length > 0 ? (
           <div className="space-y-4">
             {analytics.topItems.map((item, index) => {
-              const percentage = maxItemRevenue > 0 ? (item.amount / maxItemRevenue) * 100 : 0;
+              const percentage = safeDivide(item.amount, maxItemRevenue) * 100;
               return (
                 <div key={index} className="flex items-center gap-4">
                   <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-bold flex-shrink-0">{index + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-gray-900 truncate">{item.menuItemName}</span>
-                      <span className="text-sm font-semibold text-gray-900 ml-2">{formatPrice(item.amount)}</span>
+                      <span className="text-sm font-semibold text-gray-900 ml-2">{formatPrice(safeNumber(item.amount))}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -215,7 +215,7 @@ export default function Analytics() {
             {analytics.categoryStats.map((cat, idx) => (
               <div key={idx} className="bg-gray-50 rounded-lg p-4">
                 <p className="font-medium text-gray-900 mb-2">{cat.categoryName || 'Sans catégorie'}</p>
-                <p className="text-2xl font-bold text-primary-600">{formatPrice(cat.amount)}</p>
+                <p className="text-2xl font-bold text-primary-600">{formatPrice(safeNumber(cat.amount))}</p>
                 <p className="text-sm text-gray-500">{cat.quantity} articles vendus</p>
               </div>
             ))}
@@ -229,15 +229,17 @@ export default function Analytics() {
 function KpiCard({ icon: Icon, iconBg, iconColor, label, value, change }: {
   icon: React.ElementType; iconBg: string; iconColor: string; label: string; value: string | number; change: number;
 }) {
+  const displayChange = Number.isFinite(change) ? change : 0;
+
   return (
     <div className="card p-5">
       <div className="flex items-start justify-between">
         <div><p className="text-sm text-gray-500 mb-1">{label}</p><p className="text-2xl font-bold text-gray-900">{value}</p></div>
         <div className={`p-2 rounded-lg ${iconBg}`}><Icon className={`w-5 h-5 ${iconColor}`} /></div>
       </div>
-      <div className={`flex items-center gap-1 mt-2 text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-        {change >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-        <span>{change >= 0 ? '+' : ''}{change.toFixed(1)}%</span>
+      <div className={`flex items-center gap-1 mt-2 text-sm ${displayChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        {displayChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+        <span>{displayChange >= 0 ? '+' : ''}{displayChange.toFixed(1)}%</span>
         <span className="text-gray-400 ml-1">vs période préc.</span>
       </div>
     </div>

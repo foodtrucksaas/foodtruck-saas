@@ -16,7 +16,6 @@ import {
   DAY_NAMES,
 } from '@foodtruck/shared';
 import MapComponent from '../../components/Map';
-import DealsBanner from '../../components/DealsBanner';
 import { useFoodtruck } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
@@ -33,7 +32,6 @@ export default function FoodtruckPage() {
     categories,
     menuItems,
     schedules,
-    deals,
     bundles,
     specificItemsBundles,
     loading,
@@ -339,33 +337,6 @@ export default function FoodtruckPage() {
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-5">
-            {/* Deals Banner */}
-            {deals.length > 0 && (
-              <DealsBanner
-                deals={deals.map((deal) => {
-                  const category = categories.find((c) => c.id === deal.trigger_category_id);
-                  const rewardItem = menuItems.find((m) => m.id === deal.reward_item_id);
-                  return {
-                    deal_id: deal.id,
-                    deal_name: deal.name,
-                    reward_type: deal.reward_type,
-                    reward_item_id: deal.reward_item_id,
-                    reward_item_name: rewardItem?.name || null,
-                    reward_item_price: rewardItem?.price || null,
-                    reward_value: deal.reward_value,
-                    calculated_discount: 0,
-                    trigger_category_name: category?.name || null,
-                    trigger_quantity: deal.trigger_quantity,
-                    is_applicable: false,
-                    items_in_cart: 0,
-                    items_needed: deal.trigger_quantity,
-                    cheapest_item_name: null,
-                  };
-                })}
-                compact
-              />
-            )}
-
             {/* Bundles / Menus */}
             {(bundles.length > 0 || specificItemsBundles.length > 0) && (
               <div>

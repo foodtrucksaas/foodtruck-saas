@@ -9,7 +9,6 @@ import type {
   CategoryOptionGroup,
   CategoryOption,
   SelectedOption,
-  Deal,
   Offer,
   BundleConfig,
 } from '@foodtruck/shared';
@@ -60,7 +59,6 @@ interface UseFoodtruckResult {
   categories: CategoryWithOptions[];
   menuItems: MenuItem[];
   schedules: ScheduleWithLocation[];
-  deals: Deal[];
   bundles: BundleOffer[];
   specificItemsBundles: SpecificItemsBundleOffer[];
   loading: boolean;
@@ -129,7 +127,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const [categories, setCategories] = useState<CategoryWithOptions[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [schedules, setSchedules] = useState<ScheduleWithLocation[]>([]);
-  const [deals, setDeals] = useState<Deal[]>([]);
   const [bundles, setBundles] = useState<BundleOffer[]>([]);
   const [specificItemsBundles, setSpecificItemsBundles] = useState<SpecificItemsBundleOffer[]>([]);
   const [todayException, setTodayException] = useState<TodayException | null>(null);
@@ -169,7 +166,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       // Fetch other data in parallel
       const todayStr = formatLocalDate(new Date());
       const now = new Date().toISOString();
-      const [categoriesRes, menuRes, schedulesRes, dealsRes, exceptionRes, bundlesRes] = await Promise.all([
+      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes] = await Promise.all([
         supabase
           .from('categories')
           .select('*, category_option_groups(*, category_options(*))')
@@ -188,11 +185,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
           .eq('foodtruck_id', foodtruckId)
           .eq('is_active', true)
           .order('day_of_week'),
-        supabase
-          .from('deals')
-          .select('*')
-          .eq('foodtruck_id', foodtruckId)
-          .eq('is_active', true),
         supabase
           .from('schedule_exceptions')
           .select('*, location:locations(*)')
@@ -213,7 +205,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
       setMenuItems((menuRes.data as MenuItem[]) || []);
       setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
-      setDeals((dealsRes.data as Deal[]) || []);
 
       // Separate bundles by type
       const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & { offer_items?: BundleOfferItem[] })[];
@@ -438,7 +429,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     categories,
     menuItems,
     schedules,
-    deals,
     bundles,
     specificItemsBundles,
     loading,

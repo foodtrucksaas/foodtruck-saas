@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import type { AnalyticsData } from '@foodtruck/shared';
-import { DAY_NAMES, formatLocalDate } from '@foodtruck/shared';
+import { DAY_NAMES, formatLocalDate, safeNumber, calculatePercentageChange } from '@foodtruck/shared';
 
 export type DatePreset = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'custom';
 
@@ -60,11 +60,6 @@ function formatDateDisplay(date: string): string {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
-export function calculateChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return ((current - previous) / previous) * 100;
-}
-
 export function useAnalytics() {
   const { foodtruck } = useFoodtruck();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -94,9 +89,18 @@ export function useAnalytics() {
     });
   }, [foodtruck, dateRange]);
 
-  const revenueChange = analytics ? calculateChange(analytics.orderAmount, analytics.previousOrderAmount) : 0;
-  const orderChange = analytics ? calculateChange(analytics.orderCount, analytics.previousOrderCount) : 0;
-  const avgChange = analytics ? calculateChange(analytics.averageOrderValue, analytics.previousAverageOrderValue) : 0;
+  const revenueChange = calculatePercentageChange(
+    safeNumber(analytics?.orderAmount),
+    safeNumber(analytics?.previousOrderAmount)
+  );
+  const orderChange = calculatePercentageChange(
+    safeNumber(analytics?.orderCount),
+    safeNumber(analytics?.previousOrderCount)
+  );
+  const avgChange = calculatePercentageChange(
+    safeNumber(analytics?.averageOrderValue),
+    safeNumber(analytics?.previousAverageOrderValue)
+  );
 
   const revenueData = useMemo(() =>
     analytics?.amountByDay?.map((d) => ({
@@ -131,7 +135,8 @@ export function useAnalytics() {
 
   const maxItemRevenue = useMemo(() => {
     if (!analytics?.topItems?.length) return 0;
-    return Math.max(...analytics.topItems.map((i) => i.amount));
+    const max = Math.max(...analytics.topItems.map((i) => safeNumber(i.amount)));
+    return Number.isFinite(max) ? max : 0;
   }, [analytics]);
 
   const exportCSV = useCallback(() => {

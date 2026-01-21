@@ -51,7 +51,7 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
           api.schedules.getByFoodtruck(foodtruckId),
           api.schedules.getExceptions(foodtruckId, todayStr),
           api.foodtrucks.getSettings(foodtruckId),
-          api.promoCodes.countActive(foodtruckId),
+          api.offers.countActivePromoCodes(foodtruckId),
         ]);
 
         const settingsData: FoodtruckSettings = {

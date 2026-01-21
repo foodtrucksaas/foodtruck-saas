@@ -4,11 +4,11 @@ import { usePromoCode } from './usePromoCode';
 import toast from 'react-hot-toast';
 
 // Mock the api module
-const mockValidate = vi.fn();
+const mockValidatePromoCode = vi.fn();
 vi.mock('../lib/api', () => ({
   api: {
-    promoCodes: {
-      validate: () => mockValidate(),
+    offers: {
+      validatePromoCode: (...args: unknown[]) => mockValidatePromoCode(...args),
     },
   },
 }));
@@ -95,7 +95,7 @@ describe('usePromoCode', () => {
     });
 
     it('should clear error when setting new promo code', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: false,
         error_message: 'Code invalide',
       });
@@ -125,7 +125,7 @@ describe('usePromoCode', () => {
 
   describe('validatePromoCode - success cases', () => {
     it('should validate percentage promo code successfully', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-123',
         discount_type: 'percentage',
@@ -158,7 +158,7 @@ describe('usePromoCode', () => {
     });
 
     it('should validate fixed discount promo code successfully', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-456',
         discount_type: 'fixed',
@@ -188,7 +188,7 @@ describe('usePromoCode', () => {
     });
 
     it('should trim whitespace from promo code', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-123',
         discount_type: 'percentage',
@@ -212,7 +212,7 @@ describe('usePromoCode', () => {
     });
 
     it('should use anonymous email when customer email is empty', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-123',
         discount_type: 'percentage',
@@ -239,7 +239,7 @@ describe('usePromoCode', () => {
 
   describe('validatePromoCode - error cases', () => {
     it('should handle invalid promo code', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: false,
         error_message: 'Code promo expiré',
       });
@@ -261,7 +261,7 @@ describe('usePromoCode', () => {
     });
 
     it('should show default error message when no error_message provided', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: false,
         error_message: null,
       });
@@ -282,7 +282,7 @@ describe('usePromoCode', () => {
     });
 
     it('should handle API error', async () => {
-      mockValidate.mockRejectedValue(new Error('Network error'));
+      mockValidatePromoCode.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() =>
         usePromoCode('foodtruck-id', 'test@email.com', 2000)
@@ -309,7 +309,7 @@ describe('usePromoCode', () => {
         await result.current.validatePromoCode();
       });
 
-      expect(mockValidate).not.toHaveBeenCalled();
+      expect(mockValidatePromoCode).not.toHaveBeenCalled();
     });
 
     it('should not validate whitespace-only promo code', async () => {
@@ -325,7 +325,7 @@ describe('usePromoCode', () => {
         await result.current.validatePromoCode();
       });
 
-      expect(mockValidate).not.toHaveBeenCalled();
+      expect(mockValidatePromoCode).not.toHaveBeenCalled();
     });
 
     it('should not validate when foodtruckId is undefined', async () => {
@@ -341,14 +341,14 @@ describe('usePromoCode', () => {
         await result.current.validatePromoCode();
       });
 
-      expect(mockValidate).not.toHaveBeenCalled();
+      expect(mockValidatePromoCode).not.toHaveBeenCalled();
     });
   });
 
   describe('loading state', () => {
     it('should set loading state during validation', async () => {
       let resolveValidate: (value: unknown) => void;
-      mockValidate.mockImplementation(
+      mockValidatePromoCode.mockImplementation(
         () =>
           new Promise((resolve) => {
             resolveValidate = resolve;
@@ -389,7 +389,7 @@ describe('usePromoCode', () => {
     });
 
     it('should reset loading state on error', async () => {
-      mockValidate.mockRejectedValue(new Error('Network error'));
+      mockValidatePromoCode.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() =>
         usePromoCode('foodtruck-id', 'test@email.com', 2000)
@@ -409,7 +409,7 @@ describe('usePromoCode', () => {
 
   describe('removePromo', () => {
     it('should remove applied promo', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-123',
         discount_type: 'percentage',
@@ -439,7 +439,7 @@ describe('usePromoCode', () => {
     });
 
     it('should clear error when removing promo', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: false,
         error_message: 'Code invalide',
       });
@@ -512,7 +512,7 @@ describe('usePromoCode', () => {
 
   describe('dependency changes', () => {
     it('should update validation with new order amount', async () => {
-      mockValidate.mockResolvedValue({
+      mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
         promo_code_id: 'promo-123',
         discount_type: 'percentage',

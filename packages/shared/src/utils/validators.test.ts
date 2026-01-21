@@ -125,5 +125,31 @@ describe('validators', () => {
       expect(validateOrderItems([{ menu_item_id: 'uuid-1', quantity: -1 }]).valid).toBe(false);
       expect(validateOrderItems([{ menu_item_id: 'uuid-1', quantity: 100 }]).valid).toBe(false);
     });
+
+    it('should accept maximum valid quantity (99)', () => {
+      const result = validateOrderItems([{ menu_item_id: 'uuid-1', quantity: 99 }]);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should reject null items array', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = validateOrderItems(null as any);
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Le panier est vide');
+    });
+
+    it('should validate single item cart', () => {
+      const result = validateOrderItems([{ menu_item_id: 'uuid-1', quantity: 1 }]);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should validate large cart with multiple items', () => {
+      const items = Array.from({ length: 20 }, (_, i) => ({
+        menu_item_id: `uuid-${i}`,
+        quantity: Math.floor(Math.random() * 5) + 1,
+      }));
+      const result = validateOrderItems(items);
+      expect(result.valid).toBe(true);
+    });
   });
 });

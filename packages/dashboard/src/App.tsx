@@ -11,8 +11,6 @@ import Schedule from './pages/Schedule';
 import Analytics from './pages/Analytics';
 import Customers from './pages/Customers';
 import Campaigns from './pages/Campaigns';
-import PromoCodes from './pages/PromoCodes';
-import Deals from './pages/Deals';
 import Offers from './pages/Offers';
 import Loyalty from './pages/Loyalty';
 import Settings from './pages/Settings';
@@ -150,22 +148,9 @@ export default function App() {
           </PrivateRoute>
         }
       />
-      <Route
-        path="/promo-codes"
-        element={
-          <PrivateRoute>
-            <PromoCodes />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/deals"
-        element={
-          <PrivateRoute>
-            <Deals />
-          </PrivateRoute>
-        }
-      />
+      {/* Legacy routes redirect to /offers */}
+      <Route path="/promo-codes" element={<Navigate to="/offers" replace />} />
+      <Route path="/deals" element={<Navigate to="/offers" replace />} />
       <Route
         path="/offers"
         element={
