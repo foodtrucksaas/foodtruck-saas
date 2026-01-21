@@ -203,6 +203,16 @@ export function useBundleDetection(
     fetchBundles();
   }, [foodtruckId]);
 
+  // Create a stable cart signature for bundle detection
+  const cartSignature = useMemo(() => {
+    // Only include non-bundle items for bundle detection
+    const eligibleItems = items.filter(item => !item.bundleInfo);
+    return eligibleItems.map(item => {
+      const sizeId = getSelectedSizeId(item);
+      return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeId || ''}`;
+    }).sort().join('|');
+  }, [items]);
+
   // Detect applicable bundles
   const detectedBundles = useMemo(() => {
     if (bundles.length === 0 || items.length === 0) return [];
@@ -220,7 +230,7 @@ export function useBundleDetection(
     detected.sort((a, b) => b.savings - a.savings);
 
     return detected;
-  }, [bundles, items]);
+  }, [bundles, items, cartSignature]);
 
   // Best bundle is the one with highest savings
   const bestBundle = detectedBundles.length > 0 ? detectedBundles[0] : null;

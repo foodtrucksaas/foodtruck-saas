@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ApplicableOffer, CartItem, ValidateOfferPromoCodeResult } from '@foodtruck/shared';
 import { api } from '../lib/api';
 
@@ -25,9 +25,22 @@ export function useOffers(
   const [promoCodeLoading, setPromoCodeLoading] = useState(false);
   const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
 
+  // Create a stable cart signature to ensure useEffect re-runs when cart content changes
+  // Filter out bundle items (they have synthetic IDs) - they're handled separately
+  const cartSignature = useMemo(() => {
+    const regularItems = items.filter(item => !item.bundleInfo);
+    return regularItems.map(item => {
+      const sizeOption = item.selectedOptions?.find(opt => opt.isSizeOption);
+      return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeOption?.optionId || ''}`;
+    }).sort().join('|');
+  }, [items]);
+
   // Fetch applicable offers when cart changes
   useEffect(() => {
-    if (!foodtruckId || items.length === 0) {
+    // Filter out bundle items - they have synthetic menu item IDs
+    const regularItems = items.filter(item => !item.bundleInfo);
+
+    if (!foodtruckId || regularItems.length === 0) {
       setApplicableOffers([]);
       return;
     }
@@ -36,7 +49,7 @@ export function useOffers(
       setLoading(true);
       try {
         // Build cart items JSON for the API call
-        const cartItems = items.map((item) => {
+        const cartItems = regularItems.map((item) => {
           const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
           const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
           const supplementsTotal =
@@ -67,7 +80,7 @@ export function useOffers(
     };
 
     fetchOffers();
-  }, [foodtruckId, items, orderAmount, appliedPromoCode]);
+  }, [foodtruckId, cartSignature, orderAmount, appliedPromoCode]);
 
   // Validate promo code
   const validatePromoCode = useCallback(
