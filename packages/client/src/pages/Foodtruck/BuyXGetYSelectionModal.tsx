@@ -94,8 +94,32 @@ export default function BuyXGetYSelectionModal({
   const rewardQty = config.reward_quantity || 1;
   const rewardType = config.reward_type || 'free';
   const rewardValue = config.reward_value || 0;
+  const totalItemsNeeded = triggerQty + rewardQty;
 
-  // State for trigger item selections
+  // Check if trigger and reward categories overlap (same category offer)
+  const triggerCategoryIds = config.trigger_category_ids || [];
+  const rewardCategoryIds = config.reward_category_ids || [];
+  const isSameCategoryOffer = triggerCategoryIds.length > 0 &&
+    rewardCategoryIds.length > 0 &&
+    triggerCategoryIds.some(id => rewardCategoryIds.includes(id));
+
+  // For same-category offers, use unified selection (all items together)
+  // For different categories, use separate trigger/reward selections
+  const [unifiedSelections, setUnifiedSelections] = useState<Record<number, ItemSelectionState>>(() => {
+    const initial: Record<number, ItemSelectionState> = {};
+    for (let i = 0; i < totalItemsNeeded; i++) {
+      initial[i] = {
+        menuItem: null,
+        selectedOptions: [],
+        selectedSizeId: null,
+        expanded: i === 0,
+        showOptions: false,
+      };
+    }
+    return initial;
+  });
+
+  // State for trigger item selections (used when categories are different)
   const [triggerSelections, setTriggerSelections] = useState<Record<number, ItemSelectionState>>(() => {
     const initial: Record<number, ItemSelectionState> = {};
     for (let i = 0; i < triggerQty; i++) {
@@ -110,7 +134,7 @@ export default function BuyXGetYSelectionModal({
     return initial;
   });
 
-  // State for reward item selections
+  // State for reward item selections (used when categories are different)
   const [rewardSelections, setRewardSelections] = useState<Record<number, ItemSelectionState>>(() => {
     const initial: Record<number, ItemSelectionState> = {};
     for (let i = 0; i < rewardQty; i++) {
@@ -151,6 +175,13 @@ export default function BuyXGetYSelectionModal({
     });
   }, [menuItems, config]);
 
+  // For same-category offers, combine all eligible items
+  const unifiedItems = useMemo(() => {
+    if (!isSameCategoryOffer) return [];
+    // Use trigger items as they should include all eligible items for same-category offers
+    return triggerItems;
+  }, [isSameCategoryOffer, triggerItems]);
+
   // Get category names for display
   const triggerCategoryNames = useMemo(() => {
     const categoryIds = config.trigger_category_ids || [];
@@ -189,6 +220,30 @@ export default function BuyXGetYSelectionModal({
 
     const available = sizes.filter(size => !isSizeExcluded(item.id, size.id, isReward));
     return available.length > 0 ? available : null;
+  };
+
+  // Handle unified item selection (for same-category offers)
+  const handleSelectUnifiedItem = (index: number, item: MenuItem) => {
+    const category = getCategoryForItem(item);
+    const availableSizes = getAvailableSizes(item, false);
+    const supplementGroups = getSupplementGroups(category, item);
+
+    let defaultSizeId: string | null = null;
+    if (availableSizes && availableSizes.length > 0) {
+      const defaultSize = availableSizes.find(s => s.is_default) || availableSizes[0];
+      defaultSizeId = defaultSize.id;
+    }
+
+    setUnifiedSelections(prev => ({
+      ...prev,
+      [index]: {
+        menuItem: item,
+        selectedOptions: [],
+        selectedSizeId: defaultSizeId,
+        expanded: availableSizes !== null || supplementGroups.length > 0,
+        showOptions: false,
+      },
+    }));
   };
 
   // Handle trigger item selection
@@ -240,8 +295,8 @@ export default function BuyXGetYSelectionModal({
   };
 
   // Handle size selection
-  const handleSelectSize = (isTrigger: boolean, index: number, sizeId: string) => {
-    const setter = isTrigger ? setTriggerSelections : setRewardSelections;
+  const handleSelectSize = (isTrigger: boolean, index: number, sizeId: string, isUnified = false) => {
+    const setter = isUnified ? setUnifiedSelections : (isTrigger ? setTriggerSelections : setRewardSelections);
     setter(prev => ({
       ...prev,
       [index]: {
@@ -252,8 +307,8 @@ export default function BuyXGetYSelectionModal({
   };
 
   // Toggle options panel
-  const toggleShowOptions = (isTrigger: boolean, index: number) => {
-    const setter = isTrigger ? setTriggerSelections : setRewardSelections;
+  const toggleShowOptions = (isTrigger: boolean, index: number, isUnified = false) => {
+    const setter = isUnified ? setUnifiedSelections : (isTrigger ? setTriggerSelections : setRewardSelections);
     setter(prev => ({
       ...prev,
       [index]: {
@@ -264,8 +319,8 @@ export default function BuyXGetYSelectionModal({
   };
 
   // Toggle expansion
-  const toggleExpand = (isTrigger: boolean, index: number) => {
-    const setter = isTrigger ? setTriggerSelections : setRewardSelections;
+  const toggleExpand = (isTrigger: boolean, index: number, isUnified = false) => {
+    const setter = isUnified ? setUnifiedSelections : (isTrigger ? setTriggerSelections : setRewardSelections);
     setter(prev => ({
       ...prev,
       [index]: {
@@ -276,9 +331,9 @@ export default function BuyXGetYSelectionModal({
   };
 
   // Toggle option selection
-  const toggleOption = (isTrigger: boolean, index: number, group: CategoryOptionGroupWithOptions, option: CategoryOption, menuItem: MenuItem) => {
-    const setter = isTrigger ? setTriggerSelections : setRewardSelections;
-    const selections = isTrigger ? triggerSelections : rewardSelections;
+  const toggleOption = (isTrigger: boolean, index: number, group: CategoryOptionGroupWithOptions, option: CategoryOption, menuItem: MenuItem, isUnified = false) => {
+    const setter = isUnified ? setUnifiedSelections : (isTrigger ? setTriggerSelections : setRewardSelections);
+    const selections = isUnified ? unifiedSelections : (isTrigger ? triggerSelections : rewardSelections);
     const selection = selections[index];
     if (!selection) return;
 
@@ -336,13 +391,49 @@ export default function BuyXGetYSelectionModal({
   };
 
   // Check if option is selected
-  const isOptionSelected = (isTrigger: boolean, index: number, optionId: string): boolean => {
-    const selections = isTrigger ? triggerSelections : rewardSelections;
+  const isOptionSelected = (isTrigger: boolean, index: number, optionId: string, isUnified = false): boolean => {
+    const selections = isUnified ? unifiedSelections : (isTrigger ? triggerSelections : rewardSelections);
     return selections[index]?.selectedOptions.some(o => o.optionId === optionId) || false;
   };
 
   // Calculate totals
   const { triggerTotal, rewardTotal, savings, finalTotal } = useMemo(() => {
+    if (isSameCategoryOffer) {
+      // Unified mode: all items together, cheapest one(s) get the discount
+      const itemPrices: number[] = [];
+      Object.values(unifiedSelections).forEach(sel => {
+        if (sel.menuItem) {
+          const category = getCategoryForItem(sel.menuItem);
+          itemPrices.push(getItemPrice(sel.menuItem, sel.selectedOptions, sel.selectedSizeId, category));
+        }
+      });
+
+      const totalSum = itemPrices.reduce((sum, p) => sum + p, 0);
+
+      // Sort prices ascending to find cheapest items for discount
+      const sortedPrices = [...itemPrices].sort((a, b) => a - b);
+      let discount = 0;
+      if (rewardType === 'free') {
+        // Free: cheapest rewardQty items are free
+        for (let i = 0; i < rewardQty && i < sortedPrices.length; i++) {
+          discount += sortedPrices[i];
+        }
+      } else {
+        // Discount: apply discount to cheapest items
+        for (let i = 0; i < rewardQty && i < sortedPrices.length; i++) {
+          discount += Math.min(rewardValue, sortedPrices[i]);
+        }
+      }
+
+      return {
+        triggerTotal: totalSum,
+        rewardTotal: 0,
+        savings: discount,
+        finalTotal: totalSum - discount,
+      };
+    }
+
+    // Separate mode: trigger and reward items distinct
     let triggerSum = 0;
     let rewardSum = 0;
 
@@ -377,14 +468,52 @@ export default function BuyXGetYSelectionModal({
       savings: discount,
       finalTotal: triggerSum + rewardSum - discount,
     };
-  }, [triggerSelections, rewardSelections, rewardType, rewardValue, rewardQty]);
+  }, [isSameCategoryOffer, unifiedSelections, triggerSelections, rewardSelections, rewardType, rewardValue, rewardQty]);
 
   // Check if all required selections are made
   const isValid = useMemo(() => {
+    if (isSameCategoryOffer) {
+      return Object.values(unifiedSelections).every(sel => sel.menuItem !== null);
+    }
     const allTriggersSelected = Object.values(triggerSelections).every(sel => sel.menuItem !== null);
     const allRewardsSelected = Object.values(rewardSelections).every(sel => sel.menuItem !== null);
     return allTriggersSelected && allRewardsSelected;
-  }, [triggerSelections, rewardSelections]);
+  }, [isSameCategoryOffer, unifiedSelections, triggerSelections, rewardSelections]);
+
+  // Helper to build item with options for cart
+  const buildCartItem = (sel: ItemSelectionState): { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean } | null => {
+    if (!sel.menuItem) return null;
+
+    const category = getCategoryForItem(sel.menuItem);
+    const sizeOptions = getSizeOptions(category);
+    const allOptions = [...sel.selectedOptions];
+
+    // Add size option if selected
+    // IMPORTANT: priceModifier for size options must be the FULL price (base + modifier)
+    // because CartContext uses it directly as the base price
+    if (sel.selectedSizeId && sizeOptions) {
+      const sizeOption = sizeOptions.find(s => s.id === sel.selectedSizeId);
+      if (sizeOption) {
+        const sizeGroup = getSizeGroup(category);
+        // Full price = menuItem base price + size modifier
+        const fullSizePrice = sel.menuItem.price + (sizeOption.price_modifier || 0);
+        allOptions.push({
+          optionId: sizeOption.id,
+          optionGroupId: sizeGroup?.id || '',
+          name: sizeOption.name,
+          groupName: sizeGroup?.name || 'Taille',
+          priceModifier: fullSizePrice,
+          isSizeOption: true,
+        });
+      }
+    }
+
+    return {
+      menuItem: sel.menuItem,
+      selectedOptions: allOptions,
+      isFree: false, // Will be determined by checkout logic
+    };
+  };
 
   // Handle confirm
   const handleConfirm = () => {
@@ -392,74 +521,27 @@ export default function BuyXGetYSelectionModal({
 
     const items: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[] = [];
 
-    // Add trigger items (not free)
-    Object.values(triggerSelections).forEach(sel => {
-      if (sel.menuItem) {
-        const category = getCategoryForItem(sel.menuItem);
-        const sizeOptions = getSizeOptions(category);
-        const allOptions = [...sel.selectedOptions];
+    if (isSameCategoryOffer) {
+      // Unified mode: all items added normally, discount applied at checkout
+      Object.values(unifiedSelections).forEach(sel => {
+        const item = buildCartItem(sel);
+        if (item) items.push(item);
+      });
+    } else {
+      // Separate mode: trigger items + reward items
+      Object.values(triggerSelections).forEach(sel => {
+        const item = buildCartItem(sel);
+        if (item) items.push(item);
+      });
 
-        // Add size option if selected
-        // IMPORTANT: priceModifier for size options must be the FULL price (base + modifier)
-        // because CartContext uses it directly as the base price
-        if (sel.selectedSizeId && sizeOptions) {
-          const sizeOption = sizeOptions.find(s => s.id === sel.selectedSizeId);
-          if (sizeOption) {
-            const sizeGroup = getSizeGroup(category);
-            // Full price = menuItem base price + size modifier
-            const fullSizePrice = sel.menuItem.price + (sizeOption.price_modifier || 0);
-            allOptions.push({
-              optionId: sizeOption.id,
-              optionGroupId: sizeGroup?.id || '',
-              name: sizeOption.name,
-              groupName: sizeGroup?.name || 'Taille',
-              priceModifier: fullSizePrice,
-              isSizeOption: true,
-            });
-          }
+      Object.values(rewardSelections).forEach(sel => {
+        const item = buildCartItem(sel);
+        if (item) {
+          item.isFree = rewardType === 'free';
+          items.push(item);
         }
-
-        items.push({
-          menuItem: sel.menuItem,
-          selectedOptions: allOptions,
-          isFree: false,
-        });
-      }
-    });
-
-    // Add reward items (marked as part of offer - discount handled at checkout)
-    Object.values(rewardSelections).forEach(sel => {
-      if (sel.menuItem) {
-        const category = getCategoryForItem(sel.menuItem);
-        const sizeOptions = getSizeOptions(category);
-        const allOptions = [...sel.selectedOptions];
-
-        // Add size option if selected
-        // IMPORTANT: priceModifier for size options must be the FULL price (base + modifier)
-        if (sel.selectedSizeId && sizeOptions) {
-          const sizeOption = sizeOptions.find(s => s.id === sel.selectedSizeId);
-          if (sizeOption) {
-            const sizeGroup = getSizeGroup(category);
-            // Full price = menuItem base price + size modifier
-            const fullSizePrice = sel.menuItem.price + (sizeOption.price_modifier || 0);
-            allOptions.push({
-              optionId: sizeOption.id,
-              optionGroupId: sizeGroup?.id || '',
-              name: sizeOption.name,
-              groupName: sizeGroup?.name || 'Taille',
-              priceModifier: fullSizePrice,
-              isSizeOption: true,
-            });
-          }
-        }
-
-        items.push({
-          menuItem: sel.menuItem,
-          selectedOptions: allOptions,
-          isFree: rewardType === 'free',
-        });
-      }
-    });
+      });
+    }
 
     onConfirm(items);
   };
@@ -471,9 +553,12 @@ export default function BuyXGetYSelectionModal({
     items: MenuItem[],
     selections: Record<number, ItemSelectionState>,
     isTrigger: boolean,
-    bgColor: string
+    bgColor: string,
+    isUnified = false
   ) => {
     const count = Object.keys(selections).length;
+    // For unified mode, use primary color; otherwise use trigger/reward colors
+    const accentColor = isUnified ? 'primary' : (isTrigger ? 'primary' : 'green');
 
     return (
       <div className="space-y-3">
@@ -487,7 +572,7 @@ export default function BuyXGetYSelectionModal({
           const selectedItem = selection?.menuItem;
           const isExpanded = selection?.expanded;
 
-          const availableSizes = selectedItem ? getAvailableSizes(selectedItem, !isTrigger) : null;
+          const availableSizes = selectedItem ? getAvailableSizes(selectedItem, false) : null;
           const selectedSizeName = selection?.selectedSizeId && availableSizes
             ? availableSizes.find(s => s.id === selection.selectedSizeId)?.name
             : null;
@@ -496,25 +581,22 @@ export default function BuyXGetYSelectionModal({
             <div key={index} className="border rounded-xl overflow-hidden">
               <button
                 type="button"
-                onClick={() => toggleExpand(isTrigger, index)}
+                onClick={() => toggleExpand(isTrigger, index, isUnified)}
                 className="w-full p-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full ${isTrigger ? 'bg-primary-500' : 'bg-green-500'} text-white text-sm font-bold flex items-center justify-center`}>
+                  <span className={`w-6 h-6 rounded-full bg-${accentColor}-500 text-white text-sm font-bold flex items-center justify-center`}>
                     {index + 1}
                   </span>
                   <div className="text-left">
                     <span className="font-semibold text-anthracite">
-                      {isTrigger ? `Article ${index + 1}` : `Récompense ${index + 1}`}
+                      Article {index + 1}
                     </span>
                     {selectedItem ? (
-                      <p className={`text-sm ${isTrigger ? 'text-primary-500' : 'text-green-600'} font-medium flex items-center gap-1`}>
+                      <p className={`text-sm text-${accentColor}-500 font-medium flex items-center gap-1`}>
                         <Check className="w-3.5 h-3.5" />
                         {selectedItem.name}
                         {selectedSizeName && <span className="text-gray-500">({selectedSizeName})</span>}
-                        {!isTrigger && rewardType === 'free' && (
-                          <span className="text-green-600 ml-1">OFFERT</span>
-                        )}
                       </p>
                     ) : (
                       <p className="text-sm text-gray-400">Choisir un article</p>
@@ -536,53 +618,43 @@ export default function BuyXGetYSelectionModal({
                     items.map(item => {
                       const isSelected = selectedItem?.id === item.id;
                       const itemCat = getCategoryForItem(item);
-                      const itemSizes = getAvailableSizes(item, !isTrigger);
+                      const itemSizes = getAvailableSizes(item, false);
                       const supplementGroups = getSupplementGroups(itemCat, item);
 
                       return (
                         <div key={item.id}>
                           <button
                             type="button"
-                            onClick={() => isTrigger
-                              ? handleSelectTriggerItem(index, item)
-                              : handleSelectRewardItem(index, item)
+                            onClick={() => isUnified
+                              ? handleSelectUnifiedItem(index, item)
+                              : (isTrigger ? handleSelectTriggerItem(index, item) : handleSelectRewardItem(index, item))
                             }
                             className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                               isSelected
-                                ? isTrigger
-                                  ? 'bg-primary-50 border-2 border-primary-500'
-                                  : 'bg-green-50 border-2 border-green-500'
+                                ? `bg-${accentColor}-50 border-2 border-${accentColor}-500`
                                 : 'bg-white border border-gray-100 hover:border-gray-200'
                             }`}
                           >
                             <div
                               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                                 isSelected
-                                  ? isTrigger
-                                    ? 'bg-primary-500 border-primary-500'
-                                    : 'bg-green-500 border-green-500'
+                                  ? `bg-${accentColor}-500 border-${accentColor}-500`
                                   : 'border-gray-300'
                               }`}
                             >
                               {isSelected && <Check className="w-3 h-3 text-white" />}
                             </div>
                             <div className="flex-1 text-left min-w-0">
-                              <p className={`font-medium truncate ${isSelected ? (isTrigger ? 'text-primary-700' : 'text-green-700') : 'text-anthracite'}`}>
+                              <p className={`font-medium truncate ${isSelected ? `text-${accentColor}-700` : 'text-anthracite'}`}>
                                 {item.name}
                               </p>
                               {item.description && (
                                 <p className="text-xs text-gray-500 truncate">{item.description}</p>
                               )}
                             </div>
-                            {!isTrigger && rewardType === 'free' ? (
-                              <span className="text-sm font-semibold text-green-600 flex-shrink-0">
-                                Offert
-                              </span>
-                            ) : (
-                              <span className="text-sm text-gray-500 flex-shrink-0">
-                                {formatPrice(item.price)}
-                              </span>
-                            )}
+                            <span className="text-sm text-gray-500 flex-shrink-0">
+                              {formatPrice(item.price)}
+                            </span>
                           </button>
 
                           {/* Size selector */}
@@ -594,12 +666,10 @@ export default function BuyXGetYSelectionModal({
                                   <button
                                     key={size.id}
                                     type="button"
-                                    onClick={() => handleSelectSize(isTrigger, index, size.id)}
+                                    onClick={() => handleSelectSize(isTrigger, index, size.id, isUnified)}
                                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                       sizeIsSelected
-                                        ? isTrigger
-                                          ? 'bg-primary-500 text-white'
-                                          : 'bg-green-500 text-white'
+                                        ? `bg-${accentColor}-500 text-white`
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                                   >
@@ -620,13 +690,13 @@ export default function BuyXGetYSelectionModal({
                             <div className="ml-8 mt-2">
                               <button
                                 type="button"
-                                onClick={() => toggleShowOptions(isTrigger, index)}
-                                className={`flex items-center gap-2 text-sm ${isTrigger ? 'text-primary-600 hover:text-primary-700' : 'text-green-600 hover:text-green-700'} font-medium`}
+                                onClick={() => toggleShowOptions(isTrigger, index, isUnified)}
+                                className={`flex items-center gap-2 text-sm text-${accentColor}-600 hover:text-${accentColor}-700 font-medium`}
                               >
                                 <Plus className={`w-4 h-4 transition-transform ${selection?.showOptions ? 'rotate-45' : ''}`} />
                                 {selection?.showOptions ? 'Masquer les suppléments' : 'Ajouter des suppléments'}
                                 {(selection?.selectedOptions.length || 0) > 0 && !selection?.showOptions && (
-                                  <span className={`px-1.5 py-0.5 ${isTrigger ? 'bg-primary-100 text-primary-700' : 'bg-green-100 text-green-700'} rounded-full text-xs`}>
+                                  <span className={`px-1.5 py-0.5 bg-${accentColor}-100 text-${accentColor}-700 rounded-full text-xs`}>
                                     {selection.selectedOptions.length}
                                   </span>
                                 )}
@@ -650,7 +720,7 @@ export default function BuyXGetYSelectionModal({
                                         </p>
                                         <div className="flex flex-wrap gap-1.5">
                                           {availableOptions.map((opt: CategoryOption) => {
-                                            const isOptSelected = isOptionSelected(isTrigger, index, opt.id);
+                                            const isOptSelected = isOptionSelected(isTrigger, index, opt.id, isUnified);
                                             let optPrice = opt.price_modifier || 0;
                                             if (selection?.selectedSizeId) {
                                               const perSizeKey = `${opt.id}:${selection.selectedSizeId}`;
@@ -667,12 +737,10 @@ export default function BuyXGetYSelectionModal({
                                               <button
                                                 key={opt.id}
                                                 type="button"
-                                                onClick={() => toggleOption(isTrigger, index, group, opt, item)}
+                                                onClick={() => toggleOption(isTrigger, index, group, opt, item, isUnified)}
                                                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                                                   isOptSelected
-                                                    ? isTrigger
-                                                      ? 'bg-primary-500 text-white'
-                                                      : 'bg-green-500 text-white'
+                                                    ? `bg-${accentColor}-500 text-white`
                                                     : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                                                 }`}
                                               >
@@ -736,24 +804,42 @@ export default function BuyXGetYSelectionModal({
             <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">{offer.description}</p>
           )}
 
-          {/* Trigger items section */}
-          {renderItemSection(
-            `Choisissez ${triggerQty} article${triggerQty > 1 ? 's' : ''}`,
-            triggerCategoryNames || 'Articles éligibles',
-            triggerItems,
-            triggerSelections,
-            true,
-            'bg-primary-50'
-          )}
+          {isSameCategoryOffer ? (
+            /* Unified mode: all items in one section */
+            <>
+              {renderItemSection(
+                `Choisissez ${totalItemsNeeded} article${totalItemsNeeded > 1 ? 's' : ''}`,
+                `${triggerCategoryNames || 'Articles éligibles'} • Le moins cher sera ${rewardType === 'free' ? 'offert' : 'en réduction'}`,
+                unifiedItems,
+                unifiedSelections,
+                true,
+                'bg-primary-50',
+                true
+              )}
+            </>
+          ) : (
+            /* Separate mode: trigger and reward sections */
+            <>
+              {/* Trigger items section */}
+              {renderItemSection(
+                `Choisissez ${triggerQty} article${triggerQty > 1 ? 's' : ''}`,
+                triggerCategoryNames || 'Articles éligibles',
+                triggerItems,
+                triggerSelections,
+                true,
+                'bg-primary-50'
+              )}
 
-          {/* Reward items section */}
-          {renderItemSection(
-            `${rewardQty} article${rewardQty > 1 ? 's' : ''} ${rewardType === 'free' ? 'offert' : 'en réduction'}${rewardQty > 1 ? 's' : ''}`,
-            rewardCategoryNames || 'Articles éligibles',
-            rewardItems,
-            rewardSelections,
-            false,
-            'bg-green-50'
+              {/* Reward items section */}
+              {renderItemSection(
+                `${rewardQty} article${rewardQty > 1 ? 's' : ''} ${rewardType === 'free' ? 'offert' : 'en réduction'}${rewardQty > 1 ? 's' : ''}`,
+                rewardCategoryNames || 'Articles éligibles',
+                rewardItems,
+                rewardSelections,
+                false,
+                'bg-green-50'
+              )}
+            </>
           )}
 
           {/* Savings summary */}
@@ -761,7 +847,9 @@ export default function BuyXGetYSelectionModal({
             <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Gift className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-green-800">Économie réalisée</span>
+                <span className="font-medium text-green-800">
+                  {isSameCategoryOffer ? 'Le moins cher offert' : 'Économie réalisée'}
+                </span>
               </div>
               <span className="font-bold text-green-600 text-lg">-{formatPrice(savings)}</span>
             </div>
