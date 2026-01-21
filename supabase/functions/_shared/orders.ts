@@ -235,14 +235,10 @@ export async function validatePromoCode(
   promoCodeId: string | undefined,
   customerEmail: string,
   orderSubtotal: number, // in centimes
-  clientDiscountAmount: number // discount sent by client (promo code discount only)
+  _clientDiscountAmount: number // unused - discount includes deals/loyalty, not just promo
 ): Promise<Response | null> {
+  // No promo code used - nothing to validate
   if (!promoCodeId) {
-    // No promo code, but client sent a promo discount - that's suspicious
-    // Note: clientDiscountAmount should only be the promo code discount, not deals/loyalty
-    if (clientDiscountAmount > 0) {
-      return errorResponse('Réduction invalide: aucun code promo appliqué');
-    }
     return null;
   }
 
