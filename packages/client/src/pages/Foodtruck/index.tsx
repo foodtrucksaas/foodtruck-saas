@@ -25,6 +25,7 @@ import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
 import BundleSelectionModal from './BundleSelectionModal';
 import SpecificItemsBundleModal from './SpecificItemsBundleModal';
+import BuyXGetYSelectionModal from './BuyXGetYSelectionModal';
 
 export default function FoodtruckPage() {
   const { foodtruckId } = useParams<{ foodtruckId: string }>();
@@ -38,6 +39,7 @@ export default function FoodtruckPage() {
     schedules,
     bundles,
     specificItemsBundles,
+    buyXGetYOffers,
     loading,
 
     // Active tab
@@ -56,6 +58,10 @@ export default function FoodtruckPage() {
     // Specific items bundle modal state
     selectedSpecificBundle,
     showSpecificBundleModal,
+
+    // Buy X Get Y modal state
+    selectedBuyXGetY,
+    showBuyXGetYModal,
 
     // Computed values
     todaySchedules,
@@ -85,6 +91,11 @@ export default function FoodtruckPage() {
     handleSelectSpecificBundle,
     handleSpecificBundleConfirm,
     closeSpecificBundleModal,
+
+    // Buy X Get Y handlers
+    handleSelectBuyXGetY,
+    handleBuyXGetYConfirm,
+    closeBuyXGetYModal,
   } = useFoodtruck(foodtruckId);
 
   // Get cart items for offer detection
@@ -366,7 +377,7 @@ export default function FoodtruckPage() {
         {activeTab === 'menu' ? (
           <div className="space-y-5">
             {/* Unified Offers Section */}
-            {(bundles.length > 0 || specificItemsBundles.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
+            {(bundles.length > 0 || specificItemsBundles.length > 0 || buyXGetYOffers.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-6 h-6 rounded-md bg-primary-100 flex items-center justify-center">
@@ -455,9 +466,64 @@ export default function FoodtruckPage() {
                     );
                   })}
 
-                  {/* Other offers (buy_x_get_y, happy_hour, threshold) - auto-applied */}
+                  {/* Buy X Get Y offers (category choice) - clickable */}
+                  {buyXGetYOffers.map((offer) => {
+                    const config = offer.config;
+                    const triggerQty = config.trigger_quantity || 2;
+                    const rewardQty = config.reward_quantity || 1;
+                    const rewardType = config.reward_type || 'free';
+
+                    // Get category names for display
+                    const triggerCategoryNames = (config.trigger_category_ids || [])
+                      .map(id => categories.find(c => c.id === id)?.name)
+                      .filter(Boolean)
+                      .join(' ou ');
+                    const rewardCategoryNames = (config.reward_category_ids || [])
+                      .map(id => categories.find(c => c.id === id)?.name)
+                      .filter(Boolean)
+                      .join(' ou ');
+
+                    return (
+                      <button
+                        key={offer.id}
+                        onClick={() => handleSelectBuyXGetY(offer)}
+                        className="w-full bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 text-left transition-all hover:border-green-400 hover:shadow-md active:scale-[0.98]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-anthracite text-lg">{offer.name}</h3>
+                            {offer.description && (
+                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{offer.description}</p>
+                            )}
+                            <p className="text-xs text-green-600 mt-2 font-medium">
+                              👆 Cliquez pour choisir • {triggerQty} {triggerCategoryNames || 'article(s)'} + {rewardQty} {rewardCategoryNames || 'article(s)'} {rewardType === 'free' ? 'offert(s)' : 'en promo'}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-xl font-bold text-green-600">
+                              {rewardType === 'free'
+                                ? `${rewardQty} offert${rewardQty > 1 ? 's' : ''}`
+                                : `-${formatPrice(config.reward_value || 0)}`
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {/* Other offers (happy_hour, threshold, non-category buy_x_get_y) - auto-applied */}
                   {visibleOffers
-                    .filter(o => o.offer_type !== 'bundle')
+                    .filter(o => {
+                      // Exclude bundles
+                      if (o.offer_type === 'bundle') return false;
+                      // Exclude buy_x_get_y that are shown as clickable cards
+                      if (o.offer_type === 'buy_x_get_y') {
+                        const isCategoryChoice = buyXGetYOffers.some(b => b.id === o.offer_id);
+                        if (isCategoryChoice) return false;
+                      }
+                      return true;
+                    })
                     .map((offer) => {
                       const isApplicable = offer.is_applicable;
                       const hasProgress = offer.progress_required > 0;
@@ -768,6 +834,17 @@ export default function FoodtruckPage() {
           menuItems={menuItems}
           onClose={closeSpecificBundleModal}
           onConfirm={handleSpecificBundleConfirm}
+        />
+      )}
+
+      {/* Buy X Get Y Selection Modal */}
+      {showBuyXGetYModal && selectedBuyXGetY && (
+        <BuyXGetYSelectionModal
+          offer={selectedBuyXGetY}
+          categories={categories}
+          menuItems={menuItems}
+          onClose={closeBuyXGetYModal}
+          onConfirm={handleBuyXGetYConfirm}
         />
       )}
     </div>

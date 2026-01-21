@@ -11,6 +11,7 @@ import type {
   SelectedOption,
   Offer,
   BundleConfig,
+  BuyXGetYConfig,
 } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
@@ -53,6 +54,11 @@ export interface SpecificItemsBundleOffer extends Offer {
   offer_items: BundleOfferItem[];
 }
 
+// Buy X Get Y offer
+export interface BuyXGetYOffer extends Offer {
+  config: BuyXGetYConfig;
+}
+
 interface UseFoodtruckResult {
   // Data
   foodtruck: Foodtruck | null;
@@ -61,6 +67,7 @@ interface UseFoodtruckResult {
   schedules: ScheduleWithLocation[];
   bundles: BundleOffer[];
   specificItemsBundles: SpecificItemsBundleOffer[];
+  buyXGetYOffers: BuyXGetYOffer[];
   loading: boolean;
 
   // Active tab
@@ -79,6 +86,10 @@ interface UseFoodtruckResult {
   // Specific items bundle modal state
   selectedSpecificBundle: SpecificItemsBundleOffer | null;
   showSpecificBundleModal: boolean;
+
+  // Buy X Get Y modal state
+  selectedBuyXGetY: BuyXGetYOffer | null;
+  showBuyXGetYModal: boolean;
 
   // Computed values
   todaySchedules: ScheduleWithLocation[];
@@ -109,6 +120,11 @@ interface UseFoodtruckResult {
   handleSelectSpecificBundle: (bundle: SpecificItemsBundleOffer) => void;
   handleSpecificBundleConfirm: (bundleSelections: BundleSelection[]) => void;
   closeSpecificBundleModal: () => void;
+
+  // Buy X Get Y handlers
+  handleSelectBuyXGetY: (offer: BuyXGetYOffer) => void;
+  handleBuyXGetYConfirm: (items: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => void;
+  closeBuyXGetYModal: () => void;
 }
 
 // Bundle selection (one item per category)
@@ -129,6 +145,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const [schedules, setSchedules] = useState<ScheduleWithLocation[]>([]);
   const [bundles, setBundles] = useState<BundleOffer[]>([]);
   const [specificItemsBundles, setSpecificItemsBundles] = useState<SpecificItemsBundleOffer[]>([]);
+  const [buyXGetYOffers, setBuyXGetYOffers] = useState<BuyXGetYOffer[]>([]);
   const [todayException, setTodayException] = useState<TodayException | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'menu' | 'info'>('menu');
@@ -145,6 +162,10 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   // Specific items bundle modal state
   const [selectedSpecificBundle, setSelectedSpecificBundle] = useState<SpecificItemsBundleOffer | null>(null);
   const [showSpecificBundleModal, setShowSpecificBundleModal] = useState(false);
+
+  // Buy X Get Y modal state
+  const [selectedBuyXGetY, setSelectedBuyXGetY] = useState<BuyXGetYOffer | null>(null);
+  const [showBuyXGetYModal, setShowBuyXGetYModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -166,7 +187,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       // Fetch other data in parallel
       const todayStr = formatLocalDate(new Date());
       const now = new Date().toISOString();
-      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes] = await Promise.all([
+      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] = await Promise.all([
         supabase
           .from('categories')
           .select('*, category_option_groups(*, category_options(*))')
@@ -200,6 +221,15 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
           .eq('is_active', true)
           .or(`start_date.is.null,start_date.lte.${now}`)
           .or(`end_date.is.null,end_date.gte.${now}`),
+        // Fetch active buy_x_get_y offers (category_choice type only)
+        supabase
+          .from('offers')
+          .select('*')
+          .eq('foodtruck_id', foodtruckId)
+          .eq('offer_type', 'buy_x_get_y')
+          .eq('is_active', true)
+          .or(`start_date.is.null,start_date.lte.${now}`)
+          .or(`end_date.is.null,end_date.gte.${now}`),
       ]);
 
       setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
@@ -223,6 +253,15 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
           offer_items: b.offer_items!.filter(item => item.menu_item_id),
         })) as SpecificItemsBundleOffer[];
       setSpecificItemsBundles(specificBundles);
+
+      // Buy X Get Y offers (only category_choice type for modal selection)
+      const buyXGetYData = (buyXGetYRes.data || []) as unknown as BuyXGetYOffer[];
+      const categoryChoiceBuyXGetY = buyXGetYData.filter(
+        (o) => o.config?.type === 'category_choice' &&
+               o.config?.trigger_category_ids?.length &&
+               o.config?.reward_category_ids?.length
+      );
+      setBuyXGetYOffers(categoryChoiceBuyXGetY);
 
       // Find today's exception from the list
       const exceptions = exceptionRes.data || [];
@@ -377,6 +416,29 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     setSelectedSpecificBundle(null);
   }, []);
 
+  // Buy X Get Y handlers
+  const handleSelectBuyXGetY = useCallback((offer: BuyXGetYOffer) => {
+    setSelectedBuyXGetY(offer);
+    setShowBuyXGetYModal(true);
+  }, []);
+
+  const handleBuyXGetYConfirm = useCallback((selectedItems: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => {
+    if (!selectedBuyXGetY) return;
+
+    // Add all selected items to cart
+    selectedItems.forEach(({ menuItem, selectedOptions }) => {
+      addItem(menuItem, 1, undefined, selectedOptions);
+    });
+
+    setShowBuyXGetYModal(false);
+    setSelectedBuyXGetY(null);
+  }, [selectedBuyXGetY, addItem]);
+
+  const closeBuyXGetYModal = useCallback(() => {
+    setShowBuyXGetYModal(false);
+    setSelectedBuyXGetY(null);
+  }, []);
+
   // Get all schedules for today (considering exceptions)
   const todaySchedules = useMemo(() => {
     // If there's an exception for today
@@ -431,6 +493,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     schedules,
     bundles,
     specificItemsBundles,
+    buyXGetYOffers,
     loading,
 
     // Active tab
@@ -449,6 +512,10 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     // Specific items bundle modal state
     selectedSpecificBundle,
     showSpecificBundleModal,
+
+    // Buy X Get Y modal state
+    selectedBuyXGetY,
+    showBuyXGetYModal,
 
     // Computed values
     todaySchedules,
@@ -479,5 +546,10 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     handleSelectSpecificBundle,
     handleSpecificBundleConfirm,
     closeSpecificBundleModal,
+
+    // Buy X Get Y handlers
+    handleSelectBuyXGetY,
+    handleBuyXGetYConfirm,
+    closeBuyXGetYModal,
   };
 }
