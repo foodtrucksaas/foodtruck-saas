@@ -128,8 +128,18 @@ export default function Checkout() {
   );
 
   const promoDiscount = appliedPromo?.discount || 0;
-  const bundleDiscount = totalBundleSavings;
-  const finalTotal = Math.max(0, total - promoDiscount - loyaltyDiscount - totalOfferDiscount - bundleDiscount);
+
+  // Only apply the BEST discount between offers (buy_x_get_y, etc.) and bundles
+  // They should NOT stack unless explicitly marked as stackable
+  const offerDiscountValue = totalOfferDiscount || 0;
+  const bundleDiscountValue = totalBundleSavings || 0;
+
+  // Choose the best discount - bundles and offers don't stack
+  const useBundleAsDiscount = bundleDiscountValue > offerDiscountValue;
+  const appliedOfferDiscount = useBundleAsDiscount ? 0 : offerDiscountValue;
+  const appliedBundleDiscount = useBundleAsDiscount ? bundleDiscountValue : 0;
+
+  const finalTotal = Math.max(0, total - promoDiscount - loyaltyDiscount - appliedOfferDiscount - appliedBundleDiscount);
 
   // Get selected slot for display
   const selectedSlot = slots.find(s => `${s.time}|${s.scheduleId}` === form.pickupTime);
@@ -186,13 +196,13 @@ export default function Checkout() {
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
       promo_code_id: appliedPromo?.id,
-      discount_amount: promoDiscount + loyaltyDiscount + totalOfferDiscount,
+      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount + appliedBundleDiscount,
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
-      deal_id: bestOffer?.offer_id || undefined,
-      deal_discount: totalOfferDiscount || undefined,
-      deal_free_item_name: bestOffer?.free_item_name || undefined,
+      deal_id: appliedOfferDiscount > 0 ? bestOffer?.offer_id : undefined,
+      deal_discount: appliedOfferDiscount || undefined,
+      deal_free_item_name: appliedOfferDiscount > 0 ? bestOffer?.free_item_name : undefined,
       bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
       items: items.flatMap((item) => {
         // For bundles, send each selection as a separate item with bundle info
@@ -311,10 +321,10 @@ export default function Checkout() {
           total={total}
           promoDiscount={promoDiscount}
           loyaltyDiscount={loyaltyDiscount}
-          dealDiscount={totalOfferDiscount}
-          dealName={bestOffer?.offer_name}
-          bundleDiscount={bundleDiscount}
-          bundleName={bestBundle?.bundle.name}
+          dealDiscount={appliedOfferDiscount}
+          dealName={appliedOfferDiscount > 0 ? bestOffer?.offer_name : undefined}
+          bundleDiscount={appliedBundleDiscount}
+          bundleName={appliedBundleDiscount > 0 ? bestBundle?.bundle.name : undefined}
           finalTotal={finalTotal}
           selectedDate={selectedDate}
           selectedSlot={selectedSlot}
