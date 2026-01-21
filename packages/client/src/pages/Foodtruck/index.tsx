@@ -471,23 +471,13 @@ export default function FoodtruckPage() {
                     const config = offer.config;
                     const triggerQty = config.trigger_quantity || 2;
                     const rewardQty = config.reward_quantity || 1;
-                    const rewardType = config.reward_type || 'free';
-
-                    // Get category names for display
-                    const triggerCategoryNames = (config.trigger_category_ids || [])
-                      .map(id => categories.find(c => c.id === id)?.name)
-                      .filter(Boolean)
-                      .join(' ou ');
-                    const rewardCategoryNames = (config.reward_category_ids || [])
-                      .map(id => categories.find(c => c.id === id)?.name)
-                      .filter(Boolean)
-                      .join(' ou ');
+                    const totalItems = triggerQty + rewardQty;
 
                     return (
                       <button
                         key={offer.id}
                         onClick={() => handleSelectBuyXGetY(offer)}
-                        className="w-full bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 text-left transition-all hover:border-green-400 hover:shadow-md active:scale-[0.98]"
+                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -495,17 +485,9 @@ export default function FoodtruckPage() {
                             {offer.description && (
                               <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{offer.description}</p>
                             )}
-                            <p className="text-xs text-green-600 mt-2 font-medium">
-                              👆 Cliquez pour choisir • {triggerQty} {triggerCategoryNames || 'article(s)'} + {rewardQty} {rewardCategoryNames || 'article(s)'} {rewardType === 'free' ? 'offert(s)' : 'en promo'}
+                            <p className="text-xs text-primary-600 mt-2 font-medium">
+                              👆 Cliquez pour composer • {totalItems} articles au choix
                             </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold text-green-600">
-                              {rewardType === 'free'
-                                ? `${rewardQty} offert${rewardQty > 1 ? 's' : ''}`
-                                : `-${formatPrice(config.reward_value || 0)}`
-                              }
-                            </span>
                           </div>
                         </div>
                       </button>
