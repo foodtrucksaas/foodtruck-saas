@@ -303,20 +303,6 @@ export function createBuyXGetYConfig(
   };
 }
 
-export function createHappyHourConfig(
-  discountType: 'percentage' | 'fixed',
-  discountValue: number,
-  appliesTo: 'all' | 'category',
-  categoryId?: string
-): OfferConfig {
-  return {
-    discount_type: discountType,
-    discount_value: discountValue,
-    applies_to: appliesTo,
-    category_id: categoryId,
-  };
-}
-
 export function createPromoCodeOfferConfig(
   code: string,
   discountType: 'percentage' | 'fixed',

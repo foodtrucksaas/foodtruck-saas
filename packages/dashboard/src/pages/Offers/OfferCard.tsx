@@ -1,7 +1,6 @@
 import {
   Package,
   Gift,
-  Clock,
   Tag,
   TrendingUp,
   ToggleLeft,
@@ -23,7 +22,6 @@ interface OfferCardProps {
 const typeIcons: Record<OfferType, typeof Package> = {
   bundle: Package,
   buy_x_get_y: Gift,
-  happy_hour: Clock,
   promo_code: Tag,
   threshold_discount: TrendingUp,
 };
@@ -31,7 +29,6 @@ const typeIcons: Record<OfferType, typeof Package> = {
 const typeColors: Record<OfferType, string> = {
   bundle: 'bg-purple-100 text-purple-600',
   buy_x_get_y: 'bg-pink-100 text-pink-600',
-  happy_hour: 'bg-amber-100 text-amber-600',
   promo_code: 'bg-blue-100 text-blue-600',
   threshold_discount: 'bg-green-100 text-green-600',
 };
@@ -53,11 +50,6 @@ function formatOfferSummary(offer: OfferWithItems): string {
       const isCategoryBased = config.type === 'category_choice';
       const triggerLabel = isCategoryBased ? 'achetés' : 'acheté(s)';
       return `${config.trigger_quantity} ${triggerLabel} = ${config.reward_quantity} ${reward}${isCategoryBased ? ' (catégorie)' : ''}`;
-    case 'happy_hour':
-      const discount = config.discount_type === 'percentage'
-        ? `-${config.discount_value}%`
-        : `-${formatPrice(config.discount_value || 0)}`;
-      return `${discount} ${config.applies_to === 'all' ? 'sur tout' : 'sur categorie'}`;
     case 'promo_code':
       const promoDiscount = config.discount_type === 'percentage'
         ? `-${config.discount_value}%`

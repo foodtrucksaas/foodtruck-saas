@@ -97,11 +97,10 @@ foodtruck-saas/
 - [x] Page de désabonnement (RGPD)
 
 #### Système Unifié d'Offres (/offers)
-- [x] 5 templates d'offres : Menu/Formule, X achetés = Y offert, Happy Hour, Code Promo, Remise au palier
+- [x] 4 templates d'offres : Menu/Formule, X achetés = Y offert, Code Promo, Remise au palier
 - [x] Wizard de création avec formulaires adaptés par type
-- [x] Configuration flexible via JSONB (prix fixe, quantités, horaires, codes...)
+- [x] Configuration flexible via JSONB (prix fixe, quantités, codes...)
 - [x] Validité temporelle (date début/fin)
-- [x] Créneaux horaires pour Happy Hour (heures + jours)
 - [x] Limites d'utilisation (max total, max par client)
 - [x] Articles liés pour bundles et buy_x_get_y
 - [x] Statistiques d'utilisation (utilisations, réductions accordées)
@@ -407,7 +406,6 @@ loyalty_transactions (
 CREATE TYPE offer_type AS ENUM (
   'bundle',           -- Menu/Formule: plusieurs items à prix fixe
   'buy_x_get_y',      -- X achetés = Y offert
-  'happy_hour',       -- Réduction sur créneau horaire
   'promo_code',       -- Code promo classique
   'threshold_discount' -- Remise au palier (dès X euros)
 );
@@ -423,7 +421,7 @@ offers (
   is_active BOOLEAN DEFAULT TRUE,
   start_date TIMESTAMPTZ,
   end_date TIMESTAMPTZ,
-  time_start TIME,                     -- Pour happy_hour
+  time_start TIME,
   time_end TIME,
   days_of_week INTEGER[],              -- 0=dimanche, 6=samedi
   max_uses INTEGER,
@@ -463,7 +461,6 @@ offer_uses (
 |------|---------------------|
 | `bundle` | `{ fixed_price: 1200 }` |
 | `buy_x_get_y` | `{ trigger_quantity: 3, reward_quantity: 1, reward_type: 'free'|'discount', reward_value?: 500 }` |
-| `happy_hour` | `{ discount_type: 'percentage'|'fixed', discount_value: 20, applies_to: 'all'|'category', category_id?: 'uuid' }` |
 | `promo_code` | `{ code: 'BIENVENUE', discount_type: 'percentage'|'fixed', discount_value: 10, min_order_amount?: 1500, max_discount?: 1000 }` |
 | `threshold_discount` | `{ min_amount: 2500, discount_type: 'percentage'|'fixed', discount_value: 10 }` |
 

@@ -494,7 +494,7 @@ export default function FoodtruckPage() {
                     );
                   })}
 
-                  {/* Other offers (happy_hour, threshold, non-category buy_x_get_y) - auto-applied */}
+                  {/* Other offers (threshold, non-category buy_x_get_y) - auto-applied */}
                   {visibleOffers
                     .filter(o => {
                       // Exclude bundles

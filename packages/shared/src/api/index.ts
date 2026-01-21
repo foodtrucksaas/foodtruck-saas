@@ -44,7 +44,6 @@ export { createOffersApi } from './offers';
 export {
   createBundleConfig,
   createBuyXGetYConfig,
-  createHappyHourConfig,
   createPromoCodeOfferConfig,
   createThresholdDiscountConfig,
 } from './offers';

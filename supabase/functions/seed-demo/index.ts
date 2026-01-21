@@ -201,17 +201,6 @@ serve(async (req) => {
       },
       {
         foodtruck_id: foodtruckId,
-        name: 'Happy Hour',
-        description: '-15% entre 11h et 11h30',
-        offer_type: 'happy_hour',
-        config: { discount_type: 'percentage', discount_value: 15, applies_to: 'all' },
-        is_active: true,
-        time_start: '11:00',
-        time_end: '11:30',
-        days_of_week: [3, 5, 6],
-      },
-      {
-        foodtruck_id: foodtruckId,
         name: 'Soirée Pizza',
         description: 'Dès 30€ d\'achat = -10% sur le total',
         offer_type: 'threshold_discount',

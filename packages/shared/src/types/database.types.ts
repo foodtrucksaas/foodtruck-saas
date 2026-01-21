@@ -1657,7 +1657,7 @@ export type Database = {
         | "fixed"
         | "cheapest_in_cart"
       discount_type: "percentage" | "fixed"
-      offer_type: "bundle" | "buy_x_get_y" | "happy_hour" | "promo_code" | "threshold_discount"
+      offer_type: "bundle" | "buy_x_get_y" | "promo_code" | "threshold_discount"
       order_status:
         | "pending"
         | "confirmed"

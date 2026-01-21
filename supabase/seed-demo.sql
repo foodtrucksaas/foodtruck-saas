@@ -219,21 +219,7 @@ BEGIN
         1
     );
 
-    -- Offer 3: Happy Hour
-    INSERT INTO offers (foodtruck_id, name, description, offer_type, config, is_active, time_start, time_end, days_of_week)
-    VALUES (
-        v_foodtruck_id,
-        'Happy Hour',
-        '-15% entre 11h et 11h30',
-        'happy_hour',
-        '{"discount_type": "percentage", "discount_value": 15, "applies_to": "all"}',
-        true,
-        '11:00',
-        '11:30',
-        ARRAY[3, 5, 6]
-    );
-
-    -- Offer 4: 3 pizzas = -20%
+    -- Offer 3: 3 pizzas = -20%
     INSERT INTO offers (foodtruck_id, name, description, offer_type, config, is_active)
     VALUES (
         v_foodtruck_id,

@@ -428,7 +428,7 @@ export interface DealWithCategory extends Deal {
 // Unified Offers System Types
 // ============================================
 
-export type OfferType = 'bundle' | 'buy_x_get_y' | 'happy_hour' | 'promo_code' | 'threshold_discount';
+export type OfferType = 'bundle' | 'buy_x_get_y' | 'promo_code' | 'threshold_discount';
 
 // Configuration types per offer type
 
@@ -465,13 +465,6 @@ export interface BuyXGetYConfig {
   reward_excluded_sizes?: Record<string, string[]>; // itemId -> list of excluded sizeIds
 }
 
-export interface HappyHourConfig {
-  discount_type: 'percentage' | 'fixed';
-  discount_value: number;
-  applies_to: 'all' | 'category';
-  category_id?: string;
-}
-
 export interface PromoCodeConfig {
   code: string;
   discount_type: 'percentage' | 'fixed';
@@ -489,7 +482,6 @@ export interface ThresholdDiscountConfig {
 export type OfferConfig =
   | BundleConfig
   | BuyXGetYConfig
-  | HappyHourConfig
   | PromoCodeConfig
   | ThresholdDiscountConfig;
 
@@ -614,10 +606,6 @@ export function isBuyXGetYConfig(config: OfferConfig): config is BuyXGetYConfig 
   return 'trigger_quantity' in config && 'reward_type' in config;
 }
 
-export function isHappyHourConfig(config: OfferConfig): config is HappyHourConfig {
-  return 'applies_to' in config;
-}
-
 export function isPromoCodeConfig(config: OfferConfig): config is PromoCodeConfig {
   return 'code' in config;
 }
@@ -630,7 +618,6 @@ export function isThresholdDiscountConfig(config: OfferConfig): config is Thresh
 export const OFFER_TYPE_LABELS: Record<OfferType, string> = {
   bundle: 'Menu / Formule',
   buy_x_get_y: 'X achetés = Y offert',
-  happy_hour: 'Happy Hour',
   promo_code: 'Code Promo',
   threshold_discount: 'Remise au palier',
 };
@@ -638,7 +625,6 @@ export const OFFER_TYPE_LABELS: Record<OfferType, string> = {
 export const OFFER_TYPE_DESCRIPTIONS: Record<OfferType, string> = {
   bundle: 'Créez une formule avec plusieurs plats à prix fixe. Idéal pour les menus du midi.',
   buy_x_get_y: 'Récompensez la fidélité ! Ex: 3 achetés = 1 offert',
-  happy_hour: 'Attirez les clients sur des créneaux calmes avec des réductions temporaires',
   promo_code: 'Créez un code à partager pour attirer de nouveaux clients',
   threshold_discount: 'Encouragez les commandes plus importantes avec une remise à partir d\'un montant',
 };
@@ -646,7 +632,6 @@ export const OFFER_TYPE_DESCRIPTIONS: Record<OfferType, string> = {
 export const OFFER_TYPE_ICONS: Record<OfferType, string> = {
   bundle: 'Package',
   buy_x_get_y: 'Gift',
-  happy_hour: 'Clock',
   promo_code: 'Tag',
   threshold_discount: 'TrendingUp',
 };

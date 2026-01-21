@@ -43,7 +43,7 @@ export interface OfferFormState {
   // Dates
   startDate: string;
   endDate: string;
-  // Horaires (happy hour)
+  // Horaires
   timeStart: string;
   timeEnd: string;
   daysOfWeek: number[];
@@ -71,11 +71,6 @@ export interface OfferFormState {
   rewardExcludedSizes: Record<string, string[]>; // itemId -> excluded sizeIds
   rewardQuantity: string;
   rewardValue: string;
-  // Happy Hour
-  happyHourDiscountType: 'percentage' | 'fixed';
-  happyHourDiscountValue: string;
-  happyHourAppliesTo: 'all' | 'category';
-  happyHourCategoryId: string;
   // Promo Code
   promoCode: string;
   promoCodeDiscountType: 'percentage' | 'fixed';
@@ -119,10 +114,6 @@ const initialFormState: OfferFormState = {
   rewardExcludedSizes: {},
   rewardQuantity: '1',
   rewardValue: '',
-  happyHourDiscountType: 'percentage',
-  happyHourDiscountValue: '20',
-  happyHourAppliesTo: 'all',
-  happyHourCategoryId: '',
   promoCode: '',
   promoCodeDiscountType: 'percentage',
   promoCodeDiscountValue: '10',
@@ -239,15 +230,6 @@ export function useOffers() {
             ? Math.round(parseFloat(form.rewardValue || '0') * 100)
             : undefined,
         };
-      case 'happy_hour':
-        return {
-          discount_type: form.happyHourDiscountType,
-          discount_value: form.happyHourDiscountType === 'percentage'
-            ? parseInt(form.happyHourDiscountValue) || 0
-            : Math.round(parseFloat(form.happyHourDiscountValue || '0') * 100),
-          applies_to: form.happyHourAppliesTo,
-          category_id: form.happyHourAppliesTo === 'category' ? form.happyHourCategoryId : undefined,
-        };
       case 'promo_code':
         return {
           code: form.promoCode.toUpperCase().trim(),
@@ -309,14 +291,6 @@ export function useOffers() {
           if (form.rewardItems.length === 0) {
             return 'Sélectionnez au moins un article récompense';
           }
-        }
-        break;
-      case 'happy_hour':
-        if (!form.timeStart || !form.timeEnd) {
-          return 'Les horaires sont requis';
-        }
-        if (form.daysOfWeek.length === 0) {
-          return 'Selectionnez au moins un jour';
         }
         break;
       case 'promo_code':
@@ -536,14 +510,6 @@ export function useOffers() {
             .filter((i) => i.role === 'reward')
             .map((i) => i.menu_item_id);
         }
-        break;
-      case 'happy_hour':
-        newForm.happyHourDiscountType = config.discount_type || 'percentage';
-        newForm.happyHourDiscountValue = config.discount_type === 'percentage'
-          ? (config.discount_value || 0).toString()
-          : ((config.discount_value || 0) / 100).toString();
-        newForm.happyHourAppliesTo = config.applies_to || 'all';
-        newForm.happyHourCategoryId = config.category_id || '';
         break;
       case 'promo_code':
         newForm.promoCode = config.code || '';

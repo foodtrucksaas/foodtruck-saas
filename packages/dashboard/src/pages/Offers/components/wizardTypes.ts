@@ -1,6 +1,6 @@
 import type { OfferType, MenuItem, CategoryOption } from '@foodtruck/shared';
 import type { OfferFormState, CategoryWithOptionGroups } from '../useOffers';
-import { Package, Gift, Clock, Tag, TrendingUp } from 'lucide-react';
+import { Package, Gift, Tag, TrendingUp } from 'lucide-react';
 
 export interface WizardFormProps {
   form: OfferFormState;
@@ -12,7 +12,6 @@ export interface WizardFormProps {
 export const typeIcons: Record<OfferType, typeof Package> = {
   bundle: Package,
   buy_x_get_y: Gift,
-  happy_hour: Clock,
   promo_code: Tag,
   threshold_discount: TrendingUp,
 };

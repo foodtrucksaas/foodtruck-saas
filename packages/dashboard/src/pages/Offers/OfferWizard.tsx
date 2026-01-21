@@ -5,7 +5,6 @@ import {
   OfferTypeSelector,
   BundleConfig,
   BuyXGetYConfig,
-  HappyHourConfig,
   PromoCodeConfig,
   ThresholdDiscountConfig,
   AdvancedOptions,
@@ -111,7 +110,6 @@ export function OfferWizard({
               {/* Type-specific config */}
               {form.offerType === 'bundle' && <BundleConfig {...formProps} />}
               {form.offerType === 'buy_x_get_y' && <BuyXGetYConfig {...formProps} />}
-              {form.offerType === 'happy_hour' && <HappyHourConfig {...formProps} />}
               {form.offerType === 'promo_code' && <PromoCodeConfig form={form} updateForm={updateForm} />}
               {form.offerType === 'threshold_discount' && <ThresholdDiscountConfig form={form} updateForm={updateForm} />}
 
