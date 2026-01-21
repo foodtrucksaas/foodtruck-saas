@@ -11,8 +11,6 @@ import {
   Navigation,
   Tag,
   Gift,
-  Percent,
-  Zap,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -469,7 +467,7 @@ export default function FoodtruckPage() {
                   </div>
                   <h2 className="text-base font-bold text-anthracite">Offres en cours</h2>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-3">
                   {visibleOffers
                     .filter(o => o.offer_type !== 'bundle')
                     .map((offer) => {
@@ -479,53 +477,45 @@ export default function FoodtruckPage() {
                         ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
                         : 0;
 
-                      // Choose icon based on offer type
-                      const OfferIcon = offer.offer_type === 'happy_hour' ? Zap
-                        : offer.offer_type === 'threshold_discount' ? Percent
-                        : Gift;
-
                       return (
                         <div
                           key={offer.offer_id}
-                          className={`rounded-xl p-3 border-2 transition-all ${
+                          className={`rounded-2xl p-4 border-2 transition-all ${
                             isApplicable
-                              ? 'bg-green-50 border-green-300'
-                              : 'bg-gray-50 border-gray-200'
+                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300'
+                              : 'bg-gradient-to-r from-primary-50 to-orange-50 border-primary-200'
                           }`}
                         >
-                          <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-lg ${isApplicable ? 'bg-green-100' : 'bg-gray-100'}`}>
-                              <OfferIcon className={`w-4 h-4 ${isApplicable ? 'text-green-600' : 'text-gray-400'}`} />
-                            </div>
+                          <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <h3 className={`font-semibold ${isApplicable ? 'text-green-800' : 'text-gray-700'}`}>
+                              <h3 className={`font-bold text-lg ${isApplicable ? 'text-green-800' : 'text-anthracite'}`}>
                                 {offer.offer_name}
                               </h3>
                               {offer.description && (
-                                <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
+                                <p className="text-sm text-gray-600 mt-0.5">{offer.description}</p>
                               )}
                               {offer.free_item_name && (
-                                <p className={`text-sm mt-1 font-medium ${isApplicable ? 'text-green-600' : 'text-gray-500'}`}>
+                                <p className={`text-xs mt-2 font-medium ${isApplicable ? 'text-green-600' : 'text-primary-600'}`}>
                                   {offer.free_item_name}
                                 </p>
                               )}
                               {/* Progress bar */}
                               {!isApplicable && hasProgress && (
                                 <div className="mt-2">
-                                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                  <div className="h-1.5 bg-white/50 rounded-full overflow-hidden">
                                     <div
-                                      className="h-full bg-amber-400 transition-all"
+                                      className="h-full bg-primary-400 transition-all"
                                       style={{ width: `${progress}%` }}
                                     />
                                   </div>
-                                  <p className="text-xs text-amber-600 mt-1">
+                                  <p className="text-xs text-primary-600 mt-1 font-medium">
                                     {offer.progress_current}/{offer.progress_required} - Plus que {offer.progress_required - offer.progress_current} !
                                   </p>
                                 </div>
                               )}
                             </div>
                             {isApplicable && offer.calculated_discount > 0 && (
-                              <span className="text-green-600 font-bold text-sm whitespace-nowrap">
+                              <span className="text-xl font-bold text-green-600 whitespace-nowrap">
                                 -{formatPrice(offer.calculated_discount)}
                               </span>
                             )}
