@@ -198,11 +198,11 @@ export default function FoodtruckPage() {
               <div className="mt-3">
                 {todaySchedules.length > 0 ? (
                   <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-white" />
+                    <Clock className="w-3.5 h-3.5 text-white" />
                     <span className="text-white text-xs font-medium">
                       {todaySchedules.length === 1 ? (
                         <>
-                          {todaySchedules[0].location.name} • {formatTime(todaySchedules[0].start_time)} - {formatTime(todaySchedules[0].end_time)}
+                          Ouvert aujourd'hui{todaySchedules[0].location?.name ? ` à ${todaySchedules[0].location.name}` : ''} • {formatTime(todaySchedules[0].start_time)} - {formatTime(todaySchedules[0].end_time)}
                         </>
                       ) : (
                         <>{todaySchedules.length} emplacements aujourd'hui</>

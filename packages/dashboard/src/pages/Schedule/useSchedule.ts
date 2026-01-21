@@ -222,6 +222,12 @@ export function useSchedule() {
 
     const dateStr = formatLocalDate(selectedDay.date);
 
+    // Validate: require location when in override mode
+    if (dayModalForm.mode === 'override' && !dayModalForm.location_id) {
+      toast.error('Sélectionnez un emplacement');
+      return;
+    }
+
     if (dayModalForm.mode === 'normal') {
       if (selectedDay.exception) {
         await supabase.from('schedule_exceptions').delete().eq('id', selectedDay.exception.id);

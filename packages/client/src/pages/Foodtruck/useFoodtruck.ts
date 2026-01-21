@@ -441,6 +441,11 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
 
   // Get all schedules for today (considering exceptions)
   const todaySchedules = useMemo(() => {
+    const today = new Date().getDay();
+    const regularSchedules = schedules
+      .filter((s) => s.day_of_week === today)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
     // If there's an exception for today
     if (todayException) {
       // If exception says closed, return empty
@@ -453,20 +458,36 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
           id: 'exception-today',
           foodtruck_id: foodtruck?.id || '',
           location_id: todayException.location.id,
-          day_of_week: new Date().getDay(),
+          day_of_week: today,
           start_time: todayException.start_time,
           end_time: todayException.end_time,
           is_active: true,
           location: todayException.location,
         } as ScheduleWithLocation];
       }
+      // Exception with is_closed: false but no full details
+      // Use regular schedules if available, otherwise create a placeholder
+      if (regularSchedules.length > 0) {
+        return regularSchedules;
+      }
+      // No regular schedules - create a placeholder to show as "open"
+      // This happens when opening on a normally closed day without specifying location
+      if (todayException.start_time && todayException.end_time) {
+        return [{
+          id: 'exception-today-no-location',
+          foodtruck_id: foodtruck?.id || '',
+          location_id: '',
+          day_of_week: today,
+          start_time: todayException.start_time,
+          end_time: todayException.end_time,
+          is_active: true,
+          location: { id: '', foodtruck_id: foodtruck?.id || '', name: '', address: '', latitude: null, longitude: null, created_at: null },
+        } as ScheduleWithLocation];
+      }
     }
 
     // No exception, use recurring schedules
-    const today = new Date().getDay();
-    return schedules
-      .filter((s) => s.day_of_week === today)
-      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    return regularSchedules;
   }, [schedules, todayException, foodtruck?.id]);
 
   const todaySchedule = todaySchedules[0];
