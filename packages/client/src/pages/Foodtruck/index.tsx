@@ -758,10 +758,10 @@ export default function FoodtruckPage() {
           >
             {/* Discount banner integrated in button */}
             {appliedDiscount > 0 && appliedDiscountName && (
-              <div className="bg-green-500 px-4 py-1.5 flex items-center justify-center gap-2 text-white text-sm">
+              <div className="bg-white/95 px-4 py-1.5 flex items-center justify-center gap-2 text-primary-600 text-sm">
                 <Tag className="w-3.5 h-3.5" />
                 <span className="font-medium truncate">{appliedDiscountName}</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap">
+                <span className="bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap">
                   -{formatPrice(appliedDiscount)}
                 </span>
               </div>
