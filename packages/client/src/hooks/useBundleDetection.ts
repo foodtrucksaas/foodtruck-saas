@@ -49,8 +49,15 @@ function itemMatchesCategory(
   item: CartItem,
   bundleCat: BundleCategoryConfig
 ): boolean {
-  // Must be in the correct category
-  if (item.menuItem.category_id !== bundleCat.category_id) return false;
+  // Get eligible category IDs (support both new array format and legacy singular format)
+  const eligibleCategoryIds = bundleCat.category_ids?.length
+    ? bundleCat.category_ids
+    : (bundleCat.category_id ? [bundleCat.category_id] : []);
+
+  // Must be in one of the eligible categories
+  if (!item.menuItem.category_id || !eligibleCategoryIds.includes(item.menuItem.category_id)) {
+    return false;
+  }
 
   // Must not be excluded
   if (bundleCat.excluded_items?.includes(item.menuItem.id)) return false;
