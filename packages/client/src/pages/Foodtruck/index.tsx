@@ -670,10 +670,13 @@ export default function FoodtruckPage() {
                 <h2 className="font-bold text-anthracite mb-4">Planning de la semaine</h2>
                 <div className="space-y-2">
                   {[0, 1, 2, 3, 4, 5, 6].map((day) => {
-                    const daySchedules = schedules
-                      .filter((s) => s.day_of_week === day)
-                      .sort((a, b) => a.start_time.localeCompare(b.start_time));
                     const isToday = day === new Date().getDay();
+                    // Use todaySchedules for today (considers exceptions), otherwise use recurring schedules
+                    const daySchedules = isToday
+                      ? todaySchedules
+                      : schedules
+                          .filter((s) => s.day_of_week === day)
+                          .sort((a, b) => a.start_time.localeCompare(b.start_time));
                     return (
                       <div
                         key={day}
@@ -701,14 +704,16 @@ export default function FoodtruckPage() {
                                   {formatTime(sched.start_time)} -{' '}
                                   {formatTime(sched.end_time)}
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                  {sched.location.name}
-                                </p>
+                                {sched.location?.name && (
+                                  <p className="text-xs text-gray-500">
+                                    {sched.location.name}
+                                  </p>
+                                )}
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400 font-medium">Ferme</span>
+                          <span className="text-sm text-gray-400 font-medium">Fermé</span>
                         )}
                       </div>
                     );
