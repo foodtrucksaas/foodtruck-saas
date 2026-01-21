@@ -15,7 +15,7 @@ interface FoodtruckContextType {
 const FoodtruckContext = createContext<FoodtruckContextType | undefined>(undefined);
 
 export function FoodtruckProvider({ children }: { children: ReactNode }) {
-  const { user, isTestMode } = useAuth();
+  const { user } = useAuth();
   const [foodtruck, setFoodtruck] = useState<Foodtruck | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -32,24 +32,11 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
 
-    let foodtruckData;
-
-    if (isTestMode) {
-      // In test mode, load the first available foodtruck
-      const { data } = await supabase
-        .from('foodtrucks')
-        .select('*')
-        .limit(1)
-        .single();
-      foodtruckData = data;
-    } else {
-      const { data } = await supabase
-        .from('foodtrucks')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      foodtruckData = data;
-    }
+    const { data: foodtruckData } = await supabase
+      .from('foodtrucks')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
     setFoodtruck(foodtruckData);
 
@@ -77,7 +64,7 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchFoodtruck();
-  }, [user, isTestMode]);
+  }, [user]);
 
   const updateFoodtruck = async (data: Partial<Foodtruck>) => {
     if (!foodtruck) return;

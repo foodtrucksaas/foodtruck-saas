@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2, Check, FlaskConical } from 'lucide-react';
+import { UtensilsCrossed, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CUISINE_TYPES, DEFAULT_CATEGORIES } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,7 @@ import { useFoodtruck } from '../contexts/FoodtruckContext';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, signInAsTest } = useAuth();
+  const { user } = useAuth();
   const { refresh } = useFoodtruck();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -149,15 +149,6 @@ export default function Onboarding() {
               )}
             </button>
           </form>
-
-          {/* Test mode button */}
-          <button
-            onClick={signInAsTest}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FlaskConical className="w-4 h-4" />
-            Mode test (dev)
-          </button>
         </div>
       </div>
     </div>

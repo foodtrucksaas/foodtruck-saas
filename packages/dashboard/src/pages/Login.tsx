@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, Mail, Lock, Loader2, FlaskConical } from 'lucide-react';
+import { UtensilsCrossed, Mail, Lock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
-  const { signIn, signInWithMagicLink, signInAsTest } = useAuth();
+  const { signIn, signInWithMagicLink } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -155,15 +155,6 @@ export default function Login() {
             Connexion par magic link
           </button>
         </div>
-
-        {/* Test mode button */}
-        <button
-          onClick={signInAsTest}
-          className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <FlaskConical className="w-4 h-4" />
-          Mode test (dev)
-        </button>
       </div>
     </div>
   );

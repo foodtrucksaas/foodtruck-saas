@@ -1,11 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { handleCors, getCorsHeaders } from '../_shared/cors.ts';
 
 interface Recipient {
   customer_id: string;
@@ -17,16 +13,17 @@ interface Recipient {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
   try {
     const { campaign_id } = await req.json();
 
     if (!campaign_id) {
       return new Response(
-        JSON.stringify({ error: 'campaign_id is required' }),
+        JSON.stringify({ error: 'Paramètre manquant' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -54,7 +51,7 @@ serve(async (req) => {
 
     if (campaignError || !campaign) {
       return new Response(
-        JSON.stringify({ error: 'Campaign not found' }),
+        JSON.stringify({ error: 'Campagne non trouvée' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -64,8 +61,9 @@ serve(async (req) => {
       .rpc('get_campaign_recipients', { p_campaign_id: campaign_id });
 
     if (recipientsError) {
+      console.error('Recipients fetch error');
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch recipients' }),
+        JSON.stringify({ error: 'Erreur lors de la récupération des destinataires' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -74,7 +72,7 @@ serve(async (req) => {
 
     if (recipientsList.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No recipients found' }),
+        JSON.stringify({ error: 'Aucun destinataire trouvé' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -274,8 +272,9 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    console.error('Campaign send error');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Une erreur est survenue' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

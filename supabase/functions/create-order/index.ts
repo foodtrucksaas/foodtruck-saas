@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { handleCors } from '../_shared/cors.ts';
-import { successResponse } from '../_shared/responses.ts';
+import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
 import {
   validateOrderRequest,
   getFoodtruck,
@@ -19,11 +19,72 @@ import {
   sendPushNotification,
 } from '../_shared/orders.ts';
 
+// ============================================
+// RATE LIMITING
+// In-memory rate limiter (resets on function cold start)
+// For production, consider using Redis or Supabase table
+// ============================================
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 orders per minute per IP
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of rateLimitMap.entries()) {
+    if (now > value.resetAt) {
+      rateLimitMap.delete(key);
+    }
+  }
+}, 60 * 1000);
+
+// ============================================
+// SERVICE ROLE KEY VALIDATION
+// For privileged operations (force_slot)
+// ============================================
+function isServiceRoleRequest(req: Request): boolean {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) return false;
+
+  const token = authHeader.replace('Bearer ', '');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  return serviceRoleKey ? token === serviceRoleKey : false;
+}
+
 serve(async (req) => {
+  setCurrentRequest(req);
+
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
   try {
+    // Rate limiting based on IP or forwarded IP
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                     req.headers.get('x-real-ip') ||
+                     'unknown';
+
+    if (!checkRateLimit(clientIP)) {
+      return errorResponse('Trop de requêtes. Veuillez réessayer dans une minute.', 429);
+    }
+
     const body = await req.json();
 
     const validationError = validateOrderRequest(body);
@@ -32,8 +93,11 @@ serve(async (req) => {
     const { foodtruck, error: ftError } = await getFoodtruck(body.foodtruck_id);
     if (ftError) return ftError;
 
-    // Skip slot check if force_slot is true (manual order from dashboard)
-    if (!body.force_slot) {
+    // force_slot requires service role key (dashboard internal calls only)
+    const forceSlotAllowed = body.force_slot && isServiceRoleRequest(req);
+
+    // Skip slot check only if force_slot is allowed
+    if (!forceSlotAllowed) {
       const slotError = await checkSlotAvailability(body.foodtruck_id, body.pickup_time, foodtruck.max_orders_per_slot);
       if (slotError) return slotError;
     }
@@ -44,7 +108,7 @@ serve(async (req) => {
     // === SERVER-SIDE VALIDATIONS ===
 
     // 1. Validate pickup time is not in the past (skip for manual dashboard orders)
-    if (!body.force_slot) {
+    if (!forceSlotAllowed) {
       const pickupTimeError = validatePickupTime(body.pickup_time);
       if (pickupTimeError) return pickupTimeError;
     }
@@ -108,8 +172,8 @@ serve(async (req) => {
       if (totalError) return totalError;
     }
 
-    // Auto-accept if auto_accept_orders is true OR if it's a manual order from dashboard (force_slot)
-    const status = (foodtruck.auto_accept_orders || body.force_slot) ? 'confirmed' : 'pending';
+    // Auto-accept if auto_accept_orders is true OR if it's a manual order from dashboard (force_slot with service key)
+    const status = (foodtruck.auto_accept_orders || forceSlotAllowed) ? 'confirmed' : 'pending';
     const { order, error: orderError } = await createOrder(body, orderItems, total, status, itemOptions);
     if (orderError) return orderError;
 
@@ -161,6 +225,8 @@ serve(async (req) => {
 
     return successResponse({ order_id: order.id, order });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    // Log error internally but return generic message to client
+    console.error('Order creation error:', error);
+    return errorResponse('Une erreur est survenue. Veuillez réessayer.', 500);
   }
 });

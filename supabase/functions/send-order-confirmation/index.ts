@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { handleCors } from '../_shared/cors.ts';
 import { createSupabaseAdmin } from '../_shared/supabase.ts';
-import { successResponse, errorResponse } from '../_shared/responses.ts';
+import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
 
 interface OrderItem {
   quantity: number;
@@ -16,12 +16,14 @@ interface OrderItem {
 }
 
 serve(async (req) => {
+  setCurrentRequest(req);
+
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
   try {
     const { order_id } = await req.json();
-    if (!order_id) return errorResponse('Missing order_id');
+    if (!order_id) return errorResponse('Paramètre manquant');
 
     const supabase = createSupabaseAdmin();
 
@@ -47,7 +49,7 @@ serve(async (req) => {
       return errorResponse('Order not found', 404);
     }
 
-    console.log('Order fetched successfully:', order.id);
+    // Order fetched successfully - log only order ID, not customer data
 
     // Skip manual orders (surplace@local)
     if (order.customer_email === 'surplace@local') {
@@ -227,7 +229,7 @@ serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (!resendKey) return successResponse({ success: true, message: 'Email skipped (no API key)' });
 
-    console.log('Sending email to:', order.customer_email);
+    // Sending confirmation email for order
 
     const emailPayload = {
       from: `${order.foodtruck.name} <commandes@resend.dev>`,
@@ -243,17 +245,16 @@ serve(async (req) => {
     });
 
     const resBody = await res.text();
-    console.log('Resend API response:', res.status, resBody);
 
     if (!res.ok) {
-      console.error('Resend API error:', res.status, resBody);
-      // Don't fail the request, just log the error
-      return successResponse({ success: false, message: 'Email failed to send', error: resBody });
+      console.error('Email API error:', res.status);
+      // Don't fail the request, just log the error - return generic message
+      return successResponse({ success: false, message: 'Email failed to send' });
     }
 
     return successResponse({ success: true });
   } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    return errorResponse(error.message, 500);
+    console.error('Email service error');
+    return errorResponse('Une erreur est survenue', 500);
   }
 });
