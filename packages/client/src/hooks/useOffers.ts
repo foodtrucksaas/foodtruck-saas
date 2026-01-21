@@ -37,18 +37,18 @@ export function useOffers(
 
   // Fetch applicable offers when cart changes
   useEffect(() => {
-    // Filter out bundle items - they have synthetic menu item IDs
-    const regularItems = items.filter(item => !item.bundleInfo);
-
-    if (!foodtruckId || regularItems.length === 0) {
+    if (!foodtruckId) {
       setApplicableOffers([]);
       return;
     }
 
+    // Filter out bundle items - they have synthetic menu item IDs
+    const regularItems = items.filter(item => !item.bundleInfo);
+
     const fetchOffers = async () => {
       setLoading(true);
       try {
-        // Build cart items JSON for the API call
+        // Build cart items JSON for the API call (empty array if no items)
         const cartItems = regularItems.map((item) => {
           const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
           const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
