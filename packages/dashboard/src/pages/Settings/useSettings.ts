@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useImageUpload } from '../../hooks/useImageUpload';
+import { compressLogo, compressCover } from '../../utils/imageCompression';
 
 export type EditingField =
   | 'name'
@@ -41,7 +44,21 @@ export interface EditFormState {
 
 export function useSettings() {
   const { foodtruck, updateFoodtruck } = useFoodtruck();
+  const { user } = useAuth();
   const [editingField, setEditingField] = useState<EditingField>(null);
+
+  // Image upload hooks with specific compression
+  const { uploading: logoUploading, uploadImage: uploadLogoImage, deleteImage: deleteLogoImage } = useImageUpload({
+    bucket: 'foodtruck-images',
+    folder: user?.id || 'unknown',
+    compress: compressLogo, // 512x512 max, WebP
+  });
+
+  const { uploading: coverUploading, uploadImage: uploadCoverImage, deleteImage: deleteCoverImage } = useImageUpload({
+    bucket: 'foodtruck-images',
+    folder: user?.id || 'unknown',
+    compress: compressCover, // 1920x640 max, WebP
+  });
   const [editLoading, setEditLoading] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({
     name: '',
@@ -184,6 +201,47 @@ export function useSettings() {
     ? `${import.meta.env.VITE_APP_URL || 'https://votre-app.vercel.app'}/${foodtruck.id}`
     : '';
 
+  // Image upload handlers
+  const uploadLogo = useCallback(async (file: File) => {
+    const url = await uploadLogoImage(file);
+    if (url) {
+      // Delete old logo if exists
+      if (foodtruck?.logo_url) {
+        await deleteLogoImage(foodtruck.logo_url);
+      }
+      await updateFoodtruck({ logo_url: url });
+      toast.success('Logo mis à jour');
+    }
+  }, [uploadLogoImage, deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
+
+  const removeLogo = useCallback(async () => {
+    if (foodtruck?.logo_url) {
+      await deleteLogoImage(foodtruck.logo_url);
+      await updateFoodtruck({ logo_url: null });
+      toast.success('Logo supprimé');
+    }
+  }, [deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
+
+  const uploadCover = useCallback(async (file: File) => {
+    const url = await uploadCoverImage(file);
+    if (url) {
+      // Delete old cover if exists
+      if (foodtruck?.cover_image_url) {
+        await deleteCoverImage(foodtruck.cover_image_url);
+      }
+      await updateFoodtruck({ cover_image_url: url });
+      toast.success('Image de couverture mise à jour');
+    }
+  }, [uploadCoverImage, deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
+
+  const removeCover = useCallback(async () => {
+    if (foodtruck?.cover_image_url) {
+      await deleteCoverImage(foodtruck.cover_image_url);
+      await updateFoodtruck({ cover_image_url: null });
+      toast.success('Image de couverture supprimée');
+    }
+  }, [deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
+
   return {
     // Data
     foodtruck,
@@ -199,5 +257,13 @@ export function useSettings() {
     toggleCuisineType,
     updateEditForm,
     copyClientLink,
+
+    // Image uploads
+    logoUploading,
+    coverUploading,
+    uploadLogo,
+    removeLogo,
+    uploadCover,
+    removeCover,
   };
 }

@@ -1,7 +1,8 @@
-import { Store, Check, MapPin, Building2, Image } from 'lucide-react';
+import { Store, Check, MapPin, Building2, Image as ImageIcon } from 'lucide-react';
 import { CUISINE_TYPES } from '@foodtruck/shared';
 import { EditableField } from './EditableField';
 import { ToggleCards } from './ToggleCards';
+import { ImageUpload } from '../../components/ImageUpload';
 import type { EditingField, EditFormState } from './useSettings';
 import type { Foodtruck } from '@foodtruck/shared';
 
@@ -15,6 +16,13 @@ interface ProfileSectionProps {
   onCancel: () => void;
   onUpdateForm: <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => void;
   onToggleCuisineType: (type: string) => void;
+  // Image uploads
+  logoUploading: boolean;
+  coverUploading: boolean;
+  onUploadLogo: (file: File) => Promise<void>;
+  onRemoveLogo: () => Promise<void>;
+  onUploadCover: (file: File) => Promise<void>;
+  onRemoveCover: () => Promise<void>;
 }
 
 export function ProfileSection({
@@ -27,6 +35,12 @@ export function ProfileSection({
   onCancel,
   onUpdateForm,
   onToggleCuisineType,
+  logoUploading,
+  coverUploading,
+  onUploadLogo,
+  onRemoveLogo,
+  onUploadCover,
+  onRemoveCover,
 }: ProfileSectionProps) {
   return (
     <section className="card p-6">
@@ -35,7 +49,41 @@ export function ProfileSection({
         <h2 className="text-lg font-semibold text-gray-900">Profil du food truck</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Images */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-gray-700">Images</h3>
+
+          {/* Cover Image */}
+          <div>
+            <label className="block text-xs text-gray-500 mb-2">Image de couverture</label>
+            <ImageUpload
+              currentUrl={foodtruck?.cover_image_url}
+              onUpload={onUploadCover}
+              onRemove={onRemoveCover}
+              uploading={coverUploading}
+              aspectRatio="cover"
+              placeholder="Ajouter une bannière"
+            />
+          </div>
+
+          {/* Logo */}
+          <div>
+            <label className="block text-xs text-gray-500 mb-2">Logo</label>
+            <ImageUpload
+              currentUrl={foodtruck?.logo_url}
+              onUpload={onUploadLogo}
+              onRemove={onRemoveLogo}
+              uploading={logoUploading}
+              aspectRatio="square"
+              placeholder="Ajouter un logo"
+              className="w-32"
+            />
+          </div>
+        </div>
+
+        <hr className="border-gray-200" />
+
         {/* Nom */}
         <EditableField
           label="Nom du food truck"
@@ -218,7 +266,7 @@ export function ProfileSection({
             <div className="flex items-center gap-2">
               {foodtruck?.show_menu_photos !== false ? (
                 <>
-                  <Image className="w-5 h-5 text-primary-500" />
+                  <ImageIcon className="w-5 h-5 text-primary-500" />
                   <span className="text-gray-900 font-medium">Avec photos</span>
                 </>
               ) : (
@@ -234,7 +282,7 @@ export function ProfileSection({
               currentValue={editForm.show_menu_photos}
               onChange={(value) => onUpdateForm('show_menu_photos', value)}
               options={[
-                { value: true, icon: Image, title: 'Avec photos', description: 'Les photos des plats sont affichees' },
+                { value: true, icon: ImageIcon, title: 'Avec photos', description: 'Les photos des plats sont affichees' },
                 { value: false, icon: Store, title: 'Sans photos', description: 'Menu en mode liste simple' },
               ]}
             />

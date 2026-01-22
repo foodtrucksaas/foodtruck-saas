@@ -15,6 +15,13 @@ export default function Settings() {
     toggleCuisineType,
     updateEditForm,
     copyClientLink,
+    // Image uploads
+    logoUploading,
+    coverUploading,
+    uploadLogo,
+    removeLogo,
+    uploadCover,
+    removeCover,
   } = useSettings();
 
   return (
@@ -55,6 +62,12 @@ export default function Settings() {
         onCancel={cancelEditing}
         onUpdateForm={updateEditForm}
         onToggleCuisineType={toggleCuisineType}
+        logoUploading={logoUploading}
+        coverUploading={coverUploading}
+        onUploadLogo={uploadLogo}
+        onRemoveLogo={removeLogo}
+        onUploadCover={uploadCover}
+        onRemoveCover={removeCover}
       />
 
       {/* Order Settings Section */}
