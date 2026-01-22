@@ -143,7 +143,11 @@ export default function OrderStatus() {
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-gray-900">Commande confirmée !</h2>
               <p className="text-gray-500 mt-2">
-                Rendez-vous au food truck à l'heure indiquée pour récupérer votre commande.
+                Rendez-vous au food truck à{' '}
+                <span className="font-semibold text-gray-900">
+                  {new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+                {' '}pour récupérer votre commande.
               </p>
             </div>
           ) : (
