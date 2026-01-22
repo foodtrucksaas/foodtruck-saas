@@ -415,17 +415,22 @@ export default function Checkout() {
           <div className="pt-2 space-y-3">
             {/* Loyalty consent: show when loyalty is enabled and user hasn't already opted in */}
             {settings?.loyaltyEnabled && (!loyaltyInfo || loyaltyInfo.loyalty_opt_in !== true) && (
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.loyaltyOptIn}
-                  onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
-                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-600">
-                  J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité
-                </span>
-              </label>
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.loyaltyOptIn}
+                    onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
+                    className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-600">
+                    J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité
+                  </span>
+                </label>
+                <p className="text-xs text-gray-400 italic ml-7 mt-1">
+                  Participation facultative – désinscription à tout moment.
+                </p>
+              </div>
             )}
             <label className="flex items-start gap-3 cursor-pointer">
               <input
