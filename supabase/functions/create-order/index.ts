@@ -243,13 +243,9 @@ serve(async (req) => {
     logger.info('Order created successfully', { orderId: order.id, status });
     return successResponse({ order_id: order.id, order });
   } catch (error) {
-    // Log error details for debugging
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error('[create-order] CRITICAL ERROR:', errorMessage, errorStack);
+    // Log error details internally
+    console.error('[create-order] Error:', error);
     logger.error('Order creation failed', error as Error);
-
-    // Return detailed error in development, generic in production
-    return errorResponse(`Erreur: ${errorMessage}`, 500);
+    return errorResponse('Une erreur est survenue. Veuillez réessayer.', 500);
   }
 });

@@ -644,7 +644,7 @@ export async function createOrder(
 
   if (error || !order) {
     console.error('[createOrder] Database error:', error);
-    return { error: errorResponse(`Failed to create order: ${error?.message || 'Unknown error'}`, 500) };
+    return { error: errorResponse('Failed to create order', 500) };
   }
 
   // Update customer opt-in preferences if provided
@@ -687,7 +687,7 @@ export async function createOrder(
   if (itemsError || !insertedItems) {
     console.error('[createOrder] Order items error:', itemsError);
     await supabase.from('orders').delete().eq('id', order.id);
-    return { error: errorResponse(`Failed to create order items: ${itemsError?.message || 'Unknown error'}`, 500) };
+    return { error: errorResponse('Failed to create order items', 500) };
   }
 
   // Insert order item options
