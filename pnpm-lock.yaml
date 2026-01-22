@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.57.0
+        version: 1.57.0
       '@testing-library/jest-dom':
         specifier: ^6.4.0
         version: 6.9.1
@@ -26,6 +29,9 @@ importers:
       jsdom:
         specifier: ^24.0.0
         version: 24.1.3
+      playwright:
+        specifier: ^1.57.0
+        version: 1.57.0
       prettier:
         specifier: ^3.1.0
         version: 3.7.4
@@ -41,6 +47,9 @@ importers:
       '@foodtruck/shared':
         specifier: workspace:*
         version: link:../shared
+      '@sentry/react':
+        specifier: ^10.36.0
+        version: 10.36.0(react@18.3.1)
       '@stripe/stripe-js':
         specifier: ^2.2.0
         version: 2.4.0
@@ -132,6 +141,9 @@ importers:
       '@foodtruck/shared':
         specifier: workspace:*
         version: link:../shared
+      '@sentry/react':
+        specifier: ^10.36.0
+        version: 10.36.0(react@18.3.1)
       '@supabase/supabase-js':
         specifier: ^2.39.0
         version: 2.90.1
@@ -1919,6 +1931,14 @@ packages:
       fastq: 1.20.1
     dev: true
 
+  /@playwright/test@1.57.0:
+    resolution: {integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright: 1.57.0
+    dev: true
+
   /@react-leaflet/core@2.1.0(leaflet@1.9.4)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-Qk7Pfu8BSarKGqILj4x7bCSZ1pjuAPZ+qmRwH5S7mDS91VSbVVsJSrW4qA+GPrro8t69gFYVMWb1Zc4yFmPiVg==}
     peerDependencies:
@@ -2227,6 +2247,63 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@sentry-internal/browser-utils@10.36.0:
+    resolution: {integrity: sha512-WILVR8HQBWOxbqLRuTxjzRCMIACGsDTo6jXvzA8rz6ezElElLmIrn3CFAswrESLqEEUa4CQHl5bLgSVJCRNweA==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@sentry/core': 10.36.0
+    dev: false
+
+  /@sentry-internal/feedback@10.36.0:
+    resolution: {integrity: sha512-zPjz7AbcxEyx8AHj8xvp28fYtPTPWU1XcNtymhAHJLS9CXOblqSC7W02Jxz6eo3eR1/pLyOo6kJBUjvLe9EoFA==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@sentry/core': 10.36.0
+    dev: false
+
+  /@sentry-internal/replay-canvas@10.36.0:
+    resolution: {integrity: sha512-DLGIwmT2LX+O6TyYPtOQL5GiTm2rN0taJPDJ/Lzg2KEJZrdd5sKkzTckhh2x+vr4JQyeaLmnb8M40Ch1hvG/vQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@sentry-internal/replay': 10.36.0
+      '@sentry/core': 10.36.0
+    dev: false
+
+  /@sentry-internal/replay@10.36.0:
+    resolution: {integrity: sha512-nLMkJgvHq+uCCrQKV2KgSdVHxTsmDk0r2hsAoTcKCbzUpXyW5UhCziMRS6ULjBlzt5sbxoIIplE25ZpmIEeNgg==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@sentry-internal/browser-utils': 10.36.0
+      '@sentry/core': 10.36.0
+    dev: false
+
+  /@sentry/browser@10.36.0:
+    resolution: {integrity: sha512-yHhXbgdGY1s+m8CdILC9U/II7gb6+s99S2Eh8VneEn/JG9wHc+UOzrQCeFN0phFP51QbLkjkiQbbanjT1HP8UQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@sentry-internal/browser-utils': 10.36.0
+      '@sentry-internal/feedback': 10.36.0
+      '@sentry-internal/replay': 10.36.0
+      '@sentry-internal/replay-canvas': 10.36.0
+      '@sentry/core': 10.36.0
+    dev: false
+
+  /@sentry/core@10.36.0:
+    resolution: {integrity: sha512-EYJjZvofI+D93eUsPLDIUV0zQocYqiBRyXS6CCV6dHz64P/Hob5NJQOwPa8/v6nD+UvJXvwsFfvXOHhYZhZJOQ==}
+    engines: {node: '>=18'}
+    dev: false
+
+  /@sentry/react@10.36.0(react@18.3.1):
+    resolution: {integrity: sha512-k2GwMKgepJLXvEQffQymQyxsTVjsLiY6YXG0bcceM3vulii9Sy29uqGhpqwaPOfM4bPQzUXJzAxS/c9S7n5hTw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      react: ^16.14.0 || 17.x || 18.x || 19.x
+    dependencies:
+      '@sentry/browser': 10.36.0
+      '@sentry/core': 10.36.0
+      react: 18.3.1
+    dev: false
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -3746,6 +3823,14 @@ packages:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
 
+  /fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -4972,6 +5057,22 @@ packages:
       confbox: 0.1.8
       mlly: 1.8.0
       pathe: 2.0.3
+    dev: true
+
+  /playwright-core@1.57.0:
+    resolution: {integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dev: true
+
+  /playwright@1.57.0:
+    resolution: {integrity: sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright-core: 1.57.0
+    optionalDependencies:
+      fsevents: 2.3.2
     dev: true
 
   /plist@3.1.0:

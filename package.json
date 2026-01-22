@@ -15,6 +15,9 @@
     "test:dashboard": "pnpm --filter @foodtruck/dashboard test",
     "test:client": "pnpm --filter @foodtruck/client test",
     "test:coverage": "pnpm -r test:coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -27,12 +30,14 @@
     "supabase:gen-types": "supabase gen types typescript --local > packages/shared/src/types/database.types.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^14.2.0",
     "@types/node": "^20.10.0",
     "@vitest/coverage-v8": "^1.2.0",
     "eslint": "^8.55.0",
     "jsdom": "^24.0.0",
+    "playwright": "^1.57.0",
     "prettier": "^3.1.0",
     "typescript": "^5.3.2",
     "vitest": "^1.2.0"

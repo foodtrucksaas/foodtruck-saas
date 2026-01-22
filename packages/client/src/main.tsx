@@ -4,7 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { CartProvider } from './contexts/CartContext';
+import { initSentry } from './lib/sentry';
 import './index.css';
+
+// Initialize error tracking
+initSentry();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

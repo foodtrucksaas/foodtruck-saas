@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { handleCors } from '../_shared/cors.ts';
 import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
+import { createLogger, generateRequestId } from '../_shared/logger.ts';
 import {
   validateOrderRequest,
   getFoodtruck,
@@ -70,6 +71,10 @@ function isServiceRoleRequest(req: Request): boolean {
 }
 
 serve(async (req) => {
+  const logger = createLogger('create-order');
+  const requestId = generateRequestId();
+  logger.setRequestId(requestId);
+
   setCurrentRequest(req);
 
   const corsResponse = handleCors(req);
@@ -82,10 +87,12 @@ serve(async (req) => {
                      'unknown';
 
     if (!checkRateLimit(clientIP)) {
+      logger.warn('Rate limit exceeded', { clientIP });
       return errorResponse('Trop de requêtes. Veuillez réessayer dans une minute.', 429);
     }
 
     const body = await req.json();
+    logger.setContext({ foodtruckId: body.foodtruck_id });
 
     const validationError = validateOrderRequest(body);
     if (validationError) return validationError;
@@ -223,10 +230,11 @@ serve(async (req) => {
       );
     }
 
+    logger.info('Order created successfully', { orderId: order.id, status });
     return successResponse({ order_id: order.id, order });
   } catch (error) {
     // Log error internally but return generic message to client
-    console.error('Order creation error:', error);
+    logger.error('Order creation failed', error as Error);
     return errorResponse('Une erreur est survenue. Veuillez réessayer.', 500);
   }
 });

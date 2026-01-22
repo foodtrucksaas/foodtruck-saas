@@ -5,7 +5,11 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { FoodtruckProvider } from './contexts/FoodtruckContext';
+import { initSentry } from './lib/sentry';
 import './index.css';
+
+// Initialize error tracking
+initSentry();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

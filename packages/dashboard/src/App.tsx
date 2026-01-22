@@ -1,21 +1,24 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useFoodtruck } from './contexts/FoodtruckContext';
 import Layout from './components/Layout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Menu from './pages/Menu';
-import Orders from './pages/Orders';
-import Schedule from './pages/Schedule';
-import Analytics from './pages/Analytics';
-import Customers from './pages/Customers';
-import Campaigns from './pages/Campaigns';
-import Offers from './pages/Offers';
-import Loyalty from './pages/Loyalty';
-import Settings from './pages/Settings';
-import Onboarding from './pages/Onboarding';
 import Loading from './components/Loading';
+
+// Lazy load pages for code splitting
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Menu = lazy(() => import('./pages/Menu'));
+const Orders = lazy(() => import('./pages/Orders'));
+const Schedule = lazy(() => import('./pages/Schedule'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Customers = lazy(() => import('./pages/Customers'));
+const Campaigns = lazy(() => import('./pages/Campaigns'));
+const Offers = lazy(() => import('./pages/Offers'));
+const Loyalty = lazy(() => import('./pages/Loyalty'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -59,9 +62,10 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route
-        path="/login"
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        <Route
+          path="/login"
         element={
           <PublicRoute>
             <Login />
@@ -175,7 +179,8 @@ export default function App() {
           </PrivateRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }

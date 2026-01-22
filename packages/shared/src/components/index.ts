@@ -25,3 +25,6 @@ export type { SpinnerProps, LoadingProps } from './Spinner';
 
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+
+export { OptimizedImage } from './OptimizedImage';
+export type { default as OptimizedImageProps } from './OptimizedImage';
