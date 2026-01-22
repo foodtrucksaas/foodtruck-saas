@@ -1578,6 +1578,24 @@ export type Database = {
           description: string | null
         }[]
       }
+      get_optimized_offers: {
+        Args: {
+          p_foodtruck_id: string
+          p_cart_items: Json
+          p_order_amount: number
+          p_promo_code?: string | null
+        }
+        Returns: {
+          offer_id: string
+          offer_name: string
+          offer_type: string
+          times_applied: number
+          discount_per_application: number
+          calculated_discount: number
+          items_consumed: { menu_item_id: string; quantity: number }[] | null
+          free_item_name: string | null
+        }[]
+      }
       validate_offer_promo_code: {
         Args: {
           p_foodtruck_id: string

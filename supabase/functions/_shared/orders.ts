@@ -10,6 +10,15 @@ interface SelectedOptionRequest {
   is_size_option?: boolean;
 }
 
+// NEW: Applied offer from optimized combination
+interface AppliedOfferRequest {
+  offer_id: string;
+  times_applied: number;
+  discount_amount: number;
+  items_consumed: Array<{ menu_item_id: string; quantity: number }>;
+  free_item_name?: string;
+}
+
 interface OrderRequest {
   foodtruck_id: string;
   customer_email: string;
@@ -26,9 +35,12 @@ interface OrderRequest {
   use_loyalty_reward?: boolean;
   loyalty_customer_id?: string;
   loyalty_reward_count?: number;
+  // Legacy single offer (backward compatibility)
   deal_id?: string;
   deal_discount?: number;
   deal_free_item_name?: string;
+  // NEW: Multiple applied offers (optimized combination)
+  applied_offers?: AppliedOfferRequest[];
   items: {
     menu_item_id: string;
     quantity: number;
@@ -467,6 +479,123 @@ export async function validateDeal(
 }
 
 /**
+ * Validate multiple applied offers (new optimized combination system)
+ */
+export async function validateAppliedOffers(
+  foodtruckId: string,
+  appliedOffers: AppliedOfferRequest[] | undefined,
+  items: OrderRequest['items'],
+  menuItems: any[]
+): Promise<{ totalDiscount: number; error: Response | null }> {
+  // No offers applied - nothing to validate
+  if (!appliedOffers || appliedOffers.length === 0) {
+    return { totalDiscount: 0, error: null };
+  }
+
+  const supabase = createSupabaseAdmin();
+
+  // Collect all offer IDs
+  const offerIds = appliedOffers.map(o => o.offer_id);
+
+  // Fetch all offers in one query
+  const { data: offers, error: offersError } = await supabase
+    .from('offers')
+    .select('*')
+    .in('id', offerIds)
+    .eq('foodtruck_id', foodtruckId);
+
+  if (offersError || !offers || offers.length !== offerIds.length) {
+    return { totalDiscount: 0, error: errorResponse('Une ou plusieurs offres sont invalides') };
+  }
+
+  // Create offer map for quick lookup
+  const offerMap = new Map(offers.map(o => [o.id, o]));
+
+  // 1. Validate each offer is active
+  for (const appliedOffer of appliedOffers) {
+    const offer = offerMap.get(appliedOffer.offer_id);
+    if (!offer) {
+      return { totalDiscount: 0, error: errorResponse('Offre non trouvée') };
+    }
+
+    if (!offer.is_active) {
+      return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" n'est plus active`) };
+    }
+
+    // Check date validity
+    const now = new Date();
+    if (offer.start_date && new Date(offer.start_date) > now) {
+      return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" n'est pas encore active`) };
+    }
+    if (offer.end_date && new Date(offer.end_date) < now) {
+      return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" a expiré`) };
+    }
+  }
+
+  // 2. Build consumed items map to check no item is consumed more than available
+  const consumedItems = new Map<string, number>();
+
+  for (const appliedOffer of appliedOffers) {
+    for (const consumed of appliedOffer.items_consumed) {
+      const currentCount = consumedItems.get(consumed.menu_item_id) || 0;
+      consumedItems.set(consumed.menu_item_id, currentCount + consumed.quantity);
+    }
+  }
+
+  // 3. Verify no item is consumed more than available in cart
+  const menuMap = new Map(menuItems.map(m => [m.id, m]));
+
+  for (const [itemId, consumedCount] of consumedItems) {
+    // Find cart item
+    const cartItem = items.find(i => i.menu_item_id === itemId);
+    if (!cartItem) {
+      const menuItem = menuMap.get(itemId);
+      const itemName = menuItem?.name || itemId;
+      return { totalDiscount: 0, error: errorResponse(`L'article "${itemName}" est requis pour une offre mais n'est pas dans le panier`) };
+    }
+
+    if (consumedCount > cartItem.quantity) {
+      const menuItem = menuMap.get(itemId);
+      const itemName = menuItem?.name || 'Article';
+      return {
+        totalDiscount: 0,
+        error: errorResponse(`${itemName}: utilisé ${consumedCount} fois dans les offres mais seulement ${cartItem.quantity} dans le panier`)
+      };
+    }
+  }
+
+  // 4. Validate discount amounts (sanity check)
+  let totalOffersDiscount = 0;
+  let cartTotal = 0;
+
+  // Calculate cart total
+  for (const item of items) {
+    const menuItem = menuMap.get(item.menu_item_id);
+    if (!menuItem) continue;
+
+    let unitPrice = menuItem.price;
+    if (item.selected_options) {
+      for (const opt of item.selected_options) {
+        unitPrice += opt.price_modifier;
+      }
+    }
+    cartTotal += unitPrice * item.quantity;
+  }
+
+  // Sum all offer discounts
+  for (const appliedOffer of appliedOffers) {
+    totalOffersDiscount += appliedOffer.discount_amount;
+  }
+
+  // Discount should never exceed cart total
+  if (totalOffersDiscount > cartTotal) {
+    return { totalDiscount: 0, error: errorResponse('Le total des réductions ne peut pas dépasser le montant du panier') };
+  }
+
+  return { totalDiscount: totalOffersDiscount, error: null };
+}
+
+/**
  * Recalculate and validate total amount
  */
 export function validateOrderTotal(
@@ -475,7 +604,8 @@ export function validateOrderTotal(
   clientTotal: number, // total sent by client (after discount)
   discountAmount: number = 0,
   dealDiscount: number = 0,
-  loyaltyDiscount: number = 0
+  loyaltyDiscount: number = 0,
+  appliedOffersDiscount: number = 0 // NEW: discount from multiple applied offers
 ): { serverTotal: number; error: Response | null } {
   const menuMap = new Map(menuItems.map(m => [m.id, m]));
   let serverSubtotal = 0;
@@ -515,8 +645,8 @@ export function validateOrderTotal(
     serverSubtotal += unitPrice * item.quantity;
   }
 
-  // Apply all discounts
-  const totalDiscount = discountAmount + dealDiscount + loyaltyDiscount;
+  // Apply all discounts (including new appliedOffersDiscount)
+  const totalDiscount = discountAmount + dealDiscount + loyaltyDiscount + appliedOffersDiscount;
   const serverTotal = Math.max(0, serverSubtotal - totalDiscount);
 
   // Compare with client total (allow 1 centime tolerance for rounding)
@@ -524,6 +654,10 @@ export function validateOrderTotal(
   if (difference > 1) {
     console.log('Total mismatch:', {
       serverSubtotal,
+      discountAmount,
+      dealDiscount,
+      loyaltyDiscount,
+      appliedOffersDiscount,
       totalDiscount,
       serverTotal,
       clientTotal,
@@ -732,7 +866,7 @@ export async function createOrder(
     }
   }
 
-  // Apply deal if provided
+  // Apply deal if provided (legacy single offer)
   if (data.deal_id && data.deal_discount && data.deal_discount > 0) {
     try {
       await supabase.rpc('apply_deal', {
@@ -745,6 +879,51 @@ export async function createOrder(
     } catch (e) {
       console.error('Failed to apply deal:', e);
       // Don't fail the order for this, just log
+    }
+  }
+
+  // Track applied offers if provided (new optimized combination system)
+  if (data.applied_offers && data.applied_offers.length > 0) {
+    for (const appliedOffer of data.applied_offers) {
+      try {
+        // Insert into offer_uses for each time applied
+        for (let i = 0; i < appliedOffer.times_applied; i++) {
+          await supabase.from('offer_uses').insert({
+            offer_id: appliedOffer.offer_id,
+            order_id: order.id,
+            customer_email: data.customer_email,
+            discount_amount: Math.floor(appliedOffer.discount_amount / appliedOffer.times_applied),
+            free_item_name: appliedOffer.free_item_name || null,
+          });
+        }
+
+        // Update offer stats (increment current_uses and total_discount_given)
+        await supabase.rpc('increment_offer_uses', {
+          p_offer_id: appliedOffer.offer_id,
+          p_count: appliedOffer.times_applied,
+        });
+
+        // Update total_discount_given
+        const { data: offer } = await supabase
+          .from('offers')
+          .select('total_discount_given')
+          .eq('id', appliedOffer.offer_id)
+          .single();
+
+        if (offer) {
+          await supabase
+            .from('offers')
+            .update({
+              total_discount_given: (offer.total_discount_given || 0) + appliedOffer.discount_amount,
+            })
+            .eq('id', appliedOffer.offer_id);
+        }
+
+        console.log(`Tracked offer usage: ${appliedOffer.offer_id} x${appliedOffer.times_applied}, discount: ${appliedOffer.discount_amount}`);
+      } catch (e) {
+        console.error('Failed to track applied offer:', e);
+        // Don't fail the order for this, just log
+      }
     }
   }
 

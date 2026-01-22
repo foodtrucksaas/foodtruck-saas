@@ -8,6 +8,8 @@ import type {
   OfferItemInsert,
   OfferWithItems,
   ApplicableOffer,
+  AppliedOfferDetail,
+  OptimizedOffersResult,
   ValidateOfferPromoCodeResult,
   OfferConfig,
 } from '../types';
@@ -216,6 +218,50 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
       if (error) throw error;
       return (data as ApplicableOffer[]) || [];
+    },
+
+    // Get optimized combination of offers (multiple offers on different items)
+    async getOptimized(
+      foodtruckId: string,
+      cartItems: CartItemForOffers[],
+      orderAmount: number,
+      promoCode?: string
+    ): Promise<OptimizedOffersResult> {
+      const { data, error } = await supabase.rpc('get_optimized_offers', {
+        p_foodtruck_id: foodtruckId,
+        p_cart_items: cartItems as unknown as Json,
+        p_order_amount: orderAmount,
+        p_promo_code: promoCode || null,
+      });
+
+      if (error) throw error;
+
+      // Transform database result to typed result
+      const offers = (data || []) as Array<{
+        offer_id: string;
+        offer_name: string;
+        offer_type: string;
+        times_applied: number;
+        discount_per_application: number;
+        calculated_discount: number;
+        items_consumed: Array<{ menu_item_id: string; quantity: number }> | null;
+        free_item_name: string | null;
+      }>;
+
+      const appliedOffers: AppliedOfferDetail[] = offers.map((o) => ({
+        offer_id: o.offer_id,
+        offer_name: o.offer_name,
+        offer_type: o.offer_type as AppliedOfferDetail['offer_type'],
+        times_applied: o.times_applied,
+        discount_amount: o.calculated_discount,
+        items_consumed: o.items_consumed || [],
+        free_item_name: o.free_item_name,
+      }));
+
+      return {
+        applied_offers: appliedOffers,
+        total_discount: appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0),
+      };
     },
 
     // Apply an offer to an order

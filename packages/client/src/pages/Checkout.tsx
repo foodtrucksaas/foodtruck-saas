@@ -85,6 +85,7 @@ export default function Checkout() {
   const {
     applicableOffers,
     loading: offersLoading,
+    appliedOffers,
     bestOffer,
     totalOfferDiscount,
   } = useOffers(foodtruckId, items, total, form.email);
@@ -226,9 +227,18 @@ export default function Checkout() {
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
-      deal_id: appliedOfferDiscount > 0 ? bestOffer?.offer_id : undefined,
-      deal_discount: appliedOfferDiscount || undefined,
-      deal_free_item_name: appliedOfferDiscount > 0 ? bestOffer?.free_item_name : undefined,
+      // Legacy single deal (for backward compatibility)
+      deal_id: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.offer_id : undefined,
+      deal_discount: appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
+      deal_free_item_name: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
+      // New multi-offer system
+      applied_offers: appliedOffers.length > 0 ? appliedOffers.map(o => ({
+        offer_id: o.offer_id,
+        times_applied: o.times_applied,
+        discount_amount: o.discount_amount,
+        items_consumed: o.items_consumed,
+        free_item_name: o.free_item_name,
+      })) : undefined,
       bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
       items: items.flatMap((item) => {
         // For bundles, send each selection as a separate item with bundle info
@@ -348,7 +358,11 @@ export default function Checkout() {
           promoDiscount={promoDiscount}
           loyaltyDiscount={loyaltyDiscount}
           dealDiscount={appliedOfferDiscount}
-          dealName={appliedOfferDiscount > 0 ? bestOffer?.offer_name : undefined}
+          dealName={appliedOfferDiscount > 0 ? (
+            appliedOffers.length > 0
+              ? appliedOffers.map(o => o.offer_name).join(' + ')
+              : bestOffer?.offer_name
+          ) : undefined}
           bundleDiscount={appliedBundleDiscount}
           bundleName={appliedBundleDiscount > 0 ? bestBundle?.bundle.name : undefined}
           finalTotal={finalTotal}

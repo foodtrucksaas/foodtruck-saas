@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ApplicableOffer, CartItem, ValidateOfferPromoCodeResult } from '@foodtruck/shared';
+import type {
+  ApplicableOffer,
+  AppliedOfferDetail,
+  CartItem,
+  ValidateOfferPromoCodeResult,
+} from '@foodtruck/shared';
 import { api } from '../lib/api';
 
 interface UseOffersResult {
   applicableOffers: ApplicableOffer[];
   loading: boolean;
+  // NEW: Multiple applied offers (optimized combination)
+  appliedOffers: AppliedOfferDetail[];
+  // DEPRECATED: Still available for backward compatibility
   bestOffer: ApplicableOffer | undefined;
   totalOfferDiscount: number;
   validatePromoCode: (code: string) => Promise<ValidateOfferPromoCodeResult>;
@@ -20,6 +28,7 @@ export function useOffers(
   customerEmail: string = ''
 ): UseOffersResult {
   const [applicableOffers, setApplicableOffers] = useState<ApplicableOffer[]>([]);
+  const [appliedOffers, setAppliedOffers] = useState<AppliedOfferDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [promoCodeResult, setPromoCodeResult] = useState<ValidateOfferPromoCodeResult | null>(null);
   const [promoCodeLoading, setPromoCodeLoading] = useState(false);
@@ -35,10 +44,11 @@ export function useOffers(
     }).sort().join('|');
   }, [items]);
 
-  // Fetch applicable offers when cart changes
+  // Fetch optimized offers when cart changes
   useEffect(() => {
     if (!foodtruckId) {
       setApplicableOffers([]);
+      setAppliedOffers([]);
       return;
     }
 
@@ -48,7 +58,7 @@ export function useOffers(
     const fetchOffers = async () => {
       setLoading(true);
       try {
-        // Build cart items JSON for the API call (empty array if no items)
+        // Build cart items JSON for the API call
         const cartItems = regularItems.map((item) => {
           const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
           const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
@@ -63,9 +73,21 @@ export function useOffers(
             quantity: item.quantity,
             price: basePrice + supplementsTotal,
             size_id: sizeOption?.optionId || null,
+            name: item.menuItem.name, // Include name for display in SQL
           };
         });
 
+        // Use the new optimized offers API
+        const optimizedResult = await api.offers.getOptimized(
+          foodtruckId,
+          cartItems,
+          orderAmount,
+          appliedPromoCode || undefined
+        );
+
+        setAppliedOffers(optimizedResult.applied_offers);
+
+        // Also fetch regular applicable offers for backward compatibility and progress display
         const offers = await api.offers.getApplicable(
           foodtruckId,
           cartItems,
@@ -75,6 +97,7 @@ export function useOffers(
         setApplicableOffers(offers);
       } catch (error) {
         console.error('Error fetching offers:', error);
+        setAppliedOffers([]);
       }
       setLoading(false);
     };
@@ -135,7 +158,7 @@ export function useOffers(
     setAppliedPromoCode(null);
   }, []);
 
-  // Find best applicable offer (highest discount)
+  // DEPRECATED: Find best single applicable offer (for backward compatibility)
   const applicableOffersFiltered = applicableOffers.filter((o) => o.is_applicable);
   const bestOffer = applicableOffersFiltered.reduce<ApplicableOffer | undefined>(
     (best, current) => {
@@ -145,12 +168,16 @@ export function useOffers(
     undefined
   );
 
-  // Total discount from the best offer
-  const totalOfferDiscount = bestOffer?.calculated_discount || 0;
+  // Total discount from ALL applied offers (not just best single one)
+  const totalOfferDiscount = appliedOffers.reduce(
+    (sum, offer) => sum + offer.discount_amount,
+    0
+  );
 
   return {
     applicableOffers,
     loading,
+    appliedOffers,
     bestOffer,
     totalOfferDiscount,
     validatePromoCode,

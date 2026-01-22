@@ -12,6 +12,7 @@ import {
   validatePrices,
   validatePromoCode,
   validateDeal,
+  validateAppliedOffers,
   validateOrderTotal,
   calculateOrder,
   createOrder,
@@ -156,7 +157,7 @@ serve(async (req) => {
     );
     if (promoCodeError) return promoCodeError;
 
-    // 4b. Validate deal if used
+    // 4b. Validate deal if used (legacy single deal)
     const dealError = await validateDeal(
       body.foodtruck_id,
       body.deal_id,
@@ -166,6 +167,14 @@ serve(async (req) => {
     );
     if (dealError) return dealError;
 
+    // 4c. Validate applied offers (new multi-offer system)
+    const { totalDiscount: appliedOffersDiscount, error: appliedOffersError } = await validateAppliedOffers(
+      body.foodtruck_id,
+      body.applied_offers,
+      body.items
+    );
+    if (appliedOffersError) return appliedOffersError;
+
     // 5. Validate total matches server calculation
     // Get loyalty discount if applicable
     const loyaltyDiscount = body.use_loyalty_reward && body.loyalty_reward_count
@@ -173,8 +182,8 @@ serve(async (req) => {
       : 0;
     const dealDiscount = body.deal_discount || 0;
 
-    // Calculate expected total after all discounts
-    const expectedTotal = Math.max(0, total - discountAmount - dealDiscount - loyaltyDiscount);
+    // Calculate expected total after all discounts (include applied offers)
+    const expectedTotal = Math.max(0, total - discountAmount - dealDiscount - loyaltyDiscount - appliedOffersDiscount);
 
     // If client sent a total, validate it
     if (body.expected_total !== undefined) {
@@ -184,7 +193,8 @@ serve(async (req) => {
         body.expected_total,
         discountAmount,
         dealDiscount,
-        loyaltyDiscount
+        loyaltyDiscount,
+        appliedOffersDiscount
       );
       if (totalError) return totalError;
     }

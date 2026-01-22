@@ -371,6 +371,7 @@ export interface Deal {
   reward_type: DealRewardType;
   reward_item_id: string | null;
   reward_value: number | null;
+  /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable: boolean | null;
   is_active: boolean | null;
   times_used: number | null;
@@ -388,6 +389,7 @@ export interface DealInsert {
   reward_type: DealRewardType;
   reward_item_id?: string;
   reward_value?: number;
+  /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable?: boolean;
   is_active?: boolean;
 }
@@ -502,6 +504,7 @@ export interface Offer {
   max_uses_per_customer: number | null;
   current_uses: number;
   total_discount_given: number;
+  /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable: boolean;
   created_at: string;
   updated_at: string;
@@ -521,6 +524,7 @@ export interface OfferInsert {
   days_of_week?: number[];
   max_uses?: number;
   max_uses_per_customer?: number;
+  /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable?: boolean;
 }
 
@@ -536,6 +540,7 @@ export interface OfferUpdate {
   days_of_week?: number[] | null;
   max_uses?: number | null;
   max_uses_per_customer?: number | null;
+  /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable?: boolean;
 }
 
@@ -585,6 +590,31 @@ export interface ApplicableOffer {
   progress_current: number;
   progress_required: number;
   description: string | null;
+}
+
+/**
+ * Represents a single applied offer in the optimized combination
+ * Used when multiple offers can apply to different cart items
+ */
+export interface AppliedOfferDetail {
+  offer_id: string;
+  offer_name: string;
+  offer_type: OfferType;
+  times_applied: number;        // How many times this offer was applied (e.g., 2x for 6 pizzas with "3rd free")
+  discount_amount: number;      // Total discount from this offer (in centimes)
+  items_consumed: Array<{       // Array of items consumed by this offer
+    menu_item_id: string;
+    quantity: number;
+  }>;
+  free_item_name?: string | null;
+}
+
+/**
+ * Result of the optimized offer combination algorithm
+ */
+export interface OptimizedOffersResult {
+  applied_offers: AppliedOfferDetail[];
+  total_discount: number;
 }
 
 export interface ValidateOfferPromoCodeResult {

@@ -59,15 +59,10 @@ export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
           />
         </div>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={form.stackable}
-          onChange={(e) => updateForm({ stackable: e.target.checked })}
-          className="rounded border-gray-300"
-        />
-        <span className="text-sm text-gray-700">Cumulable avec d'autres offres</span>
-      </label>
+      {/* Note: Le flag "stackable" n'est plus utilisé.
+          Avec la nouvelle logique, les offres s'appliquent automatiquement
+          sur des articles différents (ex: 4 pizzas + 1 boisson = 2 offres distinctes).
+          Les offres qui ciblent les mêmes articles sont comparées et la meilleure est choisie. */}
     </div>
   );
 }
