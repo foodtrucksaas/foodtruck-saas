@@ -1,6 +1,6 @@
 import { Minus, Plus, Trash2, Calendar, MapPin } from 'lucide-react';
 import { formatPrice, formatTime } from '@foodtruck/shared';
-import type { CartItem } from '@foodtruck/shared';
+import type { CartItem, SelectedOption } from '@foodtruck/shared';
 import type { SlotWithLocation, ScheduleWithLocation } from '../../hooks';
 
 interface OrderSummaryCardProps {
@@ -10,13 +10,11 @@ interface OrderSummaryCardProps {
   loyaltyDiscount: number;
   dealDiscount: number;
   dealName?: string;
-  bundleDiscount: number;
-  bundleName?: string;
   finalTotal: number;
   selectedDate: Date;
   selectedSlot: SlotWithLocation | undefined;
   schedules: ScheduleWithLocation[];
-  getCartKey: (menuItemId: string, selectedOptions?: any[]) => string;
+  getCartKey: (menuItemId: string, selectedOptions?: SelectedOption[]) => string;
   onUpdateQuantity: (key: string, quantity: number) => void;
   onRemoveItem: (key: string) => void;
 }
@@ -28,8 +26,6 @@ export function OrderSummaryCard({
   loyaltyDiscount,
   dealDiscount,
   dealName,
-  bundleDiscount,
-  bundleName,
   finalTotal,
   selectedDate,
   selectedSlot,
@@ -141,14 +137,8 @@ export function OrderSummaryCard({
         )}
         {dealDiscount > 0 && dealName && (
           <div className="flex justify-between text-success-600">
-            <span>Formule : {dealName}</span>
+            <span>Offre : {dealName}</span>
             <span className="font-medium">-{formatPrice(dealDiscount)}</span>
-          </div>
-        )}
-        {bundleDiscount > 0 && (
-          <div className="flex justify-between text-success-600">
-            <span>{bundleName || 'Menu'}</span>
-            <span className="font-medium">-{formatPrice(bundleDiscount)}</span>
           </div>
         )}
         {loyaltyDiscount > 0 && (

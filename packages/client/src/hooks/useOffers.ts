@@ -10,6 +10,7 @@ import { api } from '../lib/api';
 interface UseOffersResult {
   applicableOffers: ApplicableOffer[];
   loading: boolean;
+  error: string | null;
   // NEW: Multiple applied offers (optimized combination)
   appliedOffers: AppliedOfferDetail[];
   // DEPRECATED: Still available for backward compatibility
@@ -33,6 +34,7 @@ export function useOffers(
   const [promoCodeResult, setPromoCodeResult] = useState<ValidateOfferPromoCodeResult | null>(null);
   const [promoCodeLoading, setPromoCodeLoading] = useState(false);
   const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Create a stable cart signature to ensure useEffect re-runs when cart content changes
   // Filter out bundle items (they have synthetic IDs) - they're handled separately
@@ -57,6 +59,7 @@ export function useOffers(
 
     const fetchOffers = async () => {
       setLoading(true);
+      setError(null);
       try {
         // Build cart items JSON for the API call
         const cartItems = regularItems.map((item) => {
@@ -95,9 +98,11 @@ export function useOffers(
           appliedPromoCode || undefined
         );
         setApplicableOffers(offers);
-      } catch (error) {
-        console.error('Error fetching offers:', error);
+      } catch (err) {
+        console.error('Erreur lors du chargement des offres:', err);
         setAppliedOffers([]);
+        setApplicableOffers([]);
+        setError('Impossible de charger les offres. Veuillez rafraichir la page.');
       }
       setLoading(false);
     };
@@ -134,7 +139,8 @@ export function useOffers(
           setAppliedPromoCode(code);
         }
         return result;
-      } catch (error) {
+      } catch (err) {
+        console.error('Erreur lors de la validation du code promo:', err);
         const errorResult: ValidateOfferPromoCodeResult = {
           is_valid: false,
           offer_id: null,
@@ -142,7 +148,7 @@ export function useOffers(
           discount_value: null,
           max_discount: null,
           calculated_discount: null,
-          error_message: 'Erreur de validation',
+          error_message: 'Impossible de valider le code promo. Veuillez reessayer.',
         };
         setPromoCodeResult(errorResult);
         return errorResult;
@@ -177,6 +183,7 @@ export function useOffers(
   return {
     applicableOffers,
     loading,
+    error,
     appliedOffers,
     bestOffer,
     totalOfferDiscount,

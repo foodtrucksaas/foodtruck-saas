@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
@@ -11,7 +12,7 @@ interface MenuItemCardProps {
   showPhoto?: boolean;
 }
 
-export default function MenuItemCard({
+const MenuItemCard = memo(function MenuItemCard({
   item,
   hasOptions,
   quantity,
@@ -23,11 +24,15 @@ export default function MenuItemCard({
   const hasImage = showPhoto && item.image_url;
 
   // Handle card click - add item if not in cart or has options
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     if (!isInCart || hasOptions) {
       onAdd();
     }
-  };
+  }, [isInCart, hasOptions, onAdd]);
+
+  // Memoized handlers for increment/decrement
+  const handleDecrement = useCallback(() => onUpdate(-1), [onUpdate]);
+  const handleIncrement = useCallback(() => onUpdate(1), [onUpdate]);
 
   return (
     <div
@@ -83,14 +88,14 @@ export default function MenuItemCard({
               </span>
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => onUpdate(-1)}
+                  onClick={handleDecrement}
                   className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
                 >
                   <Minus className="w-4 h-4 text-anthracite" />
                 </button>
                 <span className="w-8 text-center font-bold text-anthracite">{quantity}</span>
                 <button
-                  onClick={() => onUpdate(1)}
+                  onClick={handleIncrement}
                   className="w-9 h-9 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
@@ -117,4 +122,6 @@ export default function MenuItemCard({
       </div>
     </div>
   );
-}
+});
+
+export default MenuItemCard;

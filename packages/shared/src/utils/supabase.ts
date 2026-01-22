@@ -12,15 +12,3 @@ export function createSupabaseClient(supabaseUrl: string, supabaseKey: string): 
     },
   });
 }
-
-export function createSupabaseAdminClient(
-  supabaseUrl: string,
-  supabaseServiceKey: string
-): SupabaseClient {
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}

@@ -53,20 +53,26 @@ export function useOrders() {
     nextDay.setDate(nextDay.getDate() + 1);
     const nextDayStr = formatLocalDate(nextDay);
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-      .eq('foodtruck_id', foodtruck.id)
-      .gte('pickup_time', `${dateStr}T00:00:00`)
-      .lt('pickup_time', `${nextDayStr}T00:00:00`)
-      .order('pickup_time', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+        .eq('foodtruck_id', foodtruck.id)
+        .gte('pickup_time', `${dateStr}T00:00:00`)
+        .lt('pickup_time', `${nextDayStr}T00:00:00`)
+        .order('pickup_time', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching orders:', error);
-      return;
+      if (error) {
+        console.error('Erreur lors du chargement des commandes:', error);
+        toast.error('Impossible de charger les commandes. Veuillez recharger la page.');
+        return;
+      }
+
+      if (data) setOrders(data as unknown as OrderWithItemsAndOptions[]);
+    } catch (err) {
+      console.error('Erreur inattendue lors du chargement des commandes:', err);
+      toast.error('Erreur de connexion. Verifiez votre connexion internet.');
     }
-
-    if (data) setOrders(data as unknown as OrderWithItemsAndOptions[]);
     setLoading(false);
   }, [foodtruck, selectedDate]);
 
@@ -110,72 +116,87 @@ export function useOrders() {
 
   // Cancel order with reason (required)
   const cancelOrderWithReason = useCallback(async (id: string, reason: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({
-        status: 'cancelled',
-        cancellation_reason: reason,
-        cancelled_by: 'merchant'
-      })
-      .eq('id', id)
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          status: 'cancelled',
+          cancellation_reason: reason,
+          cancelled_by: 'merchant'
+        })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      toast.error('Erreur: ' + error.message);
-      return;
+      if (error) {
+        console.error('Erreur lors de l\'annulation:', error);
+        toast.error('Impossible d\'annuler la commande. Veuillez reessayer.');
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.error('Impossible de modifier cette commande. Verifiez vos droits d\'acces.');
+        return;
+      }
+
+      toast.success('Commande annulee');
+      await fetchOrders();
+    } catch {
+      toast.error('Erreur de connexion. Verifiez votre connexion internet.');
     }
-
-    if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
-      return;
-    }
-
-    toast.success('Commande annulée');
-    await fetchOrders();
   }, [fetchOrders]);
 
   // Mark order as ready
   const markReady = useCallback(async (id: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ status: 'ready' })
-      .eq('id', id)
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'ready' })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      toast.error('Erreur: ' + error.message);
-      return;
+      if (error) {
+        console.error('Erreur lors du marquage pret:', error);
+        toast.error('Impossible de marquer la commande comme prete. Veuillez reessayer.');
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.error('Impossible de modifier cette commande. Verifiez vos droits d\'acces.');
+        return;
+      }
+
+      toast.success('Commande prete !');
+      await fetchOrders();
+    } catch {
+      toast.error('Erreur de connexion. Verifiez votre connexion internet.');
     }
-
-    if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
-      return;
-    }
-
-    toast.success('Commande prête !');
-    await fetchOrders();
   }, [fetchOrders]);
 
   // Mark order as picked up
   const markPickedUp = useCallback(async (id: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ status: 'picked_up' })
-      .eq('id', id)
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'picked_up' })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      toast.error('Erreur: ' + error.message);
-      return;
+      if (error) {
+        console.error('Erreur lors du marquage retire:', error);
+        toast.error('Impossible de marquer la commande comme retiree. Veuillez reessayer.');
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.error('Impossible de modifier cette commande. Verifiez vos droits d\'acces.');
+        return;
+      }
+
+      toast.success('Commande marquee comme retiree !');
+      await fetchOrders();
+    } catch {
+      toast.error('Erreur de connexion. Verifiez votre connexion internet.');
     }
-
-    if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
-      return;
-    }
-
-    toast.success('Commande marquée comme retirée !');
-    await fetchOrders();
   }, [fetchOrders]);
 
   // Update pickup time
@@ -184,24 +205,29 @@ export function useOrders() {
     const [hours, minutes] = newTime.split(':').map(Number);
     currentDate.setHours(hours, minutes, 0, 0);
 
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ pickup_time: currentDate.toISOString() })
-      .eq('id', id)
-      .select();
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ pickup_time: currentDate.toISOString() })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      toast.error('Erreur: ' + error.message);
-      return;
+      if (error) {
+        console.error('Erreur lors de la modification de l\'heure:', error);
+        toast.error('Impossible de modifier l\'heure de retrait. Veuillez reessayer.');
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.error('Impossible de modifier cette commande. Verifiez vos droits d\'acces.');
+        return;
+      }
+
+      toast.success('Heure modifiee !');
+      await fetchOrders();
+    } catch {
+      toast.error('Erreur de connexion. Verifiez votre connexion internet.');
     }
-
-    if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
-      return;
-    }
-
-    toast.success('Heure modifiée !');
-    await fetchOrders();
   }, [fetchOrders]);
 
   // Group orders by time slots

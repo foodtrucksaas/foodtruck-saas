@@ -122,10 +122,12 @@ describe('useCategories', () => {
   it('should not delete category with items', async () => {
     const { result } = renderHook(() => useCategories());
 
-    const menuItems = [{ category_id: 'cat-1', id: 'item-1' }];
+    // Partial menu item for testing - only needs category_id to test the blocking logic
+    const menuItems = [{ category_id: 'cat-1', id: 'item-1' }] as Array<{ category_id: string; id: string }>;
 
     let success = false;
     await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       success = await result.current.deleteCategory(mockCategory, menuItems as any);
     });
 

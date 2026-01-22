@@ -106,6 +106,13 @@ foodtruck-saas/
 - [x] Statistiques d'utilisation (utilisations, réductions accordées)
 - [x] Option cumulable avec d'autres offres
 - [x] Migration automatique des anciens promo_codes et deals
+- [x] Optimisation globale via fonction SQL `get_optimized_offers`
+- [x] Application automatique des offres (pas de sélection manuelle)
+
+**Stratégie d'optimisation des offres :**
+- Les bundles utilisent automatiquement les articles les plus chers du panier
+- Les offres "X achetés = Y offert" offrent l'article le moins cher
+- La fonction SQL calcule la meilleure combinaison d'offres pour maximiser la réduction client
 
 #### Codes Promo (legacy - migré vers /offers)
 - [x] Création de codes promo (pourcentage ou montant fixe)

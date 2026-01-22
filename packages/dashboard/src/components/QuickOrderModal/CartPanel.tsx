@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight, ChevronLeft } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { CartItem } from './useQuickOrder';
@@ -9,7 +10,7 @@ interface CartItemRowProps {
   variant?: 'desktop' | 'mobile';
 }
 
-function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: CartItemRowProps) {
+const CartItemRow = memo(function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: CartItemRowProps) {
   const optionsTotal = item.selectedOptions.reduce((sum, opt) => sum + opt.priceModifier, 0);
   const itemTotal = (item.menuItem.price + optionsTotal) * item.quantity;
 
@@ -101,7 +102,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
       </div>
     </div>
   );
-}
+});
 
 interface DesktopCartPanelProps {
   cart: CartItem[];
@@ -112,7 +113,7 @@ interface DesktopCartPanelProps {
   onContinue: () => void;
 }
 
-export function DesktopCartPanel({
+export const DesktopCartPanel = memo(function DesktopCartPanel({
   cart,
   cartTotal,
   cartItemsCount,
@@ -172,7 +173,7 @@ export function DesktopCartPanel({
       </div>
     </div>
   );
-}
+});
 
 interface MobileCartOverlayProps {
   cart: CartItem[];
@@ -184,7 +185,7 @@ interface MobileCartOverlayProps {
   onContinue: () => void;
 }
 
-export function MobileCartOverlay({
+export const MobileCartOverlay = memo(function MobileCartOverlay({
   cart,
   cartTotal,
   onUpdateQuantity,
@@ -246,14 +247,14 @@ export function MobileCartOverlay({
       </div>
     </div>
   );
-}
+});
 
 interface FloatingCartButtonProps {
   cartItemsCount: number;
   onClick: () => void;
 }
 
-export function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButtonProps) {
+export const FloatingCartButton = memo(function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -267,4 +268,4 @@ export function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButt
       )}
     </button>
   );
-}
+});

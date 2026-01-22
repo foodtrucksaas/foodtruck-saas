@@ -13,7 +13,19 @@ import type {
   MenuItem,
   CategoryOptionGroup,
   CategoryOption,
+  BundleCategoryConfig as SharedBundleCategoryConfig,
+  Json,
 } from '@foodtruck/shared';
+import {
+  isBundleConfig,
+  isBuyXGetYConfig,
+  isPromoCodeConfig,
+  isThresholdDiscountConfig,
+} from '@foodtruck/shared';
+
+// Type for Supabase offer insert/update operations (with config as Json)
+type OfferDbInsert = Omit<OfferInsert, 'config'> & { config: Json };
+type OfferDbUpdate = Partial<Omit<OfferInsert, 'config' | 'foodtruck_id'>> & { config?: Json; foodtruck_id?: undefined };
 
 // Category with nested option groups for size detection
 export interface CategoryOptionGroupWithOptions extends CategoryOptionGroup {
@@ -142,8 +154,8 @@ export function useOffers() {
     setLoading(true);
     try {
       const [offersRes, categoriesRes, itemsRes] = await Promise.all([
-        (supabase
-          .from('offers') as any)
+        supabase
+          .from('offers')
           .select(`
             *,
             offer_items (
@@ -342,12 +354,24 @@ export function useOffers() {
 
       if (editingOffer) {
         // Update
+        const updateData: OfferDbUpdate = {
+          name: offerData.name,
+          description: offerData.description,
+          offer_type: offerData.offer_type,
+          config: offerData.config as unknown as Json,
+          is_active: offerData.is_active,
+          stackable: offerData.stackable,
+          start_date: offerData.start_date,
+          end_date: offerData.end_date,
+          time_start: offerData.time_start,
+          time_end: offerData.time_end,
+          days_of_week: offerData.days_of_week,
+          max_uses: offerData.max_uses,
+          max_uses_per_customer: offerData.max_uses_per_customer,
+        };
         const { error: updateError } = await supabase
           .from('offers')
-          .update({
-            ...offerData,
-            foodtruck_id: undefined, // Don't update foodtruck_id
-          } as any)
+          .update(updateData)
           .eq('id', editingOffer.id)
           .select()
           .single();
@@ -356,17 +380,21 @@ export function useOffers() {
         offerId = editingOffer.id;
 
         // Delete old items and recreate
-        await (supabase.from('offer_items') as any).delete().eq('offer_id', offerId);
+        await supabase.from('offer_items').delete().eq('offer_id', offerId);
       } else {
         // Create
+        const insertData: OfferDbInsert = {
+          ...offerData,
+          config: offerData.config as unknown as Json,
+        };
         const { data, error: createError } = await supabase
           .from('offers')
-          .insert(offerData as any)
+          .insert(insertData)
           .select()
           .single();
 
         if (createError) throw createError;
-        offerId = (data as any).id;
+        offerId = (data as { id: string }).id;
       }
 
       // Add offer items
@@ -403,24 +431,25 @@ export function useOffers() {
       }
 
       if (items.length > 0) {
-        const { error: itemsError } = await (supabase.from('offer_items') as any).insert(items);
+        const { error: itemsError } = await supabase.from('offer_items').insert(items);
         if (itemsError) throw itemsError;
       }
 
       toast.success(editingOffer ? 'Offre modifiee' : 'Offre creee');
       await loadData();
       closeWizard();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving offer:', error);
-      toast.error(error.message || 'Erreur lors de la sauvegarde');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la sauvegarde';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
   }, [foodtruck, form, editingOffer, buildConfig, validateForm, loadData]);
 
   const toggleActive = useCallback(async (offer: Offer) => {
-    const { error } = await (supabase
-      .from('offers') as any)
+    const { error } = await supabase
+      .from('offers')
       .update({ is_active: !offer.is_active })
       .eq('id', offer.id);
 
@@ -434,7 +463,7 @@ export function useOffers() {
   const deleteOffer = useCallback(async (id: string) => {
     if (!confirm('Supprimer cette offre ?')) return;
 
-    const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
+    const { error } = await supabase.from('offers').delete().eq('id', id);
     if (error) {
       toast.error('Erreur lors de la suppression');
     } else {
@@ -445,7 +474,7 @@ export function useOffers() {
 
   const openEditWizard = useCallback((offer: OfferWithItems) => {
     setEditingOffer(offer);
-    const config = offer.config as any;
+    const config = offer.config;
 
     const newForm: OfferFormState = {
       ...initialFormState,
@@ -463,74 +492,69 @@ export function useOffers() {
       maxUsesPerCustomer: offer.max_uses_per_customer?.toString() || '1',
     };
 
-    // Load config based on type
-    switch (offer.offer_type) {
-      case 'bundle':
-        newForm.bundleFixedPrice = ((config.fixed_price || 0) / 100).toString();
-        newForm.bundleFreeOptions = config.free_options || false;
+    // Load config based on type using type guards
+    if (isBundleConfig(config)) {
+      newForm.bundleFixedPrice = ((config.fixed_price || 0) / 100).toString();
+      newForm.bundleFreeOptions = config.free_options || false;
 
-        if (config.type === 'category_choice' && config.bundle_categories) {
-          newForm.bundleType = 'category_choice';
-          newForm.bundleCategories = (config.bundle_categories || []).map((bc: any) => ({
-            // Support both old format (category_id) and new format (category_ids)
-            categoryIds: bc.category_ids || (bc.category_id ? [bc.category_id] : []),
-            quantity: bc.quantity || 1,
-            label: bc.label || '',
-            excludedItems: bc.excluded_items || [],
-            supplements: bc.supplements || {},
-            excludedSizes: bc.excluded_sizes || {},
-          }));
-        } else {
-          newForm.bundleType = 'specific_items';
-          newForm.bundleItems = (offer.offer_items || [])
-            .filter((i) => i.role === 'bundle_item')
-            .map((i) => ({ menuItemId: i.menu_item_id, quantity: i.quantity }));
-        }
-        break;
-      case 'buy_x_get_y':
-        newForm.triggerQuantity = (config.trigger_quantity || 3).toString();
-        newForm.rewardQuantity = (config.reward_quantity || 1).toString();
-        newForm.rewardType = config.reward_type || 'free';
-        newForm.rewardValue = config.reward_value ? (config.reward_value / 100).toString() : '';
+      if (config.type === 'category_choice' && config.bundle_categories) {
+        newForm.bundleType = 'category_choice';
+        newForm.bundleCategories = (config.bundle_categories || []).map((bc: SharedBundleCategoryConfig) => ({
+          // Support both old format (category_id) and new format (category_ids)
+          categoryIds: bc.category_ids || (bc.category_id ? [bc.category_id] : []),
+          quantity: bc.quantity || 1,
+          label: bc.label || '',
+          excludedItems: bc.excluded_items || [],
+          supplements: bc.supplements || {},
+          excludedSizes: bc.excluded_sizes || {},
+        }));
+      } else {
+        newForm.bundleType = 'specific_items';
+        newForm.bundleItems = (offer.offer_items || [])
+          .filter((i) => i.role === 'bundle_item')
+          .map((i) => ({ menuItemId: i.menu_item_id, quantity: i.quantity }));
+      }
+    } else if (isBuyXGetYConfig(config)) {
+      newForm.triggerQuantity = (config.trigger_quantity || 3).toString();
+      newForm.rewardQuantity = (config.reward_quantity || 1).toString();
+      newForm.rewardType = config.reward_type || 'free';
+      newForm.rewardValue = config.reward_value ? (config.reward_value / 100).toString() : '';
 
-        if (config.type === 'category_choice' && config.trigger_category_ids) {
-          newForm.buyXGetYType = 'category_choice';
-          newForm.triggerCategoryIds = config.trigger_category_ids || [];
-          newForm.triggerExcludedItems = config.trigger_excluded_items || [];
-          newForm.triggerExcludedSizes = config.trigger_excluded_sizes || {};
-          newForm.rewardCategoryIds = config.reward_category_ids || [];
-          newForm.rewardExcludedItems = config.reward_excluded_items || [];
-          newForm.rewardExcludedSizes = config.reward_excluded_sizes || {};
-        } else {
-          newForm.buyXGetYType = 'specific_items';
-          newForm.triggerItems = (offer.offer_items || [])
-            .filter((i) => i.role === 'trigger')
-            .map((i) => i.menu_item_id);
-          newForm.rewardItems = (offer.offer_items || [])
-            .filter((i) => i.role === 'reward')
-            .map((i) => i.menu_item_id);
-        }
-        break;
-      case 'promo_code':
-        newForm.promoCode = config.code || '';
-        newForm.promoCodeDiscountType = config.discount_type || 'percentage';
-        newForm.promoCodeDiscountValue = config.discount_type === 'percentage'
-          ? (config.discount_value || 0).toString()
-          : ((config.discount_value || 0) / 100).toString();
-        newForm.promoCodeMinOrderAmount = config.min_order_amount
-          ? (config.min_order_amount / 100).toString()
-          : '';
-        newForm.promoCodeMaxDiscount = config.max_discount
-          ? (config.max_discount / 100).toString()
-          : '';
-        break;
-      case 'threshold_discount':
-        newForm.thresholdMinAmount = ((config.min_amount || 0) / 100).toString();
-        newForm.thresholdDiscountType = config.discount_type || 'percentage';
-        newForm.thresholdDiscountValue = config.discount_type === 'percentage'
-          ? (config.discount_value || 0).toString()
-          : ((config.discount_value || 0) / 100).toString();
-        break;
+      if (config.type === 'category_choice' && config.trigger_category_ids) {
+        newForm.buyXGetYType = 'category_choice';
+        newForm.triggerCategoryIds = config.trigger_category_ids || [];
+        newForm.triggerExcludedItems = config.trigger_excluded_items || [];
+        newForm.triggerExcludedSizes = config.trigger_excluded_sizes || {};
+        newForm.rewardCategoryIds = config.reward_category_ids || [];
+        newForm.rewardExcludedItems = config.reward_excluded_items || [];
+        newForm.rewardExcludedSizes = config.reward_excluded_sizes || {};
+      } else {
+        newForm.buyXGetYType = 'specific_items';
+        newForm.triggerItems = (offer.offer_items || [])
+          .filter((i) => i.role === 'trigger')
+          .map((i) => i.menu_item_id);
+        newForm.rewardItems = (offer.offer_items || [])
+          .filter((i) => i.role === 'reward')
+          .map((i) => i.menu_item_id);
+      }
+    } else if (isPromoCodeConfig(config)) {
+      newForm.promoCode = config.code || '';
+      newForm.promoCodeDiscountType = config.discount_type || 'percentage';
+      newForm.promoCodeDiscountValue = config.discount_type === 'percentage'
+        ? (config.discount_value || 0).toString()
+        : ((config.discount_value || 0) / 100).toString();
+      newForm.promoCodeMinOrderAmount = config.min_order_amount
+        ? (config.min_order_amount / 100).toString()
+        : '';
+      newForm.promoCodeMaxDiscount = config.max_discount
+        ? (config.max_discount / 100).toString()
+        : '';
+    } else if (isThresholdDiscountConfig(config)) {
+      newForm.thresholdMinAmount = ((config.min_amount || 0) / 100).toString();
+      newForm.thresholdDiscountType = config.discount_type || 'percentage';
+      newForm.thresholdDiscountValue = config.discount_type === 'percentage'
+        ? (config.discount_value || 0).toString()
+        : ((config.discount_value || 0) / 100).toString();
     }
 
     setForm(newForm);

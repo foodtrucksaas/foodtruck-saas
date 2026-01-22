@@ -25,10 +25,9 @@ export const getSupabase = () => {
 // Default export for backward compatibility (checks test mode on each call)
 type SupabaseClientType = ReturnType<typeof createSupabaseClient>;
 export const supabase = new Proxy({} as SupabaseClientType, {
-  get(_target, prop) {
+  get(_target, prop: string | symbol) {
     const client = getSupabase();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const value = (client as any)[prop as string];
+    const value = client[prop as keyof SupabaseClientType];
     if (typeof value === 'function') {
       return value.bind(client);
     }

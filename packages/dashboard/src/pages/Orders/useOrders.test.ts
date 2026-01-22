@@ -8,7 +8,7 @@ const mockSupabaseSelect = vi.fn();
 const mockSupabaseUpdate = vi.fn();
 const mockSupabaseEq = vi.fn();
 const mockSupabaseGte = vi.fn();
-const mockSupabaseNot = vi.fn();
+const mockSupabaseLt = vi.fn();
 const mockSupabaseOrder = vi.fn();
 
 vi.mock('../../lib/supabase', () => ({
@@ -150,11 +150,10 @@ describe('useOrders', () => {
     });
 
     mockSupabaseGte.mockReturnValue({
-      not: mockSupabaseNot,
+      lt: mockSupabaseLt,
     });
 
-    mockSupabaseNot.mockReturnValue({
-      not: mockSupabaseNot,
+    mockSupabaseLt.mockReturnValue({
       order: mockSupabaseOrder,
     });
 
@@ -644,15 +643,33 @@ describe('useOrders', () => {
       expect(mockSupabaseGte).toHaveBeenCalled();
     });
 
-    it('should exclude cancelled and completed orders', async () => {
+    it('should fetch all orders and count cancelled/picked_up separately', async () => {
+      // The hook fetches ALL orders (including cancelled, picked_up) and does client-side counting
+      const ordersWithAllStatuses: OrderWithItemsAndOptions[] = [
+        createMockOrder({ id: 'order-1', status: 'pending' }),
+        createMockOrder({ id: 'order-2', status: 'confirmed' }),
+        createMockOrder({ id: 'order-3', status: 'cancelled' }),
+        createMockOrder({ id: 'order-4', status: 'picked_up' }),
+      ];
+
+      mockSupabaseOrder.mockResolvedValue({
+        data: ordersWithAllStatuses,
+        error: null,
+      });
+
       const { result } = renderHook(() => useOrders());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      // The .not() should be called twice (for cancelled and completed)
-      expect(mockSupabaseNot).toHaveBeenCalled();
+      // All orders should be in the orders array (no database-level exclusion)
+      expect(result.current.orders.length).toBe(4);
+
+      // Client-side counting should work correctly
+      expect(result.current.pending).toBe(1);
+      expect(result.current.confirmed).toBe(1);
+      expect(result.current.pickedUp).toBe(2); // cancelled + picked_up
     });
   });
 

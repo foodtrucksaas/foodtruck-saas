@@ -20,6 +20,8 @@ import {
   Wallet,
   FileText,
   Building,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -29,13 +31,10 @@ import {
 } from '@foodtruck/shared';
 import MapComponent from '../../components/Map';
 import { useCart } from '../../contexts/CartContext';
-import { useOffers, useBundleDetection } from '../../hooks';
+import { useOffers } from '../../hooks';
 import { useFoodtruck } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
-import BundleSelectionModal from './BundleSelectionModal';
-import SpecificItemsBundleModal from './SpecificItemsBundleModal';
-import BuyXGetYSelectionModal from './BuyXGetYSelectionModal';
 
 export default function FoodtruckPage() {
   const { foodtruckId } = useParams<{ foodtruckId: string }>();
@@ -45,12 +44,9 @@ export default function FoodtruckPage() {
     // Data
     foodtruck,
     categories,
-    menuItems,
     schedules,
-    bundles,
-    specificItemsBundles,
-    buyXGetYOffers,
     loading,
+    error,
 
     // Active tab
     activeTab,
@@ -60,18 +56,6 @@ export default function FoodtruckPage() {
     selectedMenuItem,
     selectedCategory,
     showOptionsModal,
-
-    // Bundle modal state
-    selectedBundle,
-    showBundleModal,
-
-    // Specific items bundle modal state
-    selectedSpecificBundle,
-    showSpecificBundleModal,
-
-    // Buy X Get Y modal state
-    selectedBuyXGetY,
-    showBuyXGetYModal,
 
     // Computed values
     todaySchedules,
@@ -91,21 +75,6 @@ export default function FoodtruckPage() {
     handleUpdateQuantity,
     closeOptionsModal,
     navigateBack,
-
-    // Bundle handlers
-    handleSelectBundle,
-    handleBundleConfirm,
-    closeBundleModal,
-
-    // Specific items bundle handlers
-    handleSelectSpecificBundle,
-    handleSpecificBundleConfirm,
-    closeSpecificBundleModal,
-
-    // Buy X Get Y handlers
-    handleSelectBuyXGetY,
-    handleBuyXGetYConfirm,
-    closeBuyXGetYModal,
   } = useFoodtruck(foodtruckId);
 
   // Get cart items for offer detection
@@ -121,15 +90,9 @@ export default function FoodtruckPage() {
   // Filter offers to show (exclude promo codes)
   const visibleOffers = applicableOffers.filter(o => o.offer_type !== 'promo_code');
 
-  const {
-    bestBundle,
-    totalBundleSavings,
-  } = useBundleDetection(foodtruckId, items);
-
-  // Calculate best discount (offers and bundles don't stack)
-  const useBundleAsDiscount = (totalBundleSavings || 0) > (totalOfferDiscount || 0);
-  const appliedDiscount = useBundleAsDiscount ? totalBundleSavings : totalOfferDiscount;
-  const appliedDiscountName = useBundleAsDiscount ? bestBundle?.bundle.name : bestOffer?.offer_name;
+  // Calculate discount from offers (bundles are now auto-calculated by get_optimized_offers)
+  const appliedDiscount = totalOfferDiscount || 0;
+  const appliedDiscountName = bestOffer?.offer_name;
   const finalTotal = Math.max(0, total - appliedDiscount);
 
   // Track active category based on scroll position
@@ -171,6 +134,32 @@ export default function FoodtruckPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FAFAFA]">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h1 className="text-xl font-bold text-anthracite mb-2">
+          Oups ! Une erreur est survenue
+        </h1>
+        <p className="text-gray-500 mb-6 text-center max-w-sm">{error}</p>
+        <div className="flex gap-3">
+          <Link to="/" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
+            Retour a l'accueil
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Reessayer
+          </button>
+        </div>
       </div>
     );
   }
@@ -343,6 +332,16 @@ export default function FoodtruckPage() {
           >
             Menu
           </button>
+          {visibleOffers.length > 0 && (
+            <button
+              onClick={() => setActiveTab('offers')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === 'offers' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Offres
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('info')}
             className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -387,196 +386,6 @@ export default function FoodtruckPage() {
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-5">
-            {/* Unified Offers Section */}
-            {(bundles.length > 0 || specificItemsBundles.length > 0 || buyXGetYOffers.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-md bg-primary-100 flex items-center justify-center">
-                    <Gift className="w-3.5 h-3.5 text-primary-500" />
-                  </div>
-                  <h2 className="text-base font-bold text-anthracite">Nos offres</h2>
-                </div>
-                <div className="grid gap-3">
-                  {/* Category choice bundles - clickable */}
-                  {bundles.map((bundle) => {
-                    const categoryCount = bundle.config.bundle_categories?.length || 0;
-                    const categoryNames = bundle.config.bundle_categories
-                      ?.map(bc => categories.find(c => c.id === bc.category_id)?.name)
-                      .filter(Boolean)
-                      .join(' + ') || '';
-
-                    return (
-                      <button
-                        key={bundle.id}
-                        onClick={() => handleSelectBundle(bundle)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{bundle.name}</h3>
-                            {bundle.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {categoryNames || `${categoryCount} articles au choix`}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold text-primary-500">
-                              {formatPrice(bundle.config.fixed_price)}
-                            </span>
-                            {bundle.config.free_options && (
-                              <span className="text-xs text-green-600 font-medium mt-1">
-                                Suppléments offerts
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Specific items bundles - clickable */}
-                  {specificItemsBundles.map((bundle) => {
-                    const itemNames = bundle.offer_items
-                      .map(oi => {
-                        const item = menuItems.find(mi => mi.id === oi.menu_item_id);
-                        return item ? (oi.quantity > 1 ? `${item.name} x${oi.quantity}` : item.name) : null;
-                      })
-                      .filter(Boolean)
-                      .join(' + ');
-
-                    return (
-                      <button
-                        key={bundle.id}
-                        onClick={() => handleSelectSpecificBundle(bundle)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{bundle.name}</h3>
-                            {bundle.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {itemNames}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold text-primary-500">
-                              {formatPrice(bundle.config.fixed_price)}
-                            </span>
-                            {bundle.config.free_options && (
-                              <span className="text-xs text-green-600 font-medium mt-1">
-                                Suppléments offerts
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Buy X Get Y offers (category choice) - clickable */}
-                  {buyXGetYOffers.map((offer) => {
-                    const config = offer.config;
-                    const triggerQty = config.trigger_quantity || 2;
-                    const rewardQty = config.reward_quantity || 1;
-                    const totalItems = triggerQty + rewardQty;
-
-                    return (
-                      <button
-                        key={offer.id}
-                        onClick={() => handleSelectBuyXGetY(offer)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{offer.name}</h3>
-                            {offer.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{offer.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {totalItems} articles au choix
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Other offers (threshold, non-category buy_x_get_y) - auto-applied */}
-                  {visibleOffers
-                    .filter(o => {
-                      // Exclude bundles
-                      if (o.offer_type === 'bundle') return false;
-                      // Exclude buy_x_get_y that are shown as clickable cards
-                      if (o.offer_type === 'buy_x_get_y') {
-                        const isCategoryChoice = buyXGetYOffers.some(b => b.id === o.offer_id);
-                        if (isCategoryChoice) return false;
-                      }
-                      return true;
-                    })
-                    .map((offer) => {
-                      const isApplicable = offer.is_applicable;
-                      const hasProgress = offer.progress_required > 0;
-                      const progress = offer.progress_required > 0
-                        ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
-                        : 0;
-
-                      return (
-                        <div
-                          key={offer.offer_id}
-                          className={`rounded-2xl p-4 border-2 transition-all ${
-                            isApplicable
-                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300'
-                              : 'bg-gradient-to-r from-primary-50 to-orange-50 border-primary-200'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className={`font-bold text-lg ${isApplicable ? 'text-green-800' : 'text-anthracite'}`}>
-                                {offer.offer_name}
-                              </h3>
-                              {offer.description && (
-                                <p className="text-sm text-gray-600 mt-0.5">{offer.description}</p>
-                              )}
-                              {/* Progress bar or auto-apply message */}
-                              {isApplicable ? (
-                                <p className="text-xs text-green-600 mt-2 font-medium">
-                                  ✓ Offre appliquée ! {offer.free_item_name && `• ${offer.free_item_name}`}
-                                </p>
-                              ) : hasProgress ? (
-                                <div className="mt-2">
-                                  <div className="h-1.5 bg-white/50 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-primary-400 transition-all"
-                                      style={{ width: `${progress}%` }}
-                                    />
-                                  </div>
-                                  <p className="text-xs text-primary-600 mt-1 font-medium">
-                                    {offer.progress_current}/{offer.progress_required} • Ajoutez au panier, l'offre s'appliquera
-                                  </p>
-                                </div>
-                              ) : (
-                                <p className="text-xs text-primary-600 mt-2 font-medium">
-                                  🛒 Ajoutez au panier, l'offre s'appliquera automatiquement
-                                </p>
-                              )}
-                            </div>
-                            {isApplicable && offer.calculated_discount > 0 && (
-                              <span className="text-xl font-bold text-green-600 whitespace-nowrap">
-                                -{formatPrice(offer.calculated_discount)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-
             {/* Daily Specials */}
             {dailySpecials.length > 0 && (
               <div>
@@ -635,6 +444,97 @@ export default function FoodtruckPage() {
                 </div>
               ) : null
             )}
+          </div>
+        ) : activeTab === 'offers' ? (
+          /* Offers Tab */
+          <div className="space-y-4">
+            <div className="text-center py-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-orange-100 flex items-center justify-center mx-auto mb-3">
+                <Gift className="w-8 h-8 text-primary-500" />
+              </div>
+              <h2 className="text-xl font-bold text-anthracite mb-1">Nos offres du moment</h2>
+              <p className="text-sm text-gray-500">Ajoutez les articles au panier, les réductions s'appliquent automatiquement</p>
+            </div>
+
+            <div className="space-y-4">
+              {visibleOffers.map((offer) => {
+                const isApplicable = offer.is_applicable;
+                const hasProgress = offer.progress_required > 0;
+                const progress = offer.progress_required > 0
+                  ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
+                  : 0;
+
+                return (
+                  <div
+                    key={offer.offer_id}
+                    className={`bg-white rounded-2xl border-2 p-5 transition-all ${
+                      isApplicable
+                        ? 'border-green-300 bg-gradient-to-br from-green-50 to-emerald-50'
+                        : 'border-gray-100'
+                    }`}
+                    style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)' }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isApplicable ? 'bg-green-100' : 'bg-primary-100'
+                      }`}>
+                        {offer.offer_type === 'buy_x_get_y' ? (
+                          <Gift className={`w-6 h-6 ${isApplicable ? 'text-green-600' : 'text-primary-500'}`} />
+                        ) : (
+                          <Tag className={`w-6 h-6 ${isApplicable ? 'text-green-600' : 'text-primary-500'}`} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`font-bold text-lg ${isApplicable ? 'text-green-800' : 'text-anthracite'}`}>
+                          {offer.offer_name}
+                        </h3>
+                        {offer.description && (
+                          <p className="text-sm text-gray-600 mt-1">{offer.description}</p>
+                        )}
+
+                        {/* Status */}
+                        {isApplicable ? (
+                          <div className="mt-3 flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                              ✓ Offre appliquée
+                            </span>
+                            {offer.calculated_discount > 0 && (
+                              <span className="text-lg font-bold text-green-600">
+                                -{formatPrice(offer.calculated_discount)}
+                              </span>
+                            )}
+                          </div>
+                        ) : hasProgress ? (
+                          <div className="mt-3">
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary-500 transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1.5">
+                              <span className="font-semibold text-primary-600">{offer.progress_current}/{offer.progress_required}</span> articles • Plus que {offer.progress_required - offer.progress_current} pour débloquer
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-primary-600 mt-2 font-medium">
+                            Ajoutez au panier pour en profiter
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTA to go back to menu */}
+            <button
+              onClick={() => setActiveTab('menu')}
+              className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+            >
+              Voir le menu
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -919,39 +819,6 @@ export default function FoodtruckPage() {
           category={selectedCategory}
           onClose={closeOptionsModal}
           onConfirm={handleOptionsConfirm}
-        />
-      )}
-
-      {/* Bundle Selection Modal */}
-      {showBundleModal && selectedBundle && (
-        <BundleSelectionModal
-          bundle={selectedBundle}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeBundleModal}
-          onConfirm={handleBundleConfirm}
-        />
-      )}
-
-      {/* Specific Items Bundle Modal */}
-      {showSpecificBundleModal && selectedSpecificBundle && (
-        <SpecificItemsBundleModal
-          bundle={selectedSpecificBundle}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeSpecificBundleModal}
-          onConfirm={handleSpecificBundleConfirm}
-        />
-      )}
-
-      {/* Buy X Get Y Selection Modal */}
-      {showBuyXGetYModal && selectedBuyXGetY && (
-        <BuyXGetYSelectionModal
-          offer={selectedBuyXGetY}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeBuyXGetYModal}
-          onConfirm={handleBuyXGetYConfirm}
         />
       )}
     </div>

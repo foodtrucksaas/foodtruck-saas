@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react';
 
-export function initSentry() {
+export function initSentry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
 
   if (!dsn) {
@@ -37,11 +37,11 @@ export function initSentry() {
   });
 }
 
-export function captureError(error: Error, context?: Record<string, unknown>) {
+export function captureError(error: Error, context?: Record<string, unknown>): void {
   Sentry.captureException(error, { extra: context });
 }
 
-export function setUser(userId: string | null) {
+export function setUser(userId: string | null): void {
   if (userId) {
     Sentry.setUser({ id: userId });
   } else {

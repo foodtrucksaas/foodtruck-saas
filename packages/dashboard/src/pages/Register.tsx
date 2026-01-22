@@ -1,8 +1,31 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Mail, Lock, Loader2 } from 'lucide-react';
+import { UtensilsCrossed, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isValidEmail } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
+
+// Translate Supabase auth errors to French
+function translateAuthError(message: string): string {
+  const errorMap: Record<string, string> = {
+    'User already registered': 'Un compte existe deja avec cet email',
+    'Email already in use': 'Un compte existe deja avec cet email',
+    'Invalid email': 'Adresse email invalide',
+    'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caracteres',
+    'Unable to validate email address: invalid format': 'Format d\'email invalide',
+    'signup disabled': 'La creation de compte est temporairement desactivee',
+    'Too many requests': 'Trop de tentatives. Veuillez reessayer plus tard',
+    'Email rate limit exceeded': 'Trop de tentatives. Veuillez reessayer dans quelques minutes',
+  };
+
+  for (const [key, value] of Object.entries(errorMap)) {
+    if (message.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+
+  return 'Une erreur est survenue. Veuillez reessayer.';
+}
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,29 +34,47 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      setFormError('Format d\'email invalide');
+      toast.error('Format d\'email invalide');
+      return;
+    }
 
     if (password !== confirmPassword) {
+      setFormError('Les mots de passe ne correspondent pas');
       toast.error('Les mots de passe ne correspondent pas');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      setFormError('Le mot de passe doit contenir au moins 6 caracteres');
+      toast.error('Le mot de passe doit contenir au moins 6 caracteres');
       return;
     }
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    try {
+      const { error } = await signUp(email, password);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Compte créé ! Vérifiez votre email pour confirmer.');
-      navigate('/login');
+      if (error) {
+        const friendlyMessage = translateAuthError(error.message);
+        setFormError(friendlyMessage);
+        toast.error(friendlyMessage);
+      } else {
+        toast.success('Compte cree ! Verifiez votre email pour confirmer.');
+        navigate('/login');
+      }
+    } catch {
+      setFormError('Probleme de connexion. Verifiez votre connexion internet.');
+      toast.error('Probleme de connexion. Verifiez votre connexion internet.');
     }
 
     setLoading(false);
@@ -51,6 +92,14 @@ export default function Register() {
         </div>
 
         <div className="card p-6">
+          {/* Error display */}
+          {formError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{formError}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="label">

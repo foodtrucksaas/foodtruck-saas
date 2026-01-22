@@ -57,11 +57,72 @@ interface OrderRequest {
   bundles_used?: { bundle_id: string; quantity: number }[];
 }
 
+/**
+ * Validate email format
+ */
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Validate UUID format
+ */
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
+/**
+ * Sanitize text input to prevent XSS
+ */
+function sanitizeText(text: string | undefined, maxLength: number = 500): string {
+  if (!text) return '';
+  return text
+    .slice(0, maxLength)
+    .replace(/[<>]/g, '') // Remove potential HTML tags
+    .trim();
+}
+
 export function validateOrderRequest(body: OrderRequest): Response | null {
   const { foodtruck_id, customer_email, customer_name, pickup_time, items } = body;
+
+  // Required fields check
   if (!foodtruck_id || !customer_email || !customer_name || !pickup_time || !items?.length) {
     return errorResponse('Missing required fields');
   }
+
+  // Validate foodtruck_id is a valid UUID
+  if (!isValidUUID(foodtruck_id)) {
+    return errorResponse('Invalid foodtruck ID format');
+  }
+
+  // Validate email format
+  if (!isValidEmail(customer_email)) {
+    return errorResponse('Invalid email format');
+  }
+
+  // Validate customer name length
+  const sanitizedName = sanitizeText(customer_name, 100);
+  if (sanitizedName.length < 1) {
+    return errorResponse('Customer name is required');
+  }
+
+  // Validate items
+  if (!Array.isArray(items) || items.length === 0) {
+    return errorResponse('At least one item is required');
+  }
+
+  // Validate each item has required fields
+  for (const item of items) {
+    if (!item.menu_item_id || !isValidUUID(item.menu_item_id)) {
+      return errorResponse('Invalid menu item ID');
+    }
+    if (!item.quantity || item.quantity < 1 || item.quantity > 99) {
+      return errorResponse('Invalid quantity (must be between 1 and 99)');
+    }
+  }
+
   return null;
 }
 

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Users, Mail, Phone, Search, Filter, TrendingUp, Calendar, MapPin, ShoppingBag, MailCheck, MessageSquare, Download, Gift } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import { useCustomers, formatDate, type FilterSegment } from './useCustomers';
@@ -148,7 +149,7 @@ export default function Customers() {
   );
 }
 
-function StatCard({ icon: Icon, iconBg, iconColor, value, label }: { icon: React.ElementType; iconBg: string; iconColor: string; value: number; label: string }) {
+const StatCard = memo(function StatCard({ icon: Icon, iconBg, iconColor, value, label }: { icon: React.ElementType; iconBg: string; iconColor: string; value: number; label: string }) {
   return (
     <div className="card p-4">
       <div className="flex items-center gap-3">
@@ -157,4 +158,4 @@ function StatCard({ icon: Icon, iconBg, iconColor, value, label }: { icon: React
       </div>
     </div>
   );
-}
+});

@@ -6,6 +6,7 @@ import { removeDeviceToken } from '../hooks/usePushNotifications';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  error: string | null;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
@@ -18,17 +19,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Erreur lors de la recuperation de la session:', sessionError);
+          setError('Impossible de recuperer votre session. Veuillez vous reconnecter.');
+        }
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error('Erreur inattendue lors de l\'authentification:', err);
+        setError('Une erreur inattendue est survenue. Veuillez recharger la page.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setError(null);
     });
 
     return () => subscription.unsubscribe();
@@ -69,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signUp, signInWithMagicLink, signOut, updatePassword }}
+      value={{ user, loading, error, signIn, signUp, signInWithMagicLink, signOut, updatePassword }}
     >
       {children}
     </AuthContext.Provider>

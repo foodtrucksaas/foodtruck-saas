@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import type { Campaign, CampaignTargeting, CampaignChannel, Location } from '@foodtruck/shared';
+import type { Json } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 
@@ -68,11 +69,13 @@ export function useCampaigns() {
     if (!foodtruck || !showModal) return;
 
     async function fetchCount() {
+      // foodtruck is guaranteed to be defined here due to the guard above
+      if (!foodtruck) return;
+
       const targeting = buildTargeting(form);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await supabase.rpc('count_campaign_recipients', {
-        p_foodtruck_id: foodtruck!.id,
-        p_targeting: targeting as any,
+        p_foodtruck_id: foodtruck.id,
+        p_targeting: targeting as unknown as Json,
       });
       setRecipientCount(data ?? 0);
     }
@@ -134,15 +137,14 @@ export function useCampaigns() {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const campaignData: any = {
+    const campaignData = {
       foodtruck_id: foodtruck.id,
       name: form.name.trim(),
-      type: 'manual',
-      trigger_type: 'manual',
+      type: 'manual' as const,
+      trigger_type: 'manual' as const,
       channel: form.channel,
-      status: 'draft',
-      targeting: buildTargeting(form),
+      status: 'draft' as const,
+      targeting: buildTargeting(form) as unknown as Json,
       email_subject: form.emailSubject || null,
       email_body: form.emailBody || null,
       sms_body: form.smsBody || null,

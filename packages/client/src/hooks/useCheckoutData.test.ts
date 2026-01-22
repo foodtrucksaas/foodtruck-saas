@@ -17,8 +17,8 @@ vi.mock('../lib/api', () => ({
     foodtrucks: {
       getSettings: () => mockGetSettings(),
     },
-    promoCodes: {
-      countActive: () => mockCountActive(),
+    offers: {
+      countActivePromoCodes: () => mockCountActive(),
     },
   },
 }));
@@ -74,8 +74,13 @@ describe('useCheckoutData', () => {
     order_slot_interval: 15,
     max_orders_per_slot: 5,
     allow_advance_orders: true,
+    advance_order_days: 7,
+    allow_asap_orders: false,
     min_preparation_time: 15,
     show_promo_section: true,
+    offers_stackable: false,
+    promo_codes_stackable: true,
+    loyalty_enabled: false,
   };
 
   // Store original Date
@@ -158,7 +163,12 @@ describe('useCheckoutData', () => {
       slotInterval: 15,
       maxOrdersPerSlot: 5,
       allowAdvanceOrders: true,
+      advanceOrderDays: 7,
+      allowAsapOrders: false,
       minPrepTime: 15,
+      offersStackable: false,
+      promoCodesStackable: true,
+      loyaltyEnabled: false,
     });
     expect(result.current.showPromoSection).toBe(true);
   });
@@ -179,7 +189,12 @@ describe('useCheckoutData', () => {
       slotInterval: 15,
       maxOrdersPerSlot: 999,
       allowAdvanceOrders: true,
+      advanceOrderDays: 7,
+      allowAsapOrders: false,
       minPrepTime: 15,
+      offersStackable: false,
+      promoCodesStackable: true,
+      loyaltyEnabled: false,
     });
   });
 
@@ -416,7 +431,8 @@ describe('useCheckoutData', () => {
 
     mockGetByFoodtruck.mockResolvedValue(everyDaySchedules);
     mockGetExceptions.mockResolvedValue([]);
-    mockGetSettings.mockResolvedValue(mockSettings);
+    // Use 14 days advance for this test
+    mockGetSettings.mockResolvedValue({ ...mockSettings, advance_order_days: 14 });
     mockCountActive.mockResolvedValue(0);
 
     const { result } = renderHook(() => useCheckoutData('ft-1'));
@@ -425,7 +441,7 @@ describe('useCheckoutData', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Should have exactly 14 dates (14 days advance)
+    // Should have exactly 14 dates (14 days advance per settings)
     expect(result.current.availableDates.length).toBe(14);
   });
 
