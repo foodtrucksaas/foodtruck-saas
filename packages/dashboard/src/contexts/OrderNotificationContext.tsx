@@ -5,9 +5,15 @@ import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useFoodtruck } from './FoodtruckContext';
 
+// ============================================
+// BULLETPROOF ORDER NOTIFICATION SYSTEM
+// Uses: Realtime + Polling + Visibility detection
+// ============================================
+
 // Module-level storage to survive React StrictMode remounts
 let knownOrderIdsSet = new Set<string>();
 let pendingPopupsStore: OrderWithItemsAndOptions[] = [];
+let hasShownInitialPopup = false;
 
 // Shared AudioContext - must be created/resumed after user interaction on iOS
 let sharedAudioContext: AudioContext | null = null;
@@ -15,14 +21,12 @@ let audioUnlocked = false;
 
 // Initialize audio context on first user interaction (required for iOS)
 function getAudioContext(): AudioContext | null {
-  // Only create/use audio context after user has interacted
   if (!audioUnlocked) return null;
 
   try {
     if (!sharedAudioContext) {
       sharedAudioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
-    // Resume if suspended (iOS requires this after user gesture)
     if (sharedAudioContext.state === 'suspended') {
       sharedAudioContext.resume().catch(() => {});
     }
@@ -32,7 +36,7 @@ function getAudioContext(): AudioContext | null {
   }
 }
 
-// Unlock audio on first user interaction (call this on any tap/click)
+// Unlock audio on first user interaction
 export function unlockAudio() {
   if (audioUnlocked) return;
 
@@ -55,15 +59,13 @@ function playNotificationSound() {
     const audioContext = getAudioContext();
     if (!audioContext) return;
 
-    // Create oscillator for the tone
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // Pleasant notification sound - two quick beeps
-    oscillator.frequency.value = 880; // A5 note
+    oscillator.frequency.value = 880;
     oscillator.type = 'sine';
 
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -80,7 +82,7 @@ function playNotificationSound() {
       const gain2 = ctx.createGain();
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
-      osc2.frequency.value = 1100; // C#6 note
+      osc2.frequency.value = 1100;
       osc2.type = 'sine';
       gain2.gain.setValueAtTime(0.3, ctx.currentTime);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
@@ -111,13 +113,20 @@ const OrderNotificationContext = createContext<OrderNotificationContextType | nu
 
 export function OrderNotificationProvider({ children }: { children: ReactNode }) {
   const { foodtruck } = useFoodtruck();
-  // Initialize from module-level store to survive StrictMode remounts
   const [pendingPopupOrders, setPendingPopupOrders] = useState<OrderWithItemsAndOptions[]>(() => pendingPopupsStore);
   const [pendingCount, setPendingCount] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Refs to access latest values in callbacks without re-subscribing
+  const foodtruckRef = useRef(foodtruck);
   const soundEnabledRef = useRef(soundEnabled);
-  soundEnabledRef.current = soundEnabled;
+  const pendingPopupOrdersRef = useRef(pendingPopupOrders);
+
+  // Keep refs in sync
+  useEffect(() => { foodtruckRef.current = foodtruck; }, [foodtruck]);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+  useEffect(() => { pendingPopupOrdersRef.current = pendingPopupOrders; }, [pendingPopupOrders]);
 
   // Helper to update both store and state
   const updatePendingPopups = useCallback((updater: (prev: OrderWithItemsAndOptions[]) => OrderWithItemsAndOptions[]) => {
@@ -128,108 +137,225 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     });
   }, []);
 
-  // Refresh function for Orders page
   const refreshOrders = useCallback(() => {
     setRefreshTrigger(t => t + 1);
   }, []);
 
+  // Fetch all pending orders with full details
+  const fetchPendingOrders = useCallback(async (foodtruckId: string): Promise<OrderWithItemsAndOptions[]> => {
+    const today = formatLocalDate(new Date());
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+      .eq('foodtruck_id', foodtruckId)
+      .eq('status', 'pending')
+      .neq('customer_email', 'surplace@local')
+      .gte('pickup_time', `${today}T00:00:00`)
+      .order('pickup_time', { ascending: true });
+
+    if (error) {
+      console.error('[OrderNotification] Error fetching orders:', error);
+      return [];
+    }
+
+    return (data || []) as unknown as OrderWithItemsAndOptions[];
+  }, []);
+
+  // Show popup for new orders - THE CORE FUNCTION
+  const showPopupForOrders = useCallback((orders: OrderWithItemsAndOptions[], playSound: boolean) => {
+    const ft = foodtruckRef.current;
+    if (!ft?.show_order_popup) {
+      // Popup disabled - show toast instead
+      if (orders.length > 0) {
+        toast.success(`${orders.length} nouvelle${orders.length > 1 ? 's' : ''} commande${orders.length > 1 ? 's' : ''} !`);
+      }
+      return;
+    }
+
+    if (orders.length === 0) return;
+
+    console.log('[OrderNotification] Showing popup for', orders.length, 'orders');
+
+    if (playSound && soundEnabledRef.current) {
+      playNotificationSound();
+    }
+
+    // Always show ALL pending orders in popup (newest first for stack)
+    updatePendingPopups(() => [...orders].reverse());
+  }, [updatePendingPopups]);
+
+  // Check for new orders - called by polling and realtime
+  const checkForNewOrders = useCallback(async (_isInitialCheck = false) => {
+    const ft = foodtruckRef.current;
+    if (!ft?.id) return;
+
+    const pendingOrders = await fetchPendingOrders(ft.id);
+    setPendingCount(pendingOrders.length);
+
+    // Find genuinely new orders
+    const newOrders = pendingOrders.filter(order => !knownOrderIdsSet.has(order.id));
+    const isFirstLoad = knownOrderIdsSet.size === 0;
+
+    // Mark all as known
+    pendingOrders.forEach(order => knownOrderIdsSet.add(order.id));
+
+    // NEW ORDERS DETECTED
+    if (newOrders.length > 0 && !isFirstLoad) {
+      console.log('[OrderNotification] NEW ORDERS DETECTED:', newOrders.length);
+      showPopupForOrders(pendingOrders, true);
+    }
+
+    // INITIAL LOAD - show pending orders after small delay (so user knows it's from before)
+    if (isFirstLoad && pendingOrders.length > 0 && ft.show_order_popup && !hasShownInitialPopup) {
+      hasShownInitialPopup = true;
+      console.log('[OrderNotification] Initial load - showing', pendingOrders.length, 'pending orders');
+      // Small delay so it doesn't feel like a bug
+      setTimeout(() => {
+        if (pendingOrders.length > 0) {
+          showPopupForOrders(pendingOrders, true);
+        }
+      }, 1000);
+    }
+  }, [fetchPendingOrders, showPopupForOrders]);
+
   // Reset known orders when foodtruck changes
   useEffect(() => {
     if (foodtruck?.id) {
+      console.log('[OrderNotification] Foodtruck changed, resetting state');
       knownOrderIdsSet = new Set<string>();
+      hasShownInitialPopup = false;
     }
   }, [foodtruck?.id]);
 
-  // Polling for new orders
+  // ============================================
+  // 1. SUPABASE REALTIME - Primary notification
+  // ============================================
   useEffect(() => {
     if (!foodtruck?.id) return;
 
     const foodtruckId = foodtruck.id;
-    const autoAccept = foodtruck.auto_accept_orders;
-    const showPopup = foodtruck.show_order_popup;
+    console.log('[OrderNotification] Setting up Realtime subscription for', foodtruckId);
 
-    const checkForNewOrders = async () => {
-      const today = formatLocalDate(new Date());
+    const channel = supabase
+      .channel(`orders-${foodtruckId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `foodtruck_id=eq.${foodtruckId}`,
+        },
+        (payload) => {
+          console.log('[OrderNotification] REALTIME INSERT:', payload.new);
+          const newOrder = payload.new;
 
-      // Build query based on mode
-      let query = supabase
-        .from('orders')
-        .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-        .eq('foodtruck_id', foodtruckId)
-        .gte('pickup_time', `${today}T00:00:00`)
-        .order('pickup_time', { ascending: true });
+          // Skip manual dashboard orders
+          if (newOrder.customer_email === 'surplace@local') return;
 
-      if (autoAccept) {
-        // In auto-accept mode: check for confirmed orders (cash orders + card orders after payment)
-        // Also check pending for card orders during payment
-        query = query.in('status', ['pending', 'confirmed']);
-      } else {
-        // In manual mode: only pending orders need notification
-        query = query.eq('status', 'pending');
-      }
-
-      const { data } = await query;
-
-      if (data) {
-        // In auto-accept mode, we only care about confirmed orders for notifications
-        // In manual mode, we care about pending orders
-        // Always exclude manual dashboard orders (surplace@local)
-        const ordersToNotify = (autoAccept
-          ? data.filter(order => order.status === 'confirmed')
-          : data
-        ).filter(order => order.customer_email !== 'surplace@local');
-
-        // Update pending count (only in manual mode, count pending orders)
-        if (!autoAccept) {
-          const pendingOrders = data.filter(order =>
-            order.status === 'pending' && order.customer_email !== 'surplace@local'
-          );
-          setPendingCount(pendingOrders.length);
-        } else {
-          setPendingCount(0);
+          // Immediately check for all pending orders (to get full details)
+          checkForNewOrders();
         }
-
-        // Check for new orders using module-level Set
-        const newOrders = ordersToNotify.filter(order => !knownOrderIdsSet.has(order.id));
-        const wasFirstLoad = knownOrderIdsSet.size === 0;
-
-        // Only add notifiable orders to known IDs (so we don't miss status transitions)
-        ordersToNotify.forEach(order => knownOrderIdsSet.add(order.id));
-
-        // Check if we have genuinely new orders (not first load)
-        if (newOrders.length > 0 && !wasFirstLoad) {
-          if (soundEnabledRef.current) {
-            playNotificationSound();
-          }
-
-          // Show popup with ALL pending orders (not just new ones)
-          if (showPopup) {
-            const allPendingOrders = data
-              .filter(order => order.status === 'pending' && order.customer_email !== 'surplace@local')
-              .reverse() as unknown as OrderWithItemsAndOptions[];
-            updatePendingPopups(() => allPendingOrders);
-          } else {
-            toast.success(`${newOrders.length} nouvelle${newOrders.length > 1 ? 's' : ''} commande${newOrders.length > 1 ? 's' : ''} !`);
-          }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `foodtruck_id=eq.${foodtruckId}`,
+        },
+        (payload) => {
+          console.log('[OrderNotification] REALTIME UPDATE:', payload.new);
+          // Refresh to update counts and popup state
+          checkForNewOrders();
         }
+      )
+      .subscribe((status) => {
+        console.log('[OrderNotification] Realtime status:', status);
+      });
+
+    return () => {
+      console.log('[OrderNotification] Cleaning up Realtime subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [foodtruck?.id, checkForNewOrders]);
+
+  // ============================================
+  // 2. POLLING - Backup mechanism (every 5s)
+  // ============================================
+  useEffect(() => {
+    if (!foodtruck?.id) return;
+
+    console.log('[OrderNotification] Starting polling');
+
+    // Initial check
+    checkForNewOrders(true);
+
+    // Poll every 5 seconds as backup
+    const interval = setInterval(() => {
+      checkForNewOrders();
+    }, 5000);
+
+    return () => {
+      console.log('[OrderNotification] Stopping polling');
+      clearInterval(interval);
+    };
+  }, [foodtruck?.id, refreshTrigger, checkForNewOrders]);
+
+  // ============================================
+  // 3. VISIBILITY CHANGE - Check when tab becomes visible
+  // ============================================
+  useEffect(() => {
+    if (!foodtruck?.id) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[OrderNotification] Tab became visible, checking for orders');
+        checkForNewOrders();
       }
     };
 
-    // Initial check
-    checkForNewOrders();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Poll every 3 seconds
-    const interval = setInterval(checkForNewOrders, 3000);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [foodtruck?.id, checkForNewOrders]);
 
-    return () => clearInterval(interval);
-  }, [foodtruck?.id, foodtruck?.auto_accept_orders, foodtruck?.show_order_popup, refreshTrigger, updatePendingPopups]);
+  // ============================================
+  // 4. WINDOW FOCUS - Additional check on focus
+  // ============================================
+  useEffect(() => {
+    if (!foodtruck?.id) return;
 
+    const handleFocus = () => {
+      console.log('[OrderNotification] Window focused, checking for orders');
+      checkForNewOrders();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [foodtruck?.id, checkForNewOrders]);
+
+  // Accept order
   const acceptOrder = useCallback(async (id: string) => {
-    await supabase.from('orders').update({ status: 'confirmed' }).eq('id', id);
+    const { error } = await supabase.from('orders').update({ status: 'confirmed' }).eq('id', id);
+
+    if (error) {
+      console.error('[OrderNotification] Error accepting order:', error);
+      toast.error('Erreur lors de l\'acceptation');
+      return;
+    }
+
     toast.success('Commande acceptée');
 
     // Send confirmation email if enabled (non-blocking)
-    if (foodtruck?.send_confirmation_email !== false) {
+    if (foodtruckRef.current?.send_confirmation_email !== false) {
       fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-order-confirmation`,
         {
@@ -243,52 +369,52 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
       ).catch(console.error);
     }
 
-    // Update pending count
+    // Update state
     setPendingCount(prev => Math.max(0, prev - 1));
-    // Remove from popup list
-    updatePendingPopups(prev => prev.filter(o => o.id !== id));
-  }, [foodtruck?.send_confirmation_email, updatePendingPopups]);
-
-  const cancelOrder = useCallback(async (id: string, reason?: string) => {
-    await supabase.from('orders').update({
-      status: 'cancelled',
-      cancellation_reason: reason || 'Refusée par le commerçant'
-    }).eq('id', id);
-    toast.success('Commande refusée');
-    // Update pending count
-    setPendingCount(prev => Math.max(0, prev - 1));
-    // Remove from popup list
     updatePendingPopups(prev => prev.filter(o => o.id !== id));
   }, [updatePendingPopups]);
 
+  // Cancel order
+  const cancelOrder = useCallback(async (id: string, reason?: string) => {
+    const { error } = await supabase.from('orders').update({
+      status: 'cancelled',
+      cancellation_reason: reason || 'Refusée par le commerçant'
+    }).eq('id', id);
+
+    if (error) {
+      console.error('[OrderNotification] Error cancelling order:', error);
+      toast.error('Erreur lors du refus');
+      return;
+    }
+
+    toast.success('Commande refusée');
+    setPendingCount(prev => Math.max(0, prev - 1));
+    updatePendingPopups(prev => prev.filter(o => o.id !== id));
+  }, [updatePendingPopups]);
+
+  // Dismiss popup without action
   const dismissPopup = useCallback((id: string) => {
     updatePendingPopups(prev => prev.filter(o => o.id !== id));
   }, [updatePendingPopups]);
 
+  // Show all pending orders (bell button)
   const showAllPendingOrders = useCallback(async () => {
-    if (!foodtruck?.id) return;
+    const ft = foodtruckRef.current;
+    if (!ft?.id) return;
 
-    const today = formatLocalDate(new Date());
-    const { data } = await supabase
-      .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-      .eq('foodtruck_id', foodtruck.id)
-      .eq('status', 'pending')
-      .neq('customer_email', 'surplace@local')
-      .gte('pickup_time', `${today}T00:00:00`)
-      .order('pickup_time', { ascending: true });
+    const pendingOrders = await fetchPendingOrders(ft.id);
 
-    if (data && data.length > 0) {
-      // Add all pending orders to popup stack (newest first)
-      updatePendingPopups(() => data.reverse() as unknown as OrderWithItemsAndOptions[]);
+    if (pendingOrders.length > 0) {
+      updatePendingPopups(() => [...pendingOrders].reverse());
     } else {
       toast('Aucune commande en attente');
     }
-  }, [foodtruck?.id, updatePendingPopups]);
+  }, [fetchPendingOrders, updatePendingPopups]);
 
-  // Show a specific order by ID (from push notification tap)
+  // Show specific order by ID (from push notification)
   const showOrderById = useCallback(async (orderId: string) => {
-    if (!foodtruck?.id) return;
+    const ft = foodtruckRef.current;
+    if (!ft?.id) return;
 
     // Fetch the specific order
     const { data: order } = await supabase
@@ -300,24 +426,16 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     if (!order) return;
 
     // Fetch all other pending orders
-    const today = formatLocalDate(new Date());
-    const { data: pendingOrders } = await supabase
-      .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-      .eq('foodtruck_id', foodtruck.id)
-      .eq('status', 'pending')
-      .neq('id', orderId)
-      .gte('pickup_time', `${today}T00:00:00`)
-      .order('pickup_time', { ascending: true });
+    const pendingOrders = await fetchPendingOrders(ft.id);
 
-    // Put the clicked order first, then other pending orders
+    // Put the clicked order first
     const allOrders = [
       order as unknown as OrderWithItemsAndOptions,
-      ...((pendingOrders || []).reverse() as unknown as OrderWithItemsAndOptions[])
+      ...pendingOrders.filter(o => o.id !== orderId)
     ];
 
     updatePendingPopups(() => allOrders);
-  }, [foodtruck?.id, updatePendingPopups]);
+  }, [fetchPendingOrders, updatePendingPopups]);
 
   return (
     <OrderNotificationContext.Provider
