@@ -53,6 +53,10 @@ export const ALLERGENS = [
   'Mollusques',
 ] as const;
 
+export const PICKUP_INTERVAL_MINUTES = 15;
+export const MIN_PICKUP_BUFFER_MINUTES = 30;
+export const MAX_ORDERS_PER_SLOT = 5;
+
 export const PAYMENT_METHODS = [
   { id: 'cash', label: 'Espèces', icon: 'Banknote' },
   { id: 'card', label: 'Carte bancaire', icon: 'CreditCard' },
@@ -61,3 +65,5 @@ export const PAYMENT_METHODS = [
   { id: 'paylib', label: 'Paylib', icon: 'Wallet' },
   { id: 'check', label: 'Chèque', icon: 'FileText' },
 ] as const;
+
+export type PaymentMethodId = typeof PAYMENT_METHODS[number]['id'];

@@ -127,7 +127,7 @@ describe('usePromoCode', () => {
     it('should validate percentage promo code successfully', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-123',
+        promo_code_id: 'promo-123',
         discount_type: 'percentage',
         discount_value: 10,
         calculated_discount: 200,
@@ -160,7 +160,7 @@ describe('usePromoCode', () => {
     it('should validate fixed discount promo code successfully', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-456',
+        promo_code_id: 'promo-456',
         discount_type: 'fixed',
         discount_value: 500,
         calculated_discount: 500,
@@ -190,7 +190,7 @@ describe('usePromoCode', () => {
     it('should trim whitespace from promo code', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-123',
+        promo_code_id: 'promo-123',
         discount_type: 'percentage',
         discount_value: 10,
         calculated_discount: 200,
@@ -214,7 +214,7 @@ describe('usePromoCode', () => {
     it('should use anonymous email when customer email is empty', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-123',
+        promo_code_id: 'promo-123',
         discount_type: 'percentage',
         discount_value: 10,
         calculated_discount: 200,
@@ -376,7 +376,7 @@ describe('usePromoCode', () => {
       await act(async () => {
         resolveValidate!({
           is_valid: true,
-          offer_id: 'promo-123',
+          promo_code_id: 'promo-123',
           discount_type: 'percentage',
           discount_value: 10,
           calculated_discount: 200,
@@ -411,7 +411,7 @@ describe('usePromoCode', () => {
     it('should remove applied promo', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-123',
+        promo_code_id: 'promo-123',
         discount_type: 'percentage',
         discount_value: 10,
         calculated_discount: 200,
@@ -514,7 +514,7 @@ describe('usePromoCode', () => {
     it('should update validation with new order amount', async () => {
       mockValidatePromoCode.mockResolvedValue({
         is_valid: true,
-        offer_id: 'promo-123',
+        promo_code_id: 'promo-123',
         discount_type: 'percentage',
         discount_value: 10,
         calculated_discount: 200,

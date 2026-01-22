@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { Edit2, Trash2, ToggleLeft, ToggleRight, Star, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
@@ -14,7 +13,7 @@ interface MenuItemCardProps {
   onMoveDown?: () => void;
 }
 
-export const MenuItemCard = memo(function MenuItemCard({ item, index = 0, totalItems = 1, onEdit, onToggle, onDelete, onMoveUp, onMoveDown }: MenuItemCardProps) {
+export function MenuItemCard({ item, index = 0, totalItems = 1, onEdit, onToggle, onDelete, onMoveUp, onMoveDown }: MenuItemCardProps) {
   return (
     <div className={`card p-4 ${!item.is_available ? 'opacity-60' : ''}`}>
       <div className="flex items-start gap-3">
@@ -108,4 +107,4 @@ export const MenuItemCard = memo(function MenuItemCard({ item, index = 0, totalI
       </div>
     </div>
   );
-});
+}

@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { Plus, Check } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItemWithOptions } from './useQuickOrder';
@@ -11,7 +10,7 @@ interface OptionsStepProps {
   onCancel: () => void;
 }
 
-export const OptionsStep = memo(function OptionsStep({
+export function OptionsStep({
   item,
   pendingOptions,
   onToggleOption,
@@ -102,4 +101,4 @@ export const OptionsStep = memo(function OptionsStep({
       </div>
     </div>
   );
-});
+}

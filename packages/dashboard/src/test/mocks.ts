@@ -35,7 +35,7 @@ export const mockApi = {
 };
 
 // Reset all mocks
-export function resetMocks(): void {
+export function resetMocks() {
   const resetObject = (obj: Record<string, unknown>) => {
     Object.values(obj).forEach((value) => {
       if (typeof value === 'function' && 'mockReset' in value) {

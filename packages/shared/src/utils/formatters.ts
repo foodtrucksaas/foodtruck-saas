@@ -39,3 +39,16 @@ export function formatPhoneNumber(phone: string): string {
 export function formatOrderId(id: string): string {
   return `#${id.slice(0, 8).toUpperCase()}`;
 }
+
+export function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}

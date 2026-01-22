@@ -92,13 +92,12 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Create an offer
     async create(offer: OfferInsert): Promise<Offer> {
-      const insertData = {
-        ...offer,
-        config: offer.config as unknown as Json,
-      };
       const { data, error } = await supabase
         .from('offers')
-        .insert(insertData)
+        .insert({
+          ...offer,
+          config: offer.config as unknown as Json,
+        } as any)
         .select()
         .single();
 
@@ -114,7 +113,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
       const { data, error } = await supabase
         .from('offers')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', id)
         .select()
         .single();
@@ -136,7 +135,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
     async toggleActive(id: string, isActive: boolean): Promise<Offer> {
       const { data, error } = await supabase
         .from('offers')
-        .update({ is_active: isActive })
+        .update({ is_active: isActive } as any)
         .eq('id', id)
         .select()
         .single();
@@ -152,7 +151,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
     async addItems(items: OfferItemInsert[]): Promise<OfferItem[]> {
       const { data, error } = await supabase
         .from('offer_items')
-        .insert(items)
+        .insert(items as any)
         .select();
 
       return handleResponse(data, error) as unknown as OfferItem[];
@@ -160,8 +159,8 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Remove item from an offer
     async removeItem(itemId: string): Promise<void> {
-      const { error } = await supabase
-        .from('offer_items')
+      const { error } = await (supabase
+        .from('offer_items') as any)
         .delete()
         .eq('id', itemId);
 
@@ -170,8 +169,8 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Remove all items from an offer
     async removeAllItems(offerId: string): Promise<void> {
-      const { error } = await supabase
-        .from('offer_items')
+      const { error } = await (supabase
+        .from('offer_items') as any)
         .delete()
         .eq('offer_id', offerId);
 
@@ -307,19 +306,19 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
       total_discount: number;
       unique_customers: number;
     }> {
-      const { data, error } = await supabase
-        .from('offer_uses')
+      const { data, error } = await (supabase
+        .from('offer_uses') as any)
         .select('customer_email, discount_amount')
         .eq('offer_id', offerId);
 
       if (error) throw error;
 
       const uses = (data || []) as Array<{ customer_email: string | null; discount_amount: number }>;
-      const uniqueEmails = new Set(uses.map((u) => u.customer_email?.toLowerCase()));
+      const uniqueEmails = new Set(uses.map((u: { customer_email: string | null }) => u.customer_email?.toLowerCase()));
 
       return {
         total_uses: uses.length,
-        total_discount: uses.reduce((sum, u) => sum + (u.discount_amount || 0), 0),
+        total_discount: uses.reduce((sum: number, u: { discount_amount: number }) => sum + (u.discount_amount || 0), 0),
         unique_customers: uniqueEmails.size,
       };
     },

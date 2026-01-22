@@ -83,7 +83,7 @@ export function useCustomers() {
   };
 }
 
-export function formatDate(dateStr: string | null): string {
+export function formatDate(dateStr: string | null) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }

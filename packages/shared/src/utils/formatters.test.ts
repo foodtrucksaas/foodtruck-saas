@@ -4,6 +4,7 @@ import {
   formatTime,
   formatPhoneNumber,
   formatOrderId,
+  slugify,
 } from './formatters';
 
 describe('formatters', () => {
@@ -48,6 +49,29 @@ describe('formatters', () => {
     it('should format UUID to short order id', () => {
       expect(formatOrderId('abc12345-6789-0000-0000-000000000000')).toBe('#ABC12345');
       expect(formatOrderId('xyz98765-abcd-efgh-ijkl-mnopqrstuvwx')).toBe('#XYZ98765');
+    });
+  });
+
+  describe('slugify', () => {
+    it('should convert text to slug', () => {
+      expect(slugify('Hello World')).toBe('hello-world');
+      expect(slugify('Pizza Margherita')).toBe('pizza-margherita');
+    });
+
+    it('should handle accents', () => {
+      expect(slugify('Café crème')).toBe('cafe-creme');
+      expect(slugify('Bœuf bourguignon')).toBe('buf-bourguignon');
+    });
+
+    it('should remove special characters', () => {
+      expect(slugify('Pizza 4 fromages!')).toBe('pizza-4-fromages');
+      expect(slugify('Test @#$% test')).toBe('test-test');
+    });
+
+    it('should handle multiple spaces and dashes', () => {
+      expect(slugify('Hello    World')).toBe('hello-world');
+      expect(slugify('Hello---World')).toBe('hello-world');
+      expect(slugify('  Hello World  ')).toBe('hello-world');
     });
   });
 });

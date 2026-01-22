@@ -22,19 +22,9 @@ describe('useOffers', () => {
   });
 
   const mockFoodtruckId = 'foodtruck-123';
-  // Partial cart items for testing - using a minimal interface that matches test needs
-  interface TestCartItem {
-    menuItem: {
-      id: string;
-      foodtruck_id: string;
-      category_id: string;
-      name: string;
-      price: number;
-      is_available: boolean;
-    };
-    quantity: number;
-  }
-  const mockCartItems: TestCartItem[] = [
+  // Use any to avoid complex MenuItem type requirements in tests
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockCartItems: any[] = [
     {
       menuItem: {
         id: 'item-1',

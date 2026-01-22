@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { Category } from '@foodtruck/shared';
@@ -13,7 +12,7 @@ interface ProductsGridProps {
   onItemClick: (item: MenuItemWithOptions) => void;
 }
 
-export const ProductsGrid = memo(function ProductsGrid({
+export function ProductsGrid({
   categories,
   selectedCategory,
   onSelectCategory,
@@ -92,4 +91,4 @@ export const ProductsGrid = memo(function ProductsGrid({
       </div>
     </>
   );
-});
+}

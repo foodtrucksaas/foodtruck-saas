@@ -56,11 +56,8 @@ describe('calculatePercentageChange', () => {
   });
 
   it('should handle undefined inputs', () => {
-    // Testing runtime behavior with invalid inputs - using type assertions to simulate JavaScript edge cases
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(calculatePercentageChange(undefined as unknown as number, 100)).toBe(-100);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(calculatePercentageChange(100, undefined as unknown as number)).toBe(100);
+    expect(calculatePercentageChange(undefined as any, 100)).toBe(-100);
+    expect(calculatePercentageChange(100, undefined as any)).toBe(100);
   });
 });
 

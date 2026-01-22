@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Gift } from 'lucide-react';
+import { ArrowLeft, Loader2, Gift, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatPrice, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
@@ -13,6 +13,7 @@ import {
   usePromoCode,
   useLoyalty,
   useOffers,
+  useBundleDetection,
   calculateLoyaltyDiscount,
 } from '../hooks';
 
@@ -84,11 +85,16 @@ export default function Checkout() {
   const {
     applicableOffers,
     loading: offersLoading,
-    error: offersError,
     appliedOffers,
     bestOffer,
     totalOfferDiscount,
   } = useOffers(foodtruckId, items, total, form.email);
+
+  const {
+    bestBundle,
+    totalBundleSavings,
+    loading: bundleLoading,
+  } = useBundleDetection(foodtruckId, items);
 
   // Set initial selected date when available dates are loaded
   useEffect(() => {
@@ -123,13 +129,19 @@ export default function Checkout() {
     form.loyaltyOptIn
   );
 
-  // The get_optimized_offers SQL function handles all discount calculations
-  // including bundles, buy_x_get_y, threshold_discount, etc.
-  const appliedOfferDiscount = totalOfferDiscount || 0;
+  // With the new optimization logic, offers can stack when they use different items
+  // The get_optimized_offers SQL function already handles item consumption tracking
+  // So we can apply both offer discounts AND bundle discounts (user-selected bundles)
+  const offerDiscountValue = totalOfferDiscount || 0;
+  const bundleDiscountValue = totalBundleSavings || 0;
 
-  // Calculate promo discount AFTER offer discounts
+  // Apply both discounts - they use different items
+  const appliedOfferDiscount = offerDiscountValue;
+  const appliedBundleDiscount = bundleDiscountValue;
+
+  // Calculate promo discount AFTER offer/bundle discounts
   // Promo codes apply to the discounted total, not the original total
-  const postOfferTotal = total - appliedOfferDiscount;
+  const postOfferTotal = total - appliedOfferDiscount - appliedBundleDiscount;
   let promoDiscount = 0;
   if (appliedPromo) {
     if (appliedPromo.discountType === 'percentage') {
@@ -152,28 +164,18 @@ export default function Checkout() {
     e.preventDefault();
 
     // Validate required fields - pickupTime not required if ASAP
-    if (!form.name.trim()) {
-      toast.error('Veuillez indiquer votre nom');
-      return;
-    }
-
-    if (!form.email.trim()) {
-      toast.error('Veuillez indiquer votre adresse email');
+    if (!form.name || !form.email || (!form.isAsap && !form.pickupTime)) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     if (!isValidEmail(form.email)) {
-      toast.error('Adresse email invalide. Verifiez le format (ex: exemple@mail.com)');
-      return;
-    }
-
-    if (!form.isAsap && !form.pickupTime) {
-      toast.error('Veuillez selectionner un creneau de retrait');
+      toast.error('Email invalide');
       return;
     }
 
     if (items.length === 0) {
-      toast.error('Votre panier est vide. Ajoutez des articles avant de commander.');
+      toast.error('Votre panier est vide');
       return;
     }
 
@@ -201,6 +203,14 @@ export default function Checkout() {
       pickupDateTime = pickupDate.toISOString();
     }
 
+    // Extract unique bundles used in this order
+    const bundlesUsed = items
+      .filter(item => item.bundleInfo)
+      .map(item => ({
+        bundle_id: item.bundleInfo!.bundleId,
+        quantity: item.quantity,
+      }));
+
     const orderData = {
       foodtruck_id: foodtruckId,
       customer_email: form.email,
@@ -213,7 +223,7 @@ export default function Checkout() {
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
       promo_code_id: appliedPromo?.id,
-      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount,
+      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount + appliedBundleDiscount,
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
@@ -221,7 +231,7 @@ export default function Checkout() {
       deal_id: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.offer_id : undefined,
       deal_discount: appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
       deal_free_item_name: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
-      // Multi-offer system (bundles, buy_x_get_y, threshold, etc.)
+      // New multi-offer system
       applied_offers: appliedOffers.length > 0 ? appliedOffers.map(o => ({
         offer_id: o.offer_id,
         times_applied: o.times_applied,
@@ -229,19 +239,46 @@ export default function Checkout() {
         items_consumed: o.items_consumed,
         free_item_name: o.free_item_name,
       })) : undefined,
-      items: items.map((item) => ({
-        menu_item_id: item.menuItem.id,
-        quantity: item.quantity,
-        notes: item.notes,
-        selected_options: item.selectedOptions?.map((opt) => ({
-          option_id: opt.optionId,
-          option_group_id: opt.optionGroupId,
-          name: opt.name,
-          group_name: opt.groupName,
-          price_modifier: opt.priceModifier,
-          is_size_option: opt.isSizeOption || false,
-        })),
-      })),
+      bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
+      items: items.flatMap((item) => {
+        // For bundles, send each selection as a separate item with bundle info
+        if (item.bundleInfo) {
+          return item.bundleInfo.selections.map((sel, selIndex) => ({
+            menu_item_id: sel.menuItem.id,
+            quantity: item.quantity,
+            notes: undefined,
+            selected_options: sel.selectedOptions?.map((opt) => ({
+              option_id: opt.optionId,
+              option_group_id: opt.optionGroupId,
+              name: opt.name,
+              group_name: opt.groupName,
+              price_modifier: opt.priceModifier,
+              is_size_option: opt.isSizeOption || false,
+            })),
+            // Bundle info for server-side processing
+            bundle_id: item.bundleInfo!.bundleId,
+            bundle_name: item.bundleInfo!.bundleName,
+            bundle_fixed_price: selIndex === 0 ? item.bundleInfo!.fixedPrice : 0, // Only charge once
+            bundle_supplement: sel.supplement,
+            bundle_free_options: item.bundleInfo!.freeOptions,
+          }));
+        }
+
+        // Regular item
+        return [{
+          menu_item_id: item.menuItem.id,
+          quantity: item.quantity,
+          notes: item.notes,
+          selected_options: item.selectedOptions?.map((opt) => ({
+            option_id: opt.optionId,
+            option_group_id: opt.optionGroupId,
+            name: opt.name,
+            group_name: opt.groupName,
+            price_modifier: opt.priceModifier,
+            is_size_option: opt.isSizeOption || false,
+          })),
+        }];
+      }),
     };
 
     try {
@@ -261,26 +298,13 @@ export default function Checkout() {
 
       if (data.order_id) {
         clearCart();
-        toast.success('Commande confirmee avec succes !');
+        toast.success('Commande confirmée !');
         navigate(`/order/${data.order_id}`);
       } else {
-        // Handle specific error messages from the API
-        let errorMessage = 'Impossible de creer la commande. Veuillez reessayer.';
-        if (data.error) {
-          if (data.error.includes('slot') || data.error.includes('creneau')) {
-            errorMessage = 'Ce creneau n\'est plus disponible. Veuillez en choisir un autre.';
-          } else if (data.error.includes('stock') || data.error.includes('disponible')) {
-            errorMessage = 'Certains articles ne sont plus disponibles. Veuillez verifier votre panier.';
-          } else if (data.error.includes('minimum')) {
-            errorMessage = 'Le montant minimum de commande n\'est pas atteint.';
-          } else {
-            errorMessage = data.error;
-          }
-        }
-        toast.error(errorMessage);
+        toast.error(data.error || 'Erreur lors de la création de la commande');
       }
     } catch {
-      toast.error('Probleme de connexion. Verifiez votre connexion internet et reessayez.');
+      toast.error('Une erreur est survenue');
     }
 
     setSubmitting(false);
@@ -339,6 +363,8 @@ export default function Checkout() {
               ? appliedOffers.map(o => o.offer_name).join(' + ')
               : bestOffer?.offer_name
           ) : undefined}
+          bundleDiscount={appliedBundleDiscount}
+          bundleName={appliedBundleDiscount > 0 ? bestBundle?.bundle.name : undefined}
           finalTotal={finalTotal}
           selectedDate={selectedDate}
           selectedSlot={selectedSlot}
@@ -476,8 +502,41 @@ export default function Checkout() {
           />
         </div>
 
+        {/* Detected Bundle Section */}
+        {bestBundle && !bundleLoading && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-5" style={{ boxShadow: '0 4px 12px rgba(147, 51, 234, 0.1)' }}>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-800">
+                  {bestBundle.bundle.name}
+                </h3>
+                <p className="text-sm text-purple-600 mt-1">
+                  Vos articles correspondent à cette formule !
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-gray-500 line-through">
+                    {formatPrice(bestBundle.originalPrice)}
+                  </span>
+                  <span className="text-lg font-bold text-purple-600">
+                    {formatPrice(bestBundle.bundlePrice)}
+                  </span>
+                  <span className="px-2 py-0.5 bg-purple-500 text-white text-xs font-bold rounded-full">
+                    -{formatPrice(bestBundle.savings)}
+                  </span>
+                </div>
+                <p className="text-xs text-purple-500 mt-2">
+                  Articles : {bestBundle.matchedItems.map(i => i.menuItem.name).join(' + ')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Offers Section */}
-        {(applicableOffers.length > 0 || offersError) && (
+        {applicableOffers.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
             <h2 className="font-bold text-anthracite mb-4 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-success-50 flex items-center justify-center">
@@ -488,10 +547,8 @@ export default function Checkout() {
             {offersLoading ? (
               <div className="flex items-center gap-2 text-gray-400 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Chargement des offres...</span>
+                <span>Chargement...</span>
               </div>
-            ) : offersError ? (
-              <p className="text-sm text-red-500">{offersError}</p>
             ) : (
               <OffersBanner offers={applicableOffers} />
             )}
@@ -501,8 +558,8 @@ export default function Checkout() {
         {/* Promo Code Section */}
         {/* Only show promo section if:
             1. showPromoSection is true AND
-            2. promo codes are stackable with offers OR there's no offer discount */}
-        {showPromoSection && (settings?.promoCodesStackable || appliedOfferDiscount === 0) && (
+            2. promo codes are stackable with offers OR there's no offer/bundle discount */}
+        {showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0)) && (
           <PromoCodeSection
             promoCode={promoCode}
             onPromoCodeChange={setPromoCode}

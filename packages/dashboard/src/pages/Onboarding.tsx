@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2, Check, AlertCircle } from 'lucide-react';
+import { UtensilsCrossed, Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CUISINE_TYPES, DEFAULT_CATEGORIES } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -15,96 +15,54 @@ export default function Onboarding() {
   const [description, setDescription] = useState('');
   const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const toggleCuisineType = (type: string) => {
     setCuisineTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
-    // Clear error when user makes a selection
-    if (formError) setFormError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
 
-    if (!user) {
-      setFormError('Session expiree. Veuillez vous reconnecter.');
-      toast.error('Session expiree. Veuillez vous reconnecter.');
-      return;
-    }
-
-    // Validation
-    if (!name.trim()) {
-      setFormError('Veuillez saisir le nom de votre food truck');
-      toast.error('Veuillez saisir le nom de votre food truck');
-      return;
-    }
-
-    if (name.trim().length < 2) {
-      setFormError('Le nom doit contenir au moins 2 caracteres');
-      toast.error('Le nom doit contenir au moins 2 caracteres');
-      return;
-    }
-
-    if (cuisineTypes.length === 0) {
-      setFormError('Veuillez selectionner au moins un type de cuisine');
-      toast.error('Veuillez selectionner au moins un type de cuisine');
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
 
-    try {
-      const { data: foodtruck, error: foodtruckError } = await supabase
-        .from('foodtrucks')
-        .insert({
-          user_id: user.id,
-          name: name.trim(),
-          description: description.trim() || null,
-          cuisine_types: cuisineTypes,
-          email: user.email,
-        })
-        .select()
-        .single();
+    const { data: foodtruck, error: foodtruckError } = await supabase
+      .from('foodtrucks')
+      .insert({
+        user_id: user.id,
+        name,
+        description,
+        cuisine_types: cuisineTypes,
+        email: user.email,
+      })
+      .select()
+      .single();
 
-      if (foodtruckError) {
-        console.error('Erreur lors de la creation:', foodtruckError);
-        if (foodtruckError.code === '23505') {
-          setFormError('Un food truck existe deja pour ce compte.');
-          toast.error('Un food truck existe deja pour ce compte.');
-        } else {
-          setFormError('Impossible de creer votre food truck. Veuillez reessayer.');
-          toast.error('Impossible de creer votre food truck. Veuillez reessayer.');
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Create default categories
-      const { error: categoriesError } = await supabase.from('categories').insert(
-        DEFAULT_CATEGORIES.map((cat) => ({
-          foodtruck_id: foodtruck.id,
-          name: cat.name,
-          display_order: cat.display_order,
-        }))
-      );
-
-      if (categoriesError) {
-        console.error('Erreur lors de la creation des categories:', categoriesError);
-        // Non-blocking error - categories can be created later
-      }
-
-      await refresh();
-      toast.success('Food truck cree avec succes !');
-      navigate('/');
-    } catch (err) {
-      console.error('Erreur inattendue:', err);
-      setFormError('Probleme de connexion. Verifiez votre connexion internet.');
-      toast.error('Probleme de connexion. Verifiez votre connexion internet.');
+    if (foodtruckError) {
+      toast.error('Erreur lors de la création du food truck');
+      setLoading(false);
+      return;
     }
 
+    // Create default categories
+    const { error: categoriesError } = await supabase.from('categories').insert(
+      DEFAULT_CATEGORIES.map((cat) => ({
+        foodtruck_id: foodtruck.id,
+        name: cat.name,
+        display_order: cat.display_order,
+      }))
+    );
+
+    if (categoriesError) {
+      console.error('Error creating categories:', categoriesError);
+    }
+
+    await refresh();
+    toast.success('Food truck créé avec succès !');
+    navigate('/');
     setLoading(false);
   };
 
@@ -124,14 +82,6 @@ export default function Onboarding() {
         </div>
 
         <div className="card p-6">
-          {/* Error display */}
-          {formError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{formError}</p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="label">
@@ -141,10 +91,7 @@ export default function Onboarding() {
                 id="name"
                 type="text"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (formError) setFormError(null);
-                }}
+                onChange={(e) => setName(e.target.value)}
                 className="input"
                 placeholder="Le Gourmet Roulant"
                 required

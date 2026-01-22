@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import type {
   Foodtruck,
   MenuItem,
@@ -10,6 +9,9 @@ import type {
   CategoryOptionGroup,
   CategoryOption,
   SelectedOption,
+  Offer,
+  BundleConfig,
+  BuyXGetYConfig,
 } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
@@ -34,23 +36,60 @@ export interface CategoryWithOptions extends Category {
   category_option_groups?: CategoryOptionGroupWithOptions[];
 }
 
+// Bundle offer with category choice config
+export interface BundleOffer extends Offer {
+  config: BundleConfig;
+}
+
+// Bundle item for specific_items bundles
+export interface BundleOfferItem {
+  id: string;
+  menu_item_id: string;
+  quantity: number;
+}
+
+// Specific items bundle offer
+export interface SpecificItemsBundleOffer extends Offer {
+  config: BundleConfig;
+  offer_items: BundleOfferItem[];
+}
+
+// Buy X Get Y offer
+export interface BuyXGetYOffer extends Offer {
+  config: BuyXGetYConfig;
+}
+
 interface UseFoodtruckResult {
   // Data
   foodtruck: Foodtruck | null;
   categories: CategoryWithOptions[];
   menuItems: MenuItem[];
   schedules: ScheduleWithLocation[];
+  bundles: BundleOffer[];
+  specificItemsBundles: SpecificItemsBundleOffer[];
+  buyXGetYOffers: BuyXGetYOffer[];
   loading: boolean;
-  error: string | null;
 
   // Active tab
-  activeTab: 'menu' | 'offers' | 'info';
-  setActiveTab: (tab: 'menu' | 'offers' | 'info') => void;
+  activeTab: 'menu' | 'info';
+  setActiveTab: (tab: 'menu' | 'info') => void;
 
   // Options modal state
   selectedMenuItem: MenuItem | null;
   selectedCategory: CategoryWithOptions | null;
   showOptionsModal: boolean;
+
+  // Bundle modal state
+  selectedBundle: BundleOffer | null;
+  showBundleModal: boolean;
+
+  // Specific items bundle modal state
+  selectedSpecificBundle: SpecificItemsBundleOffer | null;
+  showSpecificBundleModal: boolean;
+
+  // Buy X Get Y modal state
+  selectedBuyXGetY: BuyXGetYOffer | null;
+  showBuyXGetYModal: boolean;
 
   // Computed values
   todaySchedules: ScheduleWithLocation[];
@@ -71,112 +110,169 @@ interface UseFoodtruckResult {
   handleUpdateQuantity: (itemId: string, delta: number) => void;
   closeOptionsModal: () => void;
   navigateBack: () => void;
+
+  // Bundle handlers
+  handleSelectBundle: (bundle: BundleOffer) => void;
+  handleBundleConfirm: (bundleSelections: BundleSelection[]) => void;
+  closeBundleModal: () => void;
+
+  // Specific items bundle handlers
+  handleSelectSpecificBundle: (bundle: SpecificItemsBundleOffer) => void;
+  handleSpecificBundleConfirm: (bundleSelections: BundleSelection[]) => void;
+  closeSpecificBundleModal: () => void;
+
+  // Buy X Get Y handlers
+  handleSelectBuyXGetY: (offer: BuyXGetYOffer) => void;
+  handleBuyXGetYConfirm: (items: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => void;
+  closeBuyXGetYModal: () => void;
+}
+
+// Bundle selection (one item per category)
+export interface BundleSelection {
+  categoryId: string;
+  menuItem: MenuItem;
+  selectedOptions: SelectedOption[];
+  supplement: number; // Bundle supplement price in cents
 }
 
 export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResult {
   const navigate = useNavigate();
-  const { items, addItem, updateQuantity, setFoodtruck, total, itemCount, getCartKey } = useCart();
+  const { items, addItem, addBundleItem, updateQuantity, setFoodtruck, total, itemCount, getCartKey } = useCart();
 
   const [foodtruck, setFoodtruckData] = useState<Foodtruck | null>(null);
   const [categories, setCategories] = useState<CategoryWithOptions[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [schedules, setSchedules] = useState<ScheduleWithLocation[]>([]);
+  const [bundles, setBundles] = useState<BundleOffer[]>([]);
+  const [specificItemsBundles, setSpecificItemsBundles] = useState<SpecificItemsBundleOffer[]>([]);
+  const [buyXGetYOffers, setBuyXGetYOffers] = useState<BuyXGetYOffer[]>([]);
   const [todayException, setTodayException] = useState<TodayException | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'menu' | 'offers' | 'info'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'info'>('menu');
 
   // Options modal state
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithOptions | null>(null);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Bundle modal state
+  const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
+  const [showBundleModal, setShowBundleModal] = useState(false);
+
+  // Specific items bundle modal state
+  const [selectedSpecificBundle, setSelectedSpecificBundle] = useState<SpecificItemsBundleOffer | null>(null);
+  const [showSpecificBundleModal, setShowSpecificBundleModal] = useState(false);
+
+  // Buy X Get Y modal state
+  const [selectedBuyXGetY, setSelectedBuyXGetY] = useState<BuyXGetYOffer | null>(null);
+  const [showBuyXGetYModal, setShowBuyXGetYModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       if (!foodtruckId) return;
 
-      setError(null);
+      // Fetch foodtruck data
+      const foodtruckRes = await supabase
+        .from('foodtrucks')
+        .select('*')
+        .eq('id', foodtruckId)
+        .single();
 
-      try {
-        // Fetch foodtruck data - select only needed fields
-        const foodtruckRes = await supabase
-          .from('foodtrucks')
-          .select('id, user_id, name, description, cuisine_types, logo_url, cover_image_url, phone, email, website_url, instagram_url, facebook_url, tiktok_url, siret, payment_methods, show_menu_photos, is_mobile, loyalty_enabled, loyalty_points_per_euro, loyalty_threshold, loyalty_reward, order_slot_interval, max_orders_per_slot')
-          .eq('id', foodtruckId)
-          .single();
+      const foodtruckData = foodtruckRes.data as Foodtruck | null;
+      if (foodtruckData) {
+        setFoodtruckData(foodtruckData);
+        setFoodtruck(foodtruckData.id);
+      }
 
-        if (foodtruckRes.error) {
-          console.error('Erreur lors du chargement du food truck:', foodtruckRes.error);
-          if (foodtruckRes.error.code === 'PGRST116') {
-            setError('Ce food truck n\'existe pas ou n\'est plus disponible.');
-          } else {
-            setError('Impossible de charger les informations. Veuillez reessayer.');
-          }
-          setLoading(false);
-          return;
-        }
+      // Fetch other data in parallel
+      const todayStr = formatLocalDate(new Date());
+      const now = new Date().toISOString();
+      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('*, category_option_groups(*, category_options(*))')
+          .eq('foodtruck_id', foodtruckId)
+          .order('display_order'),
+        supabase
+          .from('menu_items')
+          .select('*')
+          .eq('foodtruck_id', foodtruckId)
+          .eq('is_available', true)
+          .or('is_archived.is.null,is_archived.eq.false')
+          .order('display_order'),
+        supabase
+          .from('schedules')
+          .select('*, location:locations(*)')
+          .eq('foodtruck_id', foodtruckId)
+          .eq('is_active', true)
+          .order('day_of_week'),
+        supabase
+          .from('schedule_exceptions')
+          .select('*, location:locations(*)')
+          .eq('foodtruck_id', foodtruckId)
+          .gte('date', todayStr)
+          .order('date'),
+        // Fetch active bundle offers (with offer_items for specific_items bundles)
+        supabase
+          .from('offers')
+          .select('*, offer_items(id, menu_item_id, quantity)')
+          .eq('foodtruck_id', foodtruckId)
+          .eq('offer_type', 'bundle')
+          .eq('is_active', true)
+          .or(`start_date.is.null,start_date.lte.${now}`)
+          .or(`end_date.is.null,end_date.gte.${now}`),
+        // Fetch active buy_x_get_y offers (category_choice type only)
+        supabase
+          .from('offers')
+          .select('*')
+          .eq('foodtruck_id', foodtruckId)
+          .eq('offer_type', 'buy_x_get_y')
+          .eq('is_active', true)
+          .or(`start_date.is.null,start_date.lte.${now}`)
+          .or(`end_date.is.null,end_date.gte.${now}`),
+      ]);
 
-        const foodtruckData = foodtruckRes.data as Foodtruck | null;
-        if (foodtruckData) {
-          setFoodtruckData(foodtruckData);
-          setFoodtruck(foodtruckData.id);
-        }
+      setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
+      setMenuItems((menuRes.data as MenuItem[]) || []);
+      setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
 
-        // Fetch other data in parallel
-        const todayStr = formatLocalDate(new Date());
-        const [categoriesRes, menuRes, schedulesRes, exceptionRes] = await Promise.all([
-          supabase
-            .from('categories')
-            .select('*, category_option_groups(*, category_options(*))')
-            .eq('foodtruck_id', foodtruckId)
-            .order('display_order'),
-          supabase
-            .from('menu_items')
-            .select('id, foodtruck_id, category_id, name, description, price, image_url, allergens, is_available, is_daily_special, display_order, disabled_options, option_prices')
-            .eq('foodtruck_id', foodtruckId)
-            .eq('is_available', true)
-            .or('is_archived.is.null,is_archived.eq.false')
-            .order('display_order'),
-          supabase
-            .from('schedules')
-            .select('*, location:locations(*)')
-            .eq('foodtruck_id', foodtruckId)
-            .eq('is_active', true)
-            .order('day_of_week'),
-          supabase
-            .from('schedule_exceptions')
-            .select('*, location:locations(*)')
-            .eq('foodtruck_id', foodtruckId)
-            .gte('date', todayStr)
-            .order('date'),
-        ]);
+      // Separate bundles by type
+      const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & { offer_items?: BundleOfferItem[] })[];
 
-        if (categoriesRes.error) {
-          console.error('Erreur lors du chargement des categories:', categoriesRes.error);
-        }
-        if (menuRes.error) {
-          console.error('Erreur lors du chargement du menu:', menuRes.error);
-          toast.error('Impossible de charger le menu complet.');
-        }
+      // Category choice bundles
+      const categoryChoiceBundles = allBundles.filter(
+        (b) => b.config?.type === 'category_choice' && b.config?.bundle_categories?.length
+      );
+      setBundles(categoryChoiceBundles);
 
-        setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
-        setMenuItems((menuRes.data as MenuItem[]) || []);
-        setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
+      // Specific items bundles
+      const specificBundles = allBundles
+        .filter((b) => b.config?.type === 'specific_items' && b.offer_items && b.offer_items.length > 0)
+        .map((b) => ({
+          ...b,
+          offer_items: b.offer_items!.filter(item => item.menu_item_id),
+        })) as SpecificItemsBundleOffer[];
+      setSpecificItemsBundles(specificBundles);
 
-        // Find today's exception from the list
-        const exceptions = exceptionRes.data || [];
-        const todayExc = exceptions.find((e: { date: string }) => e.date === todayStr);
-        if (todayExc) {
-          setTodayException({
-            is_closed: todayExc.is_closed ?? false,
-            location: todayExc.location,
-            start_time: todayExc.start_time,
-            end_time: todayExc.end_time,
-          });
-        }
-      } catch (err) {
-        console.error('Erreur inattendue:', err);
-        setError('Probleme de connexion. Verifiez votre connexion internet et reessayez.');
+      // Buy X Get Y offers (only category_choice type for modal selection)
+      const buyXGetYData = (buyXGetYRes.data || []) as unknown as BuyXGetYOffer[];
+      const categoryChoiceBuyXGetY = buyXGetYData.filter(
+        (o) => o.config?.type === 'category_choice' &&
+               o.config?.trigger_category_ids?.length &&
+               o.config?.reward_category_ids?.length
+      );
+      setBuyXGetYOffers(categoryChoiceBuyXGetY);
+
+      // Find today's exception from the list
+      const exceptions = exceptionRes.data || [];
+      const todayExc = exceptions.find((e: { date: string }) => e.date === todayStr);
+      if (todayExc) {
+        setTodayException({
+          is_closed: todayExc.is_closed ?? false,
+          location: todayExc.location,
+          start_time: todayExc.start_time,
+          end_time: todayExc.end_time,
+        });
       }
 
       setLoading(false);
@@ -241,6 +337,107 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const navigateBack = useCallback(() => {
     navigate(-1);
   }, [navigate]);
+
+  // Bundle handlers
+  const handleSelectBundle = useCallback((bundle: BundleOffer) => {
+    setSelectedBundle(bundle);
+    setShowBundleModal(true);
+  }, []);
+
+  const handleBundleConfirm = useCallback((bundleSelections: BundleSelection[]) => {
+    if (!selectedBundle) return;
+
+    // Create bundle cart info from selections
+    const bundleCartInfo = {
+      bundleId: selectedBundle.id,
+      bundleName: selectedBundle.name,
+      fixedPrice: selectedBundle.config.fixed_price,
+      freeOptions: selectedBundle.config.free_options || false,
+      selections: bundleSelections.map(sel => {
+        const category = categories.find(c => c.id === sel.categoryId);
+        return {
+          categoryId: sel.categoryId,
+          categoryName: category?.name || '',
+          menuItem: sel.menuItem,
+          selectedOptions: sel.selectedOptions,
+          supplement: sel.supplement,
+        };
+      }),
+    };
+
+    // Add bundle to cart
+    addBundleItem(bundleCartInfo, 1);
+
+    setShowBundleModal(false);
+    setSelectedBundle(null);
+  }, [selectedBundle, categories, addBundleItem]);
+
+  const closeBundleModal = useCallback(() => {
+    setShowBundleModal(false);
+    setSelectedBundle(null);
+  }, []);
+
+  // Specific items bundle handlers
+  const handleSelectSpecificBundle = useCallback((bundle: SpecificItemsBundleOffer) => {
+    setSelectedSpecificBundle(bundle);
+    setShowSpecificBundleModal(true);
+  }, []);
+
+  const handleSpecificBundleConfirm = useCallback((bundleSelections: BundleSelection[]) => {
+    if (!selectedSpecificBundle) return;
+
+    // Create bundle cart info from selections
+    const bundleCartInfo = {
+      bundleId: selectedSpecificBundle.id,
+      bundleName: selectedSpecificBundle.name,
+      fixedPrice: selectedSpecificBundle.config.fixed_price,
+      freeOptions: selectedSpecificBundle.config.free_options || false,
+      selections: bundleSelections.map(sel => {
+        const category = categories.find(c => c.id === sel.categoryId);
+        return {
+          categoryId: sel.categoryId,
+          categoryName: category?.name || '',
+          menuItem: sel.menuItem,
+          selectedOptions: sel.selectedOptions,
+          supplement: sel.supplement,
+        };
+      }),
+    };
+
+    // Add bundle to cart
+    addBundleItem(bundleCartInfo, 1);
+
+    setShowSpecificBundleModal(false);
+    setSelectedSpecificBundle(null);
+  }, [selectedSpecificBundle, categories, addBundleItem]);
+
+  const closeSpecificBundleModal = useCallback(() => {
+    setShowSpecificBundleModal(false);
+    setSelectedSpecificBundle(null);
+  }, []);
+
+  // Buy X Get Y handlers
+  const handleSelectBuyXGetY = useCallback((offer: BuyXGetYOffer) => {
+    setSelectedBuyXGetY(offer);
+    setShowBuyXGetYModal(true);
+  }, []);
+
+  const handleBuyXGetYConfirm = useCallback((selectedItems: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => {
+    if (!selectedBuyXGetY) return;
+
+    // Add all selected items to cart
+    selectedItems.forEach(({ menuItem, selectedOptions }) => {
+      addItem(menuItem, 1, undefined, selectedOptions);
+    });
+
+    setShowBuyXGetYModal(false);
+    setSelectedBuyXGetY(null);
+  }, [selectedBuyXGetY, addItem]);
+
+  const closeBuyXGetYModal = useCallback(() => {
+    setShowBuyXGetYModal(false);
+    setSelectedBuyXGetY(null);
+  }, []);
 
   // Get all schedules for today (considering exceptions)
   const todaySchedules = useMemo(() => {
@@ -315,8 +512,10 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     categories,
     menuItems,
     schedules,
+    bundles,
+    specificItemsBundles,
+    buyXGetYOffers,
     loading,
-    error,
 
     // Active tab
     activeTab,
@@ -326,6 +525,18 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     selectedMenuItem,
     selectedCategory,
     showOptionsModal,
+
+    // Bundle modal state
+    selectedBundle,
+    showBundleModal,
+
+    // Specific items bundle modal state
+    selectedSpecificBundle,
+    showSpecificBundleModal,
+
+    // Buy X Get Y modal state
+    selectedBuyXGetY,
+    showBuyXGetYModal,
 
     // Computed values
     todaySchedules,
@@ -346,5 +557,20 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     handleUpdateQuantity,
     closeOptionsModal,
     navigateBack,
+
+    // Bundle handlers
+    handleSelectBundle,
+    handleBundleConfirm,
+    closeBundleModal,
+
+    // Specific items bundle handlers
+    handleSelectSpecificBundle,
+    handleSpecificBundleConfirm,
+    closeSpecificBundleModal,
+
+    // Buy X Get Y handlers
+    handleSelectBuyXGetY,
+    handleBuyXGetYConfirm,
+    closeBuyXGetYModal,
   };
 }

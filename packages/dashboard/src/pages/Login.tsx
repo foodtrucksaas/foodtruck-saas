@@ -1,104 +1,43 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { UtensilsCrossed, Mail, Lock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { isValidEmail } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
 
-// Translate Supabase auth errors to French
-function translateAuthError(message: string): string {
-  const errorMap: Record<string, string> = {
-    'Invalid login credentials': 'Email ou mot de passe incorrect',
-    'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
-    'User not found': 'Aucun compte trouve avec cet email',
-    'Invalid email': 'Adresse email invalide',
-    'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caracteres',
-    'For security purposes, you can only request this once every 60 seconds': 'Pour des raisons de securite, veuillez attendre 60 secondes avant de reessayer',
-    'Email rate limit exceeded': 'Trop de tentatives. Veuillez reessayer dans quelques minutes',
-    'Unable to validate email address: invalid format': 'Format d\'email invalide',
-    'signup disabled': 'La creation de compte est temporairement desactivee',
-    'Too many requests': 'Trop de tentatives. Veuillez reessayer plus tard',
-  };
-
-  // Check for partial matches
-  for (const [key, value] of Object.entries(errorMap)) {
-    if (message.toLowerCase().includes(key.toLowerCase())) {
-      return value;
-    }
-  }
-
-  return 'Une erreur est survenue. Veuillez reessayer.';
-}
-
 export default function Login() {
-  const { signIn, signInWithMagicLink, error: authError } = useAuth();
+  const { signIn, signInWithMagicLink } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
-
-    // Validate email format before submission
-    if (!isValidEmail(email)) {
-      setFormError('Format d\'email invalide');
-      toast.error('Format d\'email invalide');
-      return;
-    }
-
     setLoading(true);
 
-    try {
-      const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password);
 
-      if (error) {
-        const friendlyMessage = translateAuthError(error.message);
-        setFormError(friendlyMessage);
-        toast.error(friendlyMessage);
-      }
-    } catch {
-      setFormError('Probleme de connexion. Verifiez votre connexion internet.');
-      toast.error('Probleme de connexion. Verifiez votre connexion internet.');
+    if (error) {
+      toast.error(error.message);
     }
 
     setLoading(false);
   };
 
   const handleMagicLink = async () => {
-    setFormError(null);
-
     if (!email) {
-      setFormError('Veuillez entrer votre email');
       toast.error('Veuillez entrer votre email');
       return;
     }
 
-    // Validate email format before submission
-    if (!isValidEmail(email)) {
-      setFormError('Format d\'email invalide');
-      toast.error('Format d\'email invalide');
-      return;
-    }
-
     setLoading(true);
+    const { error } = await signInWithMagicLink(email);
 
-    try {
-      const { error } = await signInWithMagicLink(email);
-
-      if (error) {
-        const friendlyMessage = translateAuthError(error.message);
-        setFormError(friendlyMessage);
-        toast.error(friendlyMessage);
-      } else {
-        setMagicLinkSent(true);
-        toast.success('Lien de connexion envoye !');
-      }
-    } catch {
-      setFormError('Probleme de connexion. Verifiez votre connexion internet.');
-      toast.error('Probleme de connexion. Verifiez votre connexion internet.');
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setMagicLinkSent(true);
+      toast.success('Lien de connexion envoyé !');
     }
 
     setLoading(false);
@@ -148,14 +87,6 @@ export default function Login() {
         </div>
 
         <div className="card p-6">
-          {/* Auth error display */}
-          {(authError || formError) && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{formError || authError}</p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="label">

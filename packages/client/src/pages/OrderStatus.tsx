@@ -6,8 +6,6 @@ import {
   XCircle,
   ArrowLeft,
   MapPin,
-  AlertTriangle,
-  RefreshCw,
 } from 'lucide-react';
 import { formatPrice, formatDateTime, formatOrderId } from '@foodtruck/shared';
 import type { OrderWithItems } from '@foodtruck/shared';
@@ -18,7 +16,6 @@ export default function OrderStatus() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const success = searchParams.get('success');
   const cancelled = searchParams.get('cancelled');
@@ -27,36 +24,19 @@ export default function OrderStatus() {
     async function fetchOrder() {
       if (!orderId) return;
 
-      setError(null);
-
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('orders')
-          .select(`
+      const { data } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
             *,
-            order_items (
-              *,
-              menu_item:menu_items (*)
-            )
-          `)
-          .eq('id', orderId)
-          .single();
+            menu_item:menu_items (*)
+          )
+        `)
+        .eq('id', orderId)
+        .single();
 
-        if (fetchError) {
-          console.error('Erreur lors du chargement de la commande:', fetchError);
-          if (fetchError.code === 'PGRST116') {
-            setError('Commande introuvable. Verifiez le lien ou contactez le food truck.');
-          } else {
-            setError('Impossible de charger votre commande. Veuillez reessayer.');
-          }
-        } else {
-          setOrder(data as OrderWithItems);
-        }
-      } catch (err) {
-        console.error('Erreur inattendue:', err);
-        setError('Probleme de connexion. Verifiez votre connexion internet.');
-      }
-
+      setOrder(data as OrderWithItems);
       setLoading(false);
     }
 
@@ -94,38 +74,12 @@ export default function OrderStatus() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FAFAFA]">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <AlertTriangle className="w-8 h-8 text-red-500" />
-        </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">
-          Oups ! Une erreur est survenue
-        </h1>
-        <p className="text-gray-500 mb-6 text-center max-w-sm">{error}</p>
-        <div className="flex gap-3">
-          <Link to="/" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
-            Retour a l'accueil
-          </Link>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Reessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!order) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-gray-500 mb-4">Commande non trouvee</p>
+        <p className="text-gray-500 mb-4">Commande non trouvée</p>
         <Link to="/" className="btn-primary">
-          Retour a l'accueil
+          Retour à l'accueil
         </Link>
       </div>
     );

@@ -29,7 +29,6 @@ export interface FoodtruckSettings {
 
 interface UseCheckoutDataResult {
   loading: boolean;
-  error: string | null;
   allSchedules: ScheduleWithLocation[];
   exceptions: Map<string, ScheduleException>;
   settings: FoodtruckSettings | null;
@@ -39,7 +38,6 @@ interface UseCheckoutDataResult {
 
 export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDataResult {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [allSchedules, setAllSchedules] = useState<ScheduleWithLocation[]>([]);
   const [exceptions, setExceptions] = useState<Map<string, ScheduleException>>(new Map());
   const [settings, setSettings] = useState<FoodtruckSettings | null>(null);
@@ -49,7 +47,6 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
     async function fetchInitialData() {
       if (!foodtruckId) return;
 
-      setError(null);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayStr = formatLocalDate(today);
@@ -94,9 +91,8 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
         const hasPromoCodes = promoCount > 0;
         const isPromoSectionEnabled = foodtruckSettings?.show_promo_section !== false;
         setShowPromoSection(hasPromoCodes && isPromoSectionEnabled);
-      } catch (err) {
-        console.error('Erreur lors du chargement des donnees:', err);
-        setError('Impossible de charger les informations. Veuillez reessayer.');
+      } catch (error) {
+        console.error('Error fetching checkout data:', error);
       }
 
       setLoading(false);
@@ -138,7 +134,6 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
 
   return {
     loading,
-    error,
     allSchedules,
     exceptions,
     settings,

@@ -45,29 +45,26 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
     if (!isOpen || !foodtruck) return;
 
     async function fetchData() {
-      // foodtruck is guaranteed to be defined here due to the guard at the start of useEffect
-      if (!foodtruck) return;
-
       setLoading(true);
 
       const todayDate = formatLocalDate(new Date());
-      const slotInterval = foodtruck.order_slot_interval ?? 15;
-      const maxOrdersPerSlot = foodtruck.max_orders_per_slot ?? 999;
+      const slotInterval = foodtruck!.order_slot_interval ?? 15;
+      const maxOrdersPerSlot = foodtruck!.max_orders_per_slot ?? 999;
 
       const [categoriesRes, itemsRes, slotsRes] = await Promise.all([
         supabase
           .from('categories')
           .select('*')
-          .eq('foodtruck_id', foodtruck.id)
+          .eq('foodtruck_id', foodtruck!.id)
           .order('sort_order'),
         supabase
           .from('menu_items')
           .select('*, option_groups (*, options (*))')
-          .eq('foodtruck_id', foodtruck.id)
+          .eq('foodtruck_id', foodtruck!.id)
           .eq('is_available', true)
           .order('name'),
         supabase.rpc('get_available_slots', {
-          p_foodtruck_id: foodtruck.id,
+          p_foodtruck_id: foodtruck!.id,
           p_date: todayDate,
           p_interval_minutes: slotInterval,
           p_max_orders_per_slot: maxOrdersPerSlot,

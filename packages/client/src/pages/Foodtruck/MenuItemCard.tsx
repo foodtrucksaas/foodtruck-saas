@@ -1,4 +1,3 @@
-import { memo, useCallback } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
@@ -12,7 +11,7 @@ interface MenuItemCardProps {
   showPhoto?: boolean;
 }
 
-const MenuItemCard = memo(function MenuItemCard({
+export default function MenuItemCard({
   item,
   hasOptions,
   quantity,
@@ -24,15 +23,11 @@ const MenuItemCard = memo(function MenuItemCard({
   const hasImage = showPhoto && item.image_url;
 
   // Handle card click - add item if not in cart or has options
-  const handleCardClick = useCallback(() => {
+  const handleCardClick = () => {
     if (!isInCart || hasOptions) {
       onAdd();
     }
-  }, [isInCart, hasOptions, onAdd]);
-
-  // Memoized handlers for increment/decrement
-  const handleDecrement = useCallback(() => onUpdate(-1), [onUpdate]);
-  const handleIncrement = useCallback(() => onUpdate(1), [onUpdate]);
+  };
 
   return (
     <div
@@ -88,14 +83,14 @@ const MenuItemCard = memo(function MenuItemCard({
               </span>
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={handleDecrement}
+                  onClick={() => onUpdate(-1)}
                   className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
                 >
                   <Minus className="w-4 h-4 text-anthracite" />
                 </button>
                 <span className="w-8 text-center font-bold text-anthracite">{quantity}</span>
                 <button
-                  onClick={handleIncrement}
+                  onClick={() => onUpdate(1)}
                   className="w-9 h-9 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
@@ -122,6 +117,4 @@ const MenuItemCard = memo(function MenuItemCard({
       </div>
     </div>
   );
-});
-
-export default MenuItemCard;
+}

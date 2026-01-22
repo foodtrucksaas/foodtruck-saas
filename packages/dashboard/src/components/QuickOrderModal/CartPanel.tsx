@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight, ChevronLeft } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { CartItem } from './useQuickOrder';
@@ -10,7 +9,7 @@ interface CartItemRowProps {
   variant?: 'desktop' | 'mobile';
 }
 
-const CartItemRow = memo(function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: CartItemRowProps) {
+function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: CartItemRowProps) {
   const optionsTotal = item.selectedOptions.reduce((sum, opt) => sum + opt.priceModifier, 0);
   const itemTotal = (item.menuItem.price + optionsTotal) * item.quantity;
 
@@ -102,7 +101,7 @@ const CartItemRow = memo(function CartItemRow({ item, onUpdateQuantity, onRemove
       </div>
     </div>
   );
-});
+}
 
 interface DesktopCartPanelProps {
   cart: CartItem[];
@@ -113,7 +112,7 @@ interface DesktopCartPanelProps {
   onContinue: () => void;
 }
 
-export const DesktopCartPanel = memo(function DesktopCartPanel({
+export function DesktopCartPanel({
   cart,
   cartTotal,
   cartItemsCount,
@@ -173,7 +172,7 @@ export const DesktopCartPanel = memo(function DesktopCartPanel({
       </div>
     </div>
   );
-});
+}
 
 interface MobileCartOverlayProps {
   cart: CartItem[];
@@ -185,7 +184,7 @@ interface MobileCartOverlayProps {
   onContinue: () => void;
 }
 
-export const MobileCartOverlay = memo(function MobileCartOverlay({
+export function MobileCartOverlay({
   cart,
   cartTotal,
   onUpdateQuantity,
@@ -247,14 +246,14 @@ export const MobileCartOverlay = memo(function MobileCartOverlay({
       </div>
     </div>
   );
-});
+}
 
 interface FloatingCartButtonProps {
   cartItemsCount: number;
   onClick: () => void;
 }
 
-export const FloatingCartButton = memo(function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButtonProps) {
+export function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -268,4 +267,4 @@ export const FloatingCartButton = memo(function FloatingCartButton({ cartItemsCo
       )}
     </button>
   );
-});
+}

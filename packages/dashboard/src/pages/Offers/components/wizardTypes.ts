@@ -40,6 +40,6 @@ export function getSizeOptions(category: CategoryWithOptionGroups | undefined): 
   return sizeGroup.category_options.filter(o => o.is_available !== false);
 }
 
-export function getItemsForCategories(menuItems: MenuItem[], categoryIds: string[]): MenuItem[] {
+export function getItemsForCategories(menuItems: MenuItem[], categoryIds: string[]) {
   return menuItems.filter(item => item.category_id && categoryIds.includes(item.category_id) && item.is_available);
 }

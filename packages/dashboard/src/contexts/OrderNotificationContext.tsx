@@ -204,12 +204,14 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     // NEW ORDERS DETECTED
     if (newOrders.length > 0 && !isFirstLoad) {
+      console.log('[OrderNotification] NEW ORDERS DETECTED:', newOrders.length);
       showPopupForOrders(pendingOrders, true);
     }
 
     // INITIAL LOAD - show pending orders after small delay (so user knows it's from before)
     if (isFirstLoad && pendingOrders.length > 0 && ft.show_order_popup && !hasShownInitialPopup) {
       hasShownInitialPopup = true;
+      console.log('[OrderNotification] Initial load - showing', pendingOrders.length, 'pending orders');
       // Small delay so it doesn't feel like a bug
       setTimeout(() => {
         if (pendingOrders.length > 0) {
@@ -222,6 +224,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   // Reset known orders when foodtruck changes
   useEffect(() => {
     if (foodtruck?.id) {
+      console.log('[OrderNotification] Foodtruck changed, resetting state');
       knownOrderIdsSet = new Set<string>();
       hasShownInitialPopup = false;
     }
@@ -234,6 +237,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     if (!foodtruck?.id) return;
 
     const foodtruckId = foodtruck.id;
+    console.log('[OrderNotification] Setting up Realtime subscription for', foodtruckId);
 
     const channel = supabase
       .channel(`orders-${foodtruckId}`)
@@ -246,6 +250,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
           filter: `foodtruck_id=eq.${foodtruckId}`,
         },
         (payload) => {
+          console.log('[OrderNotification] REALTIME INSERT:', payload.new);
           const newOrder = payload.new;
 
           // Skip manual dashboard orders
@@ -263,14 +268,18 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
           table: 'orders',
           filter: `foodtruck_id=eq.${foodtruckId}`,
         },
-        () => {
+        (payload) => {
+          console.log('[OrderNotification] REALTIME UPDATE:', payload.new);
           // Refresh to update counts and popup state
           checkForNewOrders();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[OrderNotification] Realtime status:', status);
+      });
 
     return () => {
+      console.log('[OrderNotification] Cleaning up Realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [foodtruck?.id, checkForNewOrders]);
@@ -281,6 +290,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   useEffect(() => {
     if (!foodtruck?.id) return;
 
+    console.log('[OrderNotification] Starting polling');
+
     // Initial check
     checkForNewOrders(true);
 
@@ -290,6 +301,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     }, 5000);
 
     return () => {
+      console.log('[OrderNotification] Stopping polling');
       clearInterval(interval);
     };
   }, [foodtruck?.id, refreshTrigger, checkForNewOrders]);
@@ -302,6 +314,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        console.log('[OrderNotification] Tab became visible, checking for orders');
         checkForNewOrders();
       }
     };
@@ -320,6 +333,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     if (!foodtruck?.id) return;
 
     const handleFocus = () => {
+      console.log('[OrderNotification] Window focused, checking for orders');
       checkForNewOrders();
     };
 

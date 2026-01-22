@@ -9,14 +9,7 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import {
-  formatPrice,
-  OFFER_TYPE_LABELS,
-  isBundleConfig,
-  isBuyXGetYConfig,
-  isPromoCodeConfig,
-  isThresholdDiscountConfig,
-} from '@foodtruck/shared';
+import { formatPrice, OFFER_TYPE_LABELS } from '@foodtruck/shared';
 import type { OfferWithItems, OfferType } from '@foodtruck/shared';
 
 interface OfferCardProps {
@@ -41,40 +34,35 @@ const typeColors: Record<OfferType, string> = {
 };
 
 function formatOfferSummary(offer: OfferWithItems): string {
-  const config = offer.config;
+  const config = offer.config as any;
 
-  if (isBundleConfig(config)) {
-    // For category_choice bundles, show number of choices
-    if (config.type === 'category_choice' && config.bundle_categories?.length) {
-      const choiceCount = config.bundle_categories.length;
-      return `${choiceCount} choix pour ${formatPrice(config.fixed_price || 0)}`;
-    }
-    // For specific items bundles
-    return `${offer.offer_items?.length || 0} articles pour ${formatPrice(config.fixed_price || 0)}`;
+  switch (offer.offer_type) {
+    case 'bundle':
+      // For category_choice bundles, show number of choices
+      if (config.type === 'category_choice' && config.bundle_categories?.length) {
+        const choiceCount = config.bundle_categories.length;
+        return `${choiceCount} choix pour ${formatPrice(config.fixed_price || 0)}`;
+      }
+      // For specific items bundles
+      return `${offer.offer_items?.length || 0} articles pour ${formatPrice(config.fixed_price || 0)}`;
+    case 'buy_x_get_y':
+      const reward = config.reward_type === 'free' ? 'offert' : `-${formatPrice(config.reward_value || 0)}`;
+      const isCategoryBased = config.type === 'category_choice';
+      const triggerLabel = isCategoryBased ? 'achetés' : 'acheté(s)';
+      return `${config.trigger_quantity} ${triggerLabel} = ${config.reward_quantity} ${reward}${isCategoryBased ? ' (catégorie)' : ''}`;
+    case 'promo_code':
+      const promoDiscount = config.discount_type === 'percentage'
+        ? `-${config.discount_value}%`
+        : `-${formatPrice(config.discount_value || 0)}`;
+      return `Code: ${config.code} = ${promoDiscount}`;
+    case 'threshold_discount':
+      const thresholdDiscount = config.discount_type === 'percentage'
+        ? `-${config.discount_value}%`
+        : `-${formatPrice(config.discount_value || 0)}`;
+      return `Des ${formatPrice(config.min_amount || 0)} = ${thresholdDiscount}`;
+    default:
+      return '';
   }
-
-  if (isBuyXGetYConfig(config)) {
-    const reward = config.reward_type === 'free' ? 'offert' : `-${formatPrice(config.reward_value || 0)}`;
-    const isCategoryBased = config.type === 'category_choice';
-    const triggerLabel = isCategoryBased ? 'achetés' : 'acheté(s)';
-    return `${config.trigger_quantity} ${triggerLabel} = ${config.reward_quantity} ${reward}${isCategoryBased ? ' (catégorie)' : ''}`;
-  }
-
-  if (isPromoCodeConfig(config)) {
-    const promoDiscount = config.discount_type === 'percentage'
-      ? `-${config.discount_value}%`
-      : `-${formatPrice(config.discount_value || 0)}`;
-    return `Code: ${config.code} = ${promoDiscount}`;
-  }
-
-  if (isThresholdDiscountConfig(config)) {
-    const thresholdDiscount = config.discount_type === 'percentage'
-      ? `-${config.discount_value}%`
-      : `-${formatPrice(config.discount_value || 0)}`;
-    return `Des ${formatPrice(config.min_amount || 0)} = ${thresholdDiscount}`;
-  }
-
-  return '';
 }
 
 export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps) {
