@@ -1,6 +1,7 @@
 import { useSettings } from './useSettings';
 import { ProfileSection } from './ProfileSection';
 import { OrderSettingsSection } from './OrderSettingsSection';
+import { AccountSection } from './AccountSection';
 
 export default function Settings() {
   const {
@@ -81,6 +82,9 @@ export default function Settings() {
         onCancel={cancelEditing}
         onUpdateForm={updateEditForm}
       />
+
+      {/* Account Section */}
+      <AccountSection />
     </div>
   );
 }
