@@ -129,15 +129,15 @@ export default function Checkout() {
     form.loyaltyOptIn
   );
 
-  // Only apply the BEST discount between offers (buy_x_get_y, etc.) and bundles
-  // They should NOT stack unless explicitly marked as stackable
+  // With the new optimization logic, offers can stack when they use different items
+  // The get_optimized_offers SQL function already handles item consumption tracking
+  // So we can apply both offer discounts AND bundle discounts (user-selected bundles)
   const offerDiscountValue = totalOfferDiscount || 0;
   const bundleDiscountValue = totalBundleSavings || 0;
 
-  // Choose the best discount - bundles and offers don't stack
-  const useBundleAsDiscount = bundleDiscountValue > offerDiscountValue;
-  const appliedOfferDiscount = useBundleAsDiscount ? 0 : offerDiscountValue;
-  const appliedBundleDiscount = useBundleAsDiscount ? bundleDiscountValue : 0;
+  // Apply both discounts - they use different items
+  const appliedOfferDiscount = offerDiscountValue;
+  const appliedBundleDiscount = bundleDiscountValue;
 
   // Calculate promo discount AFTER offer/bundle discounts
   // Promo codes apply to the discounted total, not the original total
