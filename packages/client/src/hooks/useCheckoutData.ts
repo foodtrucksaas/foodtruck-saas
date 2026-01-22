@@ -19,7 +19,10 @@ export interface FoodtruckSettings {
   slotInterval: number;
   maxOrdersPerSlot: number;
   allowAdvanceOrders: boolean;
+  allowAsapOrders: boolean;
   minPrepTime: number;
+  offersStackable: boolean;
+  promoCodesStackable: boolean;
 }
 
 interface UseCheckoutDataResult {
@@ -58,7 +61,10 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
           slotInterval: foodtruckSettings?.order_slot_interval ?? 15,
           maxOrdersPerSlot: foodtruckSettings?.max_orders_per_slot ?? 999,
           allowAdvanceOrders: foodtruckSettings?.allow_advance_orders !== false,
+          allowAsapOrders: foodtruckSettings?.allow_asap_orders ?? false,
           minPrepTime: foodtruckSettings?.min_preparation_time ?? 15,
+          offersStackable: foodtruckSettings?.offers_stackable ?? false,
+          promoCodesStackable: foodtruckSettings?.promo_codes_stackable !== false,
         };
         setSettings(settingsData);
 

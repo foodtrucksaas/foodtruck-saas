@@ -55,6 +55,7 @@ export function createFoodtrucksApi(supabase: TypedSupabaseClient) {
       max_orders_per_slot: number | null;
       show_promo_section: boolean | null;
       allow_advance_orders: boolean | null;
+      allow_asap_orders: boolean | null;
       min_preparation_time: number | null;
       show_menu_photos: boolean | null;
       loyalty_enabled: boolean | null;
@@ -62,6 +63,8 @@ export function createFoodtrucksApi(supabase: TypedSupabaseClient) {
       loyalty_threshold: number | null;
       loyalty_reward: number | null;
       loyalty_allow_multiple: boolean | null;
+      offers_stackable: boolean | null;
+      promo_codes_stackable: boolean | null;
     } | null> {
       const { data, error } = await supabase
         .from('foodtrucks')
@@ -70,13 +73,16 @@ export function createFoodtrucksApi(supabase: TypedSupabaseClient) {
           max_orders_per_slot,
           show_promo_section,
           allow_advance_orders,
+          allow_asap_orders,
           min_preparation_time,
           show_menu_photos,
           loyalty_enabled,
           loyalty_points_per_euro,
           loyalty_threshold,
           loyalty_reward,
-          loyalty_allow_multiple
+          loyalty_allow_multiple,
+          offers_stackable,
+          promo_codes_stackable
         `)
         .eq('id', id)
         .maybeSingle();

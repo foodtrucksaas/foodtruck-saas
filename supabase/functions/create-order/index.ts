@@ -103,8 +103,12 @@ serve(async (req) => {
     // force_slot requires service role key (dashboard internal calls only)
     const forceSlotAllowed = body.force_slot && isServiceRoleRequest(req);
 
-    // Skip slot check only if force_slot is allowed
-    if (!forceSlotAllowed) {
+    // ASAP orders skip slot check - pickup time will be assigned by merchant (manual mode)
+    // or is set to min prep time placeholder (auto mode)
+    const isAsapOrder = body.is_asap === true;
+
+    // Skip slot check only if force_slot is allowed or it's an ASAP order
+    if (!forceSlotAllowed && !isAsapOrder) {
       const slotError = await checkSlotAvailability(body.foodtruck_id, body.pickup_time, foodtruck.max_orders_per_slot);
       if (slotError) return slotError;
     }
@@ -114,8 +118,8 @@ serve(async (req) => {
 
     // === SERVER-SIDE VALIDATIONS ===
 
-    // 1. Validate pickup time is not in the past (skip for manual dashboard orders)
-    if (!forceSlotAllowed) {
+    // 1. Validate pickup time is not in the past (skip for manual dashboard orders and ASAP orders)
+    if (!forceSlotAllowed && !isAsapOrder) {
       const pickupTimeError = validatePickupTime(body.pickup_time);
       if (pickupTimeError) return pickupTimeError;
     }

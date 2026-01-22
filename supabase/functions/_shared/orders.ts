@@ -16,6 +16,7 @@ interface OrderRequest {
   customer_name: string;
   customer_phone?: string;
   pickup_time: string;
+  is_asap?: boolean;
   notes?: string;
   email_opt_in?: boolean;
   sms_opt_in?: boolean;
@@ -629,6 +630,7 @@ export async function createOrder(
       customer_name: data.customer_name,
       customer_phone: data.customer_phone || null,
       pickup_time: data.pickup_time,
+      is_asap: data.is_asap || false,
       total_amount: finalAmount,
       discount_amount: discountAmount,
       promo_code_id: data.promo_code_id || null,

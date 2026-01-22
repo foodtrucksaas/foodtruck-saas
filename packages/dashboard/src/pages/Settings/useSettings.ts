@@ -18,9 +18,12 @@ export type EditingField =
   | 'order_slot_interval'
   | 'max_orders_per_slot'
   | 'allow_advance_orders'
+  | 'allow_asap_orders'
   | 'min_preparation_time'
   | 'send_confirmation_email'
   | 'send_reminder_email'
+  | 'offers_stackable'
+  | 'promo_codes_stackable'
   | null;
 
 export interface EditFormState {
@@ -37,9 +40,12 @@ export interface EditFormState {
   show_order_popup: boolean;
   use_ready_status: boolean;
   allow_advance_orders: boolean;
+  allow_asap_orders: boolean;
   min_preparation_time: number;
   send_confirmation_email: boolean;
   send_reminder_email: boolean;
+  offers_stackable: boolean;
+  promo_codes_stackable: boolean;
 }
 
 export function useSettings() {
@@ -74,9 +80,12 @@ export function useSettings() {
     show_order_popup: true,
     use_ready_status: false,
     allow_advance_orders: true,
+    allow_asap_orders: false,
     min_preparation_time: 15,
     send_confirmation_email: true,
     send_reminder_email: false,
+    offers_stackable: false,
+    promo_codes_stackable: true,
   });
 
   const startEditing = useCallback((field: EditingField) => {
@@ -95,9 +104,12 @@ export function useSettings() {
       show_order_popup: foodtruck.show_order_popup ?? true,
       use_ready_status: foodtruck.use_ready_status || false,
       allow_advance_orders: foodtruck.allow_advance_orders ?? true,
+      allow_asap_orders: foodtruck.allow_asap_orders ?? false,
       min_preparation_time: foodtruck.min_preparation_time ?? 15,
       send_confirmation_email: foodtruck.send_confirmation_email ?? true,
       send_reminder_email: foodtruck.send_reminder_email ?? false,
+      offers_stackable: foodtruck.offers_stackable ?? false,
+      promo_codes_stackable: foodtruck.promo_codes_stackable ?? true,
     });
     setEditingField(field);
   }, [foodtruck]);
@@ -158,6 +170,9 @@ export function useSettings() {
         case 'allow_advance_orders':
           updateData = { allow_advance_orders: editForm.allow_advance_orders };
           break;
+        case 'allow_asap_orders':
+          updateData = { allow_asap_orders: editForm.allow_asap_orders };
+          break;
         case 'min_preparation_time':
           updateData = { min_preparation_time: editForm.min_preparation_time };
           break;
@@ -166,6 +181,12 @@ export function useSettings() {
           break;
         case 'send_reminder_email':
           updateData = { send_reminder_email: editForm.send_reminder_email };
+          break;
+        case 'offers_stackable':
+          updateData = { offers_stackable: editForm.offers_stackable };
+          break;
+        case 'promo_codes_stackable':
+          updateData = { promo_codes_stackable: editForm.promo_codes_stackable };
           break;
       }
       await updateFoodtruck(updateData);

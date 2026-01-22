@@ -1,4 +1,4 @@
-import { ShoppingBag, Hand, Zap, Check, X, CalendarClock, Clock, Bell, Mail, MailX, BellRing, BellOff } from 'lucide-react';
+import { ShoppingBag, Hand, Zap, Check, X, CalendarClock, Clock, Bell, Mail, MailX, BellRing, BellOff, Timer, ListOrdered } from 'lucide-react';
 import { EditableField } from './EditableField';
 import { ToggleCards, IntervalButtons } from './ToggleCards';
 import type { EditingField, EditFormState } from './useSettings';
@@ -249,6 +249,50 @@ export function OrderSettingsSection({
             }
           />
         </div>
+
+        {/* Option "Au plus vite" */}
+        <EditableField
+          label="Option « Au plus vite »"
+          field="allow_asap_orders"
+          editingField={editingField}
+          editLoading={editLoading}
+          onStartEdit={onStartEdit}
+          onSave={onSave}
+          onCancel={onCancel}
+          hasBorder={false}
+          displayValue={
+            <div className="flex items-center gap-2">
+              {foodtruck?.allow_asap_orders ? (
+                <>
+                  <Timer className="w-5 h-5 text-primary-500" />
+                  <span className="text-gray-900 font-medium">Activé</span>
+                </>
+              ) : (
+                <>
+                  <ListOrdered className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-900 font-medium">Désactivé</span>
+                </>
+              )}
+            </div>
+          }
+          editContent={
+            <>
+              <p className="text-sm text-gray-500 mb-3">
+                {foodtruck?.auto_accept_orders
+                  ? 'En mode automatique, la commande est placée sur le premier créneau disponible.'
+                  : 'En mode manuel, vous choisissez l\'heure de retrait pour chaque commande "Au plus vite".'}
+              </p>
+              <ToggleCards
+                currentValue={editForm.allow_asap_orders}
+                onChange={(value) => onUpdateForm('allow_asap_orders', value)}
+                options={[
+                  { value: true, icon: Timer, title: 'Activé', description: 'Les clients peuvent choisir "Au plus vite" en plus des créneaux' },
+                  { value: false, icon: ListOrdered, title: 'Désactivé', description: 'Les clients doivent choisir un créneau horaire précis' },
+                ]}
+              />
+            </>
+          }
+        />
 
         {/* Email de confirmation */}
         <div className="border-t border-gray-100 pt-4">

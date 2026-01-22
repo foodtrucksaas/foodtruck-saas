@@ -11,11 +11,21 @@ import {
   Navigation,
   Tag,
   Gift,
+  Globe,
+  Instagram,
+  Facebook,
+  Banknote,
+  CreditCard,
+  Smartphone,
+  Wallet,
+  FileText,
+  Building,
 } from 'lucide-react';
 import {
   formatPrice,
   formatTime,
   DAY_NAMES,
+  PAYMENT_METHODS,
 } from '@foodtruck/shared';
 import MapComponent from '../../components/Map';
 import { useCart } from '../../contexts/CartContext';
@@ -661,8 +671,114 @@ export default function FoodtruckPage() {
                     <span className="font-medium">{foodtruck.email}</span>
                   </a>
                 )}
+                {foodtruck.website_url && (
+                  <a
+                    href={foodtruck.website_url.startsWith('http') ? foodtruck.website_url : `https://${foodtruck.website_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-gray-600 hover:text-primary-500 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-primary-500" />
+                    </div>
+                    <span className="font-medium">{foodtruck.website_url.replace(/^https?:\/\//, '')}</span>
+                  </a>
+                )}
               </div>
             </div>
+
+            {/* Social Media */}
+            {(foodtruck.instagram_url || foodtruck.facebook_url || foodtruck.tiktok_url) && (
+              <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-5">
+                <h2 className="font-bold text-anthracite mb-4">Réseaux sociaux</h2>
+                <div className="flex flex-wrap gap-3">
+                  {foodtruck.instagram_url && (
+                    <a
+                      href={foodtruck.instagram_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                    >
+                      <Instagram className="w-4 h-4" />
+                      Instagram
+                    </a>
+                  )}
+                  {foodtruck.facebook_url && (
+                    <a
+                      href={foodtruck.facebook_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-[#1877F2] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                    >
+                      <Facebook className="w-4 h-4" />
+                      Facebook
+                    </a>
+                  )}
+                  {foodtruck.tiktok_url && (
+                    <a
+                      href={foodtruck.tiktok_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                      </svg>
+                      TikTok
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Payment Methods */}
+            {foodtruck.payment_methods && foodtruck.payment_methods.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-5">
+                <h2 className="font-bold text-anthracite mb-4">Moyens de paiement acceptés</h2>
+                <div className="flex flex-wrap gap-2">
+                  {foodtruck.payment_methods.map((methodId) => {
+                    const method = PAYMENT_METHODS.find((m) => m.id === methodId);
+                    if (!method) return null;
+
+                    const IconComponent = {
+                      Banknote,
+                      CreditCard,
+                      Smartphone,
+                      Wallet,
+                      FileText,
+                    }[method.icon] || CreditCard;
+
+                    return (
+                      <div
+                        key={methodId}
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-700"
+                      >
+                        <IconComponent className="w-4 h-4 text-primary-500" />
+                        <span>{method.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Business Info (SIRET) */}
+            {foodtruck.siret && (
+              <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-5">
+                <h2 className="font-bold text-anthracite mb-4">Informations légales</h2>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <Building className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">N° SIRET</p>
+                    <p className="font-medium font-mono">
+                      {foodtruck.siret.replace(/(\d{3})(\d{3})(\d{3})(\d{5})/, '$1 $2 $3 $4')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Schedule */}
             {schedules.length > 0 && (

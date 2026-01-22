@@ -41,6 +41,7 @@ export default function Checkout() {
     emailOptIn: false,
     smsOptIn: false,
     loyaltyOptIn: true,
+    isAsap: false,
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -127,8 +128,6 @@ export default function Checkout() {
     form.loyaltyOptIn
   );
 
-  const promoDiscount = appliedPromo?.discount || 0;
-
   // Only apply the BEST discount between offers (buy_x_get_y, etc.) and bundles
   // They should NOT stack unless explicitly marked as stackable
   const offerDiscountValue = totalOfferDiscount || 0;
@@ -139,7 +138,23 @@ export default function Checkout() {
   const appliedOfferDiscount = useBundleAsDiscount ? 0 : offerDiscountValue;
   const appliedBundleDiscount = useBundleAsDiscount ? bundleDiscountValue : 0;
 
-  const finalTotal = Math.max(0, total - promoDiscount - loyaltyDiscount - appliedOfferDiscount - appliedBundleDiscount);
+  // Calculate promo discount AFTER offer/bundle discounts
+  // Promo codes apply to the discounted total, not the original total
+  const postOfferTotal = total - appliedOfferDiscount - appliedBundleDiscount;
+  let promoDiscount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.discountType === 'percentage') {
+      // Recalculate percentage on post-offer total
+      promoDiscount = Math.round(postOfferTotal * (appliedPromo.discountValue / 100));
+    } else {
+      // Fixed discount stays the same
+      promoDiscount = appliedPromo.discount;
+    }
+    // Ensure discount doesn't exceed the remaining total
+    promoDiscount = Math.min(promoDiscount, postOfferTotal);
+  }
+
+  const finalTotal = Math.max(0, postOfferTotal - promoDiscount - loyaltyDiscount);
 
   // Get selected slot for display
   const selectedSlot = slots.find(s => `${s.time}|${s.scheduleId}` === form.pickupTime);
@@ -147,7 +162,8 @@ export default function Checkout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.pickupTime) {
+    // Validate required fields - pickupTime not required if ASAP
+    if (!form.name || !form.email || (!form.isAsap && !form.pickupTime)) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -164,18 +180,27 @@ export default function Checkout() {
 
     setSubmitting(true);
 
-    const [pickupTimeStr] = form.pickupTime.split('|');
-    const [hours, minutes] = pickupTimeStr.split(':').map(Number);
+    // For ASAP orders, use current time + min prep time as placeholder
+    // The actual pickup time will be set by the merchant
+    let pickupDateTime: string;
+    if (form.isAsap) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + (settings?.minPrepTime || 15));
+      pickupDateTime = now.toISOString();
+    } else {
+      const [pickupTimeStr] = form.pickupTime.split('|');
+      const [hours, minutes] = pickupTimeStr.split(':').map(Number);
 
-    const pickupDate = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      hours,
-      minutes,
-      0
-    );
-    const pickupDateTime = pickupDate.toISOString();
+      const pickupDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        hours,
+        minutes,
+        0
+      );
+      pickupDateTime = pickupDate.toISOString();
+    }
 
     // Extract unique bundles used in this order
     const bundlesUsed = items
@@ -191,6 +216,7 @@ export default function Checkout() {
       customer_name: form.name,
       customer_phone: form.phone || undefined,
       pickup_time: pickupDateTime,
+      is_asap: form.isAsap || undefined,
       notes: form.notes || undefined,
       email_opt_in: form.emailOptIn,
       sms_opt_in: form.smsOptIn && !!form.phone,
@@ -440,6 +466,9 @@ export default function Checkout() {
           onOpenDatePicker={() => setShowDatePicker(true)}
           allSchedules={allSchedules}
           exceptions={exceptions}
+          allowAsapOrders={settings?.allowAsapOrders}
+          isAsapSelected={form.isAsap}
+          onAsapChange={(isAsap) => setForm({ ...form, isAsap })}
         />
 
         {/* Notes */}
@@ -507,7 +536,10 @@ export default function Checkout() {
         )}
 
         {/* Promo Code Section */}
-        {showPromoSection && (
+        {/* Only show promo section if:
+            1. showPromoSection is true AND
+            2. promo codes are stackable with offers OR there's no offer/bundle discount */}
+        {showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0)) && (
           <PromoCodeSection
             promoCode={promoCode}
             onPromoCodeChange={setPromoCode}
@@ -522,7 +554,7 @@ export default function Checkout() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={submitting || !form.pickupTime || slots.length === 0}
+          disabled={submitting || (!form.isAsap && (!form.pickupTime || slots.length === 0))}
           className="w-full py-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
         >

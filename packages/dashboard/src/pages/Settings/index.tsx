@@ -1,6 +1,11 @@
 import { useSettings } from './useSettings';
 import { ProfileSection } from './ProfileSection';
+import { SocialMediaSection } from './SocialMediaSection';
+import { PaymentMethodsSection } from './PaymentMethodsSection';
+import { BusinessInfoSection } from './BusinessInfoSection';
+import { QRCodeSection } from './QRCodeSection';
 import { OrderSettingsSection } from './OrderSettingsSection';
+import { OffersSettingsSection } from './OffersSettingsSection';
 import { AccountSection } from './AccountSection';
 
 export default function Settings() {
@@ -71,8 +76,32 @@ export default function Settings() {
         onRemoveCover={removeCover}
       />
 
+      {/* Social Media Section */}
+      <SocialMediaSection foodtruck={foodtruck} />
+
+      {/* Business Info Section */}
+      <BusinessInfoSection foodtruck={foodtruck} />
+
+      {/* Payment Methods Section */}
+      <PaymentMethodsSection foodtruck={foodtruck} />
+
+      {/* QR Code Section */}
+      <QRCodeSection foodtruck={foodtruck} clientLink={clientLink} />
+
       {/* Order Settings Section */}
       <OrderSettingsSection
+        foodtruck={foodtruck}
+        editForm={editForm}
+        editingField={editingField}
+        editLoading={editLoading}
+        onStartEdit={startEditing}
+        onSave={saveField}
+        onCancel={cancelEditing}
+        onUpdateForm={updateEditForm}
+      />
+
+      {/* Offers Settings Section */}
+      <OffersSettingsSection
         foodtruck={foodtruck}
         editForm={editForm}
         editingField={editingField}

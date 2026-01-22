@@ -1,4 +1,4 @@
-import { Clock, Calendar, Loader2 } from 'lucide-react';
+import { Clock, Calendar, Loader2, Zap } from 'lucide-react';
 import { formatTime, formatLocalDate } from '@foodtruck/shared';
 import type { SlotWithLocation, ScheduleWithLocation, ScheduleException } from '../../hooks';
 
@@ -14,6 +14,9 @@ interface TimeSlotPickerProps {
   onOpenDatePicker: () => void;
   allSchedules: ScheduleWithLocation[];
   exceptions: Map<string, ScheduleException>;
+  allowAsapOrders?: boolean;
+  isAsapSelected?: boolean;
+  onAsapChange?: (isAsap: boolean) => void;
 }
 
 export function TimeSlotPicker({
@@ -28,6 +31,9 @@ export function TimeSlotPicker({
   onOpenDatePicker,
   allSchedules,
   exceptions,
+  allowAsapOrders = false,
+  isAsapSelected = false,
+  onAsapChange,
 }: TimeSlotPickerProps) {
   const getLocationForSelectedDate = (): string | null => {
     const dateStr = formatLocalDate(selectedDate);
@@ -121,36 +127,108 @@ export function TimeSlotPicker({
         Heure de retrait
       </h3>
 
-      {slotsLoading ? (
-        <div className="flex items-center justify-center py-3">
-          <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+      {/* ASAP Option */}
+      {allowAsapOrders && isToday && onAsapChange && (
+        <div className="mb-3 space-y-2">
+          <button
+            type="button"
+            onClick={() => onAsapChange(true)}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+              isAsapSelected
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 bg-white hover:border-primary-300'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
+            }`}>
+              <Zap className={`w-5 h-5 ${isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
+            </div>
+            <div className="text-left flex-1">
+              <p className={`font-semibold ${isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}>
+                Au plus vite
+              </p>
+              <p className="text-xs text-gray-500">
+                Votre commande sera préparée dès que possible
+              </p>
+            </div>
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
+            }`}>
+              {isAsapSelected && (
+                <div className="w-2 h-2 rounded-full bg-white" />
+              )}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onAsapChange(false)}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+              !isAsapSelected
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 bg-white hover:border-primary-300'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              !isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
+            }`}>
+              <Clock className={`w-5 h-5 ${!isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
+            </div>
+            <div className="text-left flex-1">
+              <p className={`font-semibold ${!isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}>
+                Choisir un créneau
+              </p>
+              <p className="text-xs text-gray-500">
+                Sélectionnez votre heure de retrait
+              </p>
+            </div>
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              !isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
+            }`}>
+              {!isAsapSelected && (
+                <div className="w-2 h-2 rounded-full bg-white" />
+              )}
+            </div>
+          </button>
         </div>
-      ) : schedules.length > 0 && slots.length > 0 ? (
-        <select
-          value={selectedSlotValue}
-          onChange={(e) => onSlotChange(e.target.value)}
-          className="input w-full"
-        >
-          {slots.map((slot) => {
-            const showLocation = schedules.length > 1;
-            return (
-              <option
-                key={`${slot.time}-${slot.scheduleId}`}
-                value={`${slot.time}|${slot.scheduleId}`}
-                disabled={!slot.available}
-              >
-                {formatTime(slot.time)}{showLocation ? ` - ${slot.locationName}` : ''}{!slot.available ? ' (complet)' : ''}
-              </option>
-            );
-          })}
-        </select>
-      ) : notOpenYet ? (
-        <div className="bg-warning-50 border border-warning-100 rounded-xl p-4 text-warning-600 text-sm">
-          <p className="font-semibold">Les commandes ouvrent à {formatTime(notOpenYet.openTime)}</p>
-          <p className="mt-1 text-warning-500">Revenez à partir de cette heure pour commander.</p>
-        </div>
-      ) : (
-        <p className="text-gray-500">Aucun créneau disponible pour cette date</p>
+      )}
+
+      {/* Time slots - only show if not ASAP */}
+      {(!allowAsapOrders || !isAsapSelected) && (
+        <>
+          {slotsLoading ? (
+            <div className="flex items-center justify-center py-3">
+              <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+            </div>
+          ) : schedules.length > 0 && slots.length > 0 ? (
+            <select
+              value={selectedSlotValue}
+              onChange={(e) => onSlotChange(e.target.value)}
+              className="input w-full"
+            >
+              {slots.map((slot) => {
+                const showLocation = schedules.length > 1;
+                return (
+                  <option
+                    key={`${slot.time}-${slot.scheduleId}`}
+                    value={`${slot.time}|${slot.scheduleId}`}
+                    disabled={!slot.available}
+                  >
+                    {formatTime(slot.time)}{showLocation ? ` - ${slot.locationName}` : ''}{!slot.available ? ' (complet)' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          ) : notOpenYet ? (
+            <div className="bg-warning-50 border border-warning-100 rounded-xl p-4 text-warning-600 text-sm">
+              <p className="font-semibold">Les commandes ouvrent à {formatTime(notOpenYet.openTime)}</p>
+              <p className="mt-1 text-warning-500">Revenez à partir de cette heure pour commander.</p>
+            </div>
+          ) : (
+            <p className="text-gray-500">Aucun créneau disponible pour cette date</p>
+          )}
+        </>
       )}
     </div>
   );

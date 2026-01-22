@@ -714,13 +714,18 @@ export type Database = {
       foodtrucks: {
         Row: {
           allow_advance_orders: boolean | null
+          allow_asap_orders: boolean | null
           auto_accept_orders: boolean | null
+          offers_stackable: boolean | null
+          promo_codes_stackable: boolean | null
           cover_image_url: string | null
           created_at: string | null
           cuisine_types: string[] | null
           description: string | null
           email: string | null
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           is_active: boolean | null
           is_mobile: boolean | null
           logo_url: string | null
@@ -733,27 +738,34 @@ export type Database = {
           min_preparation_time: number | null
           name: string
           order_slot_interval: number | null
+          payment_methods: string[] | null
           phone: string | null
           send_confirmation_email: boolean | null
           send_reminder_email: boolean | null
           show_menu_photos: boolean
           show_order_popup: boolean
           show_promo_section: boolean | null
+          siret: string | null
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean | null
+          tiktok_url: string | null
           updated_at: string | null
           use_ready_status: boolean | null
           user_id: string
+          website_url: string | null
         }
         Insert: {
           allow_advance_orders?: boolean | null
+          allow_asap_orders?: boolean | null
           auto_accept_orders?: boolean | null
           cover_image_url?: string | null
           created_at?: string | null
           cuisine_types?: string[] | null
           description?: string | null
           email?: string | null
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           is_active?: boolean | null
           is_mobile?: boolean | null
           logo_url?: string | null
@@ -765,28 +777,37 @@ export type Database = {
           max_orders_per_slot?: number | null
           min_preparation_time?: number | null
           name: string
+          offers_stackable?: boolean | null
           order_slot_interval?: number | null
+          payment_methods?: string[] | null
           phone?: string | null
+          promo_codes_stackable?: boolean | null
           send_confirmation_email?: boolean | null
           send_reminder_email?: boolean | null
           show_menu_photos?: boolean
           show_order_popup?: boolean
           show_promo_section?: boolean | null
+          siret?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          tiktok_url?: string | null
           updated_at?: string | null
           use_ready_status?: boolean | null
           user_id: string
+          website_url?: string | null
         }
         Update: {
           allow_advance_orders?: boolean | null
+          allow_asap_orders?: boolean | null
           auto_accept_orders?: boolean | null
           cover_image_url?: string | null
           created_at?: string | null
           cuisine_types?: string[] | null
           description?: string | null
           email?: string | null
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           is_active?: boolean | null
           is_mobile?: boolean | null
           logo_url?: string | null
@@ -798,18 +819,24 @@ export type Database = {
           max_orders_per_slot?: number | null
           min_preparation_time?: number | null
           name?: string
+          offers_stackable?: boolean | null
           order_slot_interval?: number | null
+          payment_methods?: string[] | null
           phone?: string | null
+          promo_codes_stackable?: boolean | null
           send_confirmation_email?: boolean | null
           send_reminder_email?: boolean | null
           show_menu_photos?: boolean
           show_order_popup?: boolean
           show_promo_section?: boolean | null
+          siret?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          tiktok_url?: string | null
           updated_at?: string | null
           use_ready_status?: boolean | null
           user_id?: string
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -1162,6 +1189,7 @@ export type Database = {
           discount_amount: number | null
           foodtruck_id: string
           id: string
+          is_asap: boolean | null
           notes: string | null
           pickup_time: string
           promo_code_id: string | null
@@ -1184,6 +1212,7 @@ export type Database = {
           discount_amount?: number | null
           foodtruck_id: string
           id?: string
+          is_asap?: boolean | null
           notes?: string | null
           pickup_time: string
           promo_code_id?: string | null
@@ -1206,6 +1235,7 @@ export type Database = {
           discount_amount?: number | null
           foodtruck_id?: string
           id?: string
+          is_asap?: boolean | null
           notes?: string | null
           pickup_time?: string
           promo_code_id?: string | null

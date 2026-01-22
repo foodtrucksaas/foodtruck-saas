@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { User, Eye, EyeOff, LogOut } from 'lucide-react';
+import { User, Eye, EyeOff, LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { Modal, Button } from '@foodtruck/shared/components';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
 export function AccountSection() {
@@ -10,6 +12,9 @@ export function AccountSection() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +46,29 @@ export function AccountSection() {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'SUPPRIMER') {
+      toast.error('Veuillez taper SUPPRIMER pour confirmer');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      // Call Edge Function to delete account and all associated data
+      const { error } = await supabase.functions.invoke('delete-account');
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Compte supprimé. Au revoir !');
+      await signOut();
+    } catch {
+      toast.error('Erreur lors de la suppression du compte');
+    }
+    setDeleting(false);
   };
 
   return (
@@ -134,7 +162,7 @@ export function AccountSection() {
         </div>
 
         {/* Sign out */}
-        <div className="pt-2">
+        <div className="pt-2 flex items-center justify-between">
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm"
@@ -143,7 +171,84 @@ export function AccountSection() {
             Se déconnecter
           </button>
         </div>
+
+        {/* Delete account */}
+        <div className="pt-4 mt-4 border-t border-gray-200">
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-2 text-gray-400 hover:text-red-600 text-sm transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Supprimer mon compte
+          </button>
+        </div>
       </div>
+
+      {/* Delete Account Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteConfirmText('');
+        }}
+        title="Supprimer le compte"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-red-800">Action irréversible</p>
+              <p className="text-sm text-red-600">
+                Toutes vos données seront définitivement supprimées.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-4">
+            Cette action supprimera définitivement :
+          </p>
+          <ul className="text-sm text-gray-600 mb-4 list-disc list-inside space-y-1">
+            <li>Votre profil et paramètres</li>
+            <li>Votre menu et catégories</li>
+            <li>Vos emplacements et planning</li>
+            <li>Votre historique de commandes</li>
+            <li>Vos clients et campagnes</li>
+          </ul>
+
+          <p className="text-sm text-gray-600 mb-2">
+            Pour confirmer, tapez <strong>SUPPRIMER</strong> ci-dessous :
+          </p>
+          <input
+            type="text"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder="SUPPRIMER"
+            className="input mb-4"
+          />
+
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmText('');
+              }}
+              className="flex-1"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'SUPPRIMER' || deleting}
+              className="flex-1 !bg-red-600 hover:!bg-red-700"
+            >
+              {deleting ? 'Suppression...' : 'Supprimer'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }
