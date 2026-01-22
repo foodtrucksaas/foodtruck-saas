@@ -182,30 +182,29 @@ export default function PendingOrdersModal({
         {/* Content */}
         <div className="p-6">
           {/* Pickup time */}
-          <div className="flex items-center gap-2 mb-3">
-            {isAsap ? (
-              <div className="flex items-center gap-2 flex-1">
-                <div className="flex items-center gap-1.5 bg-primary-100 text-primary-700 px-2 py-1 rounded-lg">
-                  <Zap className="w-4 h-4" />
-                  <span className="font-medium text-sm">Au plus vite</span>
-                </div>
-                <div className="flex items-center gap-1 flex-1">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <input
-                    type="time"
-                    value={editedTimes[order.id] || ''}
-                    onChange={(e) => handleTimeChange(order.id, e.target.value)}
-                    className="text-lg font-bold bg-yellow-50 border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                </div>
+          {/* Pickup time */}
+          {isAsap ? (
+            <div className="bg-primary-50 border-2 border-primary-200 rounded-xl p-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-5 h-5 text-primary-600" />
+                <span className="font-bold text-primary-700">Commande au plus vite</span>
               </div>
-            ) : (
-              <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg">
-                <Clock className="w-4 h-4" />
-                <span className="font-bold text-lg">{displayTime}</span>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Heure de retrait :</label>
+                <input
+                  type="time"
+                  value={editedTimes[order.id] || ''}
+                  onChange={(e) => handleTimeChange(order.id, e.target.value)}
+                  className="text-xl font-bold bg-white border-2 border-primary-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg mb-3">
+              <Clock className="w-4 h-4" />
+              <span className="font-bold text-lg">{displayTime}</span>
+            </div>
+          )}
 
           {/* Customer name */}
           <h3 className="text-xl font-bold text-gray-900 mb-1">{order.customer_name}</h3>
