@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { QrCode, Download, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
+import { QrCode, Download, Copy, Check, Loader2 } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import toast from 'react-hot-toast';
 
@@ -8,20 +8,22 @@ interface QRCodeSectionProps {
   clientLink: string;
 }
 
+const SIZES = {
+  small: { pixels: 150, display: 150 },
+  medium: { pixels: 300, display: 200 },
+  large: { pixels: 400, display: 300 },
+} as const;
+
+type SizeKey = keyof typeof SIZES;
+
 export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
   const [copied, setCopied] = useState(false);
-  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const downloadRef = useRef<HTMLAnchorElement>(null);
+  const [size, setSize] = useState<SizeKey>('medium');
+  const [imageLoading, setImageLoading] = useState(true);
 
   if (!foodtruck) return null;
 
-  const sizes = {
-    small: 150,
-    medium: 250,
-    large: 400,
-  };
-
-  const qrSize = sizes[size];
+  const { pixels: qrSize, display: displaySize } = SIZES[size];
 
   // Use QR Server API - free and reliable
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(clientLink)}&format=png&margin=10`;
@@ -69,13 +71,23 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
 
       <div className="flex flex-col items-center">
         {/* QR Code Image */}
-        <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+        <div
+          className="relative bg-white p-4 rounded-lg border border-gray-200 mb-4 flex items-center justify-center"
+          style={{ minWidth: displaySize + 32, minHeight: displaySize + 32 }}
+        >
+          {imageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
+            </div>
+          )}
           <img
+            key={size}
             src={qrCodeUrl}
             alt={`QR Code pour ${foodtruck.name}`}
-            width={qrSize}
-            height={qrSize}
-            className="block"
+            style={{ width: displaySize, height: displaySize }}
+            className={`block transition-opacity ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setImageLoading(false)}
+            onError={() => setImageLoading(false)}
           />
         </div>
 
@@ -86,8 +98,13 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
             {(['small', 'medium', 'large'] as const).map((s) => (
               <button
                 key={s}
-                onClick={() => setSize(s)}
-                className={`px-3 py-1 text-sm ${
+                onClick={() => {
+                  if (s !== size) {
+                    setImageLoading(true);
+                    setSize(s);
+                  }
+                }}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   size === s
                     ? 'bg-primary-500 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -123,8 +140,6 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
           <Download className="w-4 h-4 mr-2" />
           Télécharger le QR Code
         </button>
-
-        <a ref={downloadRef} className="hidden" />
       </div>
     </section>
   );
