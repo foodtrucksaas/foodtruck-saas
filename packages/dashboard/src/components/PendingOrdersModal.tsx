@@ -79,7 +79,31 @@ export default function PendingOrdersModal({
     ? editedTimes[order.id]
     : new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-  const discountAmount = (order as OrderWithItemsAndOptions & { discount_amount?: number }).discount_amount || 0;
+  // Extract discount info
+  const orderWithDiscounts = order as OrderWithItemsAndOptions & {
+    discount_amount?: number;
+    deal_discount?: number;
+    deal_id?: string;
+    promo_code_id?: string;
+  };
+  const discountAmount = orderWithDiscounts.discount_amount || 0;
+  const dealDiscount = orderWithDiscounts.deal_discount || 0;
+  const hasPromoCode = !!orderWithDiscounts.promo_code_id;
+  const hasDeal = !!orderWithDiscounts.deal_id || dealDiscount > 0;
+
+  // Determine discount label
+  const getDiscountLabel = () => {
+    const labels: string[] = [];
+    if (hasPromoCode) labels.push('code promo');
+    if (hasDeal) labels.push('offre');
+    // If there's discount but no promo/deal, it's likely loyalty
+    if (discountAmount > 0 && !hasPromoCode && !hasDeal) labels.push('fidélité');
+    // If discount is greater than deal discount and no promo, could include loyalty
+    if (discountAmount > dealDiscount && hasDeal && !hasPromoCode) labels.push('fidélité');
+
+    if (labels.length === 0) return 'Réduction';
+    return `Réduction (${labels.join(' + ')})`;
+  };
 
   const goNext = () => {
     if (safeIndex < orders.length - 1) {
@@ -255,7 +279,7 @@ export default function PendingOrdersModal({
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
                 <div className="flex items-center justify-between text-green-600">
-                  <span>Réduction</span>
+                  <span>{getDiscountLabel()}</span>
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
               </>

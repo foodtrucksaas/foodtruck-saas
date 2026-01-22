@@ -23,7 +23,30 @@ export default function NewOrderPopup({
 }: NewOrderPopupProps) {
   // Convert UTC to local time
   const time = new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  const discountAmount = (order as OrderWithItemsAndOptions & { discount_amount?: number }).discount_amount || 0;
+
+  // Extract discount info
+  const orderWithDiscounts = order as OrderWithItemsAndOptions & {
+    discount_amount?: number;
+    deal_discount?: number;
+    deal_id?: string;
+    promo_code_id?: string;
+  };
+  const discountAmount = orderWithDiscounts.discount_amount || 0;
+  const dealDiscount = orderWithDiscounts.deal_discount || 0;
+  const hasPromoCode = !!orderWithDiscounts.promo_code_id;
+  const hasDeal = !!orderWithDiscounts.deal_id || dealDiscount > 0;
+
+  // Determine discount label
+  const getDiscountLabel = () => {
+    const labels: string[] = [];
+    if (hasPromoCode) labels.push('code promo');
+    if (hasDeal) labels.push('offre');
+    if (discountAmount > 0 && !hasPromoCode && !hasDeal) labels.push('fidélité');
+    if (discountAmount > dealDiscount && hasDeal && !hasPromoCode) labels.push('fidélité');
+
+    if (labels.length === 0) return 'Réduction';
+    return `Réduction (${labels.join(' + ')})`;
+  };
 
   // Only show backdrop for the topmost popup (index 0)
   const isTopmost = stackIndex === 0;
@@ -127,7 +150,7 @@ export default function NewOrderPopup({
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
                 <div className="flex items-center justify-between text-green-600">
-                  <span>Réduction</span>
+                  <span>{getDiscountLabel()}</span>
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
               </>
