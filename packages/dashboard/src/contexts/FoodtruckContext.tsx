@@ -67,16 +67,19 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const updateFoodtruck = async (data: Partial<Foodtruck>) => {
-    if (!foodtruck) return;
+    if (!foodtruck) throw new Error('No foodtruck');
 
     const { error } = await supabase
       .from('foodtrucks')
       .update(data)
       .eq('id', foodtruck.id);
 
-    if (!error) {
-      setFoodtruck({ ...foodtruck, ...data });
+    if (error) {
+      console.error('Update foodtruck error:', error);
+      throw error;
     }
+
+    setFoodtruck({ ...foodtruck, ...data });
   };
 
   return (
