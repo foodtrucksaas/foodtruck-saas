@@ -91,7 +91,13 @@ serve(async (req) => {
       return errorResponse('Trop de requêtes. Veuillez réessayer dans une minute.', 429);
     }
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonError) {
+      console.error('[create-order] JSON parse error:', jsonError);
+      return errorResponse('Données de commande invalides', 400);
+    }
     logger.setContext({ foodtruckId: body.foodtruck_id });
 
     const validationError = validateOrderRequest(body);
@@ -237,8 +243,13 @@ serve(async (req) => {
     logger.info('Order created successfully', { orderId: order.id, status });
     return successResponse({ order_id: order.id, order });
   } catch (error) {
-    // Log error internally but return generic message to client
+    // Log error details for debugging
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('[create-order] CRITICAL ERROR:', errorMessage, errorStack);
     logger.error('Order creation failed', error as Error);
-    return errorResponse('Une erreur est survenue. Veuillez réessayer.', 500);
+
+    // Return detailed error in development, generic in production
+    return errorResponse(`Erreur: ${errorMessage}`, 500);
   }
 });
