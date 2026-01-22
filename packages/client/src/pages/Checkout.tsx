@@ -180,9 +180,6 @@ export default function Checkout() {
 
     setSubmitting(true);
 
-    // DEBUG: Log ASAP state
-    console.log('[Checkout] form.isAsap:', form.isAsap);
-
     // For ASAP orders, use current time + min prep time as placeholder
     // The actual pickup time will be set by the merchant
     let pickupDateTime: string;
@@ -273,9 +270,6 @@ export default function Checkout() {
         }];
       }),
     };
-
-    // DEBUG: Log orderData before sending
-    console.log('[Checkout] orderData.is_asap:', orderData.is_asap);
 
     try {
       const response = await fetch(
@@ -480,10 +474,7 @@ export default function Checkout() {
           exceptions={exceptions}
           allowAsapOrders={settings?.allowAsapOrders}
           isAsapSelected={form.isAsap}
-          onAsapChange={(isAsap) => {
-            console.log('[Checkout] onAsapChange called with:', isAsap);
-            setForm({ ...form, isAsap });
-          }}
+          onAsapChange={(isAsap) => setForm({ ...form, isAsap })}
         />
 
         {/* Notes */}

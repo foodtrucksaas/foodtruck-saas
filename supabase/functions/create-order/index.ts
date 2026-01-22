@@ -105,7 +105,6 @@ serve(async (req) => {
 
     // ASAP orders skip slot check - pickup time will be assigned by merchant (manual mode)
     // or is set to min prep time placeholder (auto mode)
-    console.log('[create-order] body.is_asap:', body.is_asap, 'type:', typeof body.is_asap);
     const isAsapOrder = body.is_asap === true;
 
     // Skip slot check only if force_slot is allowed or it's an ASAP order
