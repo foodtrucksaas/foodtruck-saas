@@ -263,8 +263,9 @@ export default function FoodtruckPage() {
               <div className="mt-2.5 space-y-1.5">
                 {todaySchedules.map((sched, idx) => (
                   <div key={sched.id} className="flex items-center gap-1.5 text-xs text-gray-600 flex-wrap">
+                    {idx === 0 && <span>Aujourd'hui :</span>}
                     <MapPin className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
-                    <span>{idx === 0 && 'Aujourd\'hui : '}{sched.location.name}</span>
+                    <span>{sched.location.name}</span>
                     <span className="text-gray-300">-</span>
                     <Clock className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
                     <span>
