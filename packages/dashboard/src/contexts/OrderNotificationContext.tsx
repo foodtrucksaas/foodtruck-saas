@@ -176,9 +176,10 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     if (orders.length === 0) return;
 
-    console.log('[OrderNotification] Showing popup for', orders.length, 'orders');
+    // Don't play sound if popup is already open (e.g., user switching tabs)
+    const popupAlreadyOpen = pendingPopupOrdersRef.current.length > 0;
 
-    if (playSound && soundEnabledRef.current) {
+    if (playSound && soundEnabledRef.current && !popupAlreadyOpen) {
       playNotificationSound();
     }
 
