@@ -713,6 +713,7 @@ export type Database = {
       }
       foodtrucks: {
         Row: {
+          advance_order_days: number | null
           allow_advance_orders: boolean | null
           allow_asap_orders: boolean | null
           auto_accept_orders: boolean | null
@@ -755,6 +756,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          advance_order_days?: number | null
           allow_advance_orders?: boolean | null
           allow_asap_orders?: boolean | null
           auto_accept_orders?: boolean | null
@@ -797,6 +799,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          advance_order_days?: number | null
           allow_advance_orders?: boolean | null
           allow_asap_orders?: boolean | null
           auto_accept_orders?: boolean | null

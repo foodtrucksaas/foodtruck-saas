@@ -4,6 +4,16 @@ import { ToggleCards, IntervalButtons } from './ToggleCards';
 import type { EditingField, EditFormState } from './useSettings';
 import type { Foodtruck } from '@foodtruck/shared';
 
+// Helper to format advance order days for display
+function formatAdvanceOrderDays(days: number | null | undefined): string {
+  if (!days || days <= 0) return '1 semaine';
+  if (days === 1) return '24h';
+  if (days === 2) return '48h';
+  if (days <= 6) return `${days} jours`;
+  if (days === 7) return '1 semaine';
+  return `${days} jours`;
+}
+
 interface OrderSettingsSectionProps {
   foodtruck: Foodtruck | null;
   editForm: EditFormState;
@@ -227,7 +237,9 @@ export function OrderSettingsSection({
                 {foodtruck?.allow_advance_orders !== false ? (
                   <>
                     <CalendarClock className="w-5 h-5 text-primary-500" />
-                    <span className="text-gray-900 font-medium">Autorisé</span>
+                    <span className="text-gray-900 font-medium">
+                      Autorisé jusqu'à {formatAdvanceOrderDays(foodtruck?.advance_order_days)}
+                    </span>
                   </>
                 ) : (
                   <>
@@ -238,14 +250,42 @@ export function OrderSettingsSection({
               </div>
             }
             editContent={
-              <ToggleCards
-                currentValue={editForm.allow_advance_orders}
-                onChange={(value) => onUpdateForm('allow_advance_orders', value)}
-                options={[
-                  { value: true, icon: CalendarClock, title: 'Autorisé', description: 'Les clients peuvent commander le jour même avant l\'ouverture' },
-                  { value: false, icon: Clock, title: 'Heures d\'ouverture', description: 'Les clients ne peuvent commander que si vous êtes ouvert' },
-                ]}
-              />
+              <div className="space-y-4">
+                <ToggleCards
+                  currentValue={editForm.allow_advance_orders}
+                  onChange={(value) => onUpdateForm('allow_advance_orders', value)}
+                  options={[
+                    { value: true, icon: CalendarClock, title: 'Autorisé', description: 'Les clients peuvent commander à l\'avance' },
+                    { value: false, icon: Clock, title: 'Heures d\'ouverture', description: 'Les clients ne peuvent commander que si vous êtes ouvert' },
+                  ]}
+                />
+                {editForm.allow_advance_orders && (
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">Délai maximum de commande à l'avance</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { value: 1, label: '24h' },
+                        { value: 2, label: '48h' },
+                        { value: 3, label: '3 jours' },
+                        { value: 7, label: '1 semaine' },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => onUpdateForm('advance_order_days', option.value)}
+                          className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                            editForm.advance_order_days === option.value
+                              ? 'bg-primary-500 text-white shadow-md'
+                              : 'bg-white border border-gray-200 text-gray-700 hover:border-primary-300'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             }
           />
         </div>

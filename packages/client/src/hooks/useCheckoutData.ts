@@ -19,6 +19,7 @@ export interface FoodtruckSettings {
   slotInterval: number;
   maxOrdersPerSlot: number;
   allowAdvanceOrders: boolean;
+  advanceOrderDays: number;
   allowAsapOrders: boolean;
   minPrepTime: number;
   offersStackable: boolean;
@@ -62,6 +63,7 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
           slotInterval: foodtruckSettings?.order_slot_interval ?? 15,
           maxOrdersPerSlot: foodtruckSettings?.max_orders_per_slot ?? 999,
           allowAdvanceOrders: foodtruckSettings?.allow_advance_orders !== false,
+          advanceOrderDays: foodtruckSettings?.advance_order_days ?? 7,
           allowAsapOrders: foodtruckSettings?.allow_asap_orders ?? false,
           minPrepTime: foodtruckSettings?.min_preparation_time ?? 15,
           offersStackable: foodtruckSettings?.offers_stackable ?? false,
@@ -105,10 +107,11 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const MAX_ADVANCE_DAYS = 14;
+    // Use merchant's advance order days setting, default to 7 if not set
+    const maxAdvanceDays = settings.advanceOrderDays || 7;
     const dates: Date[] = [];
 
-    for (let i = 0; i < MAX_ADVANCE_DAYS; i++) {
+    for (let i = 0; i < maxAdvanceDays; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dateStr = formatLocalDate(date);

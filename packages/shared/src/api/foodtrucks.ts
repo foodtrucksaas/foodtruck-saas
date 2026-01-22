@@ -55,6 +55,7 @@ export function createFoodtrucksApi(supabase: TypedSupabaseClient) {
       max_orders_per_slot: number | null;
       show_promo_section: boolean | null;
       allow_advance_orders: boolean | null;
+      advance_order_days: number | null;
       allow_asap_orders: boolean | null;
       min_preparation_time: number | null;
       show_menu_photos: boolean | null;
@@ -73,6 +74,7 @@ export function createFoodtrucksApi(supabase: TypedSupabaseClient) {
           max_orders_per_slot,
           show_promo_section,
           allow_advance_orders,
+          advance_order_days,
           allow_asap_orders,
           min_preparation_time,
           show_menu_photos,

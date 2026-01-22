@@ -18,6 +18,7 @@ export type EditingField =
   | 'order_slot_interval'
   | 'max_orders_per_slot'
   | 'allow_advance_orders'
+  | 'advance_order_days'
   | 'allow_asap_orders'
   | 'min_preparation_time'
   | 'send_confirmation_email'
@@ -40,6 +41,7 @@ export interface EditFormState {
   show_order_popup: boolean;
   use_ready_status: boolean;
   allow_advance_orders: boolean;
+  advance_order_days: number;
   allow_asap_orders: boolean;
   min_preparation_time: number;
   send_confirmation_email: boolean;
@@ -80,6 +82,7 @@ export function useSettings() {
     show_order_popup: true,
     use_ready_status: false,
     allow_advance_orders: true,
+    advance_order_days: 7,
     allow_asap_orders: false,
     min_preparation_time: 15,
     send_confirmation_email: true,
@@ -104,6 +107,7 @@ export function useSettings() {
       show_order_popup: foodtruck.show_order_popup ?? true,
       use_ready_status: foodtruck.use_ready_status || false,
       allow_advance_orders: foodtruck.allow_advance_orders ?? true,
+      advance_order_days: foodtruck.advance_order_days ?? 7,
       allow_asap_orders: foodtruck.allow_asap_orders ?? false,
       min_preparation_time: foodtruck.min_preparation_time ?? 15,
       send_confirmation_email: foodtruck.send_confirmation_email ?? true,
@@ -168,7 +172,13 @@ export function useSettings() {
           updateData = { max_orders_per_slot: editForm.max_orders_per_slot };
           break;
         case 'allow_advance_orders':
-          updateData = { allow_advance_orders: editForm.allow_advance_orders };
+          updateData = {
+            allow_advance_orders: editForm.allow_advance_orders,
+            advance_order_days: editForm.allow_advance_orders ? editForm.advance_order_days : null,
+          };
+          break;
+        case 'advance_order_days':
+          updateData = { advance_order_days: editForm.advance_order_days };
           break;
         case 'allow_asap_orders':
           updateData = { allow_asap_orders: editForm.allow_asap_orders };
