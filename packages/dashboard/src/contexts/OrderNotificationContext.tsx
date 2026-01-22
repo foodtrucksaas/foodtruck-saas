@@ -99,7 +99,7 @@ interface OrderNotificationContextType {
   pendingCount: number;
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
-  acceptOrder: (id: string) => Promise<void>;
+  acceptOrder: (id: string, pickupTime?: string) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
   dismissPopup: (id: string) => void;
   refreshOrders: () => void;
@@ -107,6 +107,7 @@ interface OrderNotificationContextType {
   showAllPendingOrders: () => Promise<void>;
   showOrderById: (orderId: string) => Promise<void>;
   isAutoAccept: boolean;
+  minPrepTime: number;
 }
 
 const OrderNotificationContext = createContext<OrderNotificationContextType | null>(null);
@@ -343,8 +344,12 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   }, [foodtruck?.id, checkForNewOrders]);
 
   // Accept order
-  const acceptOrder = useCallback(async (id: string) => {
-    const { error } = await supabase.from('orders').update({ status: 'confirmed' }).eq('id', id);
+  const acceptOrder = useCallback(async (id: string, pickupTime?: string) => {
+    const updateData: { status: 'confirmed'; pickup_time?: string } = { status: 'confirmed' };
+    if (pickupTime) {
+      updateData.pickup_time = pickupTime;
+    }
+    const { error } = await supabase.from('orders').update(updateData).eq('id', id);
 
     if (error) {
       console.error('[OrderNotification] Error accepting order:', error);
@@ -452,6 +457,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
         showAllPendingOrders,
         showOrderById,
         isAutoAccept: foodtruck?.auto_accept_orders ?? false,
+        minPrepTime: foodtruck?.min_preparation_time ?? 15,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import { X, Check, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { X, Check, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-react';
 import { formatPrice, formatOrderId } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { useState, useEffect } from 'react';
@@ -6,10 +6,11 @@ import { useState, useEffect } from 'react';
 interface PendingOrdersModalProps {
   orders: OrderWithItemsAndOptions[];
   totalPendingCount?: number;
-  onAccept: (id: string) => void;
+  onAccept: (id: string, pickupTime?: string) => void;
   onCancel: (id: string) => void;
   onClose: () => void;
   onRefresh?: () => void;
+  minPrepTime?: number; // in minutes
 }
 
 export default function PendingOrdersModal({
@@ -19,16 +20,49 @@ export default function PendingOrdersModal({
   onCancel,
   onClose,
   onRefresh,
+  minPrepTime = 15,
 }: PendingOrdersModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [editedTimes, setEditedTimes] = useState<Record<string, string>>({});
 
   // Only auto-refresh if we have 0 orders but there are pending orders to show
-  // Don't refresh while user is working through orders (causes modal to close unexpectedly)
   useEffect(() => {
     if (orders.length === 0 && totalPendingCount && totalPendingCount > 0 && onRefresh) {
       onRefresh();
     }
   }, [totalPendingCount, orders.length, onRefresh]);
+
+  // Initialize edited times for ASAP orders
+  useEffect(() => {
+    const newEditedTimes: Record<string, string> = {};
+    orders.forEach(order => {
+      if ((order as OrderWithItemsAndOptions & { is_asap?: boolean }).is_asap && !editedTimes[order.id]) {
+        // Calculate suggested time: order created_at + min prep time
+        const orderDate = new Date(order.created_at || new Date());
+        orderDate.setMinutes(orderDate.getMinutes() + minPrepTime);
+
+        // Round to next 5 minutes
+        const minutes = orderDate.getMinutes();
+        const roundedMinutes = Math.ceil(minutes / 5) * 5;
+        orderDate.setMinutes(roundedMinutes);
+
+        // Make sure it's not in the past
+        const now = new Date();
+        if (orderDate < now) {
+          now.setMinutes(now.getMinutes() + minPrepTime);
+          const nowMinutes = now.getMinutes();
+          now.setMinutes(Math.ceil(nowMinutes / 5) * 5);
+          newEditedTimes[order.id] = now.toTimeString().slice(0, 5);
+        } else {
+          newEditedTimes[order.id] = orderDate.toTimeString().slice(0, 5);
+        }
+      }
+    });
+
+    if (Object.keys(newEditedTimes).length > 0) {
+      setEditedTimes(prev => ({ ...prev, ...newEditedTimes }));
+    }
+  }, [orders, minPrepTime]);
 
   if (orders.length === 0) return null;
 
@@ -38,7 +72,11 @@ export default function PendingOrdersModal({
 
   if (!order) return null;
 
-  const time = new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const isAsap = (order as OrderWithItemsAndOptions & { is_asap?: boolean }).is_asap;
+  const displayTime = isAsap && editedTimes[order.id]
+    ? editedTimes[order.id]
+    : new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
   const discountAmount = (order as OrderWithItemsAndOptions & { discount_amount?: number }).discount_amount || 0;
 
   const goNext = () => {
@@ -53,9 +91,22 @@ export default function PendingOrdersModal({
     }
   };
 
+  const handleTimeChange = (orderId: string, time: string) => {
+    setEditedTimes(prev => ({ ...prev, [orderId]: time }));
+  };
+
   const handleAccept = () => {
-    onAccept(order.id);
-    // Stay at same index (next order will slide in) or go back if at end
+    if (isAsap && editedTimes[order.id]) {
+      // Build full pickup time from today's date + edited time
+      const today = new Date();
+      const [hours, minutes] = editedTimes[order.id].split(':').map(Number);
+      today.setHours(hours, minutes, 0, 0);
+      onAccept(order.id, today.toISOString());
+    } else {
+      onAccept(order.id);
+    }
+
+    // Stay at same index or go back if at end
     if (safeIndex >= orders.length - 1 && safeIndex > 0) {
       setCurrentIndex(safeIndex - 1);
     }
@@ -77,7 +128,7 @@ export default function PendingOrdersModal({
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-yellow-500 text-white px-5 py-4 relative">
-          {/* Close button - more visible */}
+          {/* Close button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors"
@@ -128,12 +179,30 @@ export default function PendingOrdersModal({
 
         {/* Content */}
         <div className="p-6">
-          {/* Pickup time - prominent */}
+          {/* Pickup time */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg">
-              <Clock className="w-4 h-4" />
-              <span className="font-bold text-lg">{time}</span>
-            </div>
+            {isAsap ? (
+              <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-1.5 bg-primary-100 text-primary-700 px-2 py-1 rounded-lg">
+                  <Zap className="w-4 h-4" />
+                  <span className="font-medium text-sm">Au plus vite</span>
+                </div>
+                <div className="flex items-center gap-1 flex-1">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <input
+                    type="time"
+                    value={editedTimes[order.id] || ''}
+                    onChange={(e) => handleTimeChange(order.id, e.target.value)}
+                    className="text-lg font-bold bg-yellow-50 border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg">
+                <Clock className="w-4 h-4" />
+                <span className="font-bold text-lg">{displayTime}</span>
+              </div>
+            )}
           </div>
 
           {/* Customer name */}

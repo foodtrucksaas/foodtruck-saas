@@ -48,7 +48,7 @@ function LayoutContent({ children }: LayoutProps) {
   const location = useLocation();
   const { signOut } = useAuth();
   const { foodtruck } = useFoodtruck();
-  const { pendingPopupOrders, pendingCount, acceptOrder, cancelOrder, dismissPopup, isAutoAccept, refreshOrders, showAllPendingOrders, showOrderById } = useOrderNotification();
+  const { pendingPopupOrders, pendingCount, acceptOrder, cancelOrder, dismissPopup, isAutoAccept, refreshOrders, showAllPendingOrders, showOrderById, minPrepTime } = useOrderNotification();
 
   // Initialize push notifications for native apps
   usePushNotifications({
@@ -108,6 +108,7 @@ function LayoutContent({ children }: LayoutProps) {
             onCancel={cancelOrder}
             onClose={() => pendingPopupOrders.forEach(o => dismissPopup(o.id))}
             onRefresh={showAllPendingOrders}
+            minPrepTime={minPrepTime}
           />
         )
       )}
