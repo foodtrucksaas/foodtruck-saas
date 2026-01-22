@@ -36,7 +36,7 @@ export default function PendingOrdersModal({
   useEffect(() => {
     const newEditedTimes: Record<string, string> = {};
     orders.forEach(order => {
-      if ((order as OrderWithItemsAndOptions & { is_asap?: boolean }).is_asap && !editedTimes[order.id]) {
+      if ((order as { is_asap?: boolean | null }).is_asap === true && !editedTimes[order.id]) {
         // Calculate suggested time: order created_at + min prep time
         const orderDate = new Date(order.created_at || new Date());
         orderDate.setMinutes(orderDate.getMinutes() + minPrepTime);
@@ -72,7 +72,9 @@ export default function PendingOrdersModal({
 
   if (!order) return null;
 
-  const isAsap = (order as OrderWithItemsAndOptions & { is_asap?: boolean }).is_asap;
+  // is_asap is part of Order type from database.types.ts
+  const isAsap = (order as { is_asap?: boolean | null }).is_asap === true;
+
   const displayTime = isAsap && editedTimes[order.id]
     ? editedTimes[order.id]
     : new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });

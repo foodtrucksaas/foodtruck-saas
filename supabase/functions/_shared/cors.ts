@@ -1,6 +1,6 @@
 // Allowed origins for CORS - set via environment variables
-// Default includes localhost for development
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,http://localhost:5174').split(',');
+// Default includes localhost for development and Vercel preview deployments
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,http://localhost:5174,*.vercel.app').split(',');
 
 // Add production domains from environment
 const DASHBOARD_URL = Deno.env.get('DASHBOARD_URL');
