@@ -23,6 +23,7 @@ export interface FoodtruckSettings {
   minPrepTime: number;
   offersStackable: boolean;
   promoCodesStackable: boolean;
+  loyaltyEnabled: boolean;
 }
 
 interface UseCheckoutDataResult {
@@ -65,6 +66,7 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
           minPrepTime: foodtruckSettings?.min_preparation_time ?? 15,
           offersStackable: foodtruckSettings?.offers_stackable ?? false,
           promoCodesStackable: foodtruckSettings?.promo_codes_stackable !== false,
+          loyaltyEnabled: foodtruckSettings?.loyalty_enabled ?? false,
         };
         setSettings(settingsData);
 

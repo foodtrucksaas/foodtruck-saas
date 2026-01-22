@@ -385,8 +385,8 @@ export default function Checkout() {
               required
             />
 
-            {/* Loyalty Progress */}
-            {loyaltyInfo && !loyaltyLoading && (
+            {/* Loyalty Progress - hidden when opt-in is unchecked */}
+            {loyaltyInfo && !loyaltyLoading && form.loyaltyOptIn && (
               <LoyaltyCard
                 loyaltyInfo={loyaltyInfo}
                 loading={loyaltyLoading}
@@ -413,7 +413,8 @@ export default function Checkout() {
 
           {/* RGPD Opt-ins */}
           <div className="pt-2 space-y-3">
-            {loyaltyInfo && loyaltyInfo.loyalty_opt_in !== true && (
+            {/* Loyalty consent: show when loyalty is enabled and user hasn't already opted in */}
+            {settings?.loyaltyEnabled && (!loyaltyInfo || loyaltyInfo.loyalty_opt_in !== true) && (
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -422,7 +423,7 @@ export default function Checkout() {
                   className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-600">
-                  Je souhaite participer au programme de fidélité
+                  J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité
                 </span>
               </label>
             )}
