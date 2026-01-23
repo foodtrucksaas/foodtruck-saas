@@ -90,11 +90,14 @@ export default function Checkout() {
     totalOfferDiscount,
   } = useOffers(foodtruckId, items, total, form.email);
 
+  // useBundleDetection is only for UI hints, not for discount calculation
+  // get_optimized_offers already handles bundle discounts
   const {
     bestBundle,
-    totalBundleSavings,
+    totalBundleSavings: _totalBundleSavings,
     loading: bundleLoading,
   } = useBundleDetection(foodtruckId, items);
+  void _totalBundleSavings; // Suppress unused warning - discount is in totalOfferDiscount
 
   // Set initial selected date when available dates are loaded
   useEffect(() => {
@@ -129,15 +132,14 @@ export default function Checkout() {
     form.loyaltyOptIn
   );
 
-  // With the new optimization logic, offers can stack when they use different items
-  // The get_optimized_offers SQL function already handles item consumption tracking
-  // So we can apply both offer discounts AND bundle discounts (user-selected bundles)
+  // The get_optimized_offers SQL function handles ALL offers including bundles
+  // So we only use totalOfferDiscount - bundles are already included in it
+  // totalBundleSavings from useBundleDetection is only for UI display, not calculation
   const offerDiscountValue = totalOfferDiscount || 0;
-  const bundleDiscountValue = totalBundleSavings || 0;
 
-  // Apply both discounts - they use different items
+  // Don't use bundleDiscountValue separately - it's already in offerDiscountValue
   const appliedOfferDiscount = offerDiscountValue;
-  const appliedBundleDiscount = bundleDiscountValue;
+  const appliedBundleDiscount = 0; // Bundles already included in appliedOfferDiscount
 
   // Calculate promo discount AFTER offer/bundle discounts
   // Promo codes apply to the discounted total, not the original total

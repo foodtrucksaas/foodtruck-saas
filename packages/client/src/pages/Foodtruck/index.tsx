@@ -114,6 +114,7 @@ export default function FoodtruckPage() {
   // Detect applicable offers in real-time
   const {
     applicableOffers,
+    appliedOffers,
     bestOffer,
     totalOfferDiscount,
   } = useOffers(foodtruckId, items, total);
@@ -121,15 +122,21 @@ export default function FoodtruckPage() {
   // Filter offers to show (exclude promo codes)
   const visibleOffers = applicableOffers.filter(o => o.offer_type !== 'promo_code');
 
+  // useBundleDetection is only for UI hints, not for discount calculation
+  // get_optimized_offers already handles bundle discounts
   const {
-    bestBundle,
-    totalBundleSavings,
+    bestBundle: _bestBundle,
+    totalBundleSavings: _totalBundleSavings,
   } = useBundleDetection(foodtruckId, items);
+  void _bestBundle; void _totalBundleSavings; // Suppress unused warnings
 
-  // Calculate best discount (offers and bundles don't stack)
-  const useBundleAsDiscount = (totalBundleSavings || 0) > (totalOfferDiscount || 0);
-  const appliedDiscount = useBundleAsDiscount ? totalBundleSavings : totalOfferDiscount;
-  const appliedDiscountName = useBundleAsDiscount ? bestBundle?.bundle.name : bestOffer?.offer_name;
+  // get_optimized_offers already handles ALL offers including bundles
+  // So we just use totalOfferDiscount directly
+  const appliedDiscount = totalOfferDiscount || 0;
+  // For display name, check if we have applied offers from the API
+  const appliedDiscountName = appliedOffers.length > 0
+    ? appliedOffers.map(o => o.offer_name).join(' + ')
+    : bestOffer?.offer_name;
   const finalTotal = Math.max(0, total - appliedDiscount);
 
   // Track active category based on scroll position
