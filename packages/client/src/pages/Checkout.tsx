@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Gift, Sparkles } from 'lucide-react';
+import { ArrowLeft, Loader2, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatPrice, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
@@ -84,20 +84,21 @@ export default function Checkout() {
 
   const {
     applicableOffers,
-    loading: offersLoading,
+    loading: _offersLoading,
     appliedOffers,
     bestOffer,
     totalOfferDiscount,
   } = useOffers(foodtruckId, items, total, form.email);
+  void _offersLoading;
 
-  // useBundleDetection is only for UI hints, not for discount calculation
-  // get_optimized_offers already handles bundle discounts
+  // useBundleDetection is only kept for potential future UI hints
+  // get_optimized_offers already handles all discount calculations
   const {
-    bestBundle,
+    bestBundle: _bestBundle,
     totalBundleSavings: _totalBundleSavings,
-    loading: bundleLoading,
+    loading: _bundleLoading,
   } = useBundleDetection(foodtruckId, items);
-  void _totalBundleSavings; // Suppress unused warning - discount is in totalOfferDiscount
+  void _bestBundle; void _totalBundleSavings; void _bundleLoading;
 
   // Set initial selected date when available dates are loaded
   useEffect(() => {
@@ -501,58 +502,21 @@ export default function Checkout() {
           />
         </div>
 
-        {/* Detected Bundle Section */}
-        {bestBundle && !bundleLoading && (
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-5" style={{ boxShadow: '0 4px 12px rgba(147, 51, 234, 0.1)' }}>
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-800">
-                  {bestBundle.bundle.name}
-                </h3>
-                <p className="text-sm text-purple-600 mt-1">
-                  Vos articles correspondent à cette formule !
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-sm text-gray-500 line-through">
-                    {formatPrice(bestBundle.originalPrice)}
-                  </span>
-                  <span className="text-lg font-bold text-purple-600">
-                    {formatPrice(bestBundle.bundlePrice)}
-                  </span>
-                  <span className="px-2 py-0.5 bg-purple-500 text-white text-xs font-bold rounded-full">
-                    -{formatPrice(bestBundle.savings)}
-                  </span>
-                </div>
-                <p className="text-xs text-purple-500 mt-2">
-                  Articles : {bestBundle.matchedItems.map(i => i.menuItem.name).join(' + ')}
-                </p>
-              </div>
+        {/* Offers Section - Only show offers NOT yet applied (progress indicators) */}
+        {/* Only show offers that are NOT yet applied but have progress (incentive to add more items) */}
+        {(() => {
+          const pendingOffers = applicableOffers.filter(o => !o.is_applicable && o.progress_current > 0);
+          if (pendingOffers.length === 0) return null;
+          return (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-4">
+              <h3 className="font-semibold text-amber-800 mb-3 text-sm flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Plus que quelques articles...
+              </h3>
+              <OffersBanner offers={pendingOffers} />
             </div>
-          </div>
-        )}
-
-        {/* Offers Section */}
-        {applicableOffers.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
-            <h2 className="font-bold text-anthracite mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-success-50 flex items-center justify-center">
-                <Gift className="w-5 h-5 text-success-500" />
-              </div>
-              Offres disponibles
-            </h2>
-            {offersLoading ? (
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Chargement...</span>
-              </div>
-            ) : (
-              <OffersBanner offers={applicableOffers} />
-            )}
-          </div>
-        )}
+          );
+        })()}
 
         {/* Promo Code Section */}
         {/* Only show promo section if:

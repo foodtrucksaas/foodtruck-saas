@@ -124,17 +124,11 @@ export function OrderSummaryCard({
       {/* Totals */}
       <div className="border-t border-gray-100 mt-4 pt-4 space-y-2">
         <div className="flex justify-between text-gray-500">
-          <span>Sous-total</span>
+          <span>Articles</span>
           <span className="font-medium">{formatPrice(total)}</span>
         </div>
-        {promoDiscount > 0 && (
-          <div className="flex justify-between text-success-600">
-            <span>Code promo</span>
-            <span className="font-medium">-{formatPrice(promoDiscount)}</span>
-          </div>
-        )}
         {appliedOffers.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {appliedOffers.map((offer) => (
               <div key={offer.offer_id} className="flex items-start justify-between text-success-600">
                 <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -161,12 +155,27 @@ export function OrderSummaryCard({
         )}
         {loyaltyDiscount > 0 && (
           <div className="flex justify-between text-success-600">
-            <span>Récompense fidélité</span>
+            <span className="flex items-center gap-2">
+              <span className="text-lg">★</span>
+              <span className="text-sm">Fidélité</span>
+            </span>
             <span className="font-medium">-{formatPrice(loyaltyDiscount)}</span>
           </div>
         )}
-        <div className="flex justify-between pt-3 border-t border-gray-100">
-          <span className="font-bold text-anthracite">Total</span>
+        {promoDiscount > 0 && (
+          <div className="flex justify-between text-success-600">
+            <span className="flex items-center gap-2">
+              <span className="text-sm">🎟️</span>
+              <span className="text-sm">Code promo</span>
+            </span>
+            <span className="font-medium">-{formatPrice(promoDiscount)}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-end pt-3 border-t border-gray-100">
+          <div>
+            <span className="font-bold text-anthracite">Montant estimé</span>
+            <p className="text-xs text-gray-400">à régler sur place</p>
+          </div>
           <span className="font-bold text-primary-500 text-xl">{formatPrice(finalTotal)}</span>
         </div>
       </div>
