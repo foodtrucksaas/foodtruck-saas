@@ -3,7 +3,7 @@ import { Wallet, Banknote, CreditCard, Smartphone, FileText, Check } from 'lucid
 import { PAYMENT_METHODS } from '@foodtruck/shared';
 import type { Foodtruck } from '@foodtruck/shared';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
-import toast from 'react-hot-toast';
+import { ErrorAlert, SuccessAlert } from '../../components/Alert';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Banknote,
@@ -20,11 +20,15 @@ interface PaymentMethodsSectionProps {
 export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps) {
   const { updateFoodtruck } = useFoodtruck();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const currentMethods = foodtruck?.payment_methods || ['cash', 'card'];
 
   const toggleMethod = async (methodId: string) => {
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
     try {
       const newMethods = currentMethods.includes(methodId)
         ? currentMethods.filter((m) => m !== methodId)
@@ -32,15 +36,18 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
 
       // Ensure at least one method is selected
       if (newMethods.length === 0) {
-        toast.error('Sélectionnez au moins un moyen de paiement');
+        setError('Selectionnez au moins un moyen de paiement');
+        setTimeout(() => setError(null), 3000);
         setLoading(false);
         return;
       }
 
       await updateFoodtruck({ payment_methods: newMethods });
-      toast.success('Moyens de paiement mis à jour');
+      setSuccessMessage('Moyens de paiement mis a jour');
+      setTimeout(() => setSuccessMessage(null), 2000);
     } catch {
-      toast.error('Erreur lors de la mise à jour');
+      setError('Erreur lors de la mise a jour');
+      setTimeout(() => setError(null), 3000);
     }
     setLoading(false);
   };
@@ -79,6 +86,9 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
           );
         })}
       </div>
+
+      {error && <ErrorAlert className="mt-3">{error}</ErrorAlert>}
+      {successMessage && <SuccessAlert className="mt-3">{successMessage}</SuccessAlert>}
     </section>
   );
 }

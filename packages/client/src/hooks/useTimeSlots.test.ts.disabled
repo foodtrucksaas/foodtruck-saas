@@ -1,0 +1,827 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { useTimeSlots } from './useTimeSlots';
+import type { ScheduleWithLocation, ScheduleException, FoodtruckSettings } from './useCheckoutData';
+
+// Mock the api module
+const mockGetAvailableSlots = vi.fn();
+vi.mock('../lib/api', () => ({
+  api: {
+    schedules: {
+      getAvailableSlots: (...args: unknown[]) => mockGetAvailableSlots(...args),
+    },
+  },
+}));
+
+describe('useTimeSlots', () => {
+  const mockLocation = {
+    id: 'loc-1',
+    foodtruck_id: 'ft-1',
+    name: 'Place du marche',
+    address: '1 rue du marche',
+    latitude: 48.8566,
+    longitude: 2.3522,
+    created_at: '2024-01-01',
+  };
+
+  const mockSchedules: ScheduleWithLocation[] = [
+    {
+      id: 'sched-1',
+      foodtruck_id: 'ft-1',
+      day_of_week: 1, // Monday
+      start_time: '11:00',
+      end_time: '14:00',
+      is_active: true,
+      location_id: 'loc-1',
+      location: mockLocation,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+    {
+      id: 'sched-2',
+      foodtruck_id: 'ft-1',
+      day_of_week: 3, // Wednesday
+      start_time: '18:00',
+      end_time: '22:00',
+      is_active: true,
+      location_id: 'loc-1',
+      location: mockLocation,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+  ];
+
+  const mockSettings: FoodtruckSettings = {
+    slotInterval: 15,
+    maxOrdersPerSlot: 5,
+    allowAdvanceOrders: true,
+    advanceOrderDays: 7,
+    allowAsapOrders: false,
+    minPrepTime: 15,
+    offersStackable: false,
+    promoCodesStackable: true,
+    loyaltyEnabled: false,
+  };
+
+  // Store original Date for reference
+  let mockNow = new Date('2024-01-15T10:00:00').getTime();
+  const OriginalDate = global.Date;
+
+  // Simple Date mock that only overrides Date.now()
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset mock time to Monday 2024-01-15 at 10:00
+    mockNow = new Date('2024-01-15T10:00:00').getTime();
+    // Mock Date.now() to return our mock time
+    vi.spyOn(Date, 'now').mockImplementation(() => mockNow);
+    // Default mock for API
+    mockGetAvailableSlots.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Helper to change mock time
+  function setMockTime(dateStr: string) {
+    mockNow = new Date(dateStr).getTime();
+    vi.spyOn(Date, 'now').mockImplementation(() => mockNow);
+  }
+
+  describe('initialization', () => {
+    it('should initialize with empty slots and schedules', () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      expect(result.current.slots).toEqual([]);
+      expect(result.current.schedules).toEqual([]);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.notOpenYet).toBeNull();
+    });
+
+    it('should not fetch slots when foodtruckId is undefined', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots(undefined, selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 50));
+      });
+
+      expect(mockGetAvailableSlots).not.toHaveBeenCalled();
+      expect(result.current.slots).toEqual([]);
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('should not fetch slots when settings is null', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), null)
+      );
+
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 50));
+      });
+
+      expect(mockGetAvailableSlots).not.toHaveBeenCalled();
+      expect(result.current.slots).toEqual([]);
+    });
+  });
+
+  describe('generating time slots based on schedules', () => {
+    it('should generate slots for a scheduled day', async () => {
+      // Monday 2024-01-15 has schedule 11:00-14:00
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // With 15min intervals from 11:00 to 14:00, filtering past slots (10:00 + 15 prep = 10:15)
+      // Slots should be: 11:00, 11:15, 11:30, 11:45, 12:00, 12:15, 12:30, 12:45, 13:00, 13:15, 13:30, 13:45
+      expect(result.current.slots.length).toBeGreaterThan(0);
+      expect(result.current.schedules).toHaveLength(1);
+      expect(result.current.schedules[0].id).toBe('sched-1');
+    });
+
+    it('should return empty slots for a day without schedule', async () => {
+      // Tuesday (day_of_week = 2) has no schedule
+      const selectedDate = new Date('2024-01-16'); // Tuesday
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots).toEqual([]);
+      expect(result.current.schedules).toEqual([]);
+    });
+
+    it('should include location information in slots', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots.length).toBeGreaterThan(0);
+      expect(result.current.slots[0].locationName).toBe('Place du marche');
+      expect(result.current.slots[0].locationId).toBe('loc-1');
+      expect(result.current.slots[0].scheduleId).toBe('sched-1');
+    });
+
+    it('should sort slots by time', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const times = result.current.slots.map((s) => s.time);
+      const sortedTimes = [...times].sort();
+      expect(times).toEqual(sortedTimes);
+    });
+  });
+
+  describe('handling schedule exceptions (closed days)', () => {
+    it('should return empty slots when day is closed via exception', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const exceptions = new Map<string, ScheduleException>([
+        ['2024-01-15', { is_closed: true }],
+      ]);
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, exceptions, mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots).toEqual([]);
+      expect(result.current.schedules).toEqual([]);
+      expect(result.current.notOpenYet).toBeNull();
+    });
+
+    it('should use override exception with custom hours', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const overrideLocation = {
+        ...mockLocation,
+        id: 'loc-2',
+        name: 'Special Location',
+      };
+      const exceptions = new Map<string, ScheduleException>([
+        [
+          '2024-01-15',
+          {
+            is_closed: false,
+            location_id: 'loc-2',
+            location: overrideLocation,
+            start_time: '12:00',
+            end_time: '15:00',
+          },
+        ],
+      ]);
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, exceptions, mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should use the exception hours, not the regular schedule
+      expect(result.current.schedules).toHaveLength(1);
+      expect(result.current.schedules[0].start_time).toBe('12:00');
+      expect(result.current.schedules[0].end_time).toBe('15:00');
+      expect(result.current.slots[0].locationName).toBe('Special Location');
+    });
+
+    it('should fallback to regular schedule when exception has no hours', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const exceptions = new Map<string, ScheduleException>([
+        [
+          '2024-01-15',
+          {
+            is_closed: false,
+            // No location/start_time/end_time provided
+          },
+        ],
+      ]);
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, exceptions, mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should use regular Monday schedule
+      expect(result.current.schedules).toHaveLength(1);
+      expect(result.current.schedules[0].start_time).toBe('11:00');
+      expect(result.current.schedules[0].end_time).toBe('14:00');
+    });
+  });
+
+  describe('slot availability (max orders per slot)', () => {
+    it('should mark slots as unavailable when order count reaches max', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      mockGetAvailableSlots.mockResolvedValue([
+        { slot_time: '11:00:00', available: false, order_count: 5 },
+        { slot_time: '11:15:00', available: true, order_count: 2 },
+        { slot_time: '11:30:00', available: true, order_count: 0 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const slot1100 = result.current.slots.find((s) => s.time === '11:00');
+      const slot1115 = result.current.slots.find((s) => s.time === '11:15');
+      const slot1130 = result.current.slots.find((s) => s.time === '11:30');
+
+      expect(slot1100?.available).toBe(false);
+      expect(slot1100?.orderCount).toBe(5);
+      expect(slot1115?.available).toBe(true);
+      expect(slot1115?.orderCount).toBe(2);
+      expect(slot1130?.available).toBe(true);
+      expect(slot1130?.orderCount).toBe(0);
+    });
+
+    it('should default to available when slot not in API response', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      mockGetAvailableSlots.mockResolvedValue([
+        { slot_time: '11:00:00', available: true, order_count: 1 },
+        // 11:15 not in response
+      ]);
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const slot1115 = result.current.slots.find((s) => s.time === '11:15');
+      expect(slot1115?.available).toBe(true);
+      expect(slot1115?.orderCount).toBe(0);
+    });
+
+    it('should call API with correct parameters', async () => {
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockGetAvailableSlots).toHaveBeenCalledWith(
+        'ft-1',
+        '2024-01-15',
+        15, // slotInterval
+        5   // maxOrdersPerSlot
+      );
+    });
+  });
+
+  describe('filtering past slots', () => {
+    it('should filter out past slots based on prep time', async () => {
+      // Mock time to 12:00 on Monday
+      setMockTime('2024-01-15T12:00:00');
+
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // With 15min prep time, buffer is 12:00 + 15 - 3 = 12:12
+      // So slots before 12:15 should be filtered out
+      const times = result.current.slots.map((s) => s.time);
+      expect(times).not.toContain('11:00');
+      expect(times).not.toContain('11:15');
+      expect(times).not.toContain('11:30');
+      expect(times).not.toContain('11:45');
+      expect(times).not.toContain('12:00');
+      expect(times).toContain('12:15');
+    });
+
+    it('should not filter slots for future dates', async () => {
+      // Mock time to 12:00 on Monday
+      setMockTime('2024-01-15T12:00:00');
+
+      // Select Wednesday (future date)
+      const selectedDate = new Date('2024-01-17');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Wednesday schedule is 18:00-22:00, all slots should be available
+      const times = result.current.slots.map((s) => s.time);
+      expect(times).toContain('18:00');
+      expect(times).toContain('18:15');
+    });
+
+    it('should handle 5min prep time with 0 margin', async () => {
+      setMockTime('2024-01-15T11:30:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsWithShortPrep = { ...mockSettings, minPrepTime: 5 };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWithShortPrep)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // With 5min prep and 0 margin, buffer is 11:30 + 5 = 11:35
+      // Slots at or after 11:45 should be available (next 15min interval)
+      const times = result.current.slots.map((s) => s.time);
+      expect(times).not.toContain('11:30');
+      expect(times).toContain('11:45');
+    });
+
+    it('should handle 10min prep time with 2 margin', async () => {
+      setMockTime('2024-01-15T11:30:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsWithMediumPrep = { ...mockSettings, minPrepTime: 10 };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWithMediumPrep)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // With 10min prep and 2 margin, buffer is 11:30 + 10 - 2 = 11:38
+      // Slots at or after 11:45 should be available
+      const times = result.current.slots.map((s) => s.time);
+      expect(times).not.toContain('11:30');
+      expect(times).toContain('11:45');
+    });
+  });
+
+  describe('different interval settings', () => {
+    it('should generate slots with 30min interval', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const settingsWith30MinInterval = { ...mockSettings, slotInterval: 30 };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWith30MinInterval)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const times = result.current.slots.map((s) => s.time);
+      // With 30min intervals: 11:00, 11:30, 12:00, 12:30, 13:00, 13:30
+      expect(times).toContain('11:00');
+      expect(times).toContain('11:30');
+      expect(times).toContain('12:00');
+      expect(times).not.toContain('11:15');
+      expect(times).not.toContain('11:45');
+    });
+
+    it('should generate slots with 10min interval', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const settingsWith10MinInterval = { ...mockSettings, slotInterval: 10 };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWith10MinInterval)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const times = result.current.slots.map((s) => s.time);
+      // With 10min intervals, more slots
+      expect(times).toContain('11:00');
+      expect(times).toContain('11:10');
+      expect(times).toContain('11:20');
+      expect(times).toContain('11:30');
+    });
+
+    it('should call API with correct interval', async () => {
+      const selectedDate = new Date('2024-01-15');
+      const settingsWith30MinInterval = { ...mockSettings, slotInterval: 30 };
+
+      renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWith30MinInterval)
+      );
+
+      await waitFor(() => {
+        expect(mockGetAvailableSlots).toHaveBeenCalledWith(
+          'ft-1',
+          '2024-01-15',
+          30, // slotInterval
+          5   // maxOrdersPerSlot
+        );
+      });
+    });
+  });
+
+  describe('notOpenYet state', () => {
+    it('should set notOpenYet when advance orders not allowed and all schedules closed', async () => {
+      // Mock time to 15:00, after Monday schedule ends (14:00)
+      setMockTime('2024-01-15T15:00:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsNoAdvance = { ...mockSettings, allowAdvanceOrders: false };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsNoAdvance)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // notOpenYet should be set because all schedules have ended for today
+      expect(result.current.notOpenYet).not.toBeNull();
+      expect(result.current.notOpenYet?.openTime).toBe('11:00');
+    });
+
+    it('should not set notOpenYet when advance orders are allowed', async () => {
+      // Mock time to 15:00, after Monday schedule ends
+      setMockTime('2024-01-15T15:00:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsWithAdvance = { ...mockSettings, allowAdvanceOrders: true };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsWithAdvance)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should generate slots (even if empty due to past times), not show notOpenYet
+      expect(result.current.notOpenYet).toBeNull();
+    });
+
+    it('should not set notOpenYet when currently within schedule hours', async () => {
+      // Mock time to 12:00, within Monday schedule (11:00-14:00)
+      setMockTime('2024-01-15T12:00:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsNoAdvance = { ...mockSettings, allowAdvanceOrders: false };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), settingsNoAdvance)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.notOpenYet).toBeNull();
+      expect(result.current.slots.length).toBeGreaterThan(0);
+    });
+
+    it('should show earliest open time when before all schedules', async () => {
+      // Add another schedule that starts later
+      const schedulesWithLater: ScheduleWithLocation[] = [
+        ...mockSchedules,
+        {
+          id: 'sched-3',
+          foodtruck_id: 'ft-1',
+          day_of_week: 1, // Monday
+          start_time: '09:00',
+          end_time: '10:00',
+          is_active: true,
+          location_id: 'loc-1',
+          location: mockLocation,
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
+        },
+      ];
+
+      // Mock time to 10:30, after first schedule but before second
+      setMockTime('2024-01-15T14:30:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const settingsNoAdvance = { ...mockSettings, allowAdvanceOrders: false };
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, schedulesWithLater, new Map(), settingsNoAdvance)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should show earliest open time
+      expect(result.current.notOpenYet?.openTime).toBe('09:00');
+    });
+  });
+
+  describe('loading state', () => {
+    it('should set loading true during slot generation', async () => {
+      let resolveSlots: (value: unknown) => void;
+      mockGetAvailableSlots.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSlots = resolve;
+          })
+      );
+
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, mockSchedules, new Map(), mockSettings)
+      );
+
+      // Should be loading initially
+      expect(result.current.loading).toBe(true);
+
+      // Resolve the API call
+      await act(async () => {
+        resolveSlots!([]);
+        await new Promise((r) => setTimeout(r, 50));
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  describe('dependency changes', () => {
+    it('should regenerate slots when selectedDate changes', async () => {
+      const { result, rerender } = renderHook(
+        ({ date }) => useTimeSlots('ft-1', date, mockSchedules, new Map(), mockSettings),
+        { initialProps: { date: new Date('2024-01-15') } } // Monday
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const initialSlots = result.current.slots.length;
+      expect(initialSlots).toBeGreaterThan(0);
+
+      // Change to Wednesday
+      rerender({ date: new Date('2024-01-17') });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Wednesday has different schedule (18:00-22:00)
+      expect(result.current.schedules[0].start_time).toBe('18:00');
+    });
+
+    it('should regenerate slots when settings change', async () => {
+      const { result, rerender } = renderHook(
+        ({ settings }) =>
+          useTimeSlots('ft-1', new Date('2024-01-15'), mockSchedules, new Map(), settings),
+        { initialProps: { settings: mockSettings } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const slotsWithInterval15 = result.current.slots.length;
+
+      // Change interval to 30min
+      rerender({ settings: { ...mockSettings, slotInterval: 30 } });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // With 30min interval, should have fewer slots
+      expect(result.current.slots.length).toBeLessThan(slotsWithInterval15);
+    });
+
+    it('should regenerate slots when schedules change', async () => {
+      const { result, rerender } = renderHook(
+        ({ schedules }) =>
+          useTimeSlots('ft-1', new Date('2024-01-15'), schedules, new Map(), mockSettings),
+        { initialProps: { schedules: mockSchedules } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots.length).toBeGreaterThan(0);
+
+      // Change to schedules without Monday
+      const noMondaySchedules = mockSchedules.filter((s) => s.day_of_week !== 1);
+      rerender({ schedules: noMondaySchedules });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // No slots for Monday
+      expect(result.current.slots).toEqual([]);
+    });
+
+    it('should regenerate slots when exceptions change', async () => {
+      const { result, rerender } = renderHook(
+        ({ exceptions }) =>
+          useTimeSlots('ft-1', new Date('2024-01-15'), mockSchedules, exceptions, mockSettings),
+        { initialProps: { exceptions: new Map() } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots.length).toBeGreaterThan(0);
+
+      // Add closed exception
+      const closedException = new Map<string, ScheduleException>([
+        ['2024-01-15', { is_closed: true }],
+      ]);
+      rerender({ exceptions: closedException });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots).toEqual([]);
+    });
+  });
+
+  describe('handle missing location gracefully', () => {
+    it('should use default location name when location is null', async () => {
+      // Test edge case where location data is missing (cast to bypass TypeScript)
+      const scheduleWithoutLocation = [
+        {
+          id: 'sched-no-loc',
+          foodtruck_id: 'ft-1',
+          day_of_week: 1,
+          start_time: '11:00',
+          end_time: '14:00',
+          is_active: true,
+          location_id: null,
+          location: null,
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
+        },
+      ] as unknown as ScheduleWithLocation[];
+
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, scheduleWithoutLocation, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.slots[0].locationName).toBe('Emplacement inconnu');
+      expect(result.current.slots[0].locationId).toBe('');
+    });
+  });
+
+  describe('multiple schedules on same day', () => {
+    it('should generate slots for all schedules on the same day', async () => {
+      const multipleSchedulesSameDay: ScheduleWithLocation[] = [
+        {
+          id: 'sched-morning',
+          foodtruck_id: 'ft-1',
+          day_of_week: 1,
+          start_time: '08:00',
+          end_time: '10:00',
+          is_active: true,
+          location_id: 'loc-1',
+          location: mockLocation,
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
+        },
+        {
+          id: 'sched-afternoon',
+          foodtruck_id: 'ft-1',
+          day_of_week: 1,
+          start_time: '14:00',
+          end_time: '16:00',
+          is_active: true,
+          location_id: 'loc-2',
+          location: { ...mockLocation, id: 'loc-2', name: 'Other Location' },
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
+        },
+      ];
+
+      // Mock time to 7:00 so all slots are in the future
+      setMockTime('2024-01-15T07:00:00');
+      const selectedDate = new Date('2024-01-15');
+
+      const { result } = renderHook(() =>
+        useTimeSlots('ft-1', selectedDate, multipleSchedulesSameDay, new Map(), mockSettings)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.schedules).toHaveLength(2);
+
+      const times = result.current.slots.map((s) => s.time);
+      // Should have slots from both schedules
+      expect(times).toContain('08:00');
+      expect(times).toContain('08:15');
+      expect(times).toContain('14:00');
+      expect(times).toContain('14:15');
+
+      // Should have different locations
+      const morningSlot = result.current.slots.find((s) => s.time === '08:00');
+      const afternoonSlot = result.current.slots.find((s) => s.time === '14:00');
+      expect(morningSlot?.locationName).toBe('Place du marche');
+      expect(afternoonSlot?.locationName).toBe('Other Location');
+    });
+  });
+});

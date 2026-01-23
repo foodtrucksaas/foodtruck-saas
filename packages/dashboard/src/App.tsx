@@ -8,6 +8,8 @@ import Loading from './components/Loading';
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Menu = lazy(() => import('./pages/Menu'));
 const Orders = lazy(() => import('./pages/Orders'));
@@ -79,6 +81,18 @@ export default function App() {
             <Register />
           </PublicRoute>
         }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
       />
       <Route
         path="/onboarding"

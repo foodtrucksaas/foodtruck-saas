@@ -11,6 +11,8 @@ interface AuthContextType {
   signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePasswordWithOld: (oldPassword: string, newPassword: string) => Promise<{ error: AuthError | Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,9 +69,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error };
+  };
+
+  const updatePasswordWithOld = async (oldPassword: string, newPassword: string) => {
+    // First verify the old password by attempting to sign in
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser?.email) {
+      return { error: new Error('Utilisateur non connecté') };
+    }
+
+    // Verify old password by attempting to sign in
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: currentUser.email,
+      password: oldPassword,
+    });
+
+    if (signInError) {
+      return { error: new Error('Ancien mot de passe incorrect') };
+    }
+
+    // Now update to new password
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error };
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signUp, signInWithMagicLink, signOut, updatePassword }}
+      value={{ user, loading, signIn, signUp, signInWithMagicLink, signOut, updatePassword, resetPassword, updatePasswordWithOld }}
     >
       {children}
     </AuthContext.Provider>

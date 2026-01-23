@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
-import toast from 'react-hot-toast';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -167,10 +166,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   const showPopupForOrders = useCallback((orders: OrderWithItemsAndOptions[], playSound: boolean) => {
     const ft = foodtruckRef.current;
     if (!ft?.show_order_popup) {
-      // Popup disabled - show toast instead
-      if (orders.length > 0) {
-        toast.success(`${orders.length} nouvelle${orders.length > 1 ? 's' : ''} commande${orders.length > 1 ? 's' : ''} !`);
-      }
+      // Popup disabled - sound only
       return;
     }
 
@@ -354,11 +350,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     if (error) {
       console.error('[OrderNotification] Error accepting order:', error);
-      toast.error('Erreur lors de l\'acceptation');
       return;
     }
-
-    toast.success('Commande acceptée');
 
     // Send confirmation email if enabled (non-blocking)
     if (foodtruckRef.current?.send_confirmation_email !== false) {
@@ -389,11 +382,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     if (error) {
       console.error('[OrderNotification] Error cancelling order:', error);
-      toast.error('Erreur lors du refus');
       return;
     }
-
-    toast.success('Commande refusée');
     setPendingCount(prev => Math.max(0, prev - 1));
     updatePendingPopups(prev => prev.filter(o => o.id !== id));
   }, [updatePendingPopups]);
@@ -412,8 +402,6 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     if (pendingOrders.length > 0) {
       updatePendingPopups(() => [...pendingOrders].reverse());
-    } else {
-      toast('Aucune commande en attente');
     }
   }, [fetchPendingOrders, updatePendingPopups]);
 

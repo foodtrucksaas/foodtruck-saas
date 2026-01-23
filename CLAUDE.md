@@ -693,6 +693,94 @@ supabase functions deploy nom-fonction  # Déploiement
 
 ---
 
+## 🔒 Backups Base de Données
+
+### Configuration actuelle (Supabase)
+
+**Backups automatiques inclus :**
+- **Plan Free** : 0 jours (pas de backup)
+- **Plan Pro** : 7 jours de backups quotidiens
+- **Plan Team** : 14 jours de backups quotidiens
+- **Plan Enterprise** : 30+ jours
+
+### Point-in-Time Recovery (PITR)
+
+Le PITR permet de restaurer la base à n'importe quel instant précis (granularité seconde).
+
+**Activation :**
+1. Dashboard Supabase → Project Settings → Add-ons
+2. Activer "Point-in-Time Recovery"
+3. Coût : ~$100/mois selon volume de WAL
+
+**Recommandé pour production** si le coût est acceptable.
+
+### Backup manuel
+
+```bash
+# Via Supabase CLI
+supabase db dump -f backup_$(date +%Y%m%d).sql
+
+# Via pg_dump direct (requiert connection string)
+pg_dump "postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres" \
+  --clean --if-exists --no-owner --no-acl \
+  -f backup_$(date +%Y%m%d).sql
+
+# Backup avec compression
+pg_dump "postgresql://..." | gzip > backup_$(date +%Y%m%d).sql.gz
+```
+
+### Restauration
+
+```bash
+# Depuis backup SQL
+psql "postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres" \
+  -f backup_XXXXXXXX.sql
+
+# Via Dashboard
+# Project Settings → Database → Download backup (derniers 7 jours)
+```
+
+### Bonnes pratiques production
+
+1. **Activer PITR** si budget le permet (~$100/mois)
+2. **Backup hebdomadaire manuel** stocké en externe (S3, local)
+3. **Tester la restauration** sur un projet de test trimestriellement
+4. **Sauvegarder les secrets** séparément (variables d'environnement)
+5. **Documenter les Edge Functions** (elles ne sont pas dans le backup SQL)
+
+### Script de backup automatisé (optionnel)
+
+Créer un cron job ou GitHub Action pour backup hebdomadaire :
+
+```yaml
+# .github/workflows/backup.yml
+name: Weekly DB Backup
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Dimanche 3h du matin
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Supabase CLI
+        run: npm install -g supabase
+      - name: Create backup
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase db dump -f backup_$(date +%Y%m%d).sql
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl private
+        env:
+          AWS_S3_BUCKET: ${{ secrets.BACKUP_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: '.'
+```
+
+---
+
 ## 📊 Suivi d'avancement
 
 Quand une fonctionnalité est terminée, coche-la dans la section "Fonctionnalités V1" ci-dessus.
@@ -701,16 +789,16 @@ Format : `- [ ]` → `- [x]`
 
 ---
 
-*Dernière mise à jour : 18 Janvier 2026*
+*Dernière mise à jour : 23 Janvier 2026*
 
 ---
 
 ## 📈 État actuel du projet
 
-**V1 MVP : 95% complété**
+**V1 MVP : 98% complété**
 
 ### Fonctionnalités restantes à implémenter :
-- [ ] Vue planning vertical (créneaux de retrait par tranches de 15min) - Dashboard
+- [x] Vue planning vertical (créneaux de retrait par tranches de 15min) - Dashboard ✅
 - [ ] Confirmation par email (nécessite configuration SMTP)
 
 ### Fichiers implémentés :

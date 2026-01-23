@@ -8,7 +8,6 @@ import {
   Mail,
   ShoppingBag,
   Star,
-  Navigation,
   Tag,
   Globe,
   Instagram,
@@ -26,7 +25,7 @@ import {
   DAY_NAMES,
   PAYMENT_METHODS,
 } from '@foodtruck/shared';
-import MapComponent from '../../components/Map';
+import LocationCard from '../../components/LocationCard';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection } from '../../hooks';
 import { useFoodtruck } from './useFoodtruck';
@@ -754,29 +753,20 @@ export default function FoodtruckPage() {
 
             {/* Map - only show if coordinates are available */}
             {todaySchedule && (todaySchedule.location.latitude && todaySchedule.location.longitude) && (
-              <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
-                <h2 className="font-bold text-anthracite p-5 pb-0">Position du jour</h2>
-                <div className="h-64 mt-3">
-                  <MapComponent
-                    latitude={todaySchedule.location.latitude}
-                    longitude={todaySchedule.location.longitude}
-                    name={todaySchedule.location.name}
-                  />
-                </div>
-                <div className="p-5 pt-3">
-                  {todaySchedule.location.address && (
-                    <p className="text-sm text-gray-600 mb-3">{todaySchedule.location.address}</p>
-                  )}
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${todaySchedule.location.latitude},${todaySchedule.location.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold text-sm transition-colors"
-                  >
-                    <Navigation className="w-4 h-4" />
-                    Itinéraire
-                  </a>
-                </div>
+              <div>
+                <h2 className="font-bold text-anthracite mb-3">Position du jour</h2>
+                <LocationCard
+                  location={{
+                    name: todaySchedule.location.name,
+                    address: todaySchedule.location.address,
+                    latitude: todaySchedule.location.latitude,
+                    longitude: todaySchedule.location.longitude,
+                    start_time: todaySchedule.start_time,
+                    end_time: todaySchedule.end_time,
+                  }}
+                  showMap={true}
+                  showHours={true}
+                />
               </div>
             )}
           </div>

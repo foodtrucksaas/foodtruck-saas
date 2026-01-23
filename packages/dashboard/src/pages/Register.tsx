@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Lock, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Register() {
@@ -11,29 +10,33 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     if (password !== confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
+      setError('Les mots de passe ne correspondent pas');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      setError('Le mot de passe doit contenir au moins 6 caractères');
       return;
     }
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    const { error: signUpError } = await signUp(email, password);
 
-    if (error) {
-      toast.error(error.message);
+    if (signUpError) {
+      setError(signUpError.message);
     } else {
-      toast.success('Compte créé ! Vérifiez votre email pour confirmer.');
-      navigate('/login');
+      setSuccess('Compte créé ! Vérifiez votre email pour confirmer.');
+      setTimeout(() => navigate('/login'), 2000);
     }
 
     setLoading(false);
@@ -51,6 +54,16 @@ export default function Register() {
         </div>
 
         <div className="card p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {success}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="label">

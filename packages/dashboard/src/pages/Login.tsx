@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Lock, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
@@ -10,15 +9,17 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error: signInError } = await signIn(email, password);
 
-    if (error) {
-      toast.error(error.message);
+    if (signInError) {
+      setError(signInError.message);
     }
 
     setLoading(false);
@@ -26,18 +27,18 @@ export default function Login() {
 
   const handleMagicLink = async () => {
     if (!email) {
-      toast.error('Veuillez entrer votre email');
+      setError('Veuillez entrer votre email');
       return;
     }
 
+    setError(null);
     setLoading(true);
-    const { error } = await signInWithMagicLink(email);
+    const { error: magicLinkError } = await signInWithMagicLink(email);
 
-    if (error) {
-      toast.error(error.message);
+    if (magicLinkError) {
+      setError(magicLinkError.message);
     } else {
       setMagicLinkSent(true);
-      toast.success('Lien de connexion envoyé !');
     }
 
     setLoading(false);
@@ -87,6 +88,11 @@ export default function Login() {
         </div>
 
         <div className="card p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="label">
@@ -107,9 +113,17 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="label">
-                Mot de passe
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="label">
+                  Mot de passe
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input

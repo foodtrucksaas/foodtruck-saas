@@ -7,6 +7,7 @@ import { QRCodeSection } from './QRCodeSection';
 import { OrderSettingsSection } from './OrderSettingsSection';
 import { OffersSettingsSection } from './OffersSettingsSection';
 import { AccountSection } from './AccountSection';
+import ThemeSection from './ThemeSection';
 
 export default function Settings() {
   const {
@@ -111,6 +112,9 @@ export default function Settings() {
         onCancel={cancelEditing}
         onUpdateForm={updateEditForm}
       />
+
+      {/* Theme Section */}
+      <ThemeSection />
 
       {/* Account Section */}
       <AccountSection />

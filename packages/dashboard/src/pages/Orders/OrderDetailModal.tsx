@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, Pencil, Check, Package, XCircle } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
-import toast from 'react-hot-toast';
+import { ErrorAlert } from '../../components/Alert';
 
 const CANCEL_REASONS = [
   'Client a demandé l\'annulation',
@@ -39,6 +39,7 @@ export function OrderDetailModal({
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelReasonOther, setCancelReasonOther] = useState('');
+  const [cancelError, setCancelError] = useState('');
 
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
@@ -56,13 +57,14 @@ export function OrderDetailModal({
   };
 
   const handleCancelSubmit = () => {
+    setCancelError('');
     const finalReason = cancelReason === 'Autre'
       ? (cancelReasonOther.trim() || 'Autre motif')
       : cancelReason;
     if (finalReason) {
       onCancelWithReason(finalReason);
     } else {
-      toast.error('Veuillez sélectionner un motif d\'annulation');
+      setCancelError('Veuillez sélectionner un motif d\'annulation');
     }
   };
 
@@ -184,9 +186,10 @@ export function OrderDetailModal({
               reasons={CANCEL_REASONS}
               selectedReason={cancelReason}
               otherReason={cancelReasonOther}
+              error={cancelError}
               onReasonChange={setCancelReason}
               onOtherReasonChange={setCancelReasonOther}
-              onCancel={() => { setShowCancelModal(false); setCancelReason(''); setCancelReasonOther(''); }}
+              onCancel={() => { setShowCancelModal(false); setCancelReason(''); setCancelReasonOther(''); setCancelError(''); }}
               onSubmit={handleCancelSubmit}
             />
           ) : isEditing ? (
@@ -284,6 +287,7 @@ function CancelReasonForm({
   reasons,
   selectedReason,
   otherReason,
+  error,
   onReasonChange,
   onOtherReasonChange,
   onCancel,
@@ -292,6 +296,7 @@ function CancelReasonForm({
   reasons: string[];
   selectedReason: string;
   otherReason: string;
+  error?: string;
   onReasonChange: (reason: string) => void;
   onOtherReasonChange: (reason: string) => void;
   onCancel: () => void;
@@ -334,6 +339,7 @@ function CancelReasonForm({
           />
         )}
       </div>
+      {error && <ErrorAlert>{error}</ErrorAlert>}
       <div className="flex gap-2">
         <button
           onClick={onCancel}

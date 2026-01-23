@@ -4,16 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Palette Coral 2026
+        // Primary colors using CSS variables for dynamic theming
+        // Default values are coral theme (fallback if CSS vars not set)
         primary: {
-          50: '#FFF5F3',   // Background très léger
-          100: '#FFE8E4',
-          200: '#FFD4CC',
-          300: '#FFB4A8',
-          400: '#FB923C',  // Orange clair (gradient start)
-          500: '#F97066',  // Coral principal
-          600: '#E5634D',  // Coral foncé (hover)
-          700: '#C94D3A',
+          50: 'var(--color-primary-50, #FFF5F3)',
+          100: 'var(--color-primary-100, #FFE8E4)',
+          200: 'var(--color-primary-200, #FFD4CC)',
+          300: 'var(--color-primary-300, #FFB4A8)',
+          400: 'var(--color-primary-400, #FB923C)',
+          500: 'var(--color-primary-500, #F97066)',
+          600: 'var(--color-primary-600, #E5634D)',
+          700: 'var(--color-primary-700, #C94D3A)',
           800: '#A13D2E',
           900: '#7C2D22',
           950: '#431410',
@@ -56,6 +57,20 @@ export default {
       borderRadius: {
         'xl': '12px',
         '2xl': '16px',
+      },
+      animation: {
+        fadeIn: 'fadeIn 0.3s ease-out',
+        slideUp: 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(100%)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },

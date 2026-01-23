@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useCallback } from 'react';
+import { ReactNode, useEffect, useCallback, useRef } from 'react';
 import { X } from 'lucide-react';
 
 export interface ModalProps {
@@ -11,6 +11,8 @@ export interface ModalProps {
   closeOnOverlayClick?: boolean;
   closeOnEscape?: boolean;
   footer?: ReactNode;
+  /** Accessible label for the modal when no title is provided */
+  ariaLabel?: string;
 }
 
 const sizeClasses = {
@@ -31,7 +33,11 @@ export function Modal({
   closeOnOverlayClick = true,
   closeOnEscape = true,
   footer,
+  ariaLabel,
 }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape' && closeOnEscape) {
@@ -41,30 +47,78 @@ export function Modal({
     [onClose, closeOnEscape]
   );
 
+  // Focus trap implementation
+  const handleTabKey = useCallback((e: KeyboardEvent) => {
+    if (e.key !== 'Tab' || !modalRef.current) return;
+
+    const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey && document.activeElement === firstElement) {
+      e.preventDefault();
+      lastElement?.focus();
+    } else if (!e.shiftKey && document.activeElement === lastElement) {
+      e.preventDefault();
+      firstElement?.focus();
+    }
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
+      // Store currently focused element
+      previousActiveElement.current = document.activeElement as HTMLElement;
+
       document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleTabKey);
       document.body.style.overflow = 'hidden';
+
+      // Focus the modal or first focusable element
+      setTimeout(() => {
+        const firstFocusable = modalRef.current?.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        firstFocusable?.focus();
+      }, 0);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleTabKey);
       document.body.style.overflow = 'unset';
+
+      // Restore focus to previously focused element
+      if (!isOpen && previousActiveElement.current) {
+        previousActiveElement.current.focus();
+      }
     };
-  }, [isOpen, handleEscape]);
+  }, [isOpen, handleEscape, handleTabKey]);
 
   if (!isOpen) return null;
 
+  const modalLabelId = title ? 'modal-title' : undefined;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      role="presentation"
+    >
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={closeOnOverlayClick ? onClose : undefined}
+        aria-hidden="true"
       />
 
       {/* Modal */}
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={modalLabelId}
+        aria-label={!title ? ariaLabel : undefined}
         className={`
           relative bg-white rounded-t-2xl sm:rounded-2xl w-full
           max-h-[90vh] shadow-xl flex flex-col
@@ -76,12 +130,13 @@ export function Modal({
         {(title || showCloseButton) && (
           <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
             {title && (
-              <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+              <h3 id="modal-title" className="text-lg font-bold text-gray-900">{title}</h3>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-auto"
+                aria-label="Fermer"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>

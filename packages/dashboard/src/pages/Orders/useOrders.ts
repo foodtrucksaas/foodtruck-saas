@@ -4,7 +4,6 @@ import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import { useOrderNotification } from '../../contexts/OrderNotificationContext';
-import toast from 'react-hot-toast';
 
 // Get the "business day" - after 2am show today, before 2am show yesterday
 function getBusinessDate(): Date {
@@ -121,16 +120,15 @@ export function useOrders() {
       .select();
 
     if (error) {
-      toast.error('Erreur: ' + error.message);
+      console.error('Error cancelling order:', error.message);
       return;
     }
 
     if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
+      console.error('Cancel order failed: no data returned (test mode?)');
       return;
     }
 
-    toast.success('Commande annulée');
     await fetchOrders();
   }, [fetchOrders]);
 
@@ -143,16 +141,15 @@ export function useOrders() {
       .select();
 
     if (error) {
-      toast.error('Erreur: ' + error.message);
+      console.error('Error marking order as ready:', error.message);
       return;
     }
 
     if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
+      console.error('Mark ready failed: no data returned (test mode?)');
       return;
     }
 
-    toast.success('Commande prête !');
     await fetchOrders();
   }, [fetchOrders]);
 
@@ -165,16 +162,15 @@ export function useOrders() {
       .select();
 
     if (error) {
-      toast.error('Erreur: ' + error.message);
+      console.error('Error marking order as picked up:', error.message);
       return;
     }
 
     if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
+      console.error('Mark picked up failed: no data returned (test mode?)');
       return;
     }
 
-    toast.success('Commande marquée comme retirée !');
     await fetchOrders();
   }, [fetchOrders]);
 
@@ -191,16 +187,15 @@ export function useOrders() {
       .select();
 
     if (error) {
-      toast.error('Erreur: ' + error.message);
+      console.error('Error updating pickup time:', error.message);
       return;
     }
 
     if (!data || data.length === 0) {
-      toast.error('Mode test: reconnectez-vous avec un vrai compte');
+      console.error('Update pickup time failed: no data returned (test mode?)');
       return;
     }
 
-    toast.success('Heure modifiée !');
     await fetchOrders();
   }, [fetchOrders]);
 
@@ -273,6 +268,7 @@ export function useOrders() {
     setSelectedOrder,
     groupedOrders,
     currentSlotStr,
+    slotInterval,
     nowRef,
     pending,
     confirmed,

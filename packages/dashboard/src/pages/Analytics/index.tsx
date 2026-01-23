@@ -6,6 +6,7 @@ import { Calendar, ChevronDown, Download, Clock, MapPin } from 'lucide-react';
 import { Package, ShoppingBag, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { formatPrice, safeDivide, safeNumber } from '@foodtruck/shared';
 import { useAnalytics, DATE_PRESETS } from './useAnalytics';
+import { AnalyticsPageSkeleton } from '../../components/Skeleton';
 
 // Chart wrapper that only renders when container has valid dimensions
 function SafeChart({ children, className }: { children: ReactNode; className?: string }) {
@@ -48,11 +49,7 @@ export default function Analytics() {
   } = useAnalytics();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
-      </div>
-    );
+    return <AnalyticsPageSkeleton />;
   }
 
   return (

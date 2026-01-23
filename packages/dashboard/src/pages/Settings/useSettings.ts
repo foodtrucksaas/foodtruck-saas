@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useImageUpload } from '../../hooks/useImageUpload';
@@ -130,7 +129,7 @@ export function useSettings() {
       switch (field) {
         case 'name':
           if (!editForm.name.trim()) {
-            toast.error('Le nom est obligatoire');
+            console.error('Validation error: name is required');
             setEditLoading(false);
             return;
           }
@@ -138,7 +137,7 @@ export function useSettings() {
           break;
         case 'cuisine_types':
           if (editForm.cuisine_types.length === 0) {
-            toast.error('Sélectionnez au moins un type de cuisine');
+            console.error('Validation error: at least one cuisine type is required');
             setEditLoading(false);
             return;
           }
@@ -200,10 +199,9 @@ export function useSettings() {
           break;
       }
       await updateFoodtruck(updateData);
-      toast.success('Modification enregistrée');
       setEditingField(null);
-    } catch {
-      toast.error('Erreur lors de la mise à jour');
+    } catch (error) {
+      console.error('Error updating settings:', error);
     }
     setEditLoading(false);
   }, [editForm, updateFoodtruck]);
@@ -225,7 +223,6 @@ export function useSettings() {
     if (!foodtruck) return;
     const link = `${import.meta.env.VITE_APP_URL || 'https://votre-app.vercel.app'}/${foodtruck.id}`;
     navigator.clipboard.writeText(link);
-    toast.success('Lien copié !');
   }, [foodtruck]);
 
   const clientLink = foodtruck
@@ -241,7 +238,6 @@ export function useSettings() {
         await deleteLogoImage(foodtruck.logo_url);
       }
       await updateFoodtruck({ logo_url: url });
-      toast.success('Logo mis à jour');
     }
   }, [uploadLogoImage, deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
 
@@ -249,7 +245,6 @@ export function useSettings() {
     if (foodtruck?.logo_url) {
       await deleteLogoImage(foodtruck.logo_url);
       await updateFoodtruck({ logo_url: null });
-      toast.success('Logo supprimé');
     }
   }, [deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
 
@@ -261,7 +256,6 @@ export function useSettings() {
         await deleteCoverImage(foodtruck.cover_image_url);
       }
       await updateFoodtruck({ cover_image_url: url });
-      toast.success('Image de couverture mise à jour');
     }
   }, [uploadCoverImage, deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
 
@@ -269,7 +263,6 @@ export function useSettings() {
     if (foodtruck?.cover_image_url) {
       await deleteCoverImage(foodtruck.cover_image_url);
       await updateFoodtruck({ cover_image_url: null });
-      toast.success('Image de couverture supprimée');
     }
   }, [deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
 

@@ -68,35 +68,62 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    @apply cursor-not-allowed pointer-events-none;
+    opacity: 0.6;
+    filter: grayscale(0.3);
   }
 
   .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+    @apply btn bg-primary-500 text-white focus:ring-primary-500;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
-  .btn-primary:hover {
+  .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+    @apply bg-primary-600;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled="true"] {
+    @apply bg-gray-300 text-gray-500;
+    box-shadow: none;
   }
 
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 focus:ring-gray-500;
+    @apply btn bg-white text-gray-700 border border-gray-200 focus:ring-gray-500;
+  }
+  .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+    @apply bg-gray-50;
+  }
+  .btn-secondary:disabled,
+  .btn-secondary[aria-disabled="true"] {
+    @apply bg-gray-100 text-gray-400 border-gray-200;
   }
 
   .btn-danger {
-    @apply btn text-white hover:bg-red-600 focus:ring-red-500;
+    @apply btn text-white focus:ring-red-500;
     background-color: #EF4444;
   }
-  .btn-danger:hover {
+  .btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
     background-color: #DC2626;
+  }
+  .btn-danger:disabled,
+  .btn-danger[aria-disabled="true"] {
+    @apply bg-gray-300 text-gray-500;
   }
 
   .btn-success {
     @apply btn text-white focus:ring-green-500;
     background-color: #10B981;
   }
-  .btn-success:hover {
+  .btn-success:hover:not(:disabled):not([aria-disabled="true"]) {
     background-color: #059669;
+  }
+  .btn-success:disabled,
+  .btn-success[aria-disabled="true"] {
+    @apply bg-gray-300 text-gray-500;
   }
 
   .input {

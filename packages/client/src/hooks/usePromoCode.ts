@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 
 export interface AppliedPromo {
@@ -59,7 +58,6 @@ export function usePromoCode(
         discountValue: result.discount_value!,
       });
       setPromoCode('');
-      toast.success('Code promo appliqué !');
     } catch {
       setPromoError('Erreur lors de la validation');
     } finally {

@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { Category, CategoryInsert, CategoryUpdate, MenuItem } from '@foodtruck/shared';
 import { api } from '../lib/api';
 
@@ -19,11 +18,10 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
     setSaving(true);
     try {
       const data = await api.menu.createCategory(category);
-      toast.success('Catégorie créée');
       onSuccess?.();
       return data;
-    } catch {
-      toast.error('Erreur lors de la création');
+    } catch (error) {
+      console.error('Erreur lors de la création de la catégorie', error);
       return null;
     } finally {
       setSaving(false);
@@ -34,11 +32,10 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
     setSaving(true);
     try {
       await api.menu.updateCategory(id, updates);
-      toast.success('Catégorie modifiée');
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors de la modification');
+    } catch (error) {
+      console.error('Erreur lors de la modification de la catégorie', error);
       return false;
     } finally {
       setSaving(false);
@@ -49,7 +46,7 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
     const itemsInCategory = menuItems.filter(item => item.category_id === category.id);
 
     if (itemsInCategory.length > 0) {
-      toast.error(`Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`);
+      console.error(`Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`);
       return false;
     }
 
@@ -57,11 +54,10 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
 
     try {
       await api.menu.deleteCategory(category.id);
-      toast.success('Catégorie supprimée');
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors de la suppression');
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la catégorie', error);
       return false;
     }
   }, [onSuccess]);
@@ -81,8 +77,8 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
       ]);
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement de la catégorie', error);
       return false;
     }
   }, [onSuccess]);
@@ -102,8 +98,8 @@ export function useCategories(onSuccess?: () => void): UseCategoriesResult {
       ]);
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement de la catégorie', error);
       return false;
     }
   }, [onSuccess]);

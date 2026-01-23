@@ -15,7 +15,7 @@ import type {
 } from '@foodtruck/shared';
 
 // Note: Bundle/BuyXGetY modals removed - offers now apply automatically
-import { formatLocalDate } from '@foodtruck/shared';
+import { formatLocalDate, applyTheme } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
 import { useCart } from '../../contexts/CartContext';
 
@@ -145,6 +145,8 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       if (foodtruckData) {
         setFoodtruckData(foodtruckData);
         setFoodtruck(foodtruckData.id);
+        // Apply the foodtruck's color theme
+        applyTheme(foodtruckData.theme);
       }
 
       // Fetch other data in parallel

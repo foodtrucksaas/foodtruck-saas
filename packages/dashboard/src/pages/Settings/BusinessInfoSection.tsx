@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Building, Check, X } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
-import toast from 'react-hot-toast';
+import { ErrorAlert, SuccessAlert } from '../../components/Alert';
 
 interface BusinessInfoSectionProps {
   foodtruck: Foodtruck | null;
@@ -13,6 +13,8 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
   const [editingSiret, setEditingSiret] = useState(false);
   const [siretValue, setSiretValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const startEditSiret = () => {
     setEditingSiret(true);
@@ -26,22 +28,26 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
 
   const saveSiret = async () => {
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
     try {
       // Remove spaces and validate SIRET format (14 digits)
       const cleanSiret = siretValue.replace(/\s/g, '');
 
       if (cleanSiret && !/^\d{14}$/.test(cleanSiret)) {
-        toast.error('Le SIRET doit contenir 14 chiffres');
+        setError('Le SIRET doit contenir 14 chiffres');
         setLoading(false);
         return;
       }
 
       await updateFoodtruck({ siret: cleanSiret || null });
-      toast.success('SIRET mis à jour');
+      setSuccessMessage('SIRET mis a jour');
+      setTimeout(() => setSuccessMessage(null), 2000);
       setEditingSiret(false);
       setSiretValue('');
     } catch {
-      toast.error('Erreur lors de la mise à jour');
+      setError('Erreur lors de la mise a jour');
+      setTimeout(() => setError(null), 3000);
     }
     setLoading(false);
   };
@@ -108,6 +114,8 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
           <p className="text-xs text-gray-400 mt-1">
             Affiché sur votre page pour rassurer vos clients
           </p>
+          {error && <ErrorAlert className="mt-2">{error}</ErrorAlert>}
+          {successMessage && <SuccessAlert className="mt-2">{successMessage}</SuccessAlert>}
         </div>
       </div>
     </section>

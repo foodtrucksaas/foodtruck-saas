@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { MenuItem, MenuItemInsert, MenuItemUpdate } from '@foodtruck/shared';
 import { api } from '../lib/api';
 
@@ -18,11 +17,10 @@ export function useMenuItems(onSuccess?: () => void): UseMenuItemsResult {
     setSaving(true);
     try {
       const data = await api.menu.createItem(item);
-      toast.success('Plat créé avec succès');
       onSuccess?.();
       return data;
-    } catch {
-      toast.error('Erreur lors de la création');
+    } catch (error) {
+      console.error('Erreur lors de la création du plat', error);
       return null;
     } finally {
       setSaving(false);
@@ -33,11 +31,10 @@ export function useMenuItems(onSuccess?: () => void): UseMenuItemsResult {
     setSaving(true);
     try {
       await api.menu.updateItem(id, updates);
-      toast.success('Plat modifié avec succès');
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors de la modification');
+    } catch (error) {
+      console.error('Erreur lors de la modification du plat', error);
       return false;
     } finally {
       setSaving(false);
@@ -49,11 +46,10 @@ export function useMenuItems(onSuccess?: () => void): UseMenuItemsResult {
 
     try {
       await api.menu.deleteItem(item.id);
-      toast.success('Plat supprimé');
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors de la suppression');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du plat', error);
       return false;
     }
   }, [onSuccess]);
@@ -61,11 +57,10 @@ export function useMenuItems(onSuccess?: () => void): UseMenuItemsResult {
   const toggleAvailability = useCallback(async (item: MenuItem): Promise<boolean> => {
     try {
       await api.menu.toggleAvailability(item.id, !item.is_available);
-      toast.success(item.is_available ? 'Plat désactivé' : 'Plat réactivé');
       onSuccess?.();
       return true;
-    } catch {
-      toast.error('Erreur lors de la modification');
+    } catch (error) {
+      console.error('Erreur lors de la modification de disponibilité', error);
       return false;
     }
   }, [onSuccess]);

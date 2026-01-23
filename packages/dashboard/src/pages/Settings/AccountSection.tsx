@@ -1,47 +1,68 @@
 import { useState } from 'react';
-import { User, Eye, EyeOff, LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { User, Eye, EyeOff, LogOut, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Modal, Button } from '@foodtruck/shared/components';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import toast from 'react-hot-toast';
+import { ErrorAlert } from '../../components/Alert';
 
 export function AccountSection() {
-  const { user, updatePassword, signOut } = useAuth();
+  const { user, updatePasswordWithOld, signOut } = useAuth();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccess(false);
+
+    if (!oldPassword) {
+      setError('Veuillez entrer votre mot de passe actuel');
+      return;
+    }
 
     if (newPassword.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      setError('Le nouveau mot de passe doit contenir au moins 6 caractères');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
+      setError('Les nouveaux mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (oldPassword === newPassword) {
+      setError('Le nouveau mot de passe doit être différent de l\'ancien');
       return;
     }
 
     setLoading(true);
-    const { error } = await updatePassword(newPassword);
+    const { error: updateError } = await updatePasswordWithOld(oldPassword, newPassword);
     setLoading(false);
 
-    if (error) {
-      toast.error('Erreur lors de la modification du mot de passe');
+    if (updateError) {
+      setError(updateError.message);
       return;
     }
 
-    toast.success('Mot de passe modifié avec succès');
-    setShowPasswordForm(false);
-    setNewPassword('');
-    setConfirmPassword('');
+    setSuccess(true);
+    setTimeout(() => {
+      setShowPasswordForm(false);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setSuccess(false);
+    }, 2000);
   };
 
   const handleSignOut = async () => {
@@ -50,23 +71,23 @@ export function AccountSection() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'SUPPRIMER') {
-      toast.error('Veuillez taper SUPPRIMER pour confirmer');
+      setDeleteError('Veuillez taper SUPPRIMER pour confirmer');
       return;
     }
 
     setDeleting(true);
+    setDeleteError('');
     try {
       // Call Edge Function to delete account and all associated data
-      const { error } = await supabase.functions.invoke('delete-account');
+      const { error: deleteAccountError } = await supabase.functions.invoke('delete-account');
 
-      if (error) {
-        throw error;
+      if (deleteAccountError) {
+        throw deleteAccountError;
       }
 
-      toast.success('Compte supprimé. Au revoir !');
       await signOut();
     } catch {
-      toast.error('Erreur lors de la suppression du compte');
+      setDeleteError('Erreur lors de la suppression du compte');
     }
     setDeleting(false);
   };
@@ -104,59 +125,92 @@ export function AccountSection() {
 
           {showPasswordForm && (
             <form onSubmit={handlePasswordChange} className="mt-4 space-y-3">
-              <div>
-                <label className="label text-xs">Nouveau mot de passe</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="input pr-10"
-                    placeholder="Minimum 6 caractères"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {success ? (
+                <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">Mot de passe modifié avec succès</span>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="label text-xs">Mot de passe actuel</label>
+                    <div className="relative">
+                      <input
+                        type={showOldPassword ? 'text' : 'password'}
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        className="input pr-10"
+                        placeholder="Votre mot de passe actuel"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <div>
-                <label className="label text-xs">Confirmer le mot de passe</label>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="input"
-                  placeholder="Répétez le mot de passe"
-                />
-              </div>
+                  <div>
+                    <label className="label text-xs">Nouveau mot de passe</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="input pr-10"
+                        placeholder="Minimum 6 caractères"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPasswordForm(false);
-                    setNewPassword('');
-                    setConfirmPassword('');
-                  }}
-                  className="btn-secondary flex-1"
-                  disabled={loading}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary flex-1"
-                  disabled={loading || !newPassword || !confirmPassword}
-                >
-                  {loading ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-              </div>
+                  <div>
+                    <label className="label text-xs">Confirmer le nouveau mot de passe</label>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="input"
+                      placeholder="Répétez le nouveau mot de passe"
+                    />
+                  </div>
+
+                  {error && <ErrorAlert>{error}</ErrorAlert>}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setOldPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setError('');
+                      }}
+                      className="btn-secondary flex-1"
+                      disabled={loading}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-primary flex-1"
+                      disabled={loading || !oldPassword || !newPassword || !confirmPassword}
+                    >
+                      {loading ? 'Vérification...' : 'Enregistrer'}
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
           )}
         </div>
@@ -190,6 +244,7 @@ export function AccountSection() {
         onClose={() => {
           setShowDeleteModal(false);
           setDeleteConfirmText('');
+          setDeleteError('');
         }}
         title="Supprimer le compte"
         size="sm"
@@ -227,12 +282,15 @@ export function AccountSection() {
             className="input mb-4"
           />
 
+          {deleteError && <ErrorAlert className="mb-4">{deleteError}</ErrorAlert>}
+
           <div className="flex gap-3">
             <Button
               variant="secondary"
               onClick={() => {
                 setShowDeleteModal(false);
                 setDeleteConfirmText('');
+                setDeleteError('');
               }}
               className="flex-1"
             >

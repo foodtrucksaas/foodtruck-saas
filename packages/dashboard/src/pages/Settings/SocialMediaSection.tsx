@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Share2, Instagram, Facebook, Globe, Check, X } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
-import toast from 'react-hot-toast';
+import { ErrorAlert, SuccessAlert } from '../../components/Alert';
 
 // TikTok icon component (not in lucide)
 function TikTokIcon({ className }: { className?: string }) {
@@ -24,6 +24,8 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
   const [editingField, setEditingField] = useState<SocialField | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const startEdit = (field: SocialField) => {
     setEditingField(field);
@@ -39,6 +41,8 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
     if (!editingField) return;
 
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
     try {
       // Basic URL validation
       let url = editValue.trim();
@@ -47,11 +51,13 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
       }
 
       await updateFoodtruck({ [editingField]: url || null });
-      toast.success('Lien mis à jour');
+      setSuccessMessage('Lien mis a jour');
+      setTimeout(() => setSuccessMessage(null), 2000);
       setEditingField(null);
       setEditValue('');
     } catch {
-      toast.error('Erreur lors de la mise à jour');
+      setError('Erreur lors de la mise a jour');
+      setTimeout(() => setError(null), 3000);
     }
     setLoading(false);
   };
@@ -114,7 +120,7 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
                       {foodtruck[field]}
                     </a>
                   ) : (
-                    <p className="text-sm text-gray-400">Non renseigné</p>
+                    <p className="text-sm text-gray-400">Non renseigne</p>
                   )}
                 </div>
                 <button
@@ -128,6 +134,9 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
           </div>
         ))}
       </div>
+
+      {error && <ErrorAlert className="mt-3">{error}</ErrorAlert>}
+      {successMessage && <SuccessAlert className="mt-3">{successMessage}</SuccessAlert>}
     </section>
   );
 }

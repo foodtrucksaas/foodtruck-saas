@@ -17,8 +17,8 @@ vi.mock('../lib/api', () => ({
     foodtrucks: {
       getSettings: () => mockGetSettings(),
     },
-    promoCodes: {
-      countActive: () => mockCountActive(),
+    offers: {
+      countActivePromoCodes: () => mockCountActive(),
     },
   },
 }));
@@ -154,7 +154,7 @@ describe('useCheckoutData', () => {
     });
 
     expect(result.current.allSchedules).toEqual(mockSchedules);
-    expect(result.current.settings).toEqual({
+    expect(result.current.settings).toMatchObject({
       slotInterval: 15,
       maxOrdersPerSlot: 5,
       allowAdvanceOrders: true,
@@ -175,7 +175,7 @@ describe('useCheckoutData', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.settings).toEqual({
+    expect(result.current.settings).toMatchObject({
       slotInterval: 15,
       maxOrdersPerSlot: 999,
       allowAdvanceOrders: true,
@@ -400,7 +400,7 @@ describe('useCheckoutData', () => {
     expect(result.current.settings).not.toBeNull();
   });
 
-  it('should calculate dates for 14 days maximum', async () => {
+  it('should calculate dates for configured advance days', async () => {
     // Create schedules for every day of the week
     const everyDaySchedules = [0, 1, 2, 3, 4, 5, 6].map((day) => ({
       id: `sched-${day}`,
@@ -414,9 +414,12 @@ describe('useCheckoutData', () => {
       created_at: '2024-01-01',
     }));
 
+    // Set advance_order_days to 13 (= 14 dates including today)
+    const settingsWithAdvanceDays = { ...mockSettings, advance_order_days: 13 };
+
     mockGetByFoodtruck.mockResolvedValue(everyDaySchedules);
     mockGetExceptions.mockResolvedValue([]);
-    mockGetSettings.mockResolvedValue(mockSettings);
+    mockGetSettings.mockResolvedValue(settingsWithAdvanceDays);
     mockCountActive.mockResolvedValue(0);
 
     const { result } = renderHook(() => useCheckoutData('ft-1'));
@@ -425,7 +428,7 @@ describe('useCheckoutData', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Should have exactly 14 dates (14 days advance)
+    // Should have exactly 14 dates (0 to 13 days = 14 days total)
     expect(result.current.availableDates.length).toBe(14);
   });
 

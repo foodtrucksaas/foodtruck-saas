@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { QrCode, Download, Copy, Check, Loader2 } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
-import toast from 'react-hot-toast';
 
 interface QRCodeSectionProps {
   foodtruck: Foodtruck | null;
@@ -20,6 +19,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
   const [copied, setCopied] = useState(false);
   const [size, setSize] = useState<SizeKey>('medium');
   const [imageLoading, setImageLoading] = useState(true);
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   if (!foodtruck) return null;
 
@@ -31,11 +31,11 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
   const copyLink = () => {
     navigator.clipboard.writeText(clientLink);
     setCopied(true);
-    toast.success('Lien copié !');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const downloadQRCode = async () => {
+    setDownloadStatus('idle');
     try {
       // Fetch the QR code as blob
       const response = await fetch(qrCodeUrl);
@@ -51,9 +51,11 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success('QR Code téléchargé');
+      setDownloadStatus('success');
+      setTimeout(() => setDownloadStatus('idle'), 2000);
     } catch {
-      toast.error('Erreur lors du téléchargement');
+      setDownloadStatus('error');
+      setTimeout(() => setDownloadStatus('idle'), 3000);
     }
   };
 
@@ -136,10 +138,18 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
         </div>
 
         {/* Download button */}
-        <button onClick={downloadQRCode} className="btn-primary">
-          <Download className="w-4 h-4 mr-2" />
-          Télécharger le QR Code
-        </button>
+        <div className="flex flex-col items-center gap-2">
+          <button onClick={downloadQRCode} className="btn-primary">
+            <Download className="w-4 h-4 mr-2" />
+            Télécharger le QR Code
+          </button>
+          {downloadStatus === 'success' && (
+            <span className="text-sm text-green-600">QR Code téléchargé</span>
+          )}
+          {downloadStatus === 'error' && (
+            <span className="text-sm text-red-600">Erreur lors du téléchargement</span>
+          )}
+        </div>
       </div>
     </section>
   );

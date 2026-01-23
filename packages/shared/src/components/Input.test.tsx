@@ -68,10 +68,13 @@ describe('Input', () => {
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });
 
-  it('should auto-generate id from label', () => {
+  it('should auto-generate id and link label to input', () => {
     render(<Input label="User Name" />);
     const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('id', 'user-name');
+    const label = screen.getByText('User Name');
+    // Check that the input has an id and the label is properly linked
+    expect(input).toHaveAttribute('id');
+    expect(label).toHaveAttribute('for', input.getAttribute('id'));
   });
 
   it('should use provided id over auto-generated', () => {

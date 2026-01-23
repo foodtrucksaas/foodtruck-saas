@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, InputHTMLAttributes, ReactNode, useId } from 'react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,7 +10,16 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, leftIcon, rightIcon, className = '', id, ...props }, ref) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const generatedId = useId();
+    const inputId = id || generatedId;
+    const errorId = `${inputId}-error`;
+    const hintId = `${inputId}-hint`;
+
+    // Build aria-describedby string
+    const describedBy = [
+      error ? errorId : null,
+      hint && !error ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="w-full">
@@ -24,13 +33,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
               {leftIcon}
             </div>
           )}
           <input
             ref={ref}
             id={inputId}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={describedBy}
             onWheel={(e) => {
               if (props.type === 'number') {
                 e.currentTarget.blur();
@@ -53,13 +64,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-sm text-gray-500">{hint}</p>}
+        {error && <p id={errorId} className="mt-1.5 text-sm text-red-500" role="alert">{error}</p>}
+        {hint && !error && <p id={hintId} className="mt-1.5 text-sm text-gray-500">{hint}</p>}
       </div>
     );
   }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, Gift, ChevronDown } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { formatPrice, formatTime, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
 import OffersBanner from '../components/OffersBanner';
@@ -45,6 +44,7 @@ export default function Checkout() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Custom hooks
   const {
@@ -157,19 +157,20 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
 
     if (!form.name || !form.email || (!form.isAsap && !form.pickupTime)) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+      setFormError('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     if (!isValidEmail(form.email)) {
-      toast.error('Email invalide');
+      setFormError('Email invalide');
       return;
     }
 
     if (items.length === 0) {
-      toast.error('Votre panier est vide');
+      setFormError('Votre panier est vide');
       return;
     }
 
@@ -282,13 +283,12 @@ export default function Checkout() {
 
       if (data.order_id) {
         clearCart();
-        toast.success('Commande confirmée !');
         navigate(`/order/${data.order_id}`);
       } else {
-        toast.error(data.error || 'Erreur lors de la création de la commande');
+        setFormError(data.error || 'Erreur lors de la création de la commande');
       }
     } catch {
-      toast.error('Une erreur est survenue');
+      setFormError('Une erreur est survenue');
     }
 
     setSubmitting(false);
@@ -324,16 +324,27 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
+      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} className="p-1.5 -ml-1.5 hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Retour"
+            className="p-1.5 -ml-1.5 hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <h1 className="font-semibold text-gray-900">Finaliser</h1>
         </div>
-      </div>
+      </header>
 
       <form onSubmit={handleSubmit} className="pb-32">
+        {/* Form Error */}
+        {formError && (
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            {formError}
+          </div>
+        )}
+
         {/* Order Summary */}
         <div className="p-4">
           <OrderSummaryCard
@@ -441,39 +452,57 @@ export default function Checkout() {
           </div>
 
           {/* Contact Info */}
-          <div className="p-4 border-b border-gray-100 space-y-3">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Coordonnées</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-              placeholder="Nom *"
-              required
-            />
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-              placeholder="Email *"
-              required
-            />
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-              placeholder="Téléphone (optionnel)"
-            />
-          </div>
+          <fieldset className="p-4 border-b border-gray-100 space-y-3">
+            <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide">Coordonnées</legend>
+            <div>
+              <label htmlFor="checkout-name" className="sr-only">Nom (obligatoire)</label>
+              <input
+                id="checkout-name"
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                placeholder="Nom *"
+                required
+                aria-required="true"
+                autoComplete="name"
+              />
+            </div>
+            <div>
+              <label htmlFor="checkout-email" className="sr-only">Email (obligatoire)</label>
+              <input
+                id="checkout-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                placeholder="Email *"
+                required
+                aria-required="true"
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <label htmlFor="checkout-phone" className="sr-only">Telephone (optionnel)</label>
+              <input
+                id="checkout-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                placeholder="Téléphone (optionnel)"
+                autoComplete="tel"
+              />
+            </div>
+          </fieldset>
 
           {/* Notes - Collapsible */}
           <div className="p-4 border-b border-gray-100">
             {showNotes ? (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Instructions</label>
+                <label htmlFor="checkout-notes" className="text-xs font-medium text-gray-500 uppercase tracking-wide block">Instructions</label>
                 <textarea
+                  id="checkout-notes"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   className="mt-2 w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[60px] resize-none"
@@ -485,7 +514,7 @@ export default function Checkout() {
               <button
                 type="button"
                 onClick={() => setShowNotes(true)}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
               >
                 + Ajouter des instructions
               </button>

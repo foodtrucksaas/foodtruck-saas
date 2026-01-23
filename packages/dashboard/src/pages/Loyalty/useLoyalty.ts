@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 
@@ -73,10 +72,9 @@ export function useLoyalty() {
     setSettings((s) => ({ ...s, loyalty_enabled: newValue }));
     try {
       await updateFoodtruck({ loyalty_enabled: newValue });
-      toast.success(newValue ? 'Fidélité activée' : 'Fidélité désactivée');
-    } catch {
+    } catch (error) {
       setSettings((s) => ({ ...s, loyalty_enabled: !newValue }));
-      toast.error('Erreur lors de la mise à jour');
+      console.error('Erreur lors de la mise à jour de la fidélité', error);
     }
   }, [settings.loyalty_enabled, updateFoodtruck]);
 
@@ -85,10 +83,9 @@ export function useLoyalty() {
     setSettings((s) => ({ ...s, loyalty_allow_multiple: newValue }));
     try {
       await updateFoodtruck({ loyalty_allow_multiple: newValue });
-      toast.success('Paramètre mis à jour');
-    } catch {
+    } catch (error) {
       setSettings((s) => ({ ...s, loyalty_allow_multiple: !newValue }));
-      toast.error('Erreur lors de la mise à jour');
+      console.error('Erreur lors de la mise à jour du paramètre', error);
     }
   }, [settings.loyalty_allow_multiple, updateFoodtruck]);
 
@@ -100,9 +97,8 @@ export function useLoyalty() {
         loyalty_threshold: settings.loyalty_threshold,
         loyalty_reward: settings.loyalty_reward,
       });
-      toast.success('Valeurs mises à jour');
-    } catch {
-      toast.error('Erreur lors de la mise à jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des valeurs', error);
     }
     setSettingsLoading(false);
   }, [settings, updateFoodtruck]);

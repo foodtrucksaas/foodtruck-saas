@@ -38,14 +38,3 @@ export function resetMocks() {
   });
 }
 
-// Mock toast
-export const mockToast = {
-  success: vi.fn(),
-  error: vi.fn(),
-  loading: vi.fn(),
-};
-
-vi.mock('react-hot-toast', () => ({
-  default: mockToast,
-  toast: mockToast,
-}));

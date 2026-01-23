@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { Schedule, Location, ScheduleException } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
@@ -224,14 +223,13 @@ export function useSchedule() {
 
     // Validate: require location when in override mode
     if (dayModalForm.mode === 'override' && !dayModalForm.location_id) {
-      toast.error('Sélectionnez un emplacement');
+      console.error('Sélectionnez un emplacement');
       return;
     }
 
     if (dayModalForm.mode === 'normal') {
       if (selectedDay.exception) {
         await supabase.from('schedule_exceptions').delete().eq('id', selectedDay.exception.id);
-        toast.success('Retour au planning normal');
       }
     } else if (dayModalForm.mode === 'closed') {
       const data = {
@@ -249,7 +247,6 @@ export function useSchedule() {
       } else {
         await supabase.from('schedule_exceptions').insert(data);
       }
-      toast.success('Jour marque comme ferme');
     } else {
       const data = {
         foodtruck_id: foodtruck.id,
@@ -266,7 +263,6 @@ export function useSchedule() {
       } else {
         await supabase.from('schedule_exceptions').insert(data);
       }
-      toast.success('Planning modifie pour ce jour');
     }
 
     setShowDayModal(false);
@@ -299,7 +295,7 @@ export function useSchedule() {
     const lng = locationForm.longitude ? parseFloat(locationForm.longitude) : null;
 
     if ((lat && !lng) || (!lat && lng)) {
-      toast.error('Latitude et longitude doivent etre fournies ensemble');
+      console.error('Latitude et longitude doivent etre fournies ensemble');
       return;
     }
 
@@ -313,18 +309,16 @@ export function useSchedule() {
     if (editingLocationId) {
       const { error } = await supabase.from('locations').update(data).eq('id', editingLocationId);
       if (error) {
-        toast.error('Erreur lors de la modification');
+        console.error('Erreur lors de la modification de l\'emplacement', error);
       } else {
-        toast.success('Emplacement modifie');
         resetLocationForm();
         fetchData();
       }
     } else {
       const { error } = await supabase.from('locations').insert({ ...data, foodtruck_id: foodtruck.id });
       if (error) {
-        toast.error('Erreur lors de la creation');
+        console.error('Erreur lors de la creation de l\'emplacement', error);
       } else {
-        toast.success('Emplacement ajoute');
         resetLocationForm();
         fetchData();
       }
@@ -334,7 +328,6 @@ export function useSchedule() {
   const deleteLocation = useCallback(async (id: string) => {
     if (!confirm('Supprimer cet emplacement ?')) return;
     await supabase.from('locations').delete().eq('id', id);
-    toast.success('Emplacement supprime');
     fetchData();
   }, [fetchData]);
 
@@ -370,18 +363,16 @@ export function useSchedule() {
     if (editingScheduleId) {
       const { error } = await supabase.from('schedules').update(data).eq('id', editingScheduleId);
       if (error) {
-        toast.error('Erreur lors de la modification');
+        console.error('Erreur lors de la modification de l\'horaire', error);
       } else {
-        toast.success('Horaire modifie');
         resetScheduleForm();
         fetchData();
       }
     } else {
       const { error } = await supabase.from('schedules').insert({ ...data, foodtruck_id: foodtruck.id });
       if (error) {
-        toast.error('Erreur lors de la creation');
+        console.error('Erreur lors de la creation de l\'horaire', error);
       } else {
-        toast.success('Horaire ajoute');
         resetScheduleForm();
         fetchData();
       }
@@ -391,7 +382,6 @@ export function useSchedule() {
   const deleteSchedule = useCallback(async (id: string) => {
     if (!confirm('Supprimer cet horaire ?')) return;
     await supabase.from('schedules').delete().eq('id', id);
-    toast.success('Horaire supprime');
     fetchData();
   }, [fetchData]);
 

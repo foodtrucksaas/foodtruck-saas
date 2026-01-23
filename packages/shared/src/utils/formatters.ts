@@ -52,3 +52,45 @@ export function slugify(text: string): string {
     .replace(/^-+/, '')
     .replace(/-+$/, '');
 }
+
+/**
+ * Extract city or short location from a full French address
+ * Returns the city name (between postal code and country)
+ * Example: "123 Rue de Paris, 75001 Paris, France" -> "Paris"
+ */
+export function extractCityFromAddress(address: string | null | undefined): string | null {
+  if (!address) return null;
+
+  // Try to match French postal code pattern: XXXXX CityName
+  const postalCodeMatch = address.match(/\d{5}\s+([A-Za-zÀ-ÿ\s-]+?)(?:,|\s*$)/);
+  if (postalCodeMatch) {
+    return postalCodeMatch[1].trim();
+  }
+
+  // Fallback: split by comma and get second-to-last part (usually city)
+  const parts = address.split(',').map(p => p.trim());
+  if (parts.length >= 2) {
+    const potentialCity = parts[parts.length - 2];
+    // Remove postal code if present at start
+    const cityOnly = potentialCity.replace(/^\d{5}\s*/, '');
+    if (cityOnly) return cityOnly;
+  }
+
+  return null;
+}
+
+/**
+ * Format address for display - returns short (city) and full versions
+ */
+export function formatAddress(address: string | null | undefined): {
+  short: string | null;
+  full: string | null;
+} {
+  if (!address) return { short: null, full: null };
+
+  const city = extractCityFromAddress(address);
+  return {
+    short: city,
+    full: address,
+  };
+}

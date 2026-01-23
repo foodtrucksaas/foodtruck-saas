@@ -749,6 +749,7 @@ export type Database = {
           siret: string | null
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean | null
+          theme: string | null
           tiktok_url: string | null
           updated_at: string | null
           use_ready_status: boolean | null
@@ -792,6 +793,7 @@ export type Database = {
           siret?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          theme?: string | null
           tiktok_url?: string | null
           updated_at?: string | null
           use_ready_status?: boolean | null
@@ -835,6 +837,7 @@ export type Database = {
           siret?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          theme?: string | null
           tiktok_url?: string | null
           updated_at?: string | null
           use_ready_status?: boolean | null

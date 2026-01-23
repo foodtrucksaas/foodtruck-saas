@@ -15,5 +15,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React runtime - cached long-term
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Supabase client - separate chunk for auth/db
+          'supabase': ['@supabase/supabase-js'],
+          // Recharts - heavy charting library, only needed for Analytics
+          'recharts': ['recharts'],
+          // Sentry - monitoring, can load async
+          'sentry': ['@sentry/react'],
+        },
+      },
+    },
   },
 });

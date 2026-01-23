@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
 import { compressImage } from '../utils/imageCompression';
 
 interface UseImageUploadOptions {
@@ -31,14 +30,14 @@ export function useImageUpload({
     async (file: File): Promise<string | null> => {
       // Validate file type
       if (!allowedTypes.includes(file.type)) {
-        toast.error(`Type de fichier non supporté. Utilisez: ${allowedTypes.map(t => t.split('/')[1]).join(', ')}`);
+        console.error(`Type de fichier non supporté. Utilisez: ${allowedTypes.map(t => t.split('/')[1]).join(', ')}`);
         return null;
       }
 
       // Validate file size (before compression)
       const maxSizeBytes = maxSizeMB * 1024 * 1024;
       if (file.size > maxSizeBytes) {
-        toast.error(`Le fichier est trop volumineux. Maximum: ${maxSizeMB}MB`);
+        console.error(`Le fichier est trop volumineux. Maximum: ${maxSizeMB}MB`);
         return null;
       }
 
@@ -72,8 +71,7 @@ export function useImageUpload({
 
         return urlData.publicUrl;
       } catch (error) {
-        console.error('Error uploading image:', error);
-        toast.error('Erreur lors du téléchargement de l\'image');
+        console.error('Erreur lors du téléchargement de l\'image:', error);
         return null;
       } finally {
         setUploading(false);

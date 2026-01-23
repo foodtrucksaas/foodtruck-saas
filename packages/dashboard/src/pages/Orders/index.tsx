@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, Calendar, List, Clock } from 'lucide-react';
 import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 import { OrderDetailModal } from './OrderDetailModal';
+import { TimelineView } from './TimelineView';
+import { OrdersPageSkeleton } from '../../components/Skeleton';
 
 type StatusFilter = 'pending' | 'confirmed' | 'ready' | 'picked_up';
+type ViewMode = 'list' | 'timeline';
 
 export default function Orders() {
   const {
@@ -13,6 +16,7 @@ export default function Orders() {
     selectedOrder,
     setSelectedOrder,
     currentSlotStr,
+    slotInterval,
     nowRef,
     pending,
     confirmed,
@@ -36,6 +40,16 @@ export default function Orders() {
   } = useOrders();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('orders-view-mode');
+    return (saved === 'list' || saved === 'timeline') ? saved : 'timeline';
+  });
+
+  // Persist view mode to localStorage
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('orders-view-mode', mode);
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -94,11 +108,7 @@ export default function Orders() {
   }, [orders, activeFilters, useReadyStatus]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
-      </div>
-    );
+    return <OrdersPageSkeleton />;
   }
 
   return (
@@ -167,6 +177,23 @@ export default function Orders() {
                 title="Jour suivant"
               >
                 <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            {/* View toggle */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => handleViewModeChange('timeline')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'timeline' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="Vue planning"
+              >
+                <Clock className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleViewModeChange('list')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="Vue liste"
+              >
+                <List className="w-4 h-4" />
               </button>
             </div>
             <button
@@ -257,48 +284,76 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Orders list - grouped by time slot */}
-      {filteredGroupedOrders.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">
-            {orders.length === 0 ? 'Aucune commande pour le moment' : 'Aucune commande avec ces filtres'}
-          </p>
-        </div>
+      {/* Orders display */}
+      {viewMode === 'timeline' ? (
+        /* Timeline View */
+        orders.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-lg">Aucune commande pour le moment</p>
+          </div>
+        ) : (
+          <TimelineView
+            orders={orders.filter(o => {
+              if (activeFilters.includes('pending') && o.status === 'pending') return true;
+              if (useReadyStatus) {
+                if (activeFilters.includes('confirmed') && o.status === 'confirmed') return true;
+                if (activeFilters.includes('ready') && o.status === 'ready') return true;
+              } else {
+                if (activeFilters.includes('confirmed') && (o.status === 'confirmed' || o.status === 'ready')) return true;
+              }
+              if (activeFilters.includes('picked_up') && (o.status === 'picked_up' || o.status === 'cancelled' || o.status === 'no_show')) return true;
+              return false;
+            })}
+            currentSlotStr={currentSlotStr}
+            slotInterval={slotInterval}
+            isToday={isToday}
+            onOrderClick={setSelectedOrder}
+          />
+        )
       ) : (
-        <div className="space-y-8 mt-4">
-          {filteredGroupedOrders.map(({ slot, orders: slotOrders }) => {
-            const isCurrent = slot === currentSlotStr;
+        /* List View - grouped by time slot */
+        filteredGroupedOrders.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-lg">
+              {orders.length === 0 ? 'Aucune commande pour le moment' : 'Aucune commande avec ces filtres'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-8 mt-4">
+            {filteredGroupedOrders.map(({ slot, orders: slotOrders }) => {
+              const isCurrent = slot === currentSlotStr;
 
-            return (
-              <div key={slot}>
-                {/* Time slot header */}
-                <div className="flex items-center gap-3 mb-3" ref={isCurrent ? nowRef : undefined}>
-                  <div className={`text-xl font-bold ${isCurrent ? 'text-primary-600' : 'text-gray-800'}`}>
-                    {slot}
+              return (
+                <div key={slot}>
+                  {/* Time slot header */}
+                  <div className="flex items-center gap-3 mb-3" ref={isCurrent ? nowRef : undefined}>
+                    <div className={`text-xl font-bold ${isCurrent ? 'text-primary-600' : 'text-gray-800'}`}>
+                      {slot}
+                    </div>
+                    {isCurrent && (
+                      <span className="text-xs bg-primary-100 text-primary-600 px-2.5 py-1 rounded-full font-medium animate-pulse">
+                        Maintenant
+                      </span>
+                    )}
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-sm text-gray-500 font-medium">{slotOrders.length} commande{slotOrders.length > 1 ? 's' : ''}</span>
                   </div>
-                  {isCurrent && (
-                    <span className="text-xs bg-primary-100 text-primary-600 px-2.5 py-1 rounded-full font-medium animate-pulse">
-                      Maintenant
-                    </span>
-                  )}
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-sm text-gray-500 font-medium">{slotOrders.length} commande{slotOrders.length > 1 ? 's' : ''}</span>
-                </div>
 
-                {/* Orders for this slot - grid on desktop */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {slotOrders.map(o => (
-                    <OrderCard
-                      key={o.id}
-                      order={o}
-                      onClick={() => setSelectedOrder(o)}
-                    />
-                  ))}
+                  {/* Orders for this slot - grid on desktop */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {slotOrders.map(o => (
+                      <OrderCard
+                        key={o.id}
+                        order={o}
+                        onClick={() => setSelectedOrder(o)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       )}
     </div>
   );

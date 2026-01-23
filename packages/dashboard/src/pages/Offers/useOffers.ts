@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import type {
@@ -171,7 +170,6 @@ export function useOffers() {
       if (itemsRes.data) setMenuItems(itemsRes.data as MenuItem[]);
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Erreur lors du chargement des donnees');
     } finally {
       setLoading(false);
     }
@@ -311,9 +309,9 @@ export function useOffers() {
   const handleSubmit = useCallback(async () => {
     if (!foodtruck) return;
 
-    const error = validateForm();
-    if (error) {
-      toast.error(error);
+    const validationError = validateForm();
+    if (validationError) {
+      console.error('Form validation error:', validationError);
       return;
     }
 
@@ -407,12 +405,10 @@ export function useOffers() {
         if (itemsError) throw itemsError;
       }
 
-      toast.success(editingOffer ? 'Offre modifiee' : 'Offre creee');
       await loadData();
       closeWizard();
     } catch (error: any) {
-      console.error('Error saving offer:', error);
-      toast.error(error.message || 'Erreur lors de la sauvegarde');
+      console.error('Error saving offer:', error.message || error);
     } finally {
       setSaving(false);
     }
@@ -425,7 +421,7 @@ export function useOffers() {
       .eq('id', offer.id);
 
     if (error) {
-      toast.error('Erreur lors de la mise a jour');
+      console.error('Error toggling offer active state:', error);
     } else {
       await loadData();
     }
@@ -436,9 +432,8 @@ export function useOffers() {
 
     const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
     if (error) {
-      toast.error('Erreur lors de la suppression');
+      console.error('Error deleting offer:', error);
     } else {
-      toast.success('Offre supprimee');
       await loadData();
     }
   }, [loadData]);

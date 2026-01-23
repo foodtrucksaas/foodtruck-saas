@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { MenuItem, Category, CategoryOption, CategoryOptionGroup } from '@foodtruck/shared';
 import { api } from '../lib/api';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
@@ -148,7 +147,6 @@ export function useMenuPage() {
           option_prices: optionPricesInCents,
           disabled_options: formData.disabled_options,
         });
-        toast.success('Plat modifié');
       } else {
         await api.menu.createItem({
           foodtruck_id: foodtruck.id,
@@ -161,22 +159,20 @@ export function useMenuPage() {
           option_prices: optionPricesInCents,
           disabled_options: formData.disabled_options,
         });
-        toast.success('Plat ajouté');
       }
       await refresh();
       resetForm();
-    } catch {
-      toast.error(editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création');
+    } catch (error) {
+      console.error(editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création', error);
     }
   }, [foodtruck, formData, editingItem, requiredOptionGroups, refresh, resetForm]);
 
   const toggleAvailability = useCallback(async (item: MenuItem) => {
     try {
       await api.menu.toggleAvailability(item.id, !item.is_available);
-      toast.success(item.is_available ? 'Marqué indisponible' : 'Marqué disponible');
       await refresh();
-    } catch {
-      toast.error('Erreur');
+    } catch (error) {
+      console.error('Erreur lors du changement de disponibilité', error);
     }
   }, [refresh]);
 
@@ -185,15 +181,14 @@ export function useMenuPage() {
 
     try {
       await api.menu.deleteItem(item.id);
-      toast.success('Plat supprimé');
       await refresh();
       // Refresh archived items too
       if (foodtruck) {
         const archived = await api.menu.getArchivedItems(foodtruck.id);
         setArchivedItems(archived);
       }
-    } catch {
-      toast.error('Erreur lors de la suppression');
+    } catch (error) {
+      console.error('Erreur lors de la suppression', error);
     }
   }, [refresh, foodtruck]);
 
@@ -213,15 +208,14 @@ export function useMenuPage() {
 
     try {
       await api.menu.restoreItem(item.id);
-      toast.success('Plat restauré');
       await refresh();
       // Refresh archived items
       if (foodtruck) {
         const archived = await api.menu.getArchivedItems(foodtruck.id);
         setArchivedItems(archived);
       }
-    } catch {
-      toast.error('Erreur lors de la restauration');
+    } catch (error) {
+      console.error('Erreur lors de la restauration', error);
     }
   }, [refresh, foodtruck]);
 
@@ -239,10 +233,9 @@ export function useMenuPage() {
         name: data.name,
         display_order: maxOrder,
       });
-      toast.success('Catégorie ajoutée');
       await refresh();
-    } catch {
-      toast.error('Erreur lors de la création');
+    } catch (error) {
+      console.error('Erreur lors de la création de la catégorie', error);
     }
   }, [foodtruck, categories, refresh]);
 
@@ -252,10 +245,9 @@ export function useMenuPage() {
         name: data.name,
         display_order: data.display_order,
       });
-      toast.success('Catégorie modifiée');
       await refresh();
-    } catch {
-      toast.error('Erreur lors de la modification');
+    } catch (error) {
+      console.error('Erreur lors de la modification de la catégorie', error);
     }
   }, [refresh]);
 
@@ -263,7 +255,7 @@ export function useMenuPage() {
     const itemsInCategory = menuItems.filter(item => item.category_id === category.id);
 
     if (itemsInCategory.length > 0) {
-      toast.error(`Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`);
+      console.error(`Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`);
       return;
     }
 
@@ -271,10 +263,9 @@ export function useMenuPage() {
 
     try {
       await api.menu.deleteCategory(category.id);
-      toast.success('Catégorie supprimée');
       await refresh();
-    } catch {
-      toast.error('Erreur lors de la suppression');
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la catégorie', error);
     }
   }, [menuItems, refresh]);
 
@@ -288,8 +279,8 @@ export function useMenuPage() {
         { id: prevCategory.id, display_order: index + 1 },
       ]);
       await refresh();
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement de la catégorie', error);
     }
   }, [categories, refresh]);
 
@@ -303,8 +294,8 @@ export function useMenuPage() {
         { id: nextCategory.id, display_order: index + 1 },
       ]);
       await refresh();
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement de la catégorie', error);
     }
   }, [categories, refresh]);
 
@@ -319,8 +310,8 @@ export function useMenuPage() {
         { id: prevItem.id, display_order: index },
       ]);
       await refresh();
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement du plat', error);
     }
   }, [refresh]);
 
@@ -334,8 +325,8 @@ export function useMenuPage() {
         { id: nextItem.id, display_order: index },
       ]);
       await refresh();
-    } catch {
-      toast.error('Erreur lors du déplacement');
+    } catch (error) {
+      console.error('Erreur lors du déplacement du plat', error);
     }
   }, [refresh]);
 
@@ -410,10 +401,9 @@ export function useMenuPage() {
         }
       }
 
-      toast.success('Options sauvegardées !');
       closeOptionsWizard();
-    } catch {
-      toast.error('Erreur lors de la sauvegarde');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des options', error);
     } finally {
       setSavingOptionsWizard(false);
     }
@@ -529,10 +519,9 @@ export function useMenuPage() {
         }
       }
 
-      toast.success('Options sauvegardées');
       closeCategoryOptionsModal();
-    } catch {
-      toast.error('Erreur lors de la sauvegarde');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des options', error);
     } finally {
       setSavingOptions(false);
     }

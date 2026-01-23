@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { MenuItem, Category, SelectedOption, OptionGroup, Option } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
@@ -189,7 +188,7 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
 
     for (const group of pendingItem.option_groups) {
       if (group.is_required && !pendingOptions[group.id]?.length) {
-        toast.error(`Veuillez sélectionner une option pour "${group.name}"`);
+        console.error(`Validation error: option required for "${group.name}"`);
         return;
       }
     }
@@ -285,7 +284,7 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
     if (!foodtruck || cart.length === 0) return;
 
     if (!customerName.trim()) {
-      toast.error('Veuillez entrer le nom du client');
+      console.error('Validation error: customer name is required');
       return;
     }
 
@@ -330,11 +329,10 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
         throw new Error(result.error || 'Erreur lors de la création');
       }
 
-      toast.success(`Commande créée pour ${customerName}`);
       onOrderCreated();
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de la création');
+      console.error('Error creating quick order:', error instanceof Error ? error.message : error);
     } finally {
       setIsSubmitting(false);
     }

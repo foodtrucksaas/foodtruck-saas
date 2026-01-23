@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { Campaign, CampaignTargeting, CampaignChannel, Location } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
@@ -115,22 +114,22 @@ export function useCampaigns() {
     if (!foodtruck) return;
 
     if (!form.name.trim()) {
-      toast.error('Veuillez donner un nom à la campagne');
+      console.error('Validation error: campaign name is required');
       return;
     }
 
     if ((form.channel === 'email' || form.channel === 'both') && !form.emailSubject) {
-      toast.error("Veuillez renseigner l'objet de l'email");
+      console.error('Validation error: email subject is required');
       return;
     }
 
     if ((form.channel === 'email' || form.channel === 'both') && !form.emailBody) {
-      toast.error("Veuillez renseigner le contenu de l'email");
+      console.error('Validation error: email body is required');
       return;
     }
 
     if ((form.channel === 'sms' || form.channel === 'both') && !form.smsBody) {
-      toast.error('Veuillez renseigner le contenu du SMS');
+      console.error('Validation error: SMS body is required');
       return;
     }
 
@@ -156,18 +155,16 @@ export function useCampaigns() {
         .eq('id', editingCampaign.id);
 
       if (error) {
-        toast.error('Erreur lors de la mise à jour');
+        console.error('Error updating campaign:', error);
         return;
       }
-      toast.success('Campagne mise à jour');
     } else {
       const { error } = await supabase.from('campaigns').insert(campaignData);
 
       if (error) {
-        toast.error('Erreur lors de la création');
+        console.error('Error creating campaign:', error);
         return;
       }
-      toast.success('Campagne créée');
     }
 
     setShowModal(false);
@@ -180,11 +177,10 @@ export function useCampaigns() {
     const { error } = await supabase.from('campaigns').delete().eq('id', id);
 
     if (error) {
-      toast.error('Erreur lors de la suppression');
+      console.error('Error deleting campaign:', error);
       return;
     }
 
-    toast.success('Campagne supprimée');
     fetchData();
   }, [fetchData]);
 
@@ -212,10 +208,9 @@ export function useCampaigns() {
         throw new Error(result.error || "Erreur lors de l'envoi");
       }
 
-      toast.success(`Campagne envoyée à ${result.sent_count} destinataires`);
       fetchData();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur lors de l'envoi");
+      console.error('Error sending campaign:', error instanceof Error ? error.message : error);
     } finally {
       setSending(null);
     }

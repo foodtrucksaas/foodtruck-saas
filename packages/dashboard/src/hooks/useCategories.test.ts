@@ -20,14 +20,6 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
-// Mock react-hot-toast
-vi.mock('react-hot-toast', () => ({
-  default: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
 // Mock window.confirm
 const mockConfirm = vi.fn();
 global.confirm = mockConfirm;

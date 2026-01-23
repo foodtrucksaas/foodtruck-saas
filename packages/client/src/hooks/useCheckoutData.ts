@@ -111,7 +111,8 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
     const maxAdvanceDays = settings.advanceOrderDays || 7;
     const dates: Date[] = [];
 
-    for (let i = 0; i < maxAdvanceDays; i++) {
+    // Include today (i=0) up to maxAdvanceDays ahead (i=maxAdvanceDays)
+    for (let i = 0; i <= maxAdvanceDays; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dateStr = formatLocalDate(date);
