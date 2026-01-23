@@ -53,3 +53,4 @@ packages/dashboard/android/.gradle
 packages/dashboard/android/app/build
 packages/dashboard/android/build
 packages/dashboard/android/local.properties
+.vercel

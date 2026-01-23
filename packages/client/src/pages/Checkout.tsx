@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Gift } from 'lucide-react';
+import { ArrowLeft, Loader2, Gift, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatPrice, isValidEmail } from '@foodtruck/shared';
+import { formatPrice, formatTime, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
 import OffersBanner from '../components/OffersBanner';
 
@@ -21,9 +21,6 @@ import {
 import {
   DatePickerModal,
   OrderSummaryCard,
-  LoyaltyCard,
-  PromoCodeSection,
-  TimeSlotPicker,
 } from '../components/checkout';
 
 export default function Checkout() {
@@ -47,6 +44,7 @@ export default function Checkout() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   // Custom hooks
   const {
@@ -62,8 +60,9 @@ export default function Checkout() {
     slots,
     schedules,
     loading: slotsLoading,
-    notOpenYet,
+    notOpenYet: _notOpenYet,
   } = useTimeSlots(foodtruckId, selectedDate, allSchedules, exceptions, settings);
+  void _notOpenYet;
 
   const {
     promoCode,
@@ -91,8 +90,6 @@ export default function Checkout() {
   } = useOffers(foodtruckId, items, total, form.email);
   void _offersLoading;
 
-  // useBundleDetection is only kept for potential future UI hints
-  // get_optimized_offers already handles all discount calculations
   const {
     bestBundle: _bestBundle,
     totalBundleSavings: _totalBundleSavings,
@@ -133,44 +130,34 @@ export default function Checkout() {
     form.loyaltyOptIn
   );
 
-  // The get_optimized_offers SQL function handles ALL offers including bundles
-  // So we only use totalOfferDiscount - bundles are already included in it
-  // totalBundleSavings from useBundleDetection is only for UI display, not calculation
   const offerDiscountValue = totalOfferDiscount || 0;
-
-  // Don't use bundleDiscountValue separately - it's already in offerDiscountValue
   const appliedOfferDiscount = offerDiscountValue;
-  const appliedBundleDiscount = 0; // Bundles already included in appliedOfferDiscount
+  const appliedBundleDiscount = 0;
 
-  // Calculate discounts in order:
-  // 1. Automatic offers (buy_x_get_y, bundles)
-  // 2. Loyalty reward (earned points)
-  // 3. Promo code (applies to final amount the customer actually pays)
   const postOfferTotal = total - appliedOfferDiscount - appliedBundleDiscount;
   const postLoyaltyTotal = postOfferTotal - loyaltyDiscount;
 
   let promoDiscount = 0;
   if (appliedPromo) {
     if (appliedPromo.discountType === 'percentage') {
-      // Apply percentage to amount after offers AND loyalty
       promoDiscount = Math.round(postLoyaltyTotal * (appliedPromo.discountValue / 100));
     } else {
-      // Fixed discount stays the same
       promoDiscount = appliedPromo.discount;
     }
-    // Ensure discount doesn't exceed the remaining total
     promoDiscount = Math.min(promoDiscount, postLoyaltyTotal);
   }
 
   const finalTotal = Math.max(0, postLoyaltyTotal - promoDiscount);
 
-  // Get selected slot for display
-  const selectedSlot = slots.find(s => `${s.time}|${s.scheduleId}` === form.pickupTime);
+  // Date label for display
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+  const dateLabel = isToday
+    ? "Aujourd'hui"
+    : selectedDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields - pickupTime not required if ASAP
     if (!form.name || !form.email || (!form.isAsap && !form.pickupTime)) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
@@ -188,8 +175,6 @@ export default function Checkout() {
 
     setSubmitting(true);
 
-    // For ASAP orders, use current time + min prep time as placeholder
-    // The actual pickup time will be set by the merchant
     let pickupDateTime: string;
     if (form.isAsap) {
       const now = new Date();
@@ -198,7 +183,6 @@ export default function Checkout() {
     } else {
       const [pickupTimeStr] = form.pickupTime.split('|');
       const [hours, minutes] = pickupTimeStr.split(':').map(Number);
-
       const pickupDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
@@ -210,7 +194,6 @@ export default function Checkout() {
       pickupDateTime = pickupDate.toISOString();
     }
 
-    // Extract unique bundles used in this order
     const bundlesUsed = items
       .filter(item => item.bundleInfo)
       .map(item => ({
@@ -234,11 +217,9 @@ export default function Checkout() {
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
-      // Legacy single deal (for backward compatibility)
       deal_id: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.offer_id : undefined,
       deal_discount: appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
       deal_free_item_name: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
-      // New multi-offer system
       applied_offers: appliedOffers.length > 0 ? appliedOffers.map(o => ({
         offer_id: o.offer_id,
         times_applied: o.times_applied,
@@ -248,7 +229,6 @@ export default function Checkout() {
       })) : undefined,
       bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
       items: items.flatMap((item) => {
-        // For bundles, send each selection as a separate item with bundle info
         if (item.bundleInfo) {
           return item.bundleInfo.selections.map((sel, selIndex) => ({
             menu_item_id: sel.menuItem.id,
@@ -262,16 +242,13 @@ export default function Checkout() {
               price_modifier: opt.priceModifier,
               is_size_option: opt.isSizeOption || false,
             })),
-            // Bundle info for server-side processing
             bundle_id: item.bundleInfo!.bundleId,
             bundle_name: item.bundleInfo!.bundleName,
-            bundle_fixed_price: selIndex === 0 ? item.bundleInfo!.fixedPrice : 0, // Only charge once
+            bundle_fixed_price: selIndex === 0 ? item.bundleInfo!.fixedPrice : 0,
             bundle_supplement: sel.supplement,
             bundle_free_options: item.bundleInfo!.freeOptions,
           }));
         }
-
-        // Regular item
         return [{
           menu_item_id: item.menuItem.id,
           quantity: item.quantity,
@@ -319,22 +296,22 @@ export default function Checkout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <div className="animate-spin w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FAFAFA]">
-        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-          <span className="text-4xl">🛒</span>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+          <span className="text-3xl">🛒</span>
         </div>
-        <p className="text-gray-500 mb-4 text-lg">Votre panier est vide</p>
+        <p className="text-gray-500 mb-4">Votre panier est vide</p>
         <Link
           to={`/${foodtruckId}`}
-          className="px-6 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold transition-colors"
+          className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors"
         >
           Voir le menu
         </Link>
@@ -342,120 +319,200 @@ export default function Checkout() {
     );
   }
 
+  const canShowPromo = showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0));
+
   return (
-    <div className="min-h-screen pb-8 bg-[#FAFAFA]">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-anthracite" />
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button onClick={() => navigate(-1)} className="p-1.5 -ml-1.5 hover:bg-gray-100 rounded-full transition-colors">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-anthracite">Finaliser la commande</h1>
+          <h1 className="font-semibold text-gray-900">Finaliser</h1>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
+      <form onSubmit={handleSubmit} className="pb-32">
         {/* Order Summary */}
-        <OrderSummaryCard
-          items={items}
-          total={total}
-          promoDiscount={promoDiscount}
-          loyaltyDiscount={loyaltyDiscount}
-          appliedOffers={appliedOffers}
-          finalTotal={finalTotal}
-          selectedDate={selectedDate}
-          selectedSlot={selectedSlot}
-          schedules={schedules}
-          getCartKey={getCartKey}
-          onUpdateQuantity={updateQuantity}
-          onRemoveItem={removeItem}
-        />
+        <div className="p-4">
+          <OrderSummaryCard
+            items={items}
+            total={total}
+            promoDiscount={promoDiscount}
+            loyaltyDiscount={loyaltyDiscount}
+            appliedOffers={appliedOffers}
+            finalTotal={finalTotal}
+            getCartKey={getCartKey}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeItem}
+            // Loyalty
+            loyaltyInfo={loyaltyInfo}
+            loyaltyLoading={loyaltyLoading}
+            loyaltyOptIn={form.loyaltyOptIn}
+            useLoyaltyReward={useLoyaltyReward}
+            onToggleUseLoyaltyReward={setUseLoyaltyReward}
+            // Promo code
+            showPromoSection={canShowPromo}
+            promoCode={promoCode}
+            onPromoCodeChange={setPromoCode}
+            onValidatePromoCode={validatePromoCode}
+            onRemovePromo={removePromo}
+            promoLoading={promoLoading}
+            promoError={promoError}
+            appliedPromo={appliedPromo}
+          />
+        </div>
 
-        {/* Customer Info */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
-          <h2 className="font-bold text-anthracite">Vos informations</h2>
-          <div>
-            <label className="label">Nom *</label>
+        {/* Pending Offers (progress) */}
+        {(() => {
+          const pendingOffers = applicableOffers.filter(o => !o.is_applicable && o.progress_current > 0);
+          if (pendingOffers.length === 0) return null;
+          return (
+            <div className="mx-4 mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <p className="text-xs font-medium text-amber-700 mb-2 flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5" />
+                Plus que quelques articles...
+              </p>
+              <OffersBanner offers={pendingOffers} />
+            </div>
+          );
+        })()}
+
+        {/* Main Form Section */}
+        <div className="mx-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Pickup Time */}
+          <div className="p-4 border-b border-gray-100">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Retrait</label>
+            <div className="mt-2 flex items-center gap-2">
+              {settings?.allowAsapOrders && (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, isAsap: !form.isAsap })}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    form.isAsap
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Dès que possible
+                </button>
+              )}
+              {!form.isAsap && (
+                <div className="flex-1 relative">
+                  <select
+                    value={form.pickupTime}
+                    onChange={(e) => setForm({ ...form, pickupTime: e.target.value })}
+                    className="w-full appearance-none bg-gray-100 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={slotsLoading || slots.length === 0}
+                  >
+                    {slotsLoading ? (
+                      <option>Chargement...</option>
+                    ) : slots.length === 0 ? (
+                      <option>Aucun créneau disponible</option>
+                    ) : (
+                      slots.filter(s => s.available).map((slot) => (
+                        <option key={`${slot.time}|${slot.scheduleId}`} value={`${slot.time}|${slot.scheduleId}`}>
+                          {dateLabel} · {formatTime(slot.time)}{schedules.length > 1 ? ` · ${slot.locationName}` : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowDatePicker(true)}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+              >
+                Autre jour
+              </button>
+            </div>
+            {/* Address display */}
+            {!form.isAsap && form.pickupTime && (() => {
+              const [, scheduleId] = form.pickupTime.split('|');
+              const selectedSchedule = schedules.find(s => s.id === scheduleId);
+              if (!selectedSchedule?.location?.address) return null;
+              return (
+                <p className="mt-2 text-xs text-gray-400">{selectedSchedule.location.address}</p>
+              );
+            })()}
+          </div>
+
+          {/* Contact Info */}
+          <div className="p-4 border-b border-gray-100 space-y-3">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Coordonnées</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="input"
-              placeholder="Jean Dupont"
+              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+              placeholder="Nom *"
               required
             />
-          </div>
-          <div>
-            <label className="label">Email *</label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="input"
-              placeholder="jean@exemple.com"
+              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+              placeholder="Email *"
               required
             />
-
-            {/* Loyalty Progress - hidden when opt-in is unchecked */}
-            {loyaltyInfo && !loyaltyLoading && form.loyaltyOptIn && (
-              <LoyaltyCard
-                loyaltyInfo={loyaltyInfo}
-                loading={loyaltyLoading}
-                orderTotal={total}
-                promoDiscount={promoDiscount}
-                loyaltyDiscount={loyaltyDiscount}
-                useLoyaltyReward={useLoyaltyReward}
-                loyaltyOptIn={form.loyaltyOptIn}
-                onToggleUseLoyaltyReward={setUseLoyaltyReward}
-                onToggleLoyaltyOptIn={(optIn) => setForm(prev => ({ ...prev, loyaltyOptIn: optIn }))}
-              />
-            )}
-          </div>
-          <div>
-            <label className="label">Téléphone</label>
             <input
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="input"
-              placeholder="06 12 34 56 78"
+              className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+              placeholder="Téléphone (optionnel)"
             />
           </div>
 
-          {/* RGPD Opt-ins */}
-          <div className="pt-2 space-y-3">
-            {/* Loyalty consent: show when loyalty is enabled and user hasn't already opted in */}
-            {settings?.loyaltyEnabled && (!loyaltyInfo || loyaltyInfo.loyalty_opt_in !== true) && (
+          {/* Notes - Collapsible */}
+          <div className="p-4 border-b border-gray-100">
+            {showNotes ? (
               <div>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.loyaltyOptIn}
-                    onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
-                    className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-gray-600">
-                    J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité
-                  </span>
-                </label>
-                <p className="text-xs text-gray-400 italic ml-7 mt-1">
-                  Participation facultative – désinscription à tout moment.
-                </p>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Instructions</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="mt-2 w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[60px] resize-none"
+                  placeholder="Allergies, instructions spéciales..."
+                  autoFocus
+                />
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowNotes(true)}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                + Ajouter des instructions
+              </button>
+            )}
+          </div>
+
+          {/* Opt-ins - intégrés dans le formulaire */}
+          <div className="p-4 space-y-3">
+            {settings?.loyaltyEnabled && (!loyaltyInfo || loyaltyInfo.loyalty_opt_in !== true) && (
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.loyaltyOptIn}
+                  onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                />
+                <span className="text-xs text-gray-500">J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité.</span>
+              </label>
             )}
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.emailOptIn}
                 onChange={(e) => setForm({ ...form, emailOptIn: e.target.checked })}
-                className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-600">
-                J'accepte de recevoir des offres par email
-              </span>
+              <span className="text-xs text-gray-500">Recevoir des offres par email</span>
             </label>
             {form.phone && (
               <label className="flex items-start gap-3 cursor-pointer">
@@ -463,105 +520,40 @@ export default function Checkout() {
                   type="checkbox"
                   checked={form.smsOptIn}
                   onChange={(e) => setForm({ ...form, smsOptIn: e.target.checked })}
-                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-600">
-                  J'accepte de recevoir des offres par SMS
-                </span>
+                <span className="text-xs text-gray-500">Recevoir des offres par SMS</span>
               </label>
             )}
           </div>
         </div>
 
-        {/* Date & Time Picker */}
-        <TimeSlotPicker
-          availableDates={availableDates}
-          selectedDate={selectedDate}
-          slots={slots}
-          schedules={schedules}
-          slotsLoading={slotsLoading}
-          notOpenYet={notOpenYet}
-          selectedSlotValue={form.pickupTime}
-          onSlotChange={(value) => setForm({ ...form, pickupTime: value })}
-          onOpenDatePicker={() => setShowDatePicker(true)}
-          allSchedules={allSchedules}
-          exceptions={exceptions}
-          allowAsapOrders={settings?.allowAsapOrders}
-          isAsapSelected={form.isAsap}
-          onAsapChange={(isAsap) => setForm({ ...form, isAsap })}
-        />
-
-        {/* Notes */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
-          <label className="label">Notes (optionnel)</label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            className="input min-h-[80px] resize-none"
-            placeholder="Instructions spéciales, allergies..."
-          />
-        </div>
-
-        {/* Offers Section - Only show offers NOT yet applied (progress indicators) */}
-        {/* Only show offers that are NOT yet applied but have progress (incentive to add more items) */}
-        {(() => {
-          const pendingOffers = applicableOffers.filter(o => !o.is_applicable && o.progress_current > 0);
-          if (pendingOffers.length === 0) return null;
-          return (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-4">
-              <h3 className="font-semibold text-amber-800 mb-3 text-sm flex items-center gap-2">
-                <Gift className="w-4 h-4" />
-                Plus que quelques articles...
-              </h3>
-              <OffersBanner offers={pendingOffers} />
-            </div>
-          );
-        })()}
-
-        {/* Promo Code Section */}
-        {/* Only show promo section if:
-            1. showPromoSection is true AND
-            2. promo codes are stackable with offers OR there's no offer/bundle discount */}
-        {showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0)) && (
-          <PromoCodeSection
-            promoCode={promoCode}
-            onPromoCodeChange={setPromoCode}
-            appliedPromo={appliedPromo}
-            promoLoading={promoLoading}
-            promoError={promoError}
-            onValidate={validatePromoCode}
-            onRemove={removePromo}
-          />
-        )}
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={submitting || (!form.isAsap && (!form.pickupTime || slots.length === 0))}
-          className="w-full py-4 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-          style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
-        >
-          {submitting ? (
-            <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-          ) : (
-            'Confirmer ma commande'
-          )}
-        </button>
-
-        {/* Payment Notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
-          <p className="text-sm text-amber-800 text-center">
-            <strong>Montant à régler sur place : {formatPrice(finalTotal)}</strong>
-            <br />
-            <span className="text-xs">Le paiement s'effectue directement auprès du commerçant lors du retrait.</span>
-          </p>
-        </div>
-
-        {/* Privacy Notice */}
-        <p className="text-xs text-gray-400 text-center mt-4 px-4">
-          En passant commande, vous acceptez que vos informations soient conservées pour le suivi de vos commandes.
+        {/* Privacy */}
+        <p className="text-[10px] text-gray-400 text-center mt-4 px-8">
+          En confirmant, vous acceptez que vos informations soient conservées pour le suivi de vos commandes.
         </p>
       </form>
+
+      {/* Sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 z-20">
+        <button
+          type="submit"
+          form="checkout-form"
+          onClick={handleSubmit}
+          disabled={submitting || (!form.isAsap && (!form.pickupTime || slots.length === 0))}
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary-500/25"
+        >
+          {submitting ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <span>Confirmer</span>
+              <span className="text-white/60">·</span>
+              <span>{formatPrice(finalTotal)}</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Date Picker Modal */}
       <DatePickerModal

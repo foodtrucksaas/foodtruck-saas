@@ -32,12 +32,12 @@ export default function MenuItemCard({
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-white rounded-xl border p-4 flex gap-4 transition-all duration-200 cursor-pointer ${
+      className={`bg-white rounded-xl p-4 flex gap-4 transition-all duration-200 cursor-pointer ${
         isInCart
-          ? 'border-primary-200 bg-primary-50/30'
-          : 'border-gray-100 hover:border-gray-200 hover:shadow-md'
+          ? 'border-l-4 border-l-primary-400 border-y border-r border-primary-100 bg-gradient-to-r from-primary-50/50 to-white'
+          : 'border border-gray-100 hover:border-primary-200 hover:shadow-md'
       }`}
-      style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}
+      style={{ boxShadow: isInCart ? '0 2px 12px rgba(249, 112, 102, 0.12)' : '0 2px 8px rgba(0, 0, 0, 0.04)' }}
     >
       {/* Image - only show if there's an actual image */}
       {hasImage && (
@@ -55,7 +55,7 @@ export default function MenuItemCard({
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-anthracite text-[15px] leading-tight">{item.name}</h3>
             {isInCart && hasOptions && (
-              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center justify-center">
+              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary-600 text-white text-xs font-bold flex items-center justify-center">
                 {quantity}
               </span>
             )}
@@ -78,7 +78,7 @@ export default function MenuItemCard({
         <div className="flex items-center justify-between mt-3">
           {quantity > 0 && !hasOptions ? (
             <>
-              <span className="font-bold text-primary-500 text-base">
+              <span className="font-bold text-gray-900 text-base">
                 {formatPrice(item.price * quantity)}
               </span>
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -91,7 +91,7 @@ export default function MenuItemCard({
                 <span className="w-8 text-center font-bold text-anthracite">{quantity}</span>
                 <button
                   onClick={() => onUpdate(1)}
-                  className="w-9 h-9 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
+                  className="w-9 h-9 rounded-full bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -101,13 +101,13 @@ export default function MenuItemCard({
             <>
               <div>
                 {hasOptions && (
-                  <span className="text-[11px] text-gray-400 block">À partir de</span>
+                  <span className="text-xs text-gray-500 block">À partir de</span>
                 )}
-                <span className="font-bold text-primary-500 text-base">{formatPrice(item.price)}</span>
+                <span className="font-bold text-gray-900 text-base">{formatPrice(item.price)}</span>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); onAdd(); }}
-                className="h-9 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-primary-500 hover:bg-primary-600 text-white"
+                className="h-9 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white shadow-sm"
               >
                 {hasOptions ? 'Choisir' : 'Ajouter'}
               </button>

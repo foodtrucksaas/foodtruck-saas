@@ -10,7 +10,6 @@ import {
   Star,
   Navigation,
   Tag,
-  Gift,
   Globe,
   Instagram,
   Facebook,
@@ -33,9 +32,6 @@ import { useOffers, useBundleDetection } from '../../hooks';
 import { useFoodtruck } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
-import BundleSelectionModal from './BundleSelectionModal';
-import SpecificItemsBundleModal from './SpecificItemsBundleModal';
-import BuyXGetYSelectionModal from './BuyXGetYSelectionModal';
 
 export default function FoodtruckPage() {
   const { foodtruckId } = useParams<{ foodtruckId: string }>();
@@ -61,18 +57,6 @@ export default function FoodtruckPage() {
     selectedCategory,
     showOptionsModal,
 
-    // Bundle modal state
-    selectedBundle,
-    showBundleModal,
-
-    // Specific items bundle modal state
-    selectedSpecificBundle,
-    showSpecificBundleModal,
-
-    // Buy X Get Y modal state
-    selectedBuyXGetY,
-    showBuyXGetYModal,
-
     // Computed values
     todaySchedules,
     todaySchedule,
@@ -91,21 +75,6 @@ export default function FoodtruckPage() {
     handleUpdateQuantity,
     closeOptionsModal,
     navigateBack,
-
-    // Bundle handlers
-    handleSelectBundle,
-    handleBundleConfirm,
-    closeBundleModal,
-
-    // Specific items bundle handlers
-    handleSelectSpecificBundle,
-    handleSpecificBundleConfirm,
-    closeSpecificBundleModal,
-
-    // Buy X Get Y handlers
-    handleSelectBuyXGetY,
-    handleBuyXGetYConfirm,
-    closeBuyXGetYModal,
   } = useFoodtruck(foodtruckId);
 
   // Get cart items for offer detection
@@ -376,10 +345,10 @@ export default function FoodtruckPage() {
                       setActiveCategory(category.id);
                       document.getElementById(`category-${category.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className={`flex-shrink-0 px-4 py-2 text-sm font-semibold rounded-full transition-all ${
+                    className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all ${
                       isActive
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-500'
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     {category.name}
@@ -393,137 +362,90 @@ export default function FoodtruckPage() {
       {/* Content */}
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
-          <div className="space-y-5">
-            {/* Unified Offers Section */}
+          <div className="space-y-8">
+            {/* Unified Offers Section - Warm styled */}
             {(bundles.length > 0 || specificItemsBundles.length > 0 || buyXGetYOffers.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-md bg-primary-100 flex items-center justify-center">
-                    <Gift className="w-3.5 h-3.5 text-primary-500" />
-                  </div>
-                  <h2 className="text-base font-bold text-anthracite">Nos offres</h2>
-                </div>
-                <div className="grid gap-3">
-                  {/* Category choice bundles - clickable */}
+              <div className="bg-gradient-to-br from-primary-50 to-orange-50/50 rounded-2xl p-4 border border-primary-100/50">
+                <h2 className="text-base font-bold text-gray-900 mb-1">Nos offres du moment</h2>
+                <p className="text-xs text-gray-500 mb-3">
+                  S'appliquent automatiquement au panier
+                </p>
+                <div className="space-y-2">
+                  {/* Bundle offers */}
                   {bundles.map((bundle) => {
-                    const categoryCount = bundle.config.bundle_categories?.length || 0;
                     const categoryNames = bundle.config.bundle_categories
                       ?.map(bc => categories.find(c => c.id === bc.category_id)?.name)
                       .filter(Boolean)
                       .join(' + ') || '';
 
                     return (
-                      <button
+                      <div
                         key={bundle.id}
-                        onClick={() => handleSelectBundle(bundle)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
+                        className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{bundle.name}</h3>
-                            {bundle.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {categoryNames || `${categoryCount} articles au choix`}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold text-primary-500">
-                              {formatPrice(bundle.config.fixed_price)}
-                            </span>
-                            {bundle.config.free_options && (
-                              <span className="text-xs text-green-600 font-medium mt-1">
-                                Suppléments offerts
-                              </span>
+                            <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
+                            {categoryNames && (
+                              <p className="text-xs text-gray-500 mt-0.5">{categoryNames}</p>
                             )}
                           </div>
+                          <span className="font-bold text-primary-600 whitespace-nowrap">
+                            {formatPrice(bundle.config.fixed_price)}
+                          </span>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
 
-                  {/* Specific items bundles - clickable */}
+                  {/* Specific items bundles */}
                   {specificItemsBundles.map((bundle) => {
                     const itemNames = bundle.offer_items
                       .map(oi => {
                         const item = menuItems.find(mi => mi.id === oi.menu_item_id);
-                        return item ? (oi.quantity > 1 ? `${item.name} x${oi.quantity}` : item.name) : null;
+                        return item?.name;
                       })
                       .filter(Boolean)
                       .join(' + ');
 
                     return (
-                      <button
+                      <div
                         key={bundle.id}
-                        onClick={() => handleSelectSpecificBundle(bundle)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
+                        className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{bundle.name}</h3>
-                            {bundle.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bundle.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {itemNames}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold text-primary-500">
-                              {formatPrice(bundle.config.fixed_price)}
-                            </span>
-                            {bundle.config.free_options && (
-                              <span className="text-xs text-green-600 font-medium mt-1">
-                                Suppléments offerts
-                              </span>
+                            <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
+                            {itemNames && (
+                              <p className="text-xs text-gray-500 mt-0.5">{itemNames}</p>
                             )}
                           </div>
+                          <span className="font-bold text-primary-600 whitespace-nowrap">
+                            {formatPrice(bundle.config.fixed_price)}
+                          </span>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
 
-                  {/* Buy X Get Y offers (category choice) - clickable */}
-                  {buyXGetYOffers.map((offer) => {
-                    const config = offer.config;
-                    const triggerQty = config.trigger_quantity || 2;
-                    const rewardQty = config.reward_quantity || 1;
-                    const totalItems = triggerQty + rewardQty;
+                  {/* Buy X Get Y offers */}
+                  {buyXGetYOffers.map((offer) => (
+                    <div
+                      key={offer.id}
+                      className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm">{offer.name}</p>
+                        {offer.description && (
+                          <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
 
-                    return (
-                      <button
-                        key={offer.id}
-                        onClick={() => handleSelectBuyXGetY(offer)}
-                        className="w-full bg-gradient-to-r from-primary-50 to-orange-50 border-2 border-primary-200 rounded-2xl p-4 text-left transition-all hover:border-primary-400 hover:shadow-md active:scale-[0.98]"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-anthracite text-lg">{offer.name}</h3>
-                            {offer.description && (
-                              <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{offer.description}</p>
-                            )}
-                            <p className="text-xs text-primary-600 mt-2 font-medium">
-                              👆 Cliquez pour composer • {totalItems} articles au choix
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Other offers (threshold, non-category buy_x_get_y) - auto-applied */}
+                  {/* Other offers with progress tracking */}
                   {visibleOffers
-                    .filter(o => {
-                      // Exclude bundles
-                      if (o.offer_type === 'bundle') return false;
-                      // Exclude buy_x_get_y that are shown as clickable cards
-                      if (o.offer_type === 'buy_x_get_y') {
-                        const isCategoryChoice = buyXGetYOffers.some(b => b.id === o.offer_id);
-                        if (isCategoryChoice) return false;
-                      }
-                      return true;
-                    })
+                    .filter(o => o.offer_type !== 'bundle' && o.offer_type !== 'buy_x_get_y')
                     .map((offer) => {
                       const isApplicable = offer.is_applicable;
                       const hasProgress = offer.progress_required > 0;
@@ -534,49 +456,35 @@ export default function FoodtruckPage() {
                       return (
                         <div
                           key={offer.offer_id}
-                          className={`rounded-2xl p-4 border-2 transition-all ${
-                            isApplicable
-                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300'
-                              : 'bg-gradient-to-r from-primary-50 to-orange-50 border-primary-200'
-                          }`}
+                          className={`bg-white rounded-xl px-4 py-3 border-l-4 ${isApplicable ? 'border-emerald-500' : 'border-primary-400'}`}
                         >
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <h3 className={`font-bold text-lg ${isApplicable ? 'text-green-800' : 'text-anthracite'}`}>
+                              <p className={`font-semibold text-sm ${isApplicable ? 'text-emerald-700' : 'text-gray-900'}`}>
                                 {offer.offer_name}
-                              </h3>
-                              {offer.description && (
-                                <p className="text-sm text-gray-600 mt-0.5">{offer.description}</p>
-                              )}
-                              {/* Progress bar or auto-apply message */}
+                              </p>
                               {isApplicable ? (
-                                <p className="text-xs text-green-600 mt-2 font-medium">
-                                  ✓ Offre appliquée ! {offer.free_item_name && `• ${offer.free_item_name}`}
-                                </p>
+                                <p className="text-xs text-emerald-600 mt-0.5">Appliquée à votre panier</p>
                               ) : hasProgress ? (
-                                <div className="mt-2">
-                                  <div className="h-1.5 bg-white/50 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-primary-400 transition-all"
-                                      style={{ width: `${progress}%` }}
-                                    />
-                                  </div>
-                                  <p className="text-xs text-primary-600 mt-1 font-medium">
-                                    {offer.progress_current}/{offer.progress_required} • Ajoutez au panier, l'offre s'appliquera
-                                  </p>
-                                </div>
-                              ) : (
-                                <p className="text-xs text-primary-600 mt-2 font-medium">
-                                  🛒 Ajoutez au panier, l'offre s'appliquera automatiquement
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {offer.progress_current}/{offer.progress_required} articles
                                 </p>
-                              )}
+                              ) : null}
                             </div>
                             {isApplicable && offer.calculated_discount > 0 && (
-                              <span className="text-xl font-bold text-green-600 whitespace-nowrap">
+                              <span className="font-bold text-emerald-600 whitespace-nowrap">
                                 -{formatPrice(offer.calculated_discount)}
                               </span>
                             )}
                           </div>
+                          {!isApplicable && hasProgress && (
+                            <div className="mt-2 h-1.5 bg-primary-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -587,11 +495,9 @@ export default function FoodtruckPage() {
             {/* Daily Specials */}
             {dailySpecials.length > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-md bg-warning-100 flex items-center justify-center">
-                    <Star className="w-3.5 h-3.5 text-warning-500 fill-warning-500" />
-                  </div>
-                  <h2 className="text-base font-bold text-anthracite">Menu du jour</h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <h2 className="text-lg font-bold text-gray-900">Menu du jour</h2>
                 </div>
                 <div className="grid gap-3">
                   {dailySpecials.map((item) => (
@@ -620,9 +526,9 @@ export default function FoodtruckPage() {
                     categoryRefs.current[category.id] = el;
                   }}
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <h2 className="text-base font-bold text-anthracite">{category.name}</h2>
-                    <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
+                  <div className="flex items-center gap-2 mb-4 mt-2">
+                    <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
+                    <span className="text-xs text-gray-300 font-medium">
                       {groupedItems[category.id].length}
                     </span>
                   </div>
@@ -882,7 +788,7 @@ export default function FoodtruckPage() {
         <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100">
           <Link
             to={`/${foodtruckId}/checkout`}
-            className="w-full rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"
+            className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"
             style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
           >
             {/* Discount banner integrated in button */}
@@ -926,39 +832,6 @@ export default function FoodtruckPage() {
           category={selectedCategory}
           onClose={closeOptionsModal}
           onConfirm={handleOptionsConfirm}
-        />
-      )}
-
-      {/* Bundle Selection Modal */}
-      {showBundleModal && selectedBundle && (
-        <BundleSelectionModal
-          bundle={selectedBundle}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeBundleModal}
-          onConfirm={handleBundleConfirm}
-        />
-      )}
-
-      {/* Specific Items Bundle Modal */}
-      {showSpecificBundleModal && selectedSpecificBundle && (
-        <SpecificItemsBundleModal
-          bundle={selectedSpecificBundle}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeSpecificBundleModal}
-          onConfirm={handleSpecificBundleConfirm}
-        />
-      )}
-
-      {/* Buy X Get Y Selection Modal */}
-      {showBuyXGetYModal && selectedBuyXGetY && (
-        <BuyXGetYSelectionModal
-          offer={selectedBuyXGetY}
-          categories={categories}
-          menuItems={menuItems}
-          onClose={closeBuyXGetYModal}
-          onConfirm={handleBuyXGetYConfirm}
         />
       )}
     </div>

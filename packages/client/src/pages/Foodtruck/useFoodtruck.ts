@@ -13,6 +13,8 @@ import type {
   BundleConfig,
   BuyXGetYConfig,
 } from '@foodtruck/shared';
+
+// Note: Bundle/BuyXGetY modals removed - offers now apply automatically
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
 import { useCart } from '../../contexts/CartContext';
@@ -79,18 +81,6 @@ interface UseFoodtruckResult {
   selectedCategory: CategoryWithOptions | null;
   showOptionsModal: boolean;
 
-  // Bundle modal state
-  selectedBundle: BundleOffer | null;
-  showBundleModal: boolean;
-
-  // Specific items bundle modal state
-  selectedSpecificBundle: SpecificItemsBundleOffer | null;
-  showSpecificBundleModal: boolean;
-
-  // Buy X Get Y modal state
-  selectedBuyXGetY: BuyXGetYOffer | null;
-  showBuyXGetYModal: boolean;
-
   // Computed values
   todaySchedules: ScheduleWithLocation[];
   todaySchedule: ScheduleWithLocation | undefined;
@@ -110,21 +100,6 @@ interface UseFoodtruckResult {
   handleUpdateQuantity: (itemId: string, delta: number) => void;
   closeOptionsModal: () => void;
   navigateBack: () => void;
-
-  // Bundle handlers
-  handleSelectBundle: (bundle: BundleOffer) => void;
-  handleBundleConfirm: (bundleSelections: BundleSelection[]) => void;
-  closeBundleModal: () => void;
-
-  // Specific items bundle handlers
-  handleSelectSpecificBundle: (bundle: SpecificItemsBundleOffer) => void;
-  handleSpecificBundleConfirm: (bundleSelections: BundleSelection[]) => void;
-  closeSpecificBundleModal: () => void;
-
-  // Buy X Get Y handlers
-  handleSelectBuyXGetY: (offer: BuyXGetYOffer) => void;
-  handleBuyXGetYConfirm: (items: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => void;
-  closeBuyXGetYModal: () => void;
 }
 
 // Bundle selection (one item per category)
@@ -137,7 +112,7 @@ export interface BundleSelection {
 
 export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResult {
   const navigate = useNavigate();
-  const { items, addItem, addBundleItem, updateQuantity, setFoodtruck, total, itemCount, getCartKey } = useCart();
+  const { items, addItem, updateQuantity, setFoodtruck, total, itemCount, getCartKey } = useCart();
 
   const [foodtruck, setFoodtruckData] = useState<Foodtruck | null>(null);
   const [categories, setCategories] = useState<CategoryWithOptions[]>([]);
@@ -154,18 +129,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithOptions | null>(null);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
-
-  // Bundle modal state
-  const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
-  const [showBundleModal, setShowBundleModal] = useState(false);
-
-  // Specific items bundle modal state
-  const [selectedSpecificBundle, setSelectedSpecificBundle] = useState<SpecificItemsBundleOffer | null>(null);
-  const [showSpecificBundleModal, setShowSpecificBundleModal] = useState(false);
-
-  // Buy X Get Y modal state
-  const [selectedBuyXGetY, setSelectedBuyXGetY] = useState<BuyXGetYOffer | null>(null);
-  const [showBuyXGetYModal, setShowBuyXGetYModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -338,107 +301,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     navigate(-1);
   }, [navigate]);
 
-  // Bundle handlers
-  const handleSelectBundle = useCallback((bundle: BundleOffer) => {
-    setSelectedBundle(bundle);
-    setShowBundleModal(true);
-  }, []);
-
-  const handleBundleConfirm = useCallback((bundleSelections: BundleSelection[]) => {
-    if (!selectedBundle) return;
-
-    // Create bundle cart info from selections
-    const bundleCartInfo = {
-      bundleId: selectedBundle.id,
-      bundleName: selectedBundle.name,
-      fixedPrice: selectedBundle.config.fixed_price,
-      freeOptions: selectedBundle.config.free_options || false,
-      selections: bundleSelections.map(sel => {
-        const category = categories.find(c => c.id === sel.categoryId);
-        return {
-          categoryId: sel.categoryId,
-          categoryName: category?.name || '',
-          menuItem: sel.menuItem,
-          selectedOptions: sel.selectedOptions,
-          supplement: sel.supplement,
-        };
-      }),
-    };
-
-    // Add bundle to cart
-    addBundleItem(bundleCartInfo, 1);
-
-    setShowBundleModal(false);
-    setSelectedBundle(null);
-  }, [selectedBundle, categories, addBundleItem]);
-
-  const closeBundleModal = useCallback(() => {
-    setShowBundleModal(false);
-    setSelectedBundle(null);
-  }, []);
-
-  // Specific items bundle handlers
-  const handleSelectSpecificBundle = useCallback((bundle: SpecificItemsBundleOffer) => {
-    setSelectedSpecificBundle(bundle);
-    setShowSpecificBundleModal(true);
-  }, []);
-
-  const handleSpecificBundleConfirm = useCallback((bundleSelections: BundleSelection[]) => {
-    if (!selectedSpecificBundle) return;
-
-    // Create bundle cart info from selections
-    const bundleCartInfo = {
-      bundleId: selectedSpecificBundle.id,
-      bundleName: selectedSpecificBundle.name,
-      fixedPrice: selectedSpecificBundle.config.fixed_price,
-      freeOptions: selectedSpecificBundle.config.free_options || false,
-      selections: bundleSelections.map(sel => {
-        const category = categories.find(c => c.id === sel.categoryId);
-        return {
-          categoryId: sel.categoryId,
-          categoryName: category?.name || '',
-          menuItem: sel.menuItem,
-          selectedOptions: sel.selectedOptions,
-          supplement: sel.supplement,
-        };
-      }),
-    };
-
-    // Add bundle to cart
-    addBundleItem(bundleCartInfo, 1);
-
-    setShowSpecificBundleModal(false);
-    setSelectedSpecificBundle(null);
-  }, [selectedSpecificBundle, categories, addBundleItem]);
-
-  const closeSpecificBundleModal = useCallback(() => {
-    setShowSpecificBundleModal(false);
-    setSelectedSpecificBundle(null);
-  }, []);
-
-  // Buy X Get Y handlers
-  const handleSelectBuyXGetY = useCallback((offer: BuyXGetYOffer) => {
-    setSelectedBuyXGetY(offer);
-    setShowBuyXGetYModal(true);
-  }, []);
-
-  const handleBuyXGetYConfirm = useCallback((selectedItems: { menuItem: MenuItem; selectedOptions: SelectedOption[]; isFree: boolean }[]) => {
-    if (!selectedBuyXGetY) return;
-
-    // Add all selected items to cart
-    selectedItems.forEach(({ menuItem, selectedOptions }) => {
-      addItem(menuItem, 1, undefined, selectedOptions);
-    });
-
-    setShowBuyXGetYModal(false);
-    setSelectedBuyXGetY(null);
-  }, [selectedBuyXGetY, addItem]);
-
-  const closeBuyXGetYModal = useCallback(() => {
-    setShowBuyXGetYModal(false);
-    setSelectedBuyXGetY(null);
-  }, []);
-
   // Get all schedules for today (considering exceptions)
   const todaySchedules = useMemo(() => {
     const today = new Date().getDay();
@@ -526,18 +388,6 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     selectedCategory,
     showOptionsModal,
 
-    // Bundle modal state
-    selectedBundle,
-    showBundleModal,
-
-    // Specific items bundle modal state
-    selectedSpecificBundle,
-    showSpecificBundleModal,
-
-    // Buy X Get Y modal state
-    selectedBuyXGetY,
-    showBuyXGetYModal,
-
     // Computed values
     todaySchedules,
     todaySchedule,
@@ -557,20 +407,5 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     handleUpdateQuantity,
     closeOptionsModal,
     navigateBack,
-
-    // Bundle handlers
-    handleSelectBundle,
-    handleBundleConfirm,
-    closeBundleModal,
-
-    // Specific items bundle handlers
-    handleSelectSpecificBundle,
-    handleSpecificBundleConfirm,
-    closeSpecificBundleModal,
-
-    // Buy X Get Y handlers
-    handleSelectBuyXGetY,
-    handleBuyXGetYConfirm,
-    closeBuyXGetYModal,
   };
 }

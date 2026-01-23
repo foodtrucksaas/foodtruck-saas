@@ -1,4 +1,7 @@
 {
+  "buildCommand": "pnpm build",
+  "outputDirectory": "packages/client/dist",
+  "installCommand": "pnpm install",
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
