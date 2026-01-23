@@ -141,23 +141,27 @@ export default function Checkout() {
   const appliedOfferDiscount = offerDiscountValue;
   const appliedBundleDiscount = 0; // Bundles already included in appliedOfferDiscount
 
-  // Calculate promo discount AFTER offer/bundle discounts
-  // Promo codes apply to the discounted total, not the original total
+  // Calculate discounts in order:
+  // 1. Automatic offers (buy_x_get_y, bundles)
+  // 2. Loyalty reward (earned points)
+  // 3. Promo code (applies to final amount the customer actually pays)
   const postOfferTotal = total - appliedOfferDiscount - appliedBundleDiscount;
+  const postLoyaltyTotal = postOfferTotal - loyaltyDiscount;
+
   let promoDiscount = 0;
   if (appliedPromo) {
     if (appliedPromo.discountType === 'percentage') {
-      // Recalculate percentage on post-offer total
-      promoDiscount = Math.round(postOfferTotal * (appliedPromo.discountValue / 100));
+      // Apply percentage to amount after offers AND loyalty
+      promoDiscount = Math.round(postLoyaltyTotal * (appliedPromo.discountValue / 100));
     } else {
       // Fixed discount stays the same
       promoDiscount = appliedPromo.discount;
     }
     // Ensure discount doesn't exceed the remaining total
-    promoDiscount = Math.min(promoDiscount, postOfferTotal);
+    promoDiscount = Math.min(promoDiscount, postLoyaltyTotal);
   }
 
-  const finalTotal = Math.max(0, postOfferTotal - promoDiscount - loyaltyDiscount);
+  const finalTotal = Math.max(0, postLoyaltyTotal - promoDiscount);
 
   // Get selected slot for display
   const selectedSlot = slots.find(s => `${s.time}|${s.scheduleId}` === form.pickupTime);
@@ -359,14 +363,7 @@ export default function Checkout() {
           total={total}
           promoDiscount={promoDiscount}
           loyaltyDiscount={loyaltyDiscount}
-          dealDiscount={appliedOfferDiscount}
-          dealName={appliedOfferDiscount > 0 ? (
-            appliedOffers.length > 0
-              ? appliedOffers.map(o => o.offer_name).join(' + ')
-              : bestOffer?.offer_name
-          ) : undefined}
-          bundleDiscount={appliedBundleDiscount}
-          bundleName={appliedBundleDiscount > 0 ? bestBundle?.bundle.name : undefined}
+          appliedOffers={appliedOffers}
           finalTotal={finalTotal}
           selectedDate={selectedDate}
           selectedSlot={selectedSlot}

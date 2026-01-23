@@ -1,6 +1,6 @@
-import { Minus, Plus, Trash2, Calendar, MapPin } from 'lucide-react';
+import { Minus, Plus, Trash2, Calendar, MapPin, Tag, Gift } from 'lucide-react';
 import { formatPrice, formatTime } from '@foodtruck/shared';
-import type { CartItem } from '@foodtruck/shared';
+import type { CartItem, AppliedOfferDetail } from '@foodtruck/shared';
 import type { SlotWithLocation, ScheduleWithLocation } from '../../hooks';
 
 interface OrderSummaryCardProps {
@@ -8,10 +8,7 @@ interface OrderSummaryCardProps {
   total: number;
   promoDiscount: number;
   loyaltyDiscount: number;
-  dealDiscount: number;
-  dealName?: string;
-  bundleDiscount: number;
-  bundleName?: string;
+  appliedOffers: AppliedOfferDetail[];
   finalTotal: number;
   selectedDate: Date;
   selectedSlot: SlotWithLocation | undefined;
@@ -26,10 +23,7 @@ export function OrderSummaryCard({
   total,
   promoDiscount,
   loyaltyDiscount,
-  dealDiscount,
-  dealName,
-  bundleDiscount,
-  bundleName,
+  appliedOffers,
   finalTotal,
   selectedDate,
   selectedSlot,
@@ -139,16 +133,30 @@ export function OrderSummaryCard({
             <span className="font-medium">-{formatPrice(promoDiscount)}</span>
           </div>
         )}
-        {dealDiscount > 0 && dealName && (
-          <div className="flex justify-between text-success-600">
-            <span>Formule : {dealName}</span>
-            <span className="font-medium">-{formatPrice(dealDiscount)}</span>
-          </div>
-        )}
-        {bundleDiscount > 0 && (
-          <div className="flex justify-between text-success-600">
-            <span>{bundleName || 'Menu'}</span>
-            <span className="font-medium">-{formatPrice(bundleDiscount)}</span>
+        {appliedOffers.length > 0 && (
+          <div className="space-y-2">
+            {appliedOffers.map((offer) => (
+              <div key={offer.offer_id} className="flex items-start justify-between text-success-600">
+                <div className="flex items-start gap-2 flex-1 min-w-0">
+                  {offer.offer_type === 'buy_x_get_y' ? (
+                    <Gift className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <Tag className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  )}
+                  <span className="text-sm">
+                    {offer.offer_name}
+                    {offer.times_applied > 1 && (
+                      <span className="text-xs text-success-500 ml-1">
+                        (×{offer.times_applied})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <span className="font-medium whitespace-nowrap ml-2">
+                  -{formatPrice(offer.discount_amount)}
+                </span>
+              </div>
+            ))}
           </div>
         )}
         {loyaltyDiscount > 0 && (
