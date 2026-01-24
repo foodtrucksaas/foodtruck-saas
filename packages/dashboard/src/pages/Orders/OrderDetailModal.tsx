@@ -5,7 +5,7 @@ import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { ErrorAlert } from '../../components/Alert';
 
 const CANCEL_REASONS = [
-  'Client a demandé l\'annulation',
+  "Client a demandé l'annulation",
   'Produit indisponible',
   'Créneau complet',
   'Fermeture exceptionnelle',
@@ -44,38 +44,48 @@ export function OrderDetailModal({
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
   const isReady = order.status === 'ready';
-  const pickupTime = new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  const pickupDate = new Date(order.pickup_time).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  const pickupTime = new Date(order.pickup_time).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const pickupDate = new Date(order.pickup_time).toLocaleDateString('fr-FR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
   const shortOrderId = order.id.slice(-6).toUpperCase();
 
   const getHeaderColor = () => {
-    if (isPending) return 'bg-yellow-500';
-    if (isConfirmed) return 'bg-blue-500';
-    if (isReady) return 'bg-purple-500';
-    if (order.status === 'cancelled') return 'bg-red-500';
-    return 'bg-green-500';
+    if (isPending) return 'bg-gradient-to-r from-yellow-500 to-amber-500';
+    if (isConfirmed) return 'bg-gradient-to-r from-blue-500 to-blue-600';
+    if (isReady) return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
+    if (order.status === 'cancelled') return 'bg-gradient-to-r from-red-500 to-red-600';
+    return 'bg-gradient-to-r from-gray-400 to-gray-500';
   };
 
   const handleCancelSubmit = () => {
     setCancelError('');
-    const finalReason = cancelReason === 'Autre'
-      ? (cancelReasonOther.trim() || 'Autre motif')
-      : cancelReason;
+    const finalReason =
+      cancelReason === 'Autre' ? cancelReasonOther.trim() || 'Autre motif' : cancelReason;
     if (finalReason) {
       onCancelWithReason(finalReason);
     } else {
-      setCancelError('Veuillez sélectionner un motif d\'annulation');
+      setCancelError("Veuillez sélectionner un motif d'annulation");
     }
   };
 
   const handleEditTime = () => {
     const currentTime = new Date(order.pickup_time);
-    setEditTime(`${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`);
+    setEditTime(
+      `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`
+    );
     setIsEditing(true);
   };
 
-  const canModifyTime = order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
-  const canCancel = order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
+  const canModifyTime =
+    order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
+  const canCancel =
+    order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -120,15 +130,32 @@ export function OrderDetailModal({
 
           {/* Status badge */}
           <div className="flex flex-wrap gap-2">
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-              isPending ? 'bg-yellow-100 text-yellow-700' :
-              isConfirmed ? 'bg-blue-100 text-blue-700' :
-              isReady ? 'bg-purple-100 text-purple-700' :
-              order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-              order.status === 'no_show' ? 'bg-gray-100 text-gray-700' :
-              'bg-green-100 text-green-700'
-            }`}>
-              {isPending ? 'En attente' : isConfirmed ? 'Acceptée' : isReady ? 'Prête' : order.status === 'cancelled' ? 'Annulée' : order.status === 'no_show' ? 'Non récupérée' : 'Retirée'}
+            <span
+              className={`text-xs px-3 py-1.5 rounded-full font-semibold ${
+                isPending
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : isConfirmed
+                    ? 'bg-blue-100 text-blue-700'
+                    : isReady
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : order.status === 'cancelled'
+                        ? 'bg-red-100 text-red-700'
+                        : order.status === 'no_show'
+                          ? 'bg-gray-100 text-gray-700'
+                          : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {isPending
+                ? 'En attente'
+                : isConfirmed
+                  ? 'Acceptée'
+                  : isReady
+                    ? 'Prête'
+                    : order.status === 'cancelled'
+                      ? 'Annulée'
+                      : order.status === 'no_show'
+                        ? 'Non récupérée'
+                        : 'Retirée'}
             </span>
           </div>
 
@@ -146,19 +173,19 @@ export function OrderDetailModal({
               {order.order_items.map((item, idx) => (
                 <div key={idx} className="flex justify-between">
                   <div>
-                    <span className="font-medium">{item.quantity}x {item.menu_item.name}</span>
+                    <span className="font-medium">
+                      {item.quantity}x {item.menu_item.name}
+                    </span>
                     {item.order_item_options && item.order_item_options.length > 0 && (
                       <p className="text-xs text-gray-500">
                         {item.order_item_options.map((opt) => opt.option_name).join(', ')}
                       </p>
                     )}
-                    {item.notes && (
-                      <p className="text-xs text-amber-600 italic">
-                        💬 {item.notes}
-                      </p>
-                    )}
+                    {item.notes && <p className="text-xs text-amber-600 italic">💬 {item.notes}</p>}
                   </div>
-                  <span className="text-gray-600">{formatPrice(item.unit_price * item.quantity)}</span>
+                  <span className="text-gray-600">
+                    {formatPrice(item.unit_price * item.quantity)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -189,7 +216,12 @@ export function OrderDetailModal({
               error={cancelError}
               onReasonChange={setCancelReason}
               onOtherReasonChange={setCancelReasonOther}
-              onCancel={() => { setShowCancelModal(false); setCancelReason(''); setCancelReasonOther(''); setCancelError(''); }}
+              onCancel={() => {
+                setShowCancelModal(false);
+                setCancelReason('');
+                setCancelReasonOther('');
+                setCancelError('');
+              }}
               onSubmit={handleCancelSubmit}
             />
           ) : isEditing ? (
@@ -228,10 +260,10 @@ export function OrderDetailModal({
                 {isPending && (
                   <button
                     onClick={onAccept}
-                    className="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+                    className="flex-1 px-4 py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
-                    <Check className="w-4 h-4" />
-                    Accepter
+                    <Check className="w-5 h-5" />
+                    Accepter la commande
                   </button>
                 )}
                 {/* Show "Mark Ready" + "Mark Picked Up" when useReadyStatus is enabled and order is confirmed */}
@@ -239,14 +271,14 @@ export function OrderDetailModal({
                   <>
                     <button
                       onClick={onMarkReady}
-                      className="flex-1 px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+                      className="flex-1 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
                     >
                       <Check className="w-4 h-4" />
                       Prête
                     </button>
                     <button
                       onClick={onMarkPickedUp}
-                      className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
+                      className="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
                     >
                       <Package className="w-4 h-4" />
                       Retirée
@@ -257,7 +289,7 @@ export function OrderDetailModal({
                 {!useReadyStatus && isConfirmed && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="flex-1 px-4 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="flex-1 px-4 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
@@ -267,7 +299,7 @@ export function OrderDetailModal({
                 {isReady && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="flex-1 px-4 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="flex-1 px-4 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée

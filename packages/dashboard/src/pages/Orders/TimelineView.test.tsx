@@ -71,7 +71,7 @@ describe('TimelineView', () => {
         },
       ],
       ...overrides,
-    } as OrderWithItemsAndOptions);
+    }) as OrderWithItemsAndOptions;
 
   const defaultProps = {
     orders: [] as OrderWithItemsAndOptions[],
@@ -105,8 +105,16 @@ describe('TimelineView', () => {
 
   it('should render orders in their correct time slots', () => {
     const orders = [
-      createMockOrder({ id: 'order-1', customer_name: 'Jean Dupont', pickup_time: '2024-01-15T12:00:00Z' }),
-      createMockOrder({ id: 'order-2', customer_name: 'Marie Martin', pickup_time: '2024-01-15T14:30:00Z' }),
+      createMockOrder({
+        id: 'order-1',
+        customer_name: 'Jean Dupont',
+        pickup_time: '2024-01-15T12:00:00Z',
+      }),
+      createMockOrder({
+        id: 'order-2',
+        customer_name: 'Marie Martin',
+        pickup_time: '2024-01-15T14:30:00Z',
+      }),
     ];
 
     render(<TimelineView {...defaultProps} orders={orders} />);
@@ -170,16 +178,28 @@ describe('TimelineView', () => {
 
     render(<TimelineView {...defaultProps} orders={orders} />);
 
-    // Order should be rendered with opacity-60 class
-    const orderCard = screen.getByText('Jean Dupont').closest('div[class*="opacity-60"]');
+    // Order should be rendered with opacity-50 class
+    const orderCard = screen.getByText('Jean Dupont').closest('div[class*="opacity-50"]');
     expect(orderCard).not.toBeNull();
   });
 
   it('should group multiple orders in the same time slot', () => {
     const orders = [
-      createMockOrder({ id: 'order-1', customer_name: 'Jean Dupont', pickup_time: '2024-01-15T12:00:00Z' }),
-      createMockOrder({ id: 'order-2', customer_name: 'Marie Martin', pickup_time: '2024-01-15T12:05:00Z' }),
-      createMockOrder({ id: 'order-3', customer_name: 'Pierre Bernard', pickup_time: '2024-01-15T12:10:00Z' }),
+      createMockOrder({
+        id: 'order-1',
+        customer_name: 'Jean Dupont',
+        pickup_time: '2024-01-15T12:00:00Z',
+      }),
+      createMockOrder({
+        id: 'order-2',
+        customer_name: 'Marie Martin',
+        pickup_time: '2024-01-15T12:05:00Z',
+      }),
+      createMockOrder({
+        id: 'order-3',
+        customer_name: 'Pierre Bernard',
+        pickup_time: '2024-01-15T12:10:00Z',
+      }),
     ];
 
     render(<TimelineView {...defaultProps} orders={orders} />);
@@ -192,8 +212,16 @@ describe('TimelineView', () => {
 
   it('should handle different slot intervals', () => {
     const orders = [
-      createMockOrder({ id: 'order-1', customer_name: 'Jean Dupont', pickup_time: '2024-01-15T12:00:00Z' }),
-      createMockOrder({ id: 'order-2', customer_name: 'Marie Martin', pickup_time: '2024-01-15T12:20:00Z' }),
+      createMockOrder({
+        id: 'order-1',
+        customer_name: 'Jean Dupont',
+        pickup_time: '2024-01-15T12:00:00Z',
+      }),
+      createMockOrder({
+        id: 'order-2',
+        customer_name: 'Marie Martin',
+        pickup_time: '2024-01-15T12:20:00Z',
+      }),
     ];
 
     // With 30-minute intervals, both orders should be in the same slot
@@ -203,11 +231,15 @@ describe('TimelineView', () => {
     expect(screen.getByText('Marie Martin')).toBeInTheDocument();
   });
 
-  it('should display placeholder for empty slots', () => {
+  it('should render empty slots without content', () => {
     render(<TimelineView {...defaultProps} orders={[]} />);
 
-    // Empty slots should show "—"
-    const placeholders = screen.getAllByText('—');
-    expect(placeholders.length).toBeGreaterThan(0);
+    // Empty slots should render time labels only, no order content
+    // All time slots from 10:00 to 22:00 should be present
+    expect(screen.getByText('10:00')).toBeInTheDocument();
+    expect(screen.getByText('22:00')).toBeInTheDocument();
+
+    // No order names should be displayed
+    expect(screen.queryByText('Jean Dupont')).not.toBeInTheDocument();
   });
 });

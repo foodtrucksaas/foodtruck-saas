@@ -23,27 +23,75 @@ function generateTimeSlots(startHour: number, endHour: number, interval: number)
   return slots;
 }
 
-// Get status colors
+// Get status colors - harmonized with design system
 function getStatusColors(status: string) {
   switch (status) {
     case 'pending':
-      return { bg: 'bg-yellow-100', border: 'border-yellow-400', dot: 'bg-yellow-400', text: 'text-yellow-700' };
+      return {
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-200',
+        dot: 'bg-yellow-400',
+        text: 'text-yellow-700',
+        ring: 'ring-yellow-100',
+      };
     case 'confirmed':
-      return { bg: 'bg-blue-100', border: 'border-blue-400', dot: 'bg-blue-400', text: 'text-blue-700' };
+      return {
+        bg: 'bg-blue-50',
+        border: 'border-blue-200',
+        dot: 'bg-blue-400',
+        text: 'text-blue-700',
+        ring: 'ring-blue-100',
+      };
     case 'ready':
-      return { bg: 'bg-purple-100', border: 'border-purple-400', dot: 'bg-purple-400', text: 'text-purple-700' };
+      return {
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        dot: 'bg-emerald-400',
+        text: 'text-emerald-700',
+        ring: 'ring-emerald-100',
+      };
     case 'picked_up':
-      return { bg: 'bg-gray-50', border: 'border-gray-300', dot: 'bg-gray-400', text: 'text-gray-500' };
+      return {
+        bg: 'bg-gray-50',
+        border: 'border-gray-200',
+        dot: 'bg-gray-300',
+        text: 'text-gray-500',
+        ring: 'ring-gray-100',
+      };
     case 'cancelled':
-      return { bg: 'bg-red-50', border: 'border-red-300', dot: 'bg-red-400', text: 'text-red-600' };
+      return {
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        dot: 'bg-red-400',
+        text: 'text-red-600',
+        ring: 'ring-red-100',
+      };
     case 'no_show':
-      return { bg: 'bg-gray-50', border: 'border-gray-300', dot: 'bg-gray-400', text: 'text-gray-500' };
+      return {
+        bg: 'bg-gray-50',
+        border: 'border-gray-200',
+        dot: 'bg-gray-300',
+        text: 'text-gray-500',
+        ring: 'ring-gray-100',
+      };
     default:
-      return { bg: 'bg-gray-100', border: 'border-gray-300', dot: 'bg-gray-400', text: 'text-gray-600' };
+      return {
+        bg: 'bg-gray-50',
+        border: 'border-gray-200',
+        dot: 'bg-gray-300',
+        text: 'text-gray-600',
+        ring: 'ring-gray-100',
+      };
   }
 }
 
-export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, onOrderClick }: TimelineViewProps) {
+export function TimelineView({
+  orders,
+  currentSlotStr,
+  slotInterval,
+  isToday,
+  onOrderClick,
+}: TimelineViewProps) {
   const currentSlotRef = useRef<HTMLDivElement>(null);
 
   // Generate slots from 10:00 to 22:00 (typical foodtruck hours)
@@ -53,7 +101,7 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
   const ordersBySlot = useMemo(() => {
     const map: Record<string, OrderWithItemsAndOptions[]> = {};
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const pickupDate = new Date(order.pickup_time);
       const hour = pickupDate.getHours().toString().padStart(2, '0');
       const minute = pickupDate.getMinutes();
@@ -65,9 +113,9 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
     });
 
     // Sort orders within each slot by created_at
-    Object.keys(map).forEach(key => {
-      map[key].sort((a, b) =>
-        new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+    Object.keys(map).forEach((key) => {
+      map[key].sort(
+        (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
       );
     });
 
@@ -83,9 +131,9 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
 
   // Count orders by status for a slot
   const getSlotStats = (slotOrders: OrderWithItemsAndOptions[]) => {
-    const pending = slotOrders.filter(o => o.status === 'pending').length;
-    const confirmed = slotOrders.filter(o => o.status === 'confirmed').length;
-    const ready = slotOrders.filter(o => o.status === 'ready').length;
+    const pending = slotOrders.filter((o) => o.status === 'pending').length;
+    const confirmed = slotOrders.filter((o) => o.status === 'confirmed').length;
+    const ready = slotOrders.filter((o) => o.status === 'ready').length;
     return { pending, confirmed, ready, total: slotOrders.length };
   };
 
@@ -98,69 +146,88 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
           const isCurrent = isToday && slot === currentSlotStr;
           const isPast = isToday && slot < currentSlotStr;
           const stats = getSlotStats(slotOrders);
+          const hasOrders = slotOrders.length > 0;
 
           return (
             <div
               key={slot}
               ref={isCurrent ? currentSlotRef : undefined}
-              className={`relative flex ${slotOrders.length === 0 ? 'min-h-[48px]' : 'min-h-[72px]'}`}
+              className={`relative flex ${hasOrders ? 'min-h-[80px]' : 'min-h-[36px]'}`}
             >
               {/* Time label column */}
-              <div className={`w-12 sm:w-16 flex-shrink-0 text-right pr-2 sm:pr-4 pt-2 text-sm sm:text-base ${
-                isCurrent
-                  ? 'font-bold text-primary-600'
-                  : isPast
-                  ? 'text-gray-400'
-                  : 'text-gray-600 font-medium'
-              }`}>
+              <div
+                className={`w-14 sm:w-20 flex-shrink-0 text-right pr-3 sm:pr-4 pt-2 text-sm font-medium tabular-nums ${
+                  isCurrent
+                    ? 'text-primary-600 font-semibold'
+                    : isPast
+                      ? 'text-gray-300'
+                      : hasOrders
+                        ? 'text-gray-700'
+                        : 'text-gray-400'
+                }`}
+              >
                 {slot}
               </div>
 
               {/* Timeline line and dot */}
-              <div className="relative w-6 sm:w-8 flex-shrink-0 flex flex-col items-center">
+              <div className="relative w-8 flex-shrink-0 flex flex-col items-center">
                 {/* Vertical line */}
-                <div className={`absolute top-0 bottom-0 w-0.5 ${
-                  isCurrent ? 'bg-primary-400' : isPast ? 'bg-gray-200' : 'bg-gray-300'
-                }`} />
+                <div
+                  className={`absolute top-0 bottom-0 w-px ${
+                    isCurrent ? 'bg-primary-300' : isPast ? 'bg-gray-100' : 'bg-gray-200'
+                  }`}
+                />
 
                 {/* Dot or current indicator */}
                 {isCurrent ? (
-                  <div className="relative z-10 mt-2.5">
-                    <div className="w-4 h-4 bg-primary-500 rounded-full ring-4 ring-primary-100 animate-pulse" />
+                  <div className="relative z-10 mt-2">
+                    <div className="w-4 h-4 bg-primary-500 rounded-full ring-4 ring-primary-100 shadow-sm" />
+                    <div className="absolute inset-0 w-4 h-4 bg-primary-500 rounded-full animate-ping opacity-30" />
                   </div>
-                ) : slotOrders.length > 0 ? (
-                  <div className={`relative z-10 mt-3 w-2.5 h-2.5 rounded-full ${
-                    stats.pending > 0 ? 'bg-yellow-400' :
-                    stats.confirmed > 0 || stats.ready > 0 ? 'bg-blue-400' :
-                    'bg-gray-400'
-                  }`} />
+                ) : hasOrders ? (
+                  <div
+                    className={`relative z-10 mt-2.5 w-3 h-3 rounded-full shadow-sm ring-2 ring-white ${
+                      stats.pending > 0
+                        ? 'bg-yellow-400'
+                        : stats.confirmed > 0
+                          ? 'bg-blue-400'
+                          : stats.ready > 0
+                            ? 'bg-emerald-400'
+                            : 'bg-gray-300'
+                    }`}
+                  />
                 ) : (
-                  <div className={`relative z-10 mt-3.5 w-1.5 h-1.5 rounded-full ${
-                    isPast ? 'bg-gray-200' : 'bg-gray-300'
-                  }`} />
+                  <div
+                    className={`relative z-10 mt-3 w-1.5 h-1.5 rounded-full ${
+                      isPast ? 'bg-gray-200' : 'bg-gray-300'
+                    }`}
+                  />
                 )}
 
                 {/* Connect to next slot */}
                 {index < timeSlots.length - 1 && (
-                  <div className={`flex-1 w-0.5 ${
-                    isPast ? 'bg-gray-200' : 'bg-gray-300'
-                  }`} />
+                  <div className={`flex-1 w-px ${isPast ? 'bg-gray-100' : 'bg-gray-200'}`} />
                 )}
               </div>
 
               {/* Orders content */}
-              <div className={`flex-1 pl-2 sm:pl-4 pb-2 pt-1 ${
-                isCurrent ? 'bg-primary-50/50 -mx-2 sm:-mx-4 px-4 sm:px-8 rounded-lg' : ''
-              }`}>
+              <div
+                className={`flex-1 pl-3 sm:pl-4 pb-3 pt-1 ${
+                  isCurrent
+                    ? 'bg-gradient-to-r from-primary-50/80 to-transparent -mr-4 pr-4 rounded-l-2xl'
+                    : ''
+                }`}
+              >
                 {isCurrent && (
-                  <span className="inline-block text-xs bg-primary-500 text-white px-2 py-0.5 rounded-full mb-2 font-medium">
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-primary-500 text-white px-2.5 py-1 rounded-full mb-2 font-medium shadow-sm">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                     Maintenant
                   </span>
                 )}
 
-                {slotOrders.length > 0 ? (
+                {hasOrders ? (
                   <div className="space-y-2">
-                    {slotOrders.map(order => {
+                    {slotOrders.map((order) => {
                       const status = order.status || 'pending';
                       const colors = getStatusColors(status);
                       const isDone = ['picked_up', 'cancelled', 'no_show'].includes(status);
@@ -169,25 +236,39 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
                         <div
                           key={order.id}
                           onClick={() => onOrderClick(order)}
-                          className={`${colors.bg} ${colors.border} border-l-4 rounded-r-lg p-2 sm:p-3 cursor-pointer
-                            hover:shadow-md transition-all duration-200 ${isDone ? 'opacity-60' : ''}`}
+                          className={`${colors.bg} border ${colors.border} rounded-xl p-3 cursor-pointer
+                            hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm
+                            transition-all duration-200 ${isDone ? 'opacity-50' : ''}`}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div className={`w-2 h-2 rounded-full ${colors.dot} flex-shrink-0`} />
-                              <span className={`font-semibold truncate ${isDone ? 'text-gray-500' : 'text-gray-900'}`}>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`w-2.5 h-2.5 rounded-full ${colors.dot} ring-2 ${colors.ring} flex-shrink-0`}
+                              />
+                              <span
+                                className={`font-semibold truncate ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
+                              >
                                 {order.customer_name}
                               </span>
                             </div>
-                            <span className={`font-bold flex-shrink-0 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}>
+                            <span
+                              className={`font-bold text-sm flex-shrink-0 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
+                            >
                               {formatPrice(order.total_amount)}
                             </span>
                           </div>
-                          <div className={`text-sm mt-1 truncate ${isDone ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div
+                            className={`text-sm mt-1.5 truncate ${isDone ? 'text-gray-400' : 'text-gray-600'}`}
+                          >
                             {order.order_items.map((item, idx) => (
                               <span key={idx}>
                                 {idx > 0 && ', '}
-                                <span className="font-medium">{item.quantity}x</span> {item.menu_item.name}
+                                <span
+                                  className={`font-medium ${isDone ? 'text-gray-500' : 'text-gray-700'}`}
+                                >
+                                  {item.quantity}x
+                                </span>{' '}
+                                {item.menu_item.name}
                               </span>
                             ))}
                           </div>
@@ -195,11 +276,7 @@ export function TimelineView({ orders, currentSlotStr, slotInterval, isToday, on
                       );
                     })}
                   </div>
-                ) : !isCurrent && (
-                  <div className={`text-sm ${isPast ? 'text-gray-300' : 'text-gray-400'} pt-1.5`}>
-                    —
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
           );
