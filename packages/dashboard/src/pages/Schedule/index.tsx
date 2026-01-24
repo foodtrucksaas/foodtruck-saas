@@ -62,32 +62,39 @@ export default function SchedulePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-gray-100/80 p-1.5 rounded-2xl w-fit backdrop-blur-sm">
         <button
           onClick={() => setActiveTab('calendar')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'calendar' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'
+          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
+            activeTab === 'calendar'
+              ? 'bg-white shadow-md text-gray-900'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
           }`}
         >
-          <Calendar className="w-4 h-4 inline mr-2" />
+          <Calendar className="w-4 h-4" />
           Calendrier
         </button>
         <button
           onClick={() => setActiveTab('recurring')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'recurring' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'
+          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
+            activeTab === 'recurring'
+              ? 'bg-white shadow-md text-gray-900'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
           }`}
         >
-          <Clock className="w-4 h-4 inline mr-2" />
-          Horaires récurrents
+          <Clock className="w-4 h-4" />
+          <span className="hidden sm:inline">Horaires récurrents</span>
+          <span className="sm:hidden">Horaires</span>
         </button>
         <button
           onClick={() => setActiveTab('locations')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'locations' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'
+          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
+            activeTab === 'locations'
+              ? 'bg-white shadow-md text-gray-900'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
           }`}
         >
-          <MapPin className="w-4 h-4 inline mr-2" />
+          <MapPin className="w-4 h-4" />
           Emplacements
         </button>
       </div>
@@ -113,7 +120,10 @@ export default function SchedulePage() {
           editingId={editingScheduleId}
           form={scheduleForm}
           onFormChange={setScheduleForm}
-          onShowForm={() => { resetScheduleForm(); setShowScheduleForm(true); }}
+          onShowForm={() => {
+            resetScheduleForm();
+            setShowScheduleForm(true);
+          }}
           onResetForm={resetScheduleForm}
           onSubmit={handleScheduleSubmit}
           onEdit={startEditSchedule}
@@ -129,7 +139,10 @@ export default function SchedulePage() {
           editingId={editingLocationId}
           form={locationForm}
           onFormChange={setLocationForm}
-          onShowForm={() => { resetLocationForm(); setShowLocationForm(true); }}
+          onShowForm={() => {
+            resetLocationForm();
+            setShowLocationForm(true);
+          }}
           onResetForm={resetLocationForm}
           onSubmit={handleLocationSubmit}
           onEdit={startEditLocation}

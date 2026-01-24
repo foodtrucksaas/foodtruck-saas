@@ -96,7 +96,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
         {/* Size selector */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-sm text-gray-500">Taille :</span>
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
             {(['small', 'medium', 'large'] as const).map((s) => (
               <button
                 key={s}
@@ -106,10 +106,10 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
                     setSize(s);
                   }
                 }}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 min-h-[36px] text-sm font-medium rounded-lg transition-all active:scale-95 ${
                   size === s
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
@@ -139,8 +139,11 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
 
         {/* Download button */}
         <div className="flex flex-col items-center gap-2">
-          <button onClick={downloadQRCode} className="btn-primary">
-            <Download className="w-4 h-4 mr-2" />
+          <button
+            onClick={downloadQRCode}
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+          >
+            <Download className="w-4 h-4" />
             Télécharger le QR Code
           </button>
           {downloadStatus === 'success' && (

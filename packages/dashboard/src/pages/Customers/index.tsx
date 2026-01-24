@@ -56,7 +56,7 @@ export default function Customers() {
         </div>
         <button
           onClick={exportCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
         >
           <Download className="w-4 h-4" />
           Exporter
@@ -117,12 +117,12 @@ export default function Customers() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-50 text-primary-700 border-2 border-primary-200' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
           >
             <Filter className="w-4 h-4" />
             Filtres
             {(filterSegment !== 'all' || filterLocation) && (
-              <span className="w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+              <span className="w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
                 {(filterSegment !== 'all' ? 1 : 0) + (filterLocation ? 1 : 0)}
               </span>
             )}
@@ -137,7 +137,7 @@ export default function Customers() {
                   <button
                     key={seg.key}
                     onClick={() => setFilterSegment(seg.key as FilterSegment)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterSegment === seg.key ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    className={`px-3 py-2 min-h-[36px] rounded-xl text-sm font-medium transition-all active:scale-95 ${filterSegment === seg.key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
                   >
                     {seg.label}
                   </button>
@@ -268,8 +268,8 @@ export default function Customers() {
                           </span>
                         )}
                         {customer.sms_opt_in && (
-                          <span className="p-1 rounded bg-purple-100" title="SMS opt-in">
-                            <MessageSquare className="w-3 h-3 text-purple-600" />
+                          <span className="p-1 rounded bg-blue-100" title="SMS opt-in">
+                            <MessageSquare className="w-3 h-3 text-blue-600" />
                           </span>
                         )}
                         {!customer.email_opt_in && !customer.sms_opt_in && (

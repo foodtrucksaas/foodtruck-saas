@@ -20,8 +20,10 @@ export function CampaignCard({
   onDelete,
 }: CampaignCardProps) {
   const targeting = campaign.targeting as CampaignTargeting;
-  const openRate = campaign.sent_count > 0 ? (campaign.opened_count / campaign.sent_count) * 100 : 0;
-  const clickRate = campaign.sent_count > 0 ? (campaign.clicked_count / campaign.sent_count) * 100 : 0;
+  const openRate =
+    campaign.sent_count > 0 ? (campaign.opened_count / campaign.sent_count) * 100 : 0;
+  const clickRate =
+    campaign.sent_count > 0 ? (campaign.clicked_count / campaign.sent_count) * 100 : 0;
 
   return (
     <div className="card p-5">
@@ -42,11 +44,12 @@ export function CampaignCard({
             </span>
             <span>
               {SEGMENT_OPTIONS.find((s) => s.key === targeting.segment)?.label}
-              {targeting.segment === 'location' && locations.find((l) => l.id === targeting.location_id) && (
-                <span className="ml-1 text-gray-400">
-                  ({locations.find((l) => l.id === targeting.location_id)?.name})
-                </span>
-              )}
+              {targeting.segment === 'location' &&
+                locations.find((l) => l.id === targeting.location_id) && (
+                  <span className="ml-1 text-gray-400">
+                    ({locations.find((l) => l.id === targeting.location_id)?.name})
+                  </span>
+                )}
             </span>
           </div>
 
@@ -74,7 +77,7 @@ export function CampaignCard({
               <button
                 onClick={onSend}
                 disabled={sending}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium transition-all shadow-md active:scale-95"
               >
                 {sending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -85,7 +88,7 @@ export function CampaignCard({
               </button>
               <button
                 onClick={onEdit}
-                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500"
+                className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-xl text-gray-500 transition-colors active:scale-95"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
@@ -93,7 +96,7 @@ export function CampaignCard({
           )}
           <button
             onClick={onDelete}
-            className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"
+            className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -106,13 +109,13 @@ export function CampaignCard({
 function StatusBadge({ sentCount }: { sentCount: number }) {
   if (sentCount > 0) {
     return (
-      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
         Envoyée
       </span>
     );
   }
   return (
-    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
       Brouillon
     </span>
   );

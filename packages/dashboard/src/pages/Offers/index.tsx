@@ -42,33 +42,36 @@ export default function Offers() {
           <h1 className="text-2xl font-bold text-gray-900">Offres & Promotions</h1>
           <p className="text-gray-600">Gerez toutes vos offres promotionnelles</p>
         </div>
-        <button onClick={() => openCreateWizard()} className="btn-primary flex items-center gap-2">
+        <button
+          onClick={() => openCreateWizard()}
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+        >
           <Plus className="w-5 h-5" />
           Nouvelle offre
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-100">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="card p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-50">
+              <Sparkles className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{activeCount}</p>
-              <p className="text-xs text-gray-500">Offres actives</p>
+              <p className="text-sm text-gray-500">Offres actives</p>
             </div>
           </div>
         </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-100">
-              <Users className="w-5 h-5 text-blue-600" />
+        <div className="card p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50">
+              <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{totalUses}</p>
-              <p className="text-xs text-gray-500">Utilisations totales</p>
+              <p className="text-sm text-gray-500">Utilisations totales</p>
             </div>
           </div>
         </div>
@@ -84,10 +87,10 @@ export default function Offers() {
           </p>
           <button
             onClick={() => openCreateWizard()}
-            className="btn-primary mt-4 inline-flex items-center gap-2"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
           >
             <Plus className="w-5 h-5" />
-            Creer une offre
+            Créer une offre
           </button>
         </div>
       ) : (

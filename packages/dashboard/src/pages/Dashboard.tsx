@@ -92,18 +92,20 @@ export default function Dashboard() {
         {orderStats.map((stat) => (
           <div
             key={stat.name}
-            className={`card p-4 ${stat.onClick ? 'cursor-pointer hover:border-primary-300 hover:shadow-md transition-all' : ''}`}
+            className={`card p-5 ${stat.onClick ? 'cursor-pointer hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all' : ''}`}
             onClick={stat.onClick}
           >
             <div
-              className={`flex items-center gap-3 ${orderStats.length === 1 ? 'justify-center' : ''}`}
+              className={`flex items-center gap-4 ${orderStats.length === 1 ? 'justify-center' : ''}`}
             >
-              <div className={`p-2 rounded-xl ${stat.color}`}>
-                <stat.icon className="w-5 h-5 text-white" />
+              <div
+                className={`p-3 rounded-2xl ${stat.color} shadow-lg shadow-${stat.color.replace('bg-', '')}/30`}
+              >
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
               <div className={orderStats.length === 1 ? 'text-center' : 'min-w-0'}>
-                <p className="text-xl font-bold text-gray-900 truncate">{stat.value}</p>
-                <p className="text-xs text-gray-500 truncate">{stat.name}</p>
+                <p className="text-2xl font-bold text-gray-900 truncate">{stat.value}</p>
+                <p className="text-sm text-gray-500 truncate">{stat.name}</p>
               </div>
             </div>
           </div>
@@ -111,13 +113,13 @@ export default function Dashboard() {
       </div>
 
       {/* Stats - Row 2: Montant commandes du jour */}
-      <div className="card p-5">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-emerald-500">
-            <Package className="w-5 h-5 text-white" />
+      <div className="card p-6 bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30">
+            <Package className="w-6 h-6 text-white" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-gray-900">
               {stats ? formatPrice(totalOrderAmount) : '-'}
             </p>
             <p className="text-sm text-gray-500">Montant des commandes du jour</p>
@@ -127,33 +129,42 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Link to="/orders" className="card p-6 hover:border-primary-200 transition-colors group">
+        <Link
+          to="/orders"
+          className="card p-6 hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Voir les commandes</h3>
               <p className="text-sm text-gray-500 mt-1">Gérez les commandes en temps réel</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
           </div>
         </Link>
 
-        <Link to="/menu" className="card p-6 hover:border-primary-200 transition-colors group">
+        <Link
+          to="/menu"
+          className="card p-6 hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Gérer le menu</h3>
               <p className="text-sm text-gray-500 mt-1">Ajoutez ou modifiez vos plats</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
           </div>
         </Link>
 
-        <Link to="/schedule" className="card p-6 hover:border-primary-200 transition-colors group">
+        <Link
+          to="/schedule"
+          className="card p-6 hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all group"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Planning</h3>
               <p className="text-sm text-gray-500 mt-1">Configurez vos horaires et emplacements</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
           </div>
         </Link>
       </div>

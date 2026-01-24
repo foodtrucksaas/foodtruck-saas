@@ -40,7 +40,7 @@ export default function Campaigns() {
         </div>
         <button
           onClick={openNewCampaign}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
         >
           <Plus className="w-5 h-5" />
           Nouvelle campagne
@@ -57,7 +57,7 @@ export default function Campaigns() {
           </p>
           <button
             onClick={openNewCampaign}
-            className="mt-4 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+            className="mt-4 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
           >
             Créer une campagne
           </button>

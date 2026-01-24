@@ -89,7 +89,7 @@ export default function Analytics() {
           <div className="relative">
             <button
               onClick={() => setShowPresetDropdown(!showPresetDropdown)}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-95"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
             >
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">
@@ -103,7 +103,7 @@ export default function Analytics() {
             {showPresetDropdown && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowPresetDropdown(false)} />
-                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-20">
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20">
                   {DATE_PRESETS.map((p) => (
                     <button
                       key={p.key}
@@ -111,7 +111,7 @@ export default function Analytics() {
                         setPreset(p.key);
                         setShowPresetDropdown(false);
                       }}
-                      className={`w-full text-left px-4 py-3 min-h-[44px] text-sm hover:bg-gray-50 ${preset === p.key ? 'text-primary-600 font-medium' : 'text-gray-700'}`}
+                      className={`w-full text-left px-4 py-3 min-h-[44px] text-sm hover:bg-gray-50 transition-colors ${preset === p.key ? 'text-primary-600 font-medium bg-primary-50' : 'text-gray-700'}`}
                     >
                       {p.label}
                     </button>
@@ -126,20 +126,20 @@ export default function Analytics() {
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-lg text-sm"
+                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
               <span className="text-gray-400 hidden sm:inline">→</span>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-lg text-sm"
+                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
             </div>
           )}
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 active:scale-95 ml-auto"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 ml-auto shadow-sm"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Exporter</span>
@@ -350,14 +350,17 @@ export default function Analytics() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance par catégorie</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {analytics.categoryStats.map((cat, idx) => (
-              <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                <p className="font-medium text-gray-900 mb-2">
+              <div
+                key={idx}
+                className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                <p className="font-semibold text-gray-900 mb-2">
                   {cat.categoryName || 'Sans catégorie'}
                 </p>
                 <p className="text-2xl font-bold text-primary-600">
                   {formatPrice(safeNumber(cat.amount))}
                 </p>
-                <p className="text-sm text-gray-500">{cat.quantity} articles vendus</p>
+                <p className="text-sm text-gray-500 mt-1">{cat.quantity} articles vendus</p>
               </div>
             ))}
           </div>
