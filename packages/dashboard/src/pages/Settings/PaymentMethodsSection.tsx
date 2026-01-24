@@ -60,7 +60,8 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
       </div>
 
       <p className="text-sm text-gray-500 mb-4">
-        Sélectionnez les moyens de paiement que vous acceptez. Ces informations seront affichées à vos clients.
+        Sélectionnez les moyens de paiement que vous acceptez. Ces informations seront affichées à
+        vos clients.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -73,7 +74,7 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
               key={method.id}
               onClick={() => toggleMethod(method.id)}
               disabled={loading}
-              className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
+              className={`p-3 min-h-[48px] rounded-lg border-2 transition-all flex items-center gap-2 active:scale-[0.98] ${
                 isSelected
                   ? 'border-primary-500 bg-primary-50 text-primary-700'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'

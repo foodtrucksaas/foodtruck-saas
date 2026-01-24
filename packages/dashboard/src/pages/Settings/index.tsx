@@ -42,17 +42,19 @@ export default function Settings() {
       <section className="card p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Lien client</h2>
         <p className="text-gray-600 mb-4">
-          Partagez ce lien avec vos clients pour qu'ils puissent consulter votre menu et
-          commander.
+          Partagez ce lien avec vos clients pour qu'ils puissent consulter votre menu et commander.
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             readOnly
             value={clientLink}
-            className="input flex-1 bg-gray-50"
+            className="input flex-1 bg-gray-50 min-h-[44px]"
           />
-          <button onClick={copyClientLink} className="btn-secondary">
+          <button
+            onClick={copyClientLink}
+            className="btn-secondary min-h-[44px] active:scale-[0.98]"
+          >
             Copier
           </button>
         </div>

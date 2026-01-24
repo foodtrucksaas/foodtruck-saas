@@ -207,7 +207,7 @@ export function OrderDetailModal({
         </div>
 
         {/* Actions */}
-        <div className="border-t p-4 space-y-3">
+        <div className="border-t p-4 sm:p-5 space-y-3">
           {showCancelModal ? (
             <CancelReasonForm
               reasons={CANCEL_REASONS}
@@ -256,7 +256,7 @@ export function OrderDetailModal({
               </div>
 
               {/* Main action buttons */}
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 {isPending && (
                   <button
                     onClick={onAccept}
@@ -375,14 +375,14 @@ function CancelReasonForm({
       <div className="flex gap-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+          className="flex-1 px-4 py-3 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Retour
         </button>
         <button
           onClick={onSubmit}
           disabled={!selectedReason}
-          className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
+          className="flex-1 px-4 py-3 min-h-[44px] bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Confirmer l'annulation
         </button>
@@ -416,13 +416,13 @@ function EditTimeForm({
       <div className="flex gap-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+          className="flex-1 px-4 py-3 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Retour
         </button>
         <button
           onClick={onSubmit}
-          className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors"
+          className="flex-1 px-4 py-3 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Enregistrer
         </button>

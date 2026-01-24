@@ -35,7 +35,7 @@ export default function PendingOrdersModal({
   // Initialize edited times for ASAP orders
   useEffect(() => {
     const newEditedTimes: Record<string, string> = {};
-    orders.forEach(order => {
+    orders.forEach((order) => {
       if ((order as { is_asap?: boolean | null }).is_asap === true && !editedTimes[order.id]) {
         // Calculate suggested time: order created_at + min prep time
         const orderDate = new Date(order.created_at || new Date());
@@ -60,7 +60,7 @@ export default function PendingOrdersModal({
     });
 
     if (Object.keys(newEditedTimes).length > 0) {
-      setEditedTimes(prev => ({ ...prev, ...newEditedTimes }));
+      setEditedTimes((prev) => ({ ...prev, ...newEditedTimes }));
     }
   }, [orders, minPrepTime]);
 
@@ -75,9 +75,13 @@ export default function PendingOrdersModal({
   // is_asap is part of Order type from database.types.ts
   const isAsap = (order as { is_asap?: boolean | null }).is_asap === true;
 
-  const displayTime = isAsap && editedTimes[order.id]
-    ? editedTimes[order.id]
-    : new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const displayTime =
+    isAsap && editedTimes[order.id]
+      ? editedTimes[order.id]
+      : new Date(order.pickup_time).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
 
   // Extract discount info
   const orderWithDiscounts = order as OrderWithItemsAndOptions & {
@@ -118,7 +122,7 @@ export default function PendingOrdersModal({
   };
 
   const handleTimeChange = (orderId: string, time: string) => {
-    setEditedTimes(prev => ({ ...prev, [orderId]: time }));
+    setEditedTimes((prev) => ({ ...prev, [orderId]: time }));
   };
 
   const handleAccept = () => {
@@ -157,7 +161,7 @@ export default function PendingOrdersModal({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors"
+            className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-90"
           >
             <X className="w-5 h-5 text-yellow-800" />
           </button>
@@ -185,9 +189,7 @@ export default function PendingOrdersModal({
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-3 rounded-full transition-all ${
-                    idx === safeIndex
-                      ? 'bg-yellow-500 w-8'
-                      : 'bg-gray-300 hover:bg-gray-400 w-3'
+                    idx === safeIndex ? 'bg-yellow-500 w-8' : 'bg-gray-300 hover:bg-gray-400 w-3'
                   }`}
                 />
               ))}
@@ -219,7 +221,7 @@ export default function PendingOrdersModal({
                   type="time"
                   value={editedTimes[order.id] || ''}
                   onChange={(e) => handleTimeChange(order.id, e.target.value)}
-                  className="text-xl font-bold bg-white border-2 border-primary-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="text-xl font-bold bg-white border-2 border-primary-400 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
             </div>
@@ -245,7 +247,9 @@ export default function PendingOrdersModal({
                     <span className="text-gray-900">
                       <span className="font-semibold">{item.quantity}x</span> {item.menu_item.name}
                     </span>
-                    <span className="text-gray-600">{formatPrice(item.unit_price * item.quantity)}</span>
+                    <span className="text-gray-600">
+                      {formatPrice(item.unit_price * item.quantity)}
+                    </span>
                   </div>
                   {item.order_item_options && item.order_item_options.length > 0 && (
                     <div className="ml-6 text-xs text-gray-500">
@@ -253,9 +257,7 @@ export default function PendingOrdersModal({
                     </div>
                   )}
                   {item.notes && (
-                    <p className="ml-6 text-xs text-amber-600 italic">
-                      💬 {item.notes}
-                    </p>
+                    <p className="ml-6 text-xs text-amber-600 italic">💬 {item.notes}</p>
                   )}
                 </div>
               ))}
@@ -286,7 +288,9 @@ export default function PendingOrdersModal({
             )}
             <div className="flex items-center justify-between">
               <span className="text-gray-600 font-medium">Total</span>
-              <span className="text-2xl font-bold text-gray-900">{formatPrice(order.total_amount)}</span>
+              <span className="text-2xl font-bold text-gray-900">
+                {formatPrice(order.total_amount)}
+              </span>
             </div>
           </div>
         </div>
@@ -296,13 +300,13 @@ export default function PendingOrdersModal({
           <div className="flex items-center gap-3">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-gray-400 hover:text-red-500 text-sm transition-colors"
+              className="px-4 py-3 min-h-[44px] text-gray-400 hover:text-red-500 text-sm transition-colors active:scale-95"
             >
               Refuser
             </button>
             <button
               onClick={handleAccept}
-              className="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 min-h-[44px] bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <Check className="w-5 h-5" />
               Accepter
