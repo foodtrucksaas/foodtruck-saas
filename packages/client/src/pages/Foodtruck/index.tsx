@@ -357,7 +357,7 @@ export default function FoodtruckPage() {
 
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' && categories.filter(c => groupedItems[c.id]?.length > 0).length > 1 && (
-        <div className="sticky top-[52px] z-10 bg-[#FAFAFA] px-4 py-2">
+        <div className="sticky top-[60px] z-10 bg-[#FAFAFA] px-4 py-2">
           <nav className="flex gap-2 overflow-x-auto no-scrollbar py-1" aria-label="Categories du menu">
             {categories
               .filter((c) => groupedItems[c.id]?.length > 0)
