@@ -5,7 +5,12 @@ const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 type EffectiveSchedule =
   | { type: 'closed'; reason?: string | null }
-  | { type: 'override'; location?: { name: string } | null; start_time?: string | null; end_time?: string | null }
+  | {
+      type: 'override';
+      location?: { name: string } | null;
+      start_time?: string | null;
+      end_time?: string | null;
+    }
   | { type: 'normal'; schedules: ScheduleWithLocation[] }
   | { type: 'none' };
 
@@ -30,13 +35,19 @@ export function CalendarView({
     <section className="card p-4">
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onPreviousMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button
+          onClick={onPreviousMonth}
+          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+        >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h2 className="text-lg font-semibold text-gray-900 capitalize">
           {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
         </h2>
-        <button onClick={onNextMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button
+          onClick={onNextMonth}
+          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+        >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -97,14 +108,16 @@ export function CalendarView({
               onClick={() => onDayClick(day)}
               disabled={isPast && !day.isToday}
               className={`
-                min-h-[80px] p-1.5 rounded-lg border text-left transition-all
+                min-h-[80px] p-1.5 sm:p-2 rounded-lg border text-left transition-all
                 ${bgColor} ${borderColor}
                 ${!day.isCurrentMonth ? 'opacity-40' : ''}
-                ${isPast && !day.isToday ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                ${isPast && !day.isToday ? 'cursor-not-allowed opacity-50' : 'cursor-pointer active:scale-[0.98]'}
                 ${day.isToday ? 'ring-2 ring-primary-500' : ''}
               `}
             >
-              <div className={`text-sm font-medium ${day.isToday ? 'text-primary-600' : 'text-gray-700'}`}>
+              <div
+                className={`text-sm font-medium ${day.isToday ? 'text-primary-600' : 'text-gray-700'}`}
+              >
                 {day.date.getDate()}
               </div>
 
@@ -121,11 +134,12 @@ export function CalendarView({
                       {effective.location.name}
                     </div>
                   )}
-                  {effective.type === 'normal' && effective.schedules.map((s, i) => (
-                    <div key={i} className="text-[10px] text-primary-600 truncate">
-                      {s.location.name}
-                    </div>
-                  ))}
+                  {effective.type === 'normal' &&
+                    effective.schedules.map((s, i) => (
+                      <div key={i} className="text-[10px] text-primary-600 truncate">
+                        {s.location.name}
+                      </div>
+                    ))}
                 </div>
               )}
             </button>
@@ -134,7 +148,8 @@ export function CalendarView({
       </div>
 
       <p className="text-xs text-gray-500 mt-4">
-        Cliquez sur un jour pour modifier le planning, fermer exceptionnellement ou changer d'emplacement.
+        Cliquez sur un jour pour modifier le planning, fermer exceptionnellement ou changer
+        d'emplacement.
       </p>
     </section>
   );

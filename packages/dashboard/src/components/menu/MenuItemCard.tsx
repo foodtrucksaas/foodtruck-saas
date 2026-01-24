@@ -35,18 +35,18 @@ export function MenuItemCard({
             <button
               onClick={onMoveUp}
               disabled={index === 0}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
               title="Monter"
             >
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-5 h-5" />
             </button>
             <button
               onClick={onMoveDown}
               disabled={index === totalItems - 1}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
               title="Descendre"
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-5 h-5" />
             </button>
           </div>
         )}
@@ -95,7 +95,7 @@ export function MenuItemCard({
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={() => onToggle(item)}
-              className={`flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 ${
                 item.is_available
                   ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                   : 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -113,13 +113,13 @@ export function MenuItemCard({
             </button>
             <button
               onClick={() => onEdit(item)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-all duration-150 active:scale-90"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-all duration-150 active:scale-90"
             >
               <Edit2 className="w-4 h-4 text-gray-500" />
             </button>
             <button
               onClick={() => onDelete(item)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-red-50 transition-all duration-150 active:scale-90"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-50 transition-all duration-150 active:scale-90"
             >
               <Trash2 className="w-4 h-4 text-red-500" />
             </button>

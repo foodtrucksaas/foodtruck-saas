@@ -1,4 +1,14 @@
-import { X, Mail, MessageSquare, Check, Users, MapPin, UserMinus, TrendingUp, UserPlus } from 'lucide-react';
+import {
+  X,
+  Mail,
+  MessageSquare,
+  Check,
+  Users,
+  MapPin,
+  UserMinus,
+  TrendingUp,
+  UserPlus,
+} from 'lucide-react';
 import type { CampaignChannel, Location } from '@foodtruck/shared';
 import type { CampaignForm, SegmentType } from './useCampaigns';
 import { SEGMENT_OPTIONS } from './useCampaigns';
@@ -31,20 +41,23 @@ export function CampaignModal({
   onClose,
 }: CampaignModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+      <div className="relative bg-white w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-2xl sm:max-h-[90vh] overflow-auto flex flex-col">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">
             {isEditing ? 'Modifier la campagne' : 'Nouvelle campagne'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6 flex-1">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -62,7 +75,7 @@ export function CampaignModal({
           {/* Channel */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Canal</label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 { key: 'email', label: 'Email', icon: <Mail className="w-5 h-5" /> },
                 { key: 'sms', label: 'SMS', icon: <MessageSquare className="w-5 h-5" /> },
@@ -71,14 +84,14 @@ export function CampaignModal({
                 <button
                   key={ch.key}
                   onClick={() => setForm({ ...form, channel: ch.key as CampaignChannel })}
-                  className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
+                  className={`p-3 sm:p-4 min-h-[72px] rounded-xl border-2 flex flex-col items-center gap-1 sm:gap-2 transition-all active:scale-[0.98] ${
                     form.channel === ch.key
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
                   {ch.icon}
-                  <span className="text-sm font-medium">{ch.label}</span>
+                  <span className="text-xs sm:text-sm font-medium">{ch.label}</span>
                 </button>
               ))}
             </div>
@@ -86,9 +99,7 @@ export function CampaignModal({
 
           {/* Segment */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              À qui envoyer ?
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">À qui envoyer ?</label>
             <div className="space-y-2">
               {SEGMENT_OPTIONS.map((seg) => (
                 <button
@@ -100,16 +111,16 @@ export function CampaignModal({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className={`p-2 rounded-lg ${form.segment === seg.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
+                  <div
+                    className={`p-2 rounded-lg ${form.segment === seg.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}
+                  >
                     {SEGMENT_ICONS[seg.key]}
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{seg.label}</p>
                     <p className="text-sm text-gray-500">{seg.description}</p>
                   </div>
-                  {form.segment === seg.key && (
-                    <Check className="w-5 h-5 text-primary-500" />
-                  )}
+                  {form.segment === seg.key && <Check className="w-5 h-5 text-primary-500" />}
                 </button>
               ))}
             </div>
@@ -153,7 +164,8 @@ export function CampaignModal({
               <span className="text-sm text-gray-600">
                 {recipientCount !== null ? (
                   <>
-                    <span className="font-semibold text-gray-900">{recipientCount}</span> destinataire
+                    <span className="font-semibold text-gray-900">{recipientCount}</span>{' '}
+                    destinataire
                     {recipientCount !== 1 ? 's' : ''}
                   </>
                 ) : (
@@ -210,25 +222,23 @@ export function CampaignModal({
                   maxLength={160}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                 />
-                <p className="text-xs text-gray-400 mt-1">
-                  {form.smsBody.length}/160 caractères
-                </p>
+                <p className="text-xs text-gray-400 mt-1">{form.smsBody.length}/160 caractères</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
+        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 sm:px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 mt-auto">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+            className="px-4 py-3 min-h-[44px] text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors active:scale-[0.98]"
           >
             Annuler
           </button>
           <button
             onClick={onSave}
-            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-3 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors active:scale-[0.98]"
           >
             {isEditing ? 'Sauvegarder' : 'Créer la campagne'}
           </button>

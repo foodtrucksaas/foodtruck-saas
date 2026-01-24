@@ -39,7 +39,7 @@ export function RecurringScheduleTab({
         </div>
         <button
           onClick={onShowForm}
-          className="btn-secondary text-sm"
+          className="btn-secondary text-sm min-h-[40px] active:scale-[0.98]"
           disabled={locations.length === 0}
         >
           <Plus className="w-4 h-4 mr-1" />
@@ -57,9 +57,13 @@ export function RecurringScheduleTab({
         <form onSubmit={onSubmit} className="card p-4 mb-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-gray-900">
-              {editingId ? 'Modifier l\'horaire' : 'Nouvel horaire'}
+              {editingId ? "Modifier l'horaire" : 'Nouvel horaire'}
             </h3>
-            <button type="button" onClick={onResetForm} className="p-1 hover:bg-gray-100 rounded">
+            <button
+              type="button"
+              onClick={onResetForm}
+              className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+            >
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
@@ -72,7 +76,9 @@ export function RecurringScheduleTab({
                 className="input"
               >
                 {DAY_NAMES.map((day, i) => (
-                  <option key={i} value={i}>{day}</option>
+                  <option key={i} value={i}>
+                    {day}
+                  </option>
                 ))}
               </select>
             </div>
@@ -86,19 +92,21 @@ export function RecurringScheduleTab({
               >
                 <option value="">Sélectionner</option>
                 {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="label">Heure d'arrivée *</label>
               <input
                 type="time"
                 value={form.start_time}
                 onChange={(e) => onFormChange({ ...form, start_time: e.target.value })}
-                className="input"
+                className="input min-h-[44px]"
                 required
               />
             </div>
@@ -108,16 +116,20 @@ export function RecurringScheduleTab({
                 type="time"
                 value={form.end_time}
                 onChange={(e) => onFormChange({ ...form, end_time: e.target.value })}
-                className="input"
+                className="input min-h-[44px]"
                 required
               />
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={onResetForm} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onResetForm}
+              className="btn-secondary min-h-[44px] active:scale-[0.98]"
+            >
               Annuler
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98]">
               Sauvegarder
             </button>
           </div>
@@ -141,18 +153,22 @@ export function RecurringScheduleTab({
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => onEdit(schedule)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button
+                onClick={() => onEdit(schedule)}
+                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+              >
                 <Pencil className="w-4 h-4 text-gray-500" />
               </button>
-              <button onClick={() => onDelete(schedule.id)} className="p-2 hover:bg-red-50 rounded-lg">
+              <button
+                onClick={() => onDelete(schedule.id)}
+                className="w-10 h-10 flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+              >
                 <Trash2 className="w-4 h-4 text-red-500" />
               </button>
             </div>
           </div>
         ))}
-        {schedules.length === 0 && (
-          <p className="text-gray-500 text-sm">Aucun horaire configuré</p>
-        )}
+        {schedules.length === 0 && <p className="text-gray-500 text-sm">Aucun horaire configuré</p>}
       </div>
     </section>
   );

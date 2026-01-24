@@ -34,7 +34,10 @@ export function LocationsTab({
           <h2 className="text-lg font-semibold text-gray-900">Emplacements</h2>
           <p className="text-sm text-gray-500">Vos différents points de vente</p>
         </div>
-        <button onClick={onShowForm} className="btn-secondary text-sm">
+        <button
+          onClick={onShowForm}
+          className="btn-secondary text-sm min-h-[40px] active:scale-[0.98]"
+        >
           <Plus className="w-4 h-4 mr-1" />
           Ajouter
         </button>
@@ -44,9 +47,13 @@ export function LocationsTab({
         <form onSubmit={onSubmit} className="card p-4 mb-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-gray-900">
-              {editingId ? 'Modifier l\'emplacement' : 'Nouvel emplacement'}
+              {editingId ? "Modifier l'emplacement" : 'Nouvel emplacement'}
             </h3>
-            <button type="button" onClick={onResetForm} className="p-1 hover:bg-gray-100 rounded">
+            <button
+              type="button"
+              onClick={onResetForm}
+              className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+            >
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
@@ -95,10 +102,14 @@ export function LocationsTab({
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={onResetForm} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onResetForm}
+              className="btn-secondary min-h-[44px] active:scale-[0.98]"
+            >
               Annuler
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98]">
               Sauvegarder
             </button>
           </div>
@@ -112,16 +123,20 @@ export function LocationsTab({
               <MapPin className="w-5 h-5 text-primary-500" />
               <div>
                 <p className="font-medium text-gray-900">{location.name}</p>
-                {location.address && (
-                  <p className="text-sm text-gray-500">{location.address}</p>
-                )}
+                {location.address && <p className="text-sm text-gray-500">{location.address}</p>}
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => onEdit(location)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button
+                onClick={() => onEdit(location)}
+                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+              >
                 <Pencil className="w-4 h-4 text-gray-500" />
               </button>
-              <button onClick={() => onDelete(location.id)} className="p-2 hover:bg-red-50 rounded-lg">
+              <button
+                onClick={() => onDelete(location.id)}
+                className="w-10 h-10 flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+              >
                 <Trash2 className="w-4 h-4 text-red-500" />
               </button>
             </div>

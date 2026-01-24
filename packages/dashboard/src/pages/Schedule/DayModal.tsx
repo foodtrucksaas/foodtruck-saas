@@ -20,66 +20,85 @@ export function DayModal({
   onSave,
 }: DayModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4">
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-md shadow-xl flex flex-col sm:block overflow-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <div>
             <h3 className="font-bold text-gray-900">
-              {selectedDay.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {selectedDay.date.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
             </h3>
             {selectedDay.schedules.length > 0 && form.mode === 'normal' && (
               <p className="text-sm text-gray-500">
-                Habituellement : {selectedDay.schedules.map(s => s.location.name).join(', ')}
+                Habituellement : {selectedDay.schedules.map((s) => s.location.name).join(', ')}
               </p>
             )}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+          >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 flex-1">
           {/* Mode Selection */}
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => onFormChange({ ...form, mode: 'normal' })}
-              className={`p-3 rounded-xl border-2 text-center transition-all ${
+              className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'normal'
                   ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
-              <Calendar className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'normal' ? 'text-primary-500' : 'text-gray-400'}`} />
-              <p className={`text-xs font-medium ${form.mode === 'normal' ? 'text-primary-700' : 'text-gray-600'}`}>
+              <Calendar
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'normal' ? 'text-primary-500' : 'text-gray-400'}`}
+              />
+              <p
+                className={`text-xs font-medium ${form.mode === 'normal' ? 'text-primary-700' : 'text-gray-600'}`}
+              >
                 Normal
               </p>
             </button>
             <button
               type="button"
               onClick={() => onFormChange({ ...form, mode: 'override' })}
-              className={`p-3 rounded-xl border-2 text-center transition-all ${
+              className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'override'
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
-              <Pencil className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-blue-500' : 'text-gray-400'}`} />
-              <p className={`text-xs font-medium ${form.mode === 'override' ? 'text-blue-700' : 'text-gray-600'}`}>
+              <Pencil
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-blue-500' : 'text-gray-400'}`}
+              />
+              <p
+                className={`text-xs font-medium ${form.mode === 'override' ? 'text-blue-700' : 'text-gray-600'}`}
+              >
                 Modifier
               </p>
             </button>
             <button
               type="button"
               onClick={() => onFormChange({ ...form, mode: 'closed' })}
-              className={`p-3 rounded-xl border-2 text-center transition-all ${
+              className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'closed'
                   ? 'border-red-500 bg-red-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
-              <XCircle className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'closed' ? 'text-red-500' : 'text-gray-400'}`} />
-              <p className={`text-xs font-medium ${form.mode === 'closed' ? 'text-red-700' : 'text-gray-600'}`}>
+              <XCircle
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'closed' ? 'text-red-500' : 'text-gray-400'}`}
+              />
+              <p
+                className={`text-xs font-medium ${form.mode === 'closed' ? 'text-red-700' : 'text-gray-600'}`}
+              >
                 Fermé
               </p>
             </button>
@@ -97,7 +116,9 @@ export function DayModal({
                 >
                   <option value="">Sélectionner</option>
                   {locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -108,7 +129,7 @@ export function DayModal({
                     type="time"
                     value={form.start_time}
                     onChange={(e) => onFormChange({ ...form, start_time: e.target.value })}
-                    className="input"
+                    className="input min-h-[44px]"
                   />
                 </div>
                 <div>
@@ -117,7 +138,7 @@ export function DayModal({
                     type="time"
                     value={form.end_time}
                     onChange={(e) => onFormChange({ ...form, end_time: e.target.value })}
-                    className="input"
+                    className="input min-h-[44px]"
                   />
                 </div>
               </div>
@@ -146,11 +167,14 @@ export function DayModal({
           )}
         </div>
 
-        <div className="flex gap-2 p-4 border-t border-gray-100">
-          <button onClick={onClose} className="flex-1 btn-secondary">
+        <div className="flex gap-2 p-4 border-t border-gray-100 mt-auto">
+          <button
+            onClick={onClose}
+            className="flex-1 btn-secondary min-h-[44px] active:scale-[0.98]"
+          >
             Annuler
           </button>
-          <button onClick={onSave} className="flex-1 btn-primary">
+          <button onClick={onSave} className="flex-1 btn-primary min-h-[44px] active:scale-[0.98]">
             Sauvegarder
           </button>
         </div>
