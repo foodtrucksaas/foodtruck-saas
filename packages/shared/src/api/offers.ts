@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Disabled due to Supabase typed client requiring type casts for insert/update operations
+// The generated types don't perfectly match what Supabase accepts
+
 import type { TypedSupabaseClient } from './client';
 import { handleResponse } from './client';
 import type {
@@ -56,13 +60,15 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
     async getById(offerId: string): Promise<OfferWithItems | null> {
       const { data, error } = await supabase
         .from('offers')
-        .select(`
+        .select(
+          `
           *,
           offer_items (
             *,
             menu_item:menu_items (*)
           )
-        `)
+        `
+        )
         .eq('id', offerId)
         .single();
 
@@ -77,13 +83,15 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
     async getWithItemsByFoodtruck(foodtruckId: string): Promise<OfferWithItems[]> {
       const { data, error } = await supabase
         .from('offers')
-        .select(`
+        .select(
+          `
           *,
           offer_items (
             *,
             menu_item:menu_items (*)
           )
-        `)
+        `
+        )
         .eq('foodtruck_id', foodtruckId)
         .order('created_at', { ascending: false });
 
@@ -123,10 +131,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Delete an offer
     async delete(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('offers')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('offers').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -159,18 +164,14 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Remove item from an offer
     async removeItem(itemId: string): Promise<void> {
-      const { error } = await (supabase
-        .from('offer_items') as any)
-        .delete()
-        .eq('id', itemId);
+      const { error } = await (supabase.from('offer_items') as any).delete().eq('id', itemId);
 
       if (error) throw error;
     },
 
     // Remove all items from an offer
     async removeAllItems(offerId: string): Promise<void> {
-      const { error } = await (supabase
-        .from('offer_items') as any)
+      const { error } = await (supabase.from('offer_items') as any)
         .delete()
         .eq('offer_id', offerId);
 
@@ -306,19 +307,26 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
       total_discount: number;
       unique_customers: number;
     }> {
-      const { data, error } = await (supabase
-        .from('offer_uses') as any)
+      const { data, error } = await (supabase.from('offer_uses') as any)
         .select('customer_email, discount_amount')
         .eq('offer_id', offerId);
 
       if (error) throw error;
 
-      const uses = (data || []) as Array<{ customer_email: string | null; discount_amount: number }>;
-      const uniqueEmails = new Set(uses.map((u: { customer_email: string | null }) => u.customer_email?.toLowerCase()));
+      const uses = (data || []) as Array<{
+        customer_email: string | null;
+        discount_amount: number;
+      }>;
+      const uniqueEmails = new Set(
+        uses.map((u: { customer_email: string | null }) => u.customer_email?.toLowerCase())
+      );
 
       return {
         total_uses: uses.length,
-        total_discount: uses.reduce((sum: number, u: { discount_amount: number }) => sum + (u.discount_amount || 0), 0),
+        total_discount: uses.reduce(
+          (sum: number, u: { discount_amount: number }) => sum + (u.discount_amount || 0),
+          0
+        ),
         unique_customers: uniqueEmails.size,
       };
     },

@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Minus, Plus, X, Tag, Check, Loader2 } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
-import type { CartItem, AppliedOfferDetail, CustomerLoyaltyInfo } from '@foodtruck/shared';
+import type {
+  CartItem,
+  AppliedOfferDetail,
+  CustomerLoyaltyInfo,
+  SelectedOption,
+} from '@foodtruck/shared';
 
 interface OrderSummaryCardProps {
   items: CartItem[];
@@ -10,7 +15,7 @@ interface OrderSummaryCardProps {
   loyaltyDiscount: number;
   appliedOffers: AppliedOfferDetail[];
   finalTotal: number;
-  getCartKey: (menuItemId: string, selectedOptions?: any[]) => string;
+  getCartKey: (menuItemId: string, selectedOptions?: SelectedOption[]) => string;
   onUpdateQuantity: (key: string, quantity: number) => void;
   onRemoveItem: (key: string) => void;
   // Loyalty props
@@ -27,7 +32,12 @@ interface OrderSummaryCardProps {
   onRemovePromo?: () => void;
   promoLoading?: boolean;
   promoError?: string | null;
-  appliedPromo?: { code: string; discountType: string; discountValue: number; discount: number } | null;
+  appliedPromo?: {
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discount: number;
+  } | null;
 }
 
 export function OrderSummaryCard({
@@ -58,7 +68,8 @@ export function OrderSummaryCard({
 }: OrderSummaryCardProps) {
   const [showPromoInput, setShowPromoInput] = useState(false);
 
-  const totalSavings = appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0) + promoDiscount + loyaltyDiscount;
+  const totalSavings =
+    appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0) + promoDiscount + loyaltyDiscount;
   const hasDiscounts = totalSavings > 0;
 
   // Loyalty calculations
@@ -76,7 +87,9 @@ export function OrderSummaryCard({
       <div className="px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">Votre commande</h2>
-          <span className="text-xs text-gray-400">{items.reduce((s, i) => s + i.quantity, 0)} articles</span>
+          <span className="text-xs text-gray-400">
+            {items.reduce((s, i) => s + i.quantity, 0)} articles
+          </span>
         </div>
       </div>
 
@@ -84,21 +97,26 @@ export function OrderSummaryCard({
       <div className="divide-y divide-gray-50">
         {items.map((item) => {
           const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
-          const sizeOption = item.selectedOptions?.find(opt => opt.isSizeOption);
+          const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
           const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-          const supplementsTotal = item.selectedOptions?.reduce(
-            (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier), 0
-          ) || 0;
+          const supplementsTotal =
+            item.selectedOptions?.reduce(
+              (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
+              0
+            ) || 0;
           const itemTotal = (basePrice + supplementsTotal) * item.quantity;
 
           // Only show non-default options
-          const meaningfulOptions = item.selectedOptions?.filter(opt =>
-            opt.priceModifier !== 0 || opt.isSizeOption
+          const meaningfulOptions = item.selectedOptions?.filter(
+            (opt) => opt.priceModifier !== 0 || opt.isSizeOption
           );
-          const optionsText = meaningfulOptions?.map(opt => opt.name).join(', ');
+          const optionsText = meaningfulOptions?.map((opt) => opt.name).join(', ');
 
           return (
-            <div key={cartKey} className="flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50">
+            <div
+              key={cartKey}
+              className="flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50"
+            >
               {/* Quantity stepper */}
               <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                 <button
@@ -123,9 +141,7 @@ export function OrderSummaryCard({
               {/* Item info */}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 text-sm">{item.menuItem.name}</p>
-                {optionsText && (
-                  <p className="text-xs text-gray-400 truncate">{optionsText}</p>
-                )}
+                {optionsText && <p className="text-xs text-gray-400 truncate">{optionsText}</p>}
               </div>
 
               {/* Price */}
@@ -159,7 +175,9 @@ export function OrderSummaryCard({
           <div key={offer.offer_id} className="flex justify-between text-sm">
             <span className="text-emerald-600 truncate pr-2">
               {offer.offer_name}
-              {offer.times_applied > 1 && <span className="opacity-60"> ×{offer.times_applied}</span>}
+              {offer.times_applied > 1 && (
+                <span className="opacity-60"> ×{offer.times_applied}</span>
+              )}
             </span>
             <span className="text-emerald-600 font-medium tabular-nums whitespace-nowrap">
               −{formatPrice(offer.discount_amount)}
@@ -170,13 +188,17 @@ export function OrderSummaryCard({
         {loyaltyDiscount > 0 && !loyaltyInfo?.can_redeem && (
           <div className="flex justify-between text-sm">
             <span className="text-emerald-600">Fidélité</span>
-            <span className="text-emerald-600 font-medium tabular-nums">−{formatPrice(loyaltyDiscount)}</span>
+            <span className="text-emerald-600 font-medium tabular-nums">
+              −{formatPrice(loyaltyDiscount)}
+            </span>
           </div>
         )}
         {promoDiscount > 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-emerald-600">Code promo</span>
-            <span className="text-emerald-600 font-medium tabular-nums">−{formatPrice(promoDiscount)}</span>
+            <span className="text-emerald-600 font-medium tabular-nums">
+              −{formatPrice(promoDiscount)}
+            </span>
           </div>
         )}
 
@@ -196,7 +218,13 @@ export function OrderSummaryCard({
                     />
                     <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center">
                       {useLoyaltyReward && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -204,14 +232,17 @@ export function OrderSummaryCard({
                   </div>
                   <span className="text-sm text-gray-700">Utiliser ma récompense</span>
                 </div>
-                <span className="text-sm font-semibold text-emerald-600">−{formatPrice(loyaltyInfo.max_discount)}</span>
+                <span className="text-sm font-semibold text-emerald-600">
+                  −{formatPrice(loyaltyInfo.max_discount)}
+                </span>
               </label>
             ) : (
               /* Progress display - minimal */
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">
-                    Fidélité <span className="text-emerald-600 font-medium">+{pointsToEarn} pts</span>
+                    Fidélité{' '}
+                    <span className="text-emerald-600 font-medium">+{pointsToEarn} pts</span>
                   </span>
                   <span className="text-xs tabular-nums">
                     <span className="text-gray-600 font-medium">{futurePoints}</span>
@@ -249,9 +280,16 @@ export function OrderSummaryCard({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-emerald-600">
-                    −{appliedPromo.discountType === 'percentage' ? `${appliedPromo.discountValue}%` : formatPrice(appliedPromo.discount)}
+                    −
+                    {appliedPromo.discountType === 'percentage'
+                      ? `${appliedPromo.discountValue}%`
+                      : formatPrice(appliedPromo.discount)}
                   </span>
-                  <button type="button" onClick={onRemovePromo} className="p-1 hover:bg-emerald-100 rounded-full transition-colors">
+                  <button
+                    type="button"
+                    onClick={onRemovePromo}
+                    className="p-1 hover:bg-emerald-100 rounded-full transition-colors"
+                  >
                     <X className="w-3.5 h-3.5 text-emerald-600" />
                   </button>
                 </div>
@@ -276,7 +314,10 @@ export function OrderSummaryCard({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowPromoInput(false); onPromoCodeChange?.(''); }}
+                  onClick={() => {
+                    setShowPromoInput(false);
+                    onPromoCodeChange?.('');
+                  }}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors active:scale-95"
                 >
                   <X className="w-4 h-4" />
@@ -303,7 +344,9 @@ export function OrderSummaryCard({
             <p className="text-[10px] text-gray-400">à régler sur place</p>
           </div>
           <div className="text-right">
-            <p className="text-xl font-bold text-gray-900 tabular-nums">{formatPrice(finalTotal)}</p>
+            <p className="text-xl font-bold text-gray-900 tabular-nums">
+              {formatPrice(finalTotal)}
+            </p>
             {hasDiscounts && (
               <p className="text-[10px] text-emerald-600 font-medium">
                 {formatPrice(totalSavings)} économisés

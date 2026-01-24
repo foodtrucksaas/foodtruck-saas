@@ -56,7 +56,9 @@ describe('calculatePercentageChange', () => {
   });
 
   it('should handle undefined inputs', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(calculatePercentageChange(undefined as any, 100)).toBe(-100);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(calculatePercentageChange(100, undefined as any)).toBe(100);
   });
 });

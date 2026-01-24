@@ -28,6 +28,7 @@ foodtruck-saas/
 ## Fonctionnalités
 
 ### Dashboard Gestionnaire
+
 - Authentification (email/password + magic link)
 - Gestion du profil food truck
 - CRUD menu (plats, catégories, allergènes)
@@ -38,6 +39,7 @@ foodtruck-saas/
 - Intégration Stripe Connect
 
 ### Application Client (PWA)
+
 - Navigation par food truck
 - Consultation menu avec photos
 - Planning de la semaine
@@ -83,12 +85,14 @@ pnpm supabase:gen-types
 Créer les fichiers `.env` dans chaque package :
 
 **packages/client/.env**
+
 ```env
 VITE_SUPABASE_URL=http://localhost:54321
 VITE_SUPABASE_ANON_KEY=<votre-anon-key>
 ```
 
 **packages/dashboard/.env**
+
 ```env
 VITE_SUPABASE_URL=http://localhost:54321
 VITE_SUPABASE_ANON_KEY=<votre-anon-key>
@@ -96,6 +100,7 @@ VITE_APP_URL=http://localhost:5173
 ```
 
 **supabase/.env** (pour les Edge Functions)
+
 ```env
 STRIPE_SECRET_KEY=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
@@ -165,17 +170,43 @@ supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_xxx
 ## Scripts disponibles
 
 ```bash
+# Développement
 pnpm dev              # Lancer tous les packages en dev
+pnpm dev:client       # Lancer le client seul (port 5173)
+pnpm dev:dashboard    # Lancer le dashboard seul (port 5174)
+
+# Build
 pnpm build            # Build tous les packages
+
+# Qualité du code
 pnpm lint             # Linter tous les packages
 pnpm typecheck        # Vérifier les types
 pnpm format           # Formater le code
 
+# Tests
+pnpm test             # Tests unitaires (Vitest)
+pnpm test:coverage    # Tests avec couverture
+pnpm test:e2e         # Tests E2E (Playwright)
+pnpm test:e2e:ui      # Tests E2E avec interface visuelle
+
+# Supabase
 pnpm supabase:start   # Démarrer Supabase local
 pnpm supabase:stop    # Arrêter Supabase local
 pnpm supabase:reset   # Reset la base de données
 pnpm supabase:gen-types # Générer les types TypeScript
 ```
+
+## CI/CD
+
+Le projet utilise GitHub Actions pour l'intégration continue :
+
+- **Lint** : Vérification du code avec ESLint
+- **Type check** : Vérification des types TypeScript
+- **Tests unitaires** : 389+ tests avec Vitest
+- **Tests E2E** : 242+ tests avec Playwright
+- **Build** : Compilation des packages
+
+Les hooks pre-commit (Husky + lint-staged) vérifient automatiquement le code avant chaque commit.
 
 ## Structure de la base de données
 
@@ -193,6 +224,7 @@ pnpm supabase:gen-types # Générer les types TypeScript
 ### Row Level Security (RLS)
 
 Toutes les tables ont des politiques RLS :
+
 - Les food trucks publics sont visibles par tous
 - Les propriétaires peuvent gérer leurs propres données
 - Les clients peuvent voir leurs commandes
@@ -200,15 +232,19 @@ Toutes les tables ont des politiques RLS :
 ## API Edge Functions
 
 ### POST /functions/v1/stripe-connect
+
 Crée ou récupère un lien d'onboarding Stripe Connect.
 
 ### POST /functions/v1/create-checkout
+
 Crée une session Stripe Checkout pour une commande.
 
 ### POST /functions/v1/create-cash-order
+
 Crée une commande avec paiement sur place.
 
 ### POST /functions/v1/stripe-webhook
+
 Gère les webhooks Stripe (paiement réussi, échoué, etc.)
 
 ## Licence

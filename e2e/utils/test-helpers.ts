@@ -118,10 +118,7 @@ export async function addMenuItemToCart(
 /**
  * Navigate to a foodtruck page
  */
-export async function navigateToFoodtruck(
-  page: Page,
-  foodtruckId?: string
-): Promise<boolean> {
+export async function navigateToFoodtruck(page: Page, foodtruckId?: string): Promise<boolean> {
   if (foodtruckId) {
     await page.goto(`/${foodtruckId}`);
     return true;
@@ -131,9 +128,12 @@ export async function navigateToFoodtruck(
   await page.goto('/');
   await waitForLoadingComplete(page);
 
-  const foodtruckLink = page.locator('a[href^="/"]').filter({
-    hasNot: page.locator('a[href="/"]'),
-  }).first();
+  const foodtruckLink = page
+    .locator('a[href^="/"]')
+    .filter({
+      hasNot: page.locator('a[href="/"]'),
+    })
+    .first();
 
   if (await foodtruckLink.isVisible({ timeout: 5000 }).catch(() => false)) {
     await foodtruckLink.click();
@@ -148,9 +148,11 @@ export async function navigateToFoodtruck(
  * Get the current cart item count from the cart badge/button
  */
 export async function getCartItemCount(page: Page): Promise<number> {
-  const cartBadge = page.locator('[data-testid="cart-count"], .cart-count, [class*="badge"]').first();
+  const cartBadge = page
+    .locator('[data-testid="cart-count"], .cart-count, [class*="badge"]')
+    .first();
 
-  if (!await cartBadge.isVisible({ timeout: 2000 }).catch(() => false)) {
+  if (!(await cartBadge.isVisible({ timeout: 2000 }).catch(() => false))) {
     return 0;
   }
 
@@ -173,52 +175,65 @@ export function generateTestData() {
 
 /**
  * Mock Supabase auth for dashboard tests
+ * Returns true if successful, false if storage access was denied
  */
 export async function mockDashboardAuth(
   page: Page,
   userData?: { id: string; email: string }
-): Promise<void> {
+): Promise<boolean> {
   const user = userData || {
     id: 'test-user-id',
     email: 'test@example.com',
   };
 
-  await page.evaluate((user) => {
-    localStorage.setItem(
-      'sb-localhost-auth-token',
-      JSON.stringify({
-        currentSession: {
-          access_token: 'mock-token',
-          refresh_token: 'mock-refresh',
-          user: {
-            id: user.id,
-            email: user.email,
-            role: 'authenticated',
+  try {
+    await page.evaluate((user) => {
+      localStorage.setItem(
+        'sb-localhost-auth-token',
+        JSON.stringify({
+          currentSession: {
+            access_token: 'mock-token',
+            refresh_token: 'mock-refresh',
+            user: {
+              id: user.id,
+              email: user.email,
+              role: 'authenticated',
+            },
           },
-        },
-        expiresAt: Date.now() + 3600000,
-      })
-    );
-  }, user);
+          expiresAt: Date.now() + 3600000,
+        })
+      );
+    }, user);
+    return true;
+  } catch {
+    // Storage access denied
+    return false;
+  }
 }
 
 /**
  * Clear all local storage and session storage
+ * Handles cases where storage access may be denied
  */
 export async function clearBrowserStorage(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  });
+  try {
+    await page.evaluate(() => {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        // Storage access denied, ignore
+      }
+    });
+  } catch {
+    // Page evaluation failed (e.g., cross-origin, error page), ignore
+  }
 }
 
 /**
  * Take a screenshot with a descriptive name
  */
-export async function takeScreenshot(
-  page: Page,
-  name: string
-): Promise<void> {
+export async function takeScreenshot(page: Page, name: string): Promise<void> {
   await page.screenshot({
     path: `playwright-report/screenshots/${name}-${Date.now()}.png`,
     fullPage: true,

@@ -118,6 +118,7 @@ describe('useCategories', () => {
 
     let success = false;
     await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       success = await result.current.deleteCategory(mockCategory, menuItems as any);
     });
 
@@ -178,9 +179,7 @@ describe('useCategories', () => {
   });
 
   it('should not move first category up', async () => {
-    const categories: Category[] = [
-      { ...mockCategory, id: 'cat-1', display_order: 0 },
-    ];
+    const categories: Category[] = [{ ...mockCategory, id: 'cat-1', display_order: 0 }];
 
     const { result } = renderHook(() => useCategories());
 
@@ -215,9 +214,7 @@ describe('useCategories', () => {
   });
 
   it('should not move last category down', async () => {
-    const categories: Category[] = [
-      { ...mockCategory, id: 'cat-1', display_order: 0 },
-    ];
+    const categories: Category[] = [{ ...mockCategory, id: 'cat-1', display_order: 0 }];
 
     const { result } = renderHook(() => useCategories());
 

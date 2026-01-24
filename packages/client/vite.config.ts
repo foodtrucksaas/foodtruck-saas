@@ -38,8 +38,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
-        // Cache remote images from Supabase storage
+        // Offline fallback
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
+          // Cache Supabase images (static assets)
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
             handler: 'CacheFirst',
@@ -48,6 +51,112 @@ export default defineConfig({
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Cache menu data with Network-first (show fresh, fall back to cache)
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/menu_items.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'menu-data',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 5, // Fall back to cache after 5s
+            },
+          },
+          // Cache foodtruck data
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/foodtrucks.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'foodtruck-data',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 5,
+            },
+          },
+          // Cache categories
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/categories.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'category-data',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 5,
+            },
+          },
+          // Cache schedules and locations
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/(schedules|locations).*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'schedule-data',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 5,
+            },
+          },
+          // Cache offers (short TTL since they change)
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/offers.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'offers-data',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60, // 1 hour
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 3,
+            },
+          },
+          // Cache Google Fonts
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -77,11 +186,11 @@ export default defineConfig({
           // Core React runtime - cached long-term
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           // Supabase client - separate chunk for auth/db
-          'supabase': ['@supabase/supabase-js'],
+          supabase: ['@supabase/supabase-js'],
           // Leaflet/Map - heavy library, only needed on info tab
-          'leaflet': ['leaflet', 'react-leaflet'],
+          leaflet: ['leaflet', 'react-leaflet'],
           // Sentry - monitoring, can load async
-          'sentry': ['@sentry/react'],
+          sentry: ['@sentry/react'],
         },
         // Optimize asset file names for caching
         assetFileNames: (assetInfo) => {

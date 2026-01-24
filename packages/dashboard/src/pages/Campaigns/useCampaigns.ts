@@ -68,9 +68,9 @@ export function useCampaigns() {
 
     async function fetchCount() {
       const targeting = buildTargeting(form);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await supabase.rpc('count_campaign_recipients', {
         p_foodtruck_id: foodtruck!.id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         p_targeting: targeting as any,
       });
       setRecipientCount(data ?? 0);
@@ -88,21 +88,24 @@ export function useCampaigns() {
     setShowModal(true);
   }, [locations]);
 
-  const openEditCampaign = useCallback((campaign: Campaign) => {
-    setEditingCampaign(campaign);
-    const targeting = campaign.targeting as CampaignTargeting;
-    setForm({
-      name: campaign.name,
-      channel: campaign.channel,
-      segment: targeting.segment as SegmentType,
-      locationId: targeting.location_id || locations[0]?.id || '',
-      inactiveDays: targeting.days || 30,
-      emailSubject: campaign.email_subject || '',
-      emailBody: campaign.email_body || '',
-      smsBody: campaign.sms_body || '',
-    });
-    setShowModal(true);
-  }, [locations]);
+  const openEditCampaign = useCallback(
+    (campaign: Campaign) => {
+      setEditingCampaign(campaign);
+      const targeting = campaign.targeting as CampaignTargeting;
+      setForm({
+        name: campaign.name,
+        channel: campaign.channel,
+        segment: targeting.segment as SegmentType,
+        locationId: targeting.location_id || locations[0]?.id || '',
+        inactiveDays: targeting.days || 30,
+        emailSubject: campaign.email_subject || '',
+        emailBody: campaign.email_body || '',
+        smsBody: campaign.sms_body || '',
+      });
+      setShowModal(true);
+    },
+    [locations]
+  );
 
   const closeModal = useCallback(() => {
     setShowModal(false);
@@ -171,50 +174,56 @@ export function useCampaigns() {
     fetchData();
   }, [foodtruck, form, editingCampaign, recipientCount, fetchData]);
 
-  const deleteCampaign = useCallback(async (id: string) => {
-    if (!confirm('Supprimer cette campagne ?')) return;
+  const deleteCampaign = useCallback(
+    async (id: string) => {
+      if (!confirm('Supprimer cette campagne ?')) return;
 
-    const { error } = await supabase.from('campaigns').delete().eq('id', id);
+      const { error } = await supabase.from('campaigns').delete().eq('id', id);
 
-    if (error) {
-      console.error('Error deleting campaign:', error);
-      return;
-    }
-
-    fetchData();
-  }, [fetchData]);
-
-  const sendCampaign = useCallback(async (campaign: Campaign) => {
-    if (!confirm(`Envoyer cette campagne à ${campaign.recipients_count} destinataires ?`)) return;
-
-    setSending(campaign.id);
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-campaign`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ campaign_id: campaign.id }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Erreur lors de l'envoi");
+      if (error) {
+        console.error('Error deleting campaign:', error);
+        return;
       }
 
       fetchData();
-    } catch (error) {
-      console.error('Error sending campaign:', error instanceof Error ? error.message : error);
-    } finally {
-      setSending(null);
-    }
-  }, [fetchData]);
+    },
+    [fetchData]
+  );
+
+  const sendCampaign = useCallback(
+    async (campaign: Campaign) => {
+      if (!confirm(`Envoyer cette campagne à ${campaign.recipients_count} destinataires ?`)) return;
+
+      setSending(campaign.id);
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-campaign`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ campaign_id: campaign.id }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Erreur lors de l'envoi");
+        }
+
+        fetchData();
+      } catch (error) {
+        console.error('Error sending campaign:', error instanceof Error ? error.message : error);
+      } finally {
+        setSending(null);
+      }
+    },
+    [fetchData]
+  );
 
   return {
     // State

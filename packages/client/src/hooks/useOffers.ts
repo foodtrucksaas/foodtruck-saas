@@ -37,11 +37,14 @@ export function useOffers(
   // Create a stable cart signature to ensure useEffect re-runs when cart content changes
   // Filter out bundle items (they have synthetic IDs) - they're handled separately
   const cartSignature = useMemo(() => {
-    const regularItems = items.filter(item => !item.bundleInfo);
-    return regularItems.map(item => {
-      const sizeOption = item.selectedOptions?.find(opt => opt.isSizeOption);
-      return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeOption?.optionId || ''}`;
-    }).sort().join('|');
+    const regularItems = items.filter((item) => !item.bundleInfo);
+    return regularItems
+      .map((item) => {
+        const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
+        return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeOption?.optionId || ''}`;
+      })
+      .sort()
+      .join('|');
   }, [items]);
 
   // Fetch optimized offers when cart changes
@@ -53,7 +56,7 @@ export function useOffers(
     }
 
     // Filter out bundle items - they have synthetic menu item IDs
-    const regularItems = items.filter(item => !item.bundleInfo);
+    const regularItems = items.filter((item) => !item.bundleInfo);
 
     const fetchOffers = async () => {
       setLoading(true);
@@ -134,7 +137,7 @@ export function useOffers(
           setAppliedPromoCode(code);
         }
         return result;
-      } catch (error) {
+      } catch {
         const errorResult: ValidateOfferPromoCodeResult = {
           is_valid: false,
           offer_id: null,
@@ -169,10 +172,7 @@ export function useOffers(
   );
 
   // Total discount from ALL applied offers (not just best single one)
-  const totalOfferDiscount = appliedOffers.reduce(
-    (sum, offer) => sum + offer.discount_amount,
-    0
-  );
+  const totalOfferDiscount = appliedOffers.reduce((sum, offer) => sum + offer.discount_amount, 0);
 
   return {
     applicableOffers,

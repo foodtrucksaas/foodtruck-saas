@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Disabled due to Supabase type casting requirements for complex queries
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
@@ -141,15 +143,16 @@ export function useOffers() {
     setLoading(true);
     try {
       const [offersRes, categoriesRes, itemsRes] = await Promise.all([
-        (supabase
-          .from('offers') as any)
-          .select(`
+        (supabase.from('offers') as any)
+          .select(
+            `
             *,
             offer_items (
               *,
               menu_item:menu_items (*)
             )
-          `)
+          `
+          )
           .eq('foodtruck_id', foodtruck.id)
           .order('created_at', { ascending: false }),
         supabase
@@ -186,13 +189,14 @@ export function useOffers() {
           return {
             type: 'category_choice',
             fixed_price: Math.round(parseFloat(form.bundleFixedPrice || '0') * 100),
-            bundle_categories: form.bundleCategories.map(bc => ({
+            bundle_categories: form.bundleCategories.map((bc) => ({
               category_ids: bc.categoryIds,
               quantity: bc.quantity,
               label: bc.label || undefined,
               excluded_items: bc.excludedItems.length > 0 ? bc.excludedItems : undefined,
               supplements: Object.keys(bc.supplements).length > 0 ? bc.supplements : undefined,
-              excluded_sizes: Object.keys(bc.excludedSizes).length > 0 ? bc.excludedSizes : undefined,
+              excluded_sizes:
+                Object.keys(bc.excludedSizes).length > 0 ? bc.excludedSizes : undefined,
             })),
             free_options: form.bundleFreeOptions || undefined,
           };
@@ -208,15 +212,24 @@ export function useOffers() {
             trigger_quantity: parseInt(form.triggerQuantity) || 3,
             reward_quantity: parseInt(form.rewardQuantity) || 1,
             reward_type: form.rewardType,
-            reward_value: form.rewardType === 'discount'
-              ? Math.round(parseFloat(form.rewardValue || '0') * 100)
-              : undefined,
+            reward_value:
+              form.rewardType === 'discount'
+                ? Math.round(parseFloat(form.rewardValue || '0') * 100)
+                : undefined,
             trigger_category_ids: form.triggerCategoryIds,
-            trigger_excluded_items: form.triggerExcludedItems.length > 0 ? form.triggerExcludedItems : undefined,
-            trigger_excluded_sizes: Object.keys(form.triggerExcludedSizes).length > 0 ? form.triggerExcludedSizes : undefined,
+            trigger_excluded_items:
+              form.triggerExcludedItems.length > 0 ? form.triggerExcludedItems : undefined,
+            trigger_excluded_sizes:
+              Object.keys(form.triggerExcludedSizes).length > 0
+                ? form.triggerExcludedSizes
+                : undefined,
             reward_category_ids: form.rewardCategoryIds,
-            reward_excluded_items: form.rewardExcludedItems.length > 0 ? form.rewardExcludedItems : undefined,
-            reward_excluded_sizes: Object.keys(form.rewardExcludedSizes).length > 0 ? form.rewardExcludedSizes : undefined,
+            reward_excluded_items:
+              form.rewardExcludedItems.length > 0 ? form.rewardExcludedItems : undefined,
+            reward_excluded_sizes:
+              Object.keys(form.rewardExcludedSizes).length > 0
+                ? form.rewardExcludedSizes
+                : undefined,
           };
         }
         return {
@@ -224,17 +237,19 @@ export function useOffers() {
           trigger_quantity: parseInt(form.triggerQuantity) || 3,
           reward_quantity: parseInt(form.rewardQuantity) || 1,
           reward_type: form.rewardType,
-          reward_value: form.rewardType === 'discount'
-            ? Math.round(parseFloat(form.rewardValue || '0') * 100)
-            : undefined,
+          reward_value:
+            form.rewardType === 'discount'
+              ? Math.round(parseFloat(form.rewardValue || '0') * 100)
+              : undefined,
         };
       case 'promo_code':
         return {
           code: form.promoCode.toUpperCase().trim(),
           discount_type: form.promoCodeDiscountType,
-          discount_value: form.promoCodeDiscountType === 'percentage'
-            ? parseInt(form.promoCodeDiscountValue) || 0
-            : Math.round(parseFloat(form.promoCodeDiscountValue || '0') * 100),
+          discount_value:
+            form.promoCodeDiscountType === 'percentage'
+              ? parseInt(form.promoCodeDiscountValue) || 0
+              : Math.round(parseFloat(form.promoCodeDiscountValue || '0') * 100),
           min_order_amount: form.promoCodeMinOrderAmount
             ? Math.round(parseFloat(form.promoCodeMinOrderAmount) * 100)
             : undefined,
@@ -246,9 +261,10 @@ export function useOffers() {
         return {
           min_amount: Math.round(parseFloat(form.thresholdMinAmount || '0') * 100),
           discount_type: form.thresholdDiscountType,
-          discount_value: form.thresholdDiscountType === 'percentage'
-            ? parseInt(form.thresholdDiscountValue) || 0
-            : Math.round(parseFloat(form.thresholdDiscountValue || '0') * 100),
+          discount_value:
+            form.thresholdDiscountType === 'percentage'
+              ? parseInt(form.thresholdDiscountValue) || 0
+              : Math.round(parseFloat(form.thresholdDiscountValue || '0') * 100),
         };
     }
   }, [form]);
@@ -265,7 +281,7 @@ export function useOffers() {
           if (form.bundleCategories.length < 2) {
             return 'Une formule doit contenir au moins 2 choix';
           }
-          if (form.bundleCategories.some(bc => !bc.categoryIds || bc.categoryIds.length === 0)) {
+          if (form.bundleCategories.some((bc) => !bc.categoryIds || bc.categoryIds.length === 0)) {
             return 'Chaque choix doit avoir au moins une catégorie';
           }
         } else {
@@ -333,7 +349,9 @@ export function useOffers() {
         time_end: form.timeEnd || undefined,
         days_of_week: form.daysOfWeek.length > 0 ? form.daysOfWeek : undefined,
         max_uses: form.maxUses ? parseInt(form.maxUses) : undefined,
-        max_uses_per_customer: form.maxUsesPerCustomer ? parseInt(form.maxUsesPerCustomer) : undefined,
+        max_uses_per_customer: form.maxUsesPerCustomer
+          ? parseInt(form.maxUsesPerCustomer)
+          : undefined,
       };
 
       let offerId: string;
@@ -414,29 +432,34 @@ export function useOffers() {
     }
   }, [foodtruck, form, editingOffer, buildConfig, validateForm, loadData]);
 
-  const toggleActive = useCallback(async (offer: Offer) => {
-    const { error } = await (supabase
-      .from('offers') as any)
-      .update({ is_active: !offer.is_active })
-      .eq('id', offer.id);
+  const toggleActive = useCallback(
+    async (offer: Offer) => {
+      const { error } = await (supabase.from('offers') as any)
+        .update({ is_active: !offer.is_active })
+        .eq('id', offer.id);
 
-    if (error) {
-      console.error('Error toggling offer active state:', error);
-    } else {
-      await loadData();
-    }
-  }, [loadData]);
+      if (error) {
+        console.error('Error toggling offer active state:', error);
+      } else {
+        await loadData();
+      }
+    },
+    [loadData]
+  );
 
-  const deleteOffer = useCallback(async (id: string) => {
-    if (!confirm('Supprimer cette offre ?')) return;
+  const deleteOffer = useCallback(
+    async (id: string) => {
+      if (!confirm('Supprimer cette offre ?')) return;
 
-    const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting offer:', error);
-    } else {
-      await loadData();
-    }
-  }, [loadData]);
+      const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
+      if (error) {
+        console.error('Error deleting offer:', error);
+      } else {
+        await loadData();
+      }
+    },
+    [loadData]
+  );
 
   const openEditWizard = useCallback((offer: OfferWithItems) => {
     setEditingOffer(offer);
@@ -509,9 +532,10 @@ export function useOffers() {
       case 'promo_code':
         newForm.promoCode = config.code || '';
         newForm.promoCodeDiscountType = config.discount_type || 'percentage';
-        newForm.promoCodeDiscountValue = config.discount_type === 'percentage'
-          ? (config.discount_value || 0).toString()
-          : ((config.discount_value || 0) / 100).toString();
+        newForm.promoCodeDiscountValue =
+          config.discount_type === 'percentage'
+            ? (config.discount_value || 0).toString()
+            : ((config.discount_value || 0) / 100).toString();
         newForm.promoCodeMinOrderAmount = config.min_order_amount
           ? (config.min_order_amount / 100).toString()
           : '';
@@ -522,9 +546,10 @@ export function useOffers() {
       case 'threshold_discount':
         newForm.thresholdMinAmount = ((config.min_amount || 0) / 100).toString();
         newForm.thresholdDiscountType = config.discount_type || 'percentage';
-        newForm.thresholdDiscountValue = config.discount_type === 'percentage'
-          ? (config.discount_value || 0).toString()
-          : ((config.discount_value || 0) / 100).toString();
+        newForm.thresholdDiscountValue =
+          config.discount_type === 'percentage'
+            ? (config.discount_value || 0).toString()
+            : ((config.discount_value || 0) / 100).toString();
         break;
     }
 
