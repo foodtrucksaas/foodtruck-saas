@@ -4,19 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Palette miam.co
+        // Palette harmonisée avec Client PWA (coral)
         primary: {
-          50: '#FFF7ED',   // Background très léger
-          100: '#FFEDD5',
-          200: '#FED7AA',
-          300: '#FDBA74',
-          400: '#FF8C5A',  // Orange clair
-          500: '#FF6B35',  // Orange principal
-          600: '#E55A2B',  // Orange foncé (hover)
-          700: '#C2410C',
-          800: '#9A3412',
-          900: '#7C2D12',
-          950: '#431407',
+          50: '#FFF5F3',   // Background très léger
+          100: '#FFE8E4',
+          200: '#FFD4CC',
+          300: '#FFB4A8',
+          400: '#FB923C',  // Orange clair
+          500: '#F97066',  // Coral principal (aligné client)
+          600: '#E5634D',  // Coral foncé (hover)
+          700: '#C94D3A',
+          800: '#A13D2E',
+          900: '#7C2D22',
+          950: '#431410',
         },
         // Neutres personnalisés
         anthracite: '#2D2D2D',

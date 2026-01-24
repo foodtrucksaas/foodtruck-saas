@@ -1,4 +1,18 @@
-import { Users, Mail, Phone, Search, Filter, TrendingUp, Calendar, MapPin, ShoppingBag, MailCheck, MessageSquare, Download, Gift } from 'lucide-react';
+import {
+  Users,
+  Mail,
+  Phone,
+  Search,
+  Filter,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  ShoppingBag,
+  MailCheck,
+  MessageSquare,
+  Download,
+  Gift,
+} from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import { useCustomers, formatDate, type FilterSegment } from './useCustomers';
 import { CustomersPageSkeleton } from '../../components/Skeleton';
@@ -13,9 +27,19 @@ const SEGMENTS = [
 
 export default function Customers() {
   const {
-    customers, locations, loading, stats, searchQuery, setSearchQuery,
-    filterSegment, setFilterSegment, filterLocation, setFilterLocation,
-    showFilters, setShowFilters, exportCSV,
+    customers,
+    locations,
+    loading,
+    stats,
+    searchQuery,
+    setSearchQuery,
+    filterSegment,
+    setFilterSegment,
+    filterLocation,
+    setFilterLocation,
+    showFilters,
+    setShowFilters,
+    exportCSV,
   } = useCustomers();
 
   if (loading) {
@@ -26,19 +50,56 @@ export default function Customers() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div><h1 className="text-2xl font-bold text-gray-900">Clients</h1><p className="text-gray-600">Gérez votre base clients et vos campagnes</p></div>
-        <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200">
-          <Download className="w-4 h-4" />Exporter
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
+          <p className="text-gray-600">Gérez votre base clients et vos campagnes</p>
+        </div>
+        <button
+          onClick={exportCSV}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200"
+        >
+          <Download className="w-4 h-4" />
+          Exporter
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard icon={Users} iconBg="bg-blue-100" iconColor="text-blue-600" value={stats.total} label="Clients total" />
-        <StatCard icon={MailCheck} iconBg="bg-green-100" iconColor="text-green-600" value={stats.emailOptIn} label="Opt-in email" />
-        <StatCard icon={MessageSquare} iconBg="bg-purple-100" iconColor="text-purple-600" value={stats.smsOptIn} label="Opt-in SMS" />
-        <StatCard icon={TrendingUp} iconBg="bg-amber-100" iconColor="text-amber-600" value={stats.active} label="Actifs (30j)" />
-        <StatCard icon={ShoppingBag} iconBg="bg-red-100" iconColor="text-red-600" value={stats.loyal} label="Fidèles (5+ cmd)" />
+        <StatCard
+          icon={Users}
+          iconBg="bg-blue-100"
+          iconColor="text-blue-600"
+          value={stats.total}
+          label="Clients total"
+        />
+        <StatCard
+          icon={MailCheck}
+          iconBg="bg-emerald-100"
+          iconColor="text-emerald-600"
+          value={stats.emailOptIn}
+          label="Opt-in email"
+        />
+        <StatCard
+          icon={MessageSquare}
+          iconBg="bg-primary-100"
+          iconColor="text-primary-600"
+          value={stats.smsOptIn}
+          label="Opt-in SMS"
+        />
+        <StatCard
+          icon={TrendingUp}
+          iconBg="bg-amber-100"
+          iconColor="text-amber-600"
+          value={stats.active}
+          label="Actifs (30j)"
+        />
+        <StatCard
+          icon={ShoppingBag}
+          iconBg="bg-primary-100"
+          iconColor="text-primary-600"
+          value={stats.loyal}
+          label="Fidèles (5+ cmd)"
+        />
       </div>
 
       {/* Search & Filters */}
@@ -46,13 +107,25 @@ export default function Customers() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Rechercher par nom, email ou téléphone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom, email ou téléphone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
           </div>
-          <button onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-            <Filter className="w-4 h-4" />Filtres
-            {(filterSegment !== 'all' || filterLocation) && <span className="w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">{(filterSegment !== 'all' ? 1 : 0) + (filterLocation ? 1 : 0)}</span>}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          >
+            <Filter className="w-4 h-4" />
+            Filtres
+            {(filterSegment !== 'all' || filterLocation) && (
+              <span className="w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+                {(filterSegment !== 'all' ? 1 : 0) + (filterLocation ? 1 : 0)}
+              </span>
+            )}
           </button>
         </div>
         {showFilters && (
@@ -61,8 +134,11 @@ export default function Customers() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Segment</label>
               <div className="flex flex-wrap gap-2">
                 {SEGMENTS.map((seg) => (
-                  <button key={seg.key} onClick={() => setFilterSegment(seg.key as FilterSegment)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterSegment === seg.key ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                  <button
+                    key={seg.key}
+                    onClick={() => setFilterSegment(seg.key as FilterSegment)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterSegment === seg.key ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  >
                     {seg.label}
                   </button>
                 ))}
@@ -70,24 +146,36 @@ export default function Customers() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Emplacement</label>
-              <select value={filterLocation || ''} onChange={(e) => setFilterLocation(e.target.value || null)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <select
+                value={filterLocation || ''}
+                onChange={(e) => setFilterLocation(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
                 <option value="">Tous les emplacements</option>
-                {locations.map((loc) => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
         )}
       </div>
 
-      <p className="text-sm text-gray-500">{customers.length} client{customers.length !== 1 ? 's' : ''} trouvé{customers.length !== 1 ? 's' : ''}</p>
+      <p className="text-sm text-gray-500">
+        {customers.length} client{customers.length !== 1 ? 's' : ''} trouvé
+        {customers.length !== 1 ? 's' : ''}
+      </p>
 
       {/* Table */}
       {customers.length === 0 ? (
         <div className="card p-12 text-center">
           <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
           <p className="text-gray-500">Aucun client trouvé</p>
-          <p className="text-sm text-gray-400 mt-1">Les clients apparaîtront ici après leur première commande</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Les clients apparaîtront ici après leur première commande
+          </p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -95,47 +183,123 @@ export default function Customers() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Commandes</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total cmd</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Opt-in</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière commande</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Emplacements</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Commandes
+                  </th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total cmd
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Points
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Opt-in
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dernière commande
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Emplacements
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {customers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4"><div><p className="font-medium text-gray-900">{customer.name || 'Client anonyme'}</p><p className="text-sm text-gray-500">{customer.email}</p></div></td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        {customer.email && <a href={`mailto:${customer.email}`} className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"><Mail className="w-4 h-4" /></a>}
-                        {customer.phone && <a href={`tel:${customer.phone}`} className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"><Phone className="w-4 h-4" /></a>}
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {customer.name || 'Client anonyme'}
+                        </p>
+                        <p className="text-sm text-gray-500">{customer.email}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-center"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-semibold text-sm">{customer.total_orders}</span></td>
-                    <td className="px-4 py-4 text-right"><span className="font-semibold text-gray-900">{formatPrice(customer.total_spent)}</span></td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        {customer.email && (
+                          <a
+                            href={`mailto:${customer.email}`}
+                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        )}
+                        {customer.phone && (
+                          <a
+                            href={`tel:${customer.phone}`}
+                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
+                          >
+                            <Phone className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-4 text-center">
-                      {customer.loyalty_points > 0 ? <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium"><Gift className="w-3 h-3" />{customer.loyalty_points}</span> : <span className="text-gray-400 text-sm">0</span>}
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-semibold text-sm">
+                        {customer.total_orders}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <span className="font-semibold text-gray-900">
+                        {formatPrice(customer.total_spent)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      {customer.loyalty_points > 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
+                          <Gift className="w-3 h-3" />
+                          {customer.loyalty_points}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">0</span>
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        {customer.email_opt_in && <span className="p-1 rounded bg-green-100" title="Email opt-in"><Mail className="w-3 h-3 text-green-600" /></span>}
-                        {customer.sms_opt_in && <span className="p-1 rounded bg-purple-100" title="SMS opt-in"><MessageSquare className="w-3 h-3 text-purple-600" /></span>}
-                        {!customer.email_opt_in && !customer.sms_opt_in && <span className="text-gray-400 text-xs">-</span>}
+                        {customer.email_opt_in && (
+                          <span className="p-1 rounded bg-green-100" title="Email opt-in">
+                            <Mail className="w-3 h-3 text-green-600" />
+                          </span>
+                        )}
+                        {customer.sms_opt_in && (
+                          <span className="p-1 rounded bg-purple-100" title="SMS opt-in">
+                            <MessageSquare className="w-3 h-3 text-purple-600" />
+                          </span>
+                        )}
+                        {!customer.email_opt_in && !customer.sms_opt_in && (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-4 py-4"><div className="flex items-center gap-2 text-sm text-gray-600"><Calendar className="w-4 h-4 text-gray-400" />{formatDate(customer.last_order_at)}</div></td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        {formatDate(customer.last_order_at)}
+                      </div>
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-1">
                         {customer.customer_locations?.slice(0, 2).map((cl) => (
-                          <span key={cl.location_id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-600">
-                            <MapPin className="w-3 h-3" />{cl.location?.name}<span className="text-gray-400">({cl.order_count})</span>
+                          <span
+                            key={cl.location_id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-600"
+                          >
+                            <MapPin className="w-3 h-3" />
+                            {cl.location?.name}
+                            <span className="text-gray-400">({cl.order_count})</span>
                           </span>
                         ))}
-                        {customer.customer_locations && customer.customer_locations.length > 2 && <span className="text-xs text-gray-400">+{customer.customer_locations.length - 2}</span>}
+                        {customer.customer_locations && customer.customer_locations.length > 2 && (
+                          <span className="text-xs text-gray-400">
+                            +{customer.customer_locations.length - 2}
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -149,12 +313,29 @@ export default function Customers() {
   );
 }
 
-function StatCard({ icon: Icon, iconBg, iconColor, value, label }: { icon: React.ElementType; iconBg: string; iconColor: string; value: number; label: string }) {
+function StatCard({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  value,
+  label,
+}: {
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  value: number;
+  label: string;
+}) {
   return (
     <div className="card p-4">
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${iconBg}`}><Icon className={`w-5 h-5 ${iconColor}`} /></div>
-        <div><p className="text-2xl font-bold text-gray-900">{value}</p><p className="text-xs text-gray-500">{label}</p></div>
+        <div className={`p-2 rounded-xl ${iconBg}`}>
+          <Icon className={`w-5 h-5 ${iconColor}`} />
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-gray-500">{label}</p>
+        </div>
       </div>
     </div>
   );

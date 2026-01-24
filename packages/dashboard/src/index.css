@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root {
+  html,
+  body,
+  #root {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
@@ -11,7 +13,9 @@
 
   /* Mobile only: fixed viewport to prevent iOS scroll bounce */
   @media (max-width: 1023px) {
-    html, body, #root {
+    html,
+    body,
+    #root {
       position: fixed;
       top: 0;
       left: 0;
@@ -25,25 +29,30 @@
 
   /* Desktop: normal scroll behavior */
   @media (min-width: 1024px) {
-    html, body, #root {
+    html,
+    body,
+    #root {
       min-height: 100vh;
     }
   }
 
   body {
-    background-color: #FAFAFA;
-    color: #2D2D2D;
+    background-color: #fafafa;
+    color: #2d2d2d;
     -webkit-tap-highlight-color: transparent;
   }
 
   /* Re-enable tap highlight only on interactive elements */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role='button'] {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     touch-action: manipulation;
   }
 
   /* Allow text selection in inputs */
-  input, textarea {
+  input,
+  textarea {
     -webkit-user-select: text;
     user-select: text;
   }
@@ -69,16 +78,18 @@
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2;
-    transition: all 0.15s ease-out, transform 0.1s ease-out;
+    transition:
+      all 0.15s ease-out,
+      transform 0.1s ease-out;
   }
-  .btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  .btn:hover:not(:disabled):not([aria-disabled='true']) {
     transform: translateY(-1px);
   }
-  .btn:active:not(:disabled):not([aria-disabled="true"]) {
+  .btn:active:not(:disabled):not([aria-disabled='true']) {
     transform: translateY(0) scale(0.98);
   }
   .btn:disabled,
-  .btn[aria-disabled="true"] {
+  .btn[aria-disabled='true'] {
     @apply cursor-not-allowed pointer-events-none;
     opacity: 0.6;
     filter: grayscale(0.3);
@@ -88,15 +99,15 @@
     @apply btn bg-primary-500 text-white focus:ring-primary-500;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
-  .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  .btn-primary:hover:not(:disabled):not([aria-disabled='true']) {
     @apply bg-primary-600;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
-  .btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+  .btn-primary:active:not(:disabled):not([aria-disabled='true']) {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
   .btn-primary:disabled,
-  .btn-primary[aria-disabled="true"] {
+  .btn-primary[aria-disabled='true'] {
     @apply bg-gray-300 text-gray-500;
     box-shadow: none;
   }
@@ -104,57 +115,60 @@
   .btn-secondary {
     @apply btn bg-white text-gray-700 border border-gray-200 focus:ring-gray-500;
   }
-  .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  .btn-secondary:hover:not(:disabled):not([aria-disabled='true']) {
     @apply bg-gray-50 border-gray-300;
   }
   .btn-secondary:disabled,
-  .btn-secondary[aria-disabled="true"] {
+  .btn-secondary[aria-disabled='true'] {
     @apply bg-gray-100 text-gray-400 border-gray-200;
   }
 
   .btn-danger {
     @apply btn text-white focus:ring-red-500;
-    background-color: #EF4444;
+    background-color: #ef4444;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   }
-  .btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
-    background-color: #DC2626;
+  .btn-danger:hover:not(:disabled):not([aria-disabled='true']) {
+    background-color: #dc2626;
     box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
   }
-  .btn-danger:active:not(:disabled):not([aria-disabled="true"]) {
+  .btn-danger:active:not(:disabled):not([aria-disabled='true']) {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   }
   .btn-danger:disabled,
-  .btn-danger[aria-disabled="true"] {
+  .btn-danger[aria-disabled='true'] {
     @apply bg-gray-300 text-gray-500;
     box-shadow: none;
   }
 
   .btn-success {
     @apply btn text-white focus:ring-green-500;
-    background-color: #10B981;
+    background-color: #10b981;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
   }
-  .btn-success:hover:not(:disabled):not([aria-disabled="true"]) {
+  .btn-success:hover:not(:disabled):not([aria-disabled='true']) {
     background-color: #059669;
     box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
   }
-  .btn-success:active:not(:disabled):not([aria-disabled="true"]) {
+  .btn-success:active:not(:disabled):not([aria-disabled='true']) {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
   }
   .btn-success:disabled,
-  .btn-success[aria-disabled="true"] {
+  .btn-success[aria-disabled='true'] {
     @apply bg-gray-300 text-gray-500;
     box-shadow: none;
   }
 
   .input {
     @apply w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder:text-gray-400;
-    color: #2D2D2D;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    color: #2d2d2d;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
   }
   .input:focus {
-    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    box-shadow: 0 0 0 4px rgba(249, 112, 102, 0.1);
   }
   .input:hover:not(:focus):not(:disabled) {
     border-color: #d1d5db;
@@ -179,32 +193,78 @@
 
   .badge-success {
     @apply badge;
-    background-color: #ECFDF5;
+    background-color: #ecfdf5;
     color: #059669;
   }
 
   .badge-warning {
     @apply badge;
-    background-color: #FFFBEB;
-    color: #D97706;
+    background-color: #fffbeb;
+    color: #d97706;
   }
 
   .badge-error {
     @apply badge;
-    background-color: #FEF2F2;
-    color: #DC2626;
+    background-color: #fef2f2;
+    color: #dc2626;
   }
 
   .badge-info {
     @apply badge;
-    background-color: #EFF6FF;
-    color: #2563EB;
+    background-color: #eff6ff;
+    color: #2563eb;
   }
 
   .badge-primary {
     @apply badge;
-    background-color: #FFF7ED;
-    color: #E55A2B;
+    background-color: #fff5f3;
+    color: #e5634d;
+  }
+
+  /* Order status badges */
+  .badge-pending {
+    @apply badge;
+    background-color: #fffbeb;
+    color: #d97706;
+  }
+
+  .badge-confirmed {
+    @apply badge;
+    background-color: #eff6ff;
+    color: #2563eb;
+  }
+
+  .badge-ready {
+    @apply badge;
+    background-color: #ecfdf5;
+    color: #059669;
+  }
+
+  .badge-done {
+    @apply badge;
+    background-color: #f3f4f6;
+    color: #6b7280;
+  }
+
+  /* Status dots for order cards */
+  .status-dot {
+    @apply w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-offset-1;
+  }
+
+  .status-dot-pending {
+    @apply bg-yellow-400 ring-yellow-200;
+  }
+
+  .status-dot-confirmed {
+    @apply bg-blue-400 ring-blue-200;
+  }
+
+  .status-dot-ready {
+    @apply bg-emerald-400 ring-emerald-200;
+  }
+
+  .status-dot-done {
+    @apply bg-gray-300 ring-gray-200;
   }
 
   /* Animated card with hover effects */
@@ -233,12 +293,7 @@
 
   /* Shimmer effect for skeletons */
   .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      #f0f0f0 25%,
-      #e8e8e8 50%,
-      #f0f0f0 75%
-    );
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -247,16 +302,36 @@
   .stagger-children > * {
     @apply opacity-0 animate-stagger-in;
   }
-  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-  .stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-  .stagger-children > *:nth-child(8) { animation-delay: 350ms; }
-  .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
-  .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+  .stagger-children > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger-children > *:nth-child(2) {
+    animation-delay: 50ms;
+  }
+  .stagger-children > *:nth-child(3) {
+    animation-delay: 100ms;
+  }
+  .stagger-children > *:nth-child(4) {
+    animation-delay: 150ms;
+  }
+  .stagger-children > *:nth-child(5) {
+    animation-delay: 200ms;
+  }
+  .stagger-children > *:nth-child(6) {
+    animation-delay: 250ms;
+  }
+  .stagger-children > *:nth-child(7) {
+    animation-delay: 300ms;
+  }
+  .stagger-children > *:nth-child(8) {
+    animation-delay: 350ms;
+  }
+  .stagger-children > *:nth-child(9) {
+    animation-delay: 400ms;
+  }
+  .stagger-children > *:nth-child(10) {
+    animation-delay: 450ms;
+  }
 
   /* Modal backdrop */
   .modal-backdrop {
@@ -269,7 +344,7 @@
   }
   .input-animated:focus {
     @apply ring-2 ring-primary-500 border-transparent;
-    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    box-shadow: 0 0 0 4px rgba(249, 112, 102, 0.1);
   }
 
   /* Status badge with pulse */

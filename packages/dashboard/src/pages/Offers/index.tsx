@@ -52,8 +52,8 @@ export default function Offers() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100">
-              <Sparkles className="w-5 h-5 text-green-600" />
+            <div className="p-2 rounded-xl bg-emerald-100">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{activeCount}</p>
@@ -63,7 +63,7 @@ export default function Offers() {
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100">
+            <div className="p-2 rounded-xl bg-blue-100">
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>

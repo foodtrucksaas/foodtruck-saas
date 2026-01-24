@@ -1,12 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ShoppingBag,
-  Clock,
-  CheckCircle,
-  ArrowRight,
-  Package,
-} from 'lucide-react';
+import { ShoppingBag, Clock, CheckCircle, ArrowRight, Package } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { DashboardStats } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -17,7 +11,7 @@ export default function Dashboard() {
   const { foodtruck } = useFoodtruck();
   const { refreshTrigger, showAllPendingOrders } = useOrderNotification();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [_loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
     if (!foodtruck) return;
@@ -51,7 +45,7 @@ export default function Dashboard() {
           name: "Commandes aujourd'hui",
           value: stats?.todayOrders ?? '-',
           icon: ShoppingBag,
-          color: 'bg-purple-500',
+          color: 'bg-primary-500',
           onClick: undefined as (() => void) | undefined,
         },
       ]
@@ -67,14 +61,14 @@ export default function Dashboard() {
           name: 'En attente',
           value: stats?.pendingOrders ?? '-',
           icon: Clock,
-          color: 'bg-yellow-500',
+          color: 'bg-amber-500',
           onClick: stats?.pendingOrders ? showAllPendingOrders : undefined,
         },
         {
           name: 'Retirées',
           value: stats?.pickedUpOrders ?? '-',
           icon: Package,
-          color: 'bg-green-500',
+          color: 'bg-emerald-500',
           onClick: undefined as (() => void) | undefined,
         },
       ];
@@ -87,26 +81,28 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-          <p className="text-gray-600">
-            Bienvenue sur votre espace {foodtruck?.name}
-          </p>
+          <p className="text-gray-600">Bienvenue sur votre espace {foodtruck?.name}</p>
         </div>
       </div>
 
       {/* Stats - Row 1: Commandes */}
-      <div className={`grid gap-3 ${orderStats.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-3'}`}>
+      <div
+        className={`grid gap-4 ${orderStats.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-3'}`}
+      >
         {orderStats.map((stat) => (
           <div
             key={stat.name}
-            className={`card p-3 ${stat.onClick ? 'cursor-pointer hover:border-primary-300 hover:shadow-md transition-all' : ''}`}
+            className={`card p-4 ${stat.onClick ? 'cursor-pointer hover:border-primary-300 hover:shadow-md transition-all' : ''}`}
             onClick={stat.onClick}
           >
-            <div className={`flex items-center gap-2 ${orderStats.length === 1 ? 'justify-center' : ''}`}>
-              <div className={`p-1.5 rounded-lg ${stat.color}`}>
-                <stat.icon className="w-4 h-4 text-white" />
+            <div
+              className={`flex items-center gap-3 ${orderStats.length === 1 ? 'justify-center' : ''}`}
+            >
+              <div className={`p-2 rounded-xl ${stat.color}`}>
+                <stat.icon className="w-5 h-5 text-white" />
               </div>
               <div className={orderStats.length === 1 ? 'text-center' : 'min-w-0'}>
-                <p className="text-lg font-bold text-gray-900 truncate">{stat.value}</p>
+                <p className="text-xl font-bold text-gray-900 truncate">{stat.value}</p>
                 <p className="text-xs text-gray-500 truncate">{stat.name}</p>
               </div>
             </div>
@@ -115,13 +111,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stats - Row 2: Montant commandes du jour */}
-      <div className="card p-4">
+      <div className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-green-500">
+          <div className="p-2 rounded-xl bg-emerald-500">
             <Package className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">{stats ? formatPrice(totalOrderAmount) : '-'}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats ? formatPrice(totalOrderAmount) : '-'}
+            </p>
             <p className="text-sm text-gray-500">Montant des commandes du jour</p>
           </div>
         </div>
@@ -133,9 +131,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Voir les commandes</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Gérez les commandes en temps réel
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Gérez les commandes en temps réel</p>
             </div>
             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
           </div>
@@ -145,9 +141,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Gérer le menu</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Ajoutez ou modifiez vos plats
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Ajoutez ou modifiez vos plats</p>
             </div>
             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
           </div>
@@ -157,15 +151,12 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900">Planning</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Configurez vos horaires et emplacements
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Configurez vos horaires et emplacements</p>
             </div>
             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
           </div>
         </Link>
       </div>
-
     </div>
   );
 }
