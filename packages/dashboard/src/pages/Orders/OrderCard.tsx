@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
@@ -7,7 +8,7 @@ interface OrderCardProps {
   onClick: () => void;
 }
 
-export function OrderCard({ order, onClick }: OrderCardProps) {
+export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardProps) {
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
   const isReady = order.status === 'ready';
@@ -71,4 +72,4 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
       </div>
     </article>
   );
-}
+});

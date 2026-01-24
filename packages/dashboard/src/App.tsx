@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useFoodtruck } from './contexts/FoodtruckContext';
 import Layout from './components/Layout';
 import Loading from './components/Loading';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
@@ -64,8 +65,9 @@ export default function App() {
   }
 
   return (
-    <Suspense fallback={<Loading />}>
-      <Routes>
+    <ErrorBoundary>
+      <Suspense fallback={<Loading />}>
+        <Routes>
         <Route
           path="/login"
         element={
@@ -194,7 +196,8 @@ export default function App() {
         }
       />
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

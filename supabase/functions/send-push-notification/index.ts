@@ -1,11 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import * as jose from 'https://deno.land/x/jose@v4.14.4/index.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCors } from '../_shared/cors.ts';
 
 interface PushPayload {
   foodtruck_id: string;
@@ -15,31 +11,61 @@ interface PushPayload {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
   try {
+    // Verify authentication - caller must be authenticated
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing or invalid authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const payload: PushPayload = await req.json();
     const { foodtruck_id, title, body, data } = payload;
 
-    console.log('=== PUSH NOTIFICATION REQUEST ===');
-    console.log('foodtruck_id:', foodtruck_id);
-    console.log('title:', title);
-    console.log('body:', body);
-
     if (!foodtruck_id || !title || !body) {
-      console.log('ERROR: Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields: foodtruck_id, title, body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get Supabase client with service role
+    // Get Supabase client with service role for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the caller owns this foodtruck
+    const supabaseAnon = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check ownership
+    const { data: foodtruck, error: ftError } = await supabase
+      .from('foodtrucks')
+      .select('user_id')
+      .eq('id', foodtruck_id)
+      .single();
+
+    if (ftError || !foodtruck || foodtruck.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: 'You do not have permission to send notifications for this foodtruck' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get device tokens for this foodtruck
     console.log('Fetching device tokens for foodtruck:', foodtruck_id);

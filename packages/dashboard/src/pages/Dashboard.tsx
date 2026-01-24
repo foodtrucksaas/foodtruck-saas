@@ -30,10 +30,10 @@ export default function Dashboard() {
     setLoading(false);
   }, [foodtruck]);
 
-  // Initial fetch + polling every 5 seconds
+  // Initial fetch + polling every 30 seconds (realtime handles immediate updates)
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 5000);
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, [fetchStats]);
 

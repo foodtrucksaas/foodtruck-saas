@@ -81,10 +81,10 @@ export function useOrders() {
     }
   }, [refreshTrigger, fetchOrders]);
 
-  // Polling to refresh orders list
+  // Polling to refresh orders list (30s fallback - realtime is primary)
   useEffect(() => {
     if (!foodtruck?.id) return;
-    const interval = setInterval(fetchOrders, 3000);
+    const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
   }, [foodtruck?.id, fetchOrders]);
 

@@ -86,12 +86,6 @@ export async function compressImage(
             lastModified: Date.now(),
           });
 
-          // Log compression stats
-          const savedPercent = Math.round((1 - compressedFile.size / file.size) * 100);
-          console.log(
-            `Image compressed: ${formatBytes(file.size)} → ${formatBytes(compressedFile.size)} (-${savedPercent}%)`
-          );
-
           resolve(compressedFile);
         },
         opts.outputType,
@@ -132,11 +126,3 @@ export async function compressCover(file: File): Promise<File> {
   });
 }
 
-/**
- * Format bytes to human readable string
- */
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}

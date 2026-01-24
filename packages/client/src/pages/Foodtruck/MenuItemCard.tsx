@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
@@ -12,7 +13,7 @@ interface MenuItemCardProps {
   showPhoto?: boolean;
 }
 
-export default function MenuItemCard({
+const MenuItemCard = memo(function MenuItemCard({
   item,
   hasOptions,
   quantity,
@@ -137,4 +138,6 @@ export default function MenuItemCard({
       </div>
     </article>
   );
-}
+});
+
+export default MenuItemCard;

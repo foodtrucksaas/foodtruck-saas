@@ -19,6 +19,15 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
   try {
+    // SECURITY: Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { campaign_id } = await req.json();
 
     if (!campaign_id) {
@@ -32,6 +41,17 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the authenticated user
+    const supabaseAnon = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Initialize Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
@@ -53,6 +73,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Campagne non trouvée' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Verify the user owns this campaign's foodtruck
+    if (campaign.foodtruck?.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: 'Vous n\'avez pas la permission d\'envoyer cette campagne' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
