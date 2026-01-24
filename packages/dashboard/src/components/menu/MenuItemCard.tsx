@@ -14,9 +14,20 @@ interface MenuItemCardProps {
   onMoveDown?: () => void;
 }
 
-export function MenuItemCard({ item, index = 0, totalItems = 1, onEdit, onToggle, onDelete, onMoveUp, onMoveDown }: MenuItemCardProps) {
+export function MenuItemCard({
+  item,
+  index = 0,
+  totalItems = 1,
+  onEdit,
+  onToggle,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+}: MenuItemCardProps) {
   return (
-    <div className={`card p-4 transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 ${!item.is_available ? 'opacity-60' : ''}`}>
+    <div
+      className={`card p-4 transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 ${!item.is_available ? 'opacity-60' : ''}`}
+    >
       <div className="flex items-start gap-3">
         {/* Reorder controls */}
         {onMoveUp && onMoveDown && totalItems > 1 && (
@@ -84,9 +95,9 @@ export function MenuItemCard({ item, index = 0, totalItems = 1, onEdit, onToggle
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={() => onToggle(item)}
-              className={`flex items-center gap-1 px-3 py-2 min-h-[36px] rounded-lg text-xs font-medium transition-all duration-200 active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 ${
                 item.is_available
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                   : 'bg-red-100 text-red-700 hover:bg-red-200'
               }`}
             >
@@ -102,13 +113,13 @@ export function MenuItemCard({ item, index = 0, totalItems = 1, onEdit, onToggle
             </button>
             <button
               onClick={() => onEdit(item)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all duration-150 active:scale-90"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-all duration-150 active:scale-90"
             >
               <Edit2 className="w-4 h-4 text-gray-500" />
             </button>
             <button
               onClick={() => onDelete(item)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-red-50 transition-all duration-150 active:scale-90"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-red-50 transition-all duration-150 active:scale-90"
             >
               <Trash2 className="w-4 h-4 text-red-500" />
             </button>
