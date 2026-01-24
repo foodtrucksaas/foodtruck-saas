@@ -172,12 +172,12 @@ export default function OptionsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
+    <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-xl animate-sheet-in sm:animate-modal-in">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-bold text-anthracite">{menuItem.name}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={onClose} className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -217,10 +217,10 @@ export default function OptionsModal({
                           key={option.id}
                           type="button"
                           onClick={() => handleOptionToggle(group.id, option.id, group.is_multiple ?? false)}
-                          className={`w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all ${
+                          className={`w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
                             isSelected
                               ? 'border-primary-500 bg-primary-50 shadow-sm'
-                              : 'border-gray-100 hover:border-gray-200 bg-white'
+                              : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
                           }`}
                         >
                           <span className={`font-medium ${isSelected ? 'text-primary-600' : 'text-anthracite'}`}>
@@ -248,7 +248,7 @@ export default function OptionsModal({
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
               >
                 <Minus className="w-4 h-4 text-anthracite" />
               </button>
@@ -256,7 +256,7 @@ export default function OptionsModal({
               <button
                 type="button"
                 onClick={() => setQuantity((q) => q + 1)}
-                className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors shadow-sm"
+                className="w-11 h-11 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors shadow-sm active:scale-95"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -272,7 +272,7 @@ export default function OptionsModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: sans oignon, bien cuit..."
-              className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
               rows={2}
               maxLength={200}
             />

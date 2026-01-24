@@ -15,6 +15,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    // Optimize assets
+    assetsInlineLimit: 4096, // Inline assets < 4KB as base64
     rollupOptions: {
       output: {
         manualChunks: {
@@ -26,6 +28,17 @@ export default defineConfig({
           'recharts': ['recharts'],
           // Sentry - monitoring, can load async
           'sentry': ['@sentry/react'],
+        },
+        // Optimize asset file names for caching
+        assetFileNames: (assetInfo) => {
+          // Use content hash for images to enable long-term caching
+          if (/\.(png|jpe?g|svg|gif|webp|avif|ico)$/i.test(assetInfo.name || '')) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name || '')) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
         },
       },
     },

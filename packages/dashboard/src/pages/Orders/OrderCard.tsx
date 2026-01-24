@@ -26,9 +26,11 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
 
   const status = getStatusStyle();
 
+  const itemsSummary = order.order_items.map(item => `${item.quantity}x ${item.menu_item.name}`).join(', ');
+
   return (
-    <div
-      className={`rounded-xl shadow-sm px-4 py-3.5 cursor-pointer transition-all duration-200 group ${
+    <article
+      className={`rounded-xl shadow-sm px-4 py-3.5 cursor-pointer transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
         isDone
           ? 'bg-gray-50 border border-gray-200 opacity-60 hover:opacity-80'
           : isPending
@@ -40,15 +42,19 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
       }`}
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      tabIndex={0}
+      role="button"
+      aria-label={`Commande de ${order.customer_name}, ${status.label}, ${itemsSummary}, ${formatPrice(order.total_amount)}`}
     >
       {/* Row 1: Dot + Name + Badge + Chevron */}
       <div className="flex items-center gap-2.5">
-        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isPending ? 'bg-yellow-400' : isConfirmed ? 'bg-blue-400' : isReady ? 'bg-purple-400' : isDone ? 'bg-gray-300' : 'bg-green-400'} ring-2 ring-offset-1 ${isPending ? 'ring-yellow-200' : isConfirmed ? 'ring-blue-200' : isReady ? 'ring-purple-200' : isDone ? 'ring-gray-200' : 'ring-green-200'}`} />
+        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isPending ? 'bg-yellow-400' : isConfirmed ? 'bg-blue-400' : isReady ? 'bg-purple-400' : isDone ? 'bg-gray-300' : 'bg-green-400'} ring-2 ring-offset-1 ${isPending ? 'ring-yellow-200' : isConfirmed ? 'ring-blue-200' : isReady ? 'ring-purple-200' : isDone ? 'ring-gray-200' : 'ring-green-200'}`} aria-hidden="true" />
         <span className={`font-semibold truncate flex-1 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}>{order.customer_name}</span>
         <span className={`inline-flex items-center gap-1 text-xs ${status.bg} ${status.text} px-2.5 py-1 rounded-full font-medium flex-shrink-0`}>
           {status.label}
         </span>
-        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" aria-hidden="true" />
       </div>
 
       {/* Row 2: Items + Price */}
@@ -63,6 +69,6 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         </span>
         <span className={`font-bold flex-shrink-0 ml-3 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}>{formatPrice(order.total_amount)}</span>
       </div>
-    </div>
+    </article>
   );
 }

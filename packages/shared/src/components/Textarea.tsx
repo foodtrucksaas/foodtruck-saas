@@ -1,4 +1,4 @@
-import { forwardRef, TextareaHTMLAttributes } from 'react';
+import { forwardRef, TextareaHTMLAttributes, useId } from 'react';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -8,7 +8,16 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, hint, className = '', id, ...props }, ref) => {
-    const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const generatedId = useId();
+    const textareaId = id || generatedId;
+    const errorId = `${textareaId}-error`;
+    const hintId = `${textareaId}-hint`;
+
+    // Build aria-describedby string
+    const describedBy = [
+      error ? errorId : null,
+      hint && !error ? hintId : null,
+    ].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="w-full">
@@ -23,9 +32,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={textareaId}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={describedBy}
           className={`
             w-full px-4 py-3 border rounded-xl
-            focus:outline-none focus:ring-2 focus:border-transparent
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:border-transparent
             bg-white placeholder:text-gray-400 text-gray-900
             transition-colors duration-200 resize-none
             ${error
@@ -37,8 +48,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           `}
           {...props}
         />
-        {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
-        {hint && !error && <p className="mt-1.5 text-sm text-gray-500">{hint}</p>}
+        {error && <p id={errorId} className="mt-1.5 text-sm text-red-500" role="alert">{error}</p>}
+        {hint && !error && <p id={hintId} className="mt-1.5 text-sm text-gray-500">{hint}</p>}
       </div>
     );
   }

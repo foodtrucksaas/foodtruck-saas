@@ -26,6 +26,7 @@ import {
   PAYMENT_METHODS,
 } from '@foodtruck/shared';
 import LocationCard from '../../components/LocationCard';
+import { OptimizedImage } from '../../components/OptimizedImage';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection } from '../../hooks';
 import { useFoodtruck } from './useFoodtruck';
@@ -166,10 +167,13 @@ export default function FoodtruckPage() {
       {/* Header */}
       <div className="relative">
         {foodtruck.cover_image_url ? (
-          <img
+          <OptimizedImage
             src={foodtruck.cover_image_url}
             alt={foodtruck.name}
-            className="w-full h-44 object-cover"
+            className="w-full h-44"
+            eager
+            sizes="100vw"
+            placeholderColor="#f97066"
           />
         ) : (
           <div className="w-full h-40 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 relative overflow-hidden">
@@ -206,9 +210,11 @@ export default function FoodtruckPage() {
         )}
         <button
           onClick={navigateBack}
-          className="absolute top-3 left-3 p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors"
+          type="button"
+          aria-label="Retour"
+          className="absolute top-3 left-3 w-11 h-11 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
-          <ArrowLeft className="w-5 h-5 text-anthracite" />
+          <ArrowLeft className="w-5 h-5 text-anthracite" aria-hidden="true" />
         </button>
       </div>
 
@@ -218,10 +224,20 @@ export default function FoodtruckPage() {
           <div className="bg-white rounded-xl border border-gray-100 p-3" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
             <div className="flex gap-3">
               {foodtruck.logo_url ? (
-                <img
+                <OptimizedImage
                   src={foodtruck.logo_url}
                   alt={foodtruck.name}
-                  className="w-14 h-14 rounded-lg object-cover -mt-7 border-2 border-white shadow-md"
+                  width={56}
+                  height={56}
+                  className="rounded-lg -mt-7 border-2 border-white shadow-md"
+                  eager
+                  sizes="56px"
+                  placeholderColor="#f97066"
+                  fallback={
+                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center -mt-7 border-2 border-white shadow-md">
+                      <span className="text-xl font-bold text-white">{foodtruck.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                  }
                 />
               ) : (
                 <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center -mt-7 border-2 border-white shadow-md">
@@ -308,11 +324,16 @@ export default function FoodtruckPage() {
       )}
 
       {/* Tabs */}
-      <div className="sticky top-0 z-20 bg-[#FAFAFA] px-4 pt-2 pb-1">
-        <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <nav className="sticky top-0 z-20 bg-[#FAFAFA] px-4 pt-2 pb-1" aria-label="Navigation du contenu">
+        <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100" role="tablist" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <button
             onClick={() => setActiveTab('menu')}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'menu'}
+            aria-controls="tab-panel-menu"
+            id="tab-menu"
+            className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
               activeTab === 'menu' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -320,19 +341,24 @@ export default function FoodtruckPage() {
           </button>
           <button
             onClick={() => setActiveTab('info')}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'info'}
+            aria-controls="tab-panel-info"
+            id="tab-info"
+            className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
               activeTab === 'info' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Infos & Planning
+            Infos et Planning
           </button>
         </div>
-      </div>
+      </nav>
 
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' && categories.filter(c => groupedItems[c.id]?.length > 0).length > 1 && (
-        <div className="sticky top-[48px] z-10 bg-[#FAFAFA] px-4 py-2">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+        <div className="sticky top-[52px] z-10 bg-[#FAFAFA] px-4 py-2">
+          <nav className="flex gap-2 overflow-x-auto no-scrollbar py-1" aria-label="Categories du menu">
             {categories
               .filter((c) => groupedItems[c.id]?.length > 0)
               .map((category) => {
@@ -340,11 +366,13 @@ export default function FoodtruckPage() {
                 return (
                   <button
                     key={category.id}
+                    type="button"
+                    aria-current={isActive ? 'true' : undefined}
                     onClick={() => {
                       setActiveCategory(category.id);
                       document.getElementById(`category-${category.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                    className={`flex-shrink-0 px-4 py-2.5 min-h-[40px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       isActive
                         ? 'bg-gray-900 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -354,7 +382,7 @@ export default function FoodtruckPage() {
                   </button>
                 );
               })}
-          </div>
+          </nav>
         </div>
       )}
 
@@ -498,7 +526,7 @@ export default function FoodtruckPage() {
                   <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                   <h2 className="text-lg font-bold text-gray-900">Menu du jour</h2>
                 </div>
-                <div className="grid gap-3">
+                <div className="grid gap-3 stagger-children">
                   {dailySpecials.map((item) => (
                     <MenuItemCard
                       key={item.id}
@@ -531,7 +559,7 @@ export default function FoodtruckPage() {
                       {groupedItems[category.id].length}
                     </span>
                   </div>
-                  <div className="grid gap-3">
+                  <div className="grid gap-3 stagger-children">
                     {groupedItems[category.id].map((item) => (
                       <MenuItemCard
                         key={item.id}
@@ -775,7 +803,7 @@ export default function FoodtruckPage() {
 
       {/* Cart Bar */}
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
             to={`/${foodtruckId}/checkout`}
             className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"

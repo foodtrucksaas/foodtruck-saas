@@ -55,26 +55,27 @@ export default function Analytics() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Statistiques</h1>
-          <p className="text-gray-600">Analysez les performances de votre food truck</p>
+          <p className="text-gray-600 text-sm sm:text-base">Analysez les performances de votre food truck</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative">
             <button onClick={() => setShowPresetDropdown(!showPresetDropdown)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-95">
               <Calendar className="w-4 h-4" />
-              {DATE_PRESETS.find((p) => p.key === preset)?.label}
+              <span className="hidden sm:inline">{DATE_PRESETS.find((p) => p.key === preset)?.label}</span>
+              <span className="sm:hidden">{DATE_PRESETS.find((p) => p.key === preset)?.label.split(' ')[0]}</span>
               <ChevronDown className="w-4 h-4" />
             </button>
             {showPresetDropdown && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowPresetDropdown(false)} />
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-20">
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-20">
                   {DATE_PRESETS.map((p) => (
                     <button key={p.key} onClick={() => { setPreset(p.key); setShowPresetDropdown(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${preset === p.key ? 'text-primary-600 font-medium' : 'text-gray-700'}`}>
+                      className={`w-full text-left px-4 py-3 min-h-[44px] text-sm hover:bg-gray-50 ${preset === p.key ? 'text-primary-600 font-medium' : 'text-gray-700'}`}>
                       {p.label}
                     </button>
                   ))}
@@ -83,14 +84,14 @@ export default function Analytics() {
             )}
           </div>
           {preset === 'custom' && (
-            <div className="flex items-center gap-2">
-              <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-              <span className="text-gray-400">→</span>
-              <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-lg text-sm" />
+              <span className="text-gray-400 hidden sm:inline">→</span>
+              <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-lg text-sm" />
             </div>
           )}
-          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200">
-            <Download className="w-4 h-4" />Exporter
+          <button onClick={exportCSV} className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 active:scale-95 ml-auto">
+            <Download className="w-4 h-4" /><span className="hidden sm:inline">Exporter</span>
           </button>
         </div>
       </div>

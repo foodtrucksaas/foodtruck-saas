@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { MapPin, Navigation, Copy, Check, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { useState, Suspense, lazy } from 'react';
+import { MapPin, Navigation, Copy, Check, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
 import { formatAddress, formatTime } from '@foodtruck/shared';
-import MapComponent from './Map';
+
+// Lazy load the Map component - it includes heavy leaflet library
+const MapComponent = lazy(() => import('./Map'));
 
 interface LocationData {
   name: string;
@@ -149,11 +151,19 @@ export default function LocationCard({
       {/* Map */}
       {showMap && hasCoordinates && (
         <div className="h-48 relative group">
-          <MapComponent
-            latitude={location.latitude!}
-            longitude={location.longitude!}
-            name={location.name}
-          />
+          <Suspense
+            fallback={
+              <div className="h-full flex items-center justify-center bg-gray-100">
+                <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+              </div>
+            }
+          >
+            <MapComponent
+              latitude={location.latitude!}
+              longitude={location.longitude!}
+              name={location.name}
+            />
+          </Suspense>
           {/* Overlay button to open in maps */}
           <button
             onClick={openInMaps}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WifiOff, RefreshCw, MapPin, Clock, Utensils } from 'lucide-react';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface CachedFoodtruck {
   id: string;
@@ -86,10 +87,19 @@ export default function Offline() {
             </h3>
             <div className="flex items-start gap-4">
               {cachedFoodtruck.logo_url ? (
-                <img
+                <OptimizedImage
                   src={cachedFoodtruck.logo_url}
                   alt={cachedFoodtruck.name}
-                  className="w-16 h-16 rounded-xl object-cover"
+                  width={64}
+                  height={64}
+                  className="rounded-xl"
+                  sizes="64px"
+                  placeholderColor="#ffe8e4"
+                  fallback={
+                    <div className="w-16 h-16 rounded-xl bg-primary-100 flex items-center justify-center">
+                      <Utensils className="w-7 h-7 text-primary-500" />
+                    </div>
+                  }
                 />
               ) : (
                 <div className="w-16 h-16 rounded-xl bg-primary-100 flex items-center justify-center">

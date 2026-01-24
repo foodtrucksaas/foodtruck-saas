@@ -86,7 +86,7 @@ export function ConfirmDialog({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm animate-backdrop-in"
         onClick={loading ? undefined : onClose}
         aria-hidden="true"
       />
@@ -95,7 +95,7 @@ export function ConfirmDialog({
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           ref={dialogRef}
-          className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200"
+          className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl animate-modal-in"
         >
           {/* Close button */}
           <button

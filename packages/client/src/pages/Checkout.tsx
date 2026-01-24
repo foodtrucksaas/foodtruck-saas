@@ -296,51 +296,53 @@ export default function Checkout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50" role="status" aria-label="Chargement en cours">
+        <div className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full" aria-hidden="true" />
+        <span className="sr-only">Chargement du formulaire de commande</span>
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50" id="main-content">
+        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4" aria-hidden="true">
           <span className="text-3xl">🛒</span>
         </div>
         <p className="text-gray-500 mb-4">Votre panier est vide</p>
         <Link
           to={`/${foodtruckId}`}
-          className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors"
+          className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Voir le menu
         </Link>
-      </div>
+      </main>
     );
   }
 
   const canShowPromo = showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 animate-fade-in" id="main-content">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 py-2">
           <button
+            type="button"
             onClick={() => navigate(-1)}
             aria-label="Retour"
-            className="p-1.5 -ml-1.5 hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="w-11 h-11 flex items-center justify-center -ml-1.5 hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-5 h-5 text-gray-700" aria-hidden="true" />
           </button>
-          <h1 className="font-semibold text-gray-900">Finaliser</h1>
+          <h1 className="font-semibold text-gray-900">Finaliser la commande</h1>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="pb-32">
+      <form onSubmit={handleSubmit} className="pb-32" id="checkout-form" aria-label="Formulaire de commande">
         {/* Form Error */}
         {formError && (
-          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-fade-in-up" role="alert" aria-live="assertive">
             {formError}
           </div>
         )}
@@ -400,7 +402,7 @@ export default function Checkout() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, isAsap: !form.isAsap })}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all active:scale-95 ${
                     form.isAsap
                       ? 'bg-primary-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -414,7 +416,7 @@ export default function Checkout() {
                   <select
                     value={form.pickupTime}
                     onChange={(e) => setForm({ ...form, pickupTime: e.target.value })}
-                    className="w-full appearance-none bg-gray-100 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full appearance-none bg-gray-100 rounded-lg px-3 py-2.5 min-h-[44px] pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     disabled={slotsLoading || slots.length === 0}
                   >
                     {slotsLoading ? (
@@ -435,7 +437,7 @@ export default function Checkout() {
               <button
                 type="button"
                 onClick={() => setShowDatePicker(true)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                className="px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors active:scale-95"
               >
                 Autre jour
               </button>
@@ -514,7 +516,7 @@ export default function Checkout() {
               <button
                 type="button"
                 onClick={() => setShowNotes(true)}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded py-2 min-h-[44px]"
               >
                 + Ajouter des instructions
               </button>
@@ -570,14 +572,18 @@ export default function Checkout() {
           form="checkout-form"
           onClick={handleSubmit}
           disabled={submitting || (!form.isAsap && (!form.pickupTime || slots.length === 0))}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary-500/25"
+          aria-busy={submitting}
+          className="w-full py-3.5 min-h-[52px] rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           {submitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+              <span className="sr-only">Validation en cours</span>
+            </>
           ) : (
             <>
-              <span>Confirmer</span>
-              <span className="text-white/60">·</span>
+              <span>Confirmer la commande</span>
+              <span className="text-white/60" aria-hidden="true">.</span>
               <span>{formatPrice(finalTotal)}</span>
             </>
           )}
@@ -594,6 +600,6 @@ export default function Checkout() {
         allSchedules={allSchedules}
         exceptions={exceptions}
       />
-    </div>
+    </main>
   );
 }

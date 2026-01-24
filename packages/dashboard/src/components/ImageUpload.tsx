@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Camera, X, Loader2 } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
 
 interface ImageUploadProps {
   currentUrl: string | null | undefined;
@@ -66,10 +67,13 @@ export function ImageUpload({
 
       {currentUrl ? (
         <div className={`relative ${aspectClass} rounded-lg overflow-hidden bg-gray-100`}>
-          <img
+          <OptimizedImage
             src={currentUrl}
             alt="Preview"
-            className="w-full h-full object-cover"
+            className="w-full h-full"
+            eager
+            showSkeleton={true}
+            placeholderColor="#f3f4f6"
           />
           {!uploading && (
             <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">

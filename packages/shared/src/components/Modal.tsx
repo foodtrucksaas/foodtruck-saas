@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useCallback, useRef } from 'react';
+import { ReactNode, useEffect, useCallback, useRef, useId } from 'react';
 import { X } from 'lucide-react';
 
 export interface ModalProps {
@@ -37,6 +37,8 @@ export function Modal({
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const generatedTitleId = useId();
 
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -98,7 +100,7 @@ export function Modal({
 
   if (!isOpen) return null;
 
-  const modalLabelId = title ? 'modal-title' : undefined;
+  const modalLabelId = title ? generatedTitleId : undefined;
 
   return (
     <div
@@ -130,15 +132,16 @@ export function Modal({
         {(title || showCloseButton) && (
           <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
             {title && (
-              <h3 id="modal-title" className="text-lg font-bold text-gray-900">{title}</h3>
+              <h2 id={generatedTitleId} className="text-lg font-bold text-gray-900">{title}</h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                aria-label="Fermer"
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                type="button"
+                aria-label="Fermer la fenetre"
+                className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
               </button>
             )}
           </div>

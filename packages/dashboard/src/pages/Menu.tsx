@@ -169,14 +169,14 @@ export default function Menu() {
                   setFormData(prev => ({ ...prev, category_id: category.id }));
                   setShowForm(true);
                 }}
-                className="w-7 h-7 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
                 title="Ajouter un plat"
               >
                 <Plus className="w-4 h-4" />
               </button>
               <button
                 onClick={() => openOptionsWizard(category)}
-                className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 hover:underline"
+                className="inline-flex items-center gap-1.5 px-2 py-1.5 min-h-[32px] text-xs text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
               >
                 <Pencil className="w-3 h-3" />
                 Options

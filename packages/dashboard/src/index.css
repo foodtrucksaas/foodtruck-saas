@@ -68,7 +68,14 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2;
+    transition: all 0.15s ease-out, transform 0.1s ease-out;
+  }
+  .btn:hover:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(-1px);
+  }
+  .btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(0) scale(0.98);
   }
   .btn:disabled,
   .btn[aria-disabled="true"] {
@@ -85,6 +92,9 @@
     @apply bg-primary-600;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
+  .btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
   .btn-primary:disabled,
   .btn-primary[aria-disabled="true"] {
     @apply bg-gray-300 text-gray-500;
@@ -95,7 +105,7 @@
     @apply btn bg-white text-gray-700 border border-gray-200 focus:ring-gray-500;
   }
   .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
-    @apply bg-gray-50;
+    @apply bg-gray-50 border-gray-300;
   }
   .btn-secondary:disabled,
   .btn-secondary[aria-disabled="true"] {
@@ -105,30 +115,49 @@
   .btn-danger {
     @apply btn text-white focus:ring-red-500;
     background-color: #EF4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   }
   .btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
     background-color: #DC2626;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+  }
+  .btn-danger:active:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   }
   .btn-danger:disabled,
   .btn-danger[aria-disabled="true"] {
     @apply bg-gray-300 text-gray-500;
+    box-shadow: none;
   }
 
   .btn-success {
     @apply btn text-white focus:ring-green-500;
     background-color: #10B981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
   }
   .btn-success:hover:not(:disabled):not([aria-disabled="true"]) {
     background-color: #059669;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+  }
+  .btn-success:active:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
   }
   .btn-success:disabled,
   .btn-success[aria-disabled="true"] {
     @apply bg-gray-300 text-gray-500;
+    box-shadow: none;
   }
 
   .input {
     @apply w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder:text-gray-400;
     color: #2D2D2D;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  .input:focus {
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+  }
+  .input:hover:not(:focus):not(:disabled) {
+    border-color: #d1d5db;
   }
 
   .label {
@@ -145,6 +174,7 @@
   /* Status badges */
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+    transition: all 0.2s ease;
   }
 
   .badge-success {
@@ -175,5 +205,97 @@
     @apply badge;
     background-color: #FFF7ED;
     color: #E55A2B;
+  }
+
+  /* Animated card with hover effects */
+  .card-interactive {
+    @apply card transition-all duration-200 ease-out;
+  }
+  .card-interactive:hover {
+    @apply border-gray-200;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  .card-interactive:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Button with loading spinner */
+  .btn-loading {
+    @apply relative pointer-events-none;
+  }
+  .btn-loading::after {
+    content: '';
+    @apply absolute w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spinner;
+    opacity: 0.8;
+  }
+
+  /* Shimmer effect for skeletons */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e8e8e8 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Staggered list items - apply to parent container */
+  .stagger-children > * {
+    @apply opacity-0 animate-stagger-in;
+  }
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  .stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+  .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
+  .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+
+  /* Modal backdrop */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-gray-900/60 backdrop-blur-sm;
+  }
+
+  /* Input focus animation */
+  .input-animated {
+    @apply input transition-all duration-200;
+  }
+  .input-animated:focus {
+    @apply ring-2 ring-primary-500 border-transparent;
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+  }
+
+  /* Status badge with pulse */
+  .badge-animated {
+    @apply badge transition-all duration-300;
+  }
+
+  /* Page content wrapper with fade animation */
+  .page-content {
+    @apply animate-fade-in-up;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .stagger-children > * {
+    opacity: 1;
+    animation: none;
   }
 }

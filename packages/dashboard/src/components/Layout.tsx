@@ -76,6 +76,14 @@ function LayoutContent({ children }: LayoutProps) {
 
   return (
     <>
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+      >
+        Aller au contenu principal
+      </a>
+
       {/* Quick Order Modal */}
       <QuickOrderModal
         isOpen={showQuickOrder}
@@ -116,29 +124,32 @@ function LayoutContent({ children }: LayoutProps) {
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-backdrop-in"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-smooth-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        aria-label="Navigation principale"
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center" aria-hidden="true">
               <UtensilsCrossed className="w-5 h-5 text-white" />
             </div>
             <span className="font-semibold text-gray-900">FoodTruck</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 rounded-md hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            aria-label="Fermer le menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -152,7 +163,7 @@ function LayoutContent({ children }: LayoutProps) {
             </p>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1" aria-label="Menu principal">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -160,13 +171,14 @@ function LayoutContent({ children }: LayoutProps) {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     isActive
                       ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-100 hover:translate-x-1'
                   }`}
                 >
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-5 h-5" aria-hidden="true" />
                   {item.name}
                 </Link>
               );
@@ -177,10 +189,10 @@ function LayoutContent({ children }: LayoutProps) {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <button
             onClick={signOut}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
-            <LogOut className="w-5 h-5" />
-            Déconnexion
+            <LogOut className="w-5 h-5" aria-hidden="true" />
+            Deconnexion
           </button>
         </div>
       </aside>
@@ -188,29 +200,32 @@ function LayoutContent({ children }: LayoutProps) {
       {/* Mobile Layout - header OUTSIDE scroll context */}
       <div className="lg:hidden absolute inset-0 bg-gray-50">
         {/* Header - absolute, NOT inside scroll container */}
-        <div
+        <header
           className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-gray-50"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8px)' }}
         >
           <button
             onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            aria-label="Ouvrir le menu de navigation"
+            aria-expanded={sidebarOpen}
           >
-            <Menu className="w-5 h-5 text-gray-700" />
+            <Menu className="w-5 h-5 text-gray-700" aria-hidden="true" />
           </button>
           <div className="flex items-center gap-2">
             {/* Pending orders - bell with badge */}
             <button
               onClick={showAllPendingOrders}
-              className={`relative w-11 h-11 rounded-xl shadow-md flex items-center justify-center transition-all ${
+              className={`relative w-11 h-11 rounded-xl shadow-md flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 pendingCount > 0
                   ? 'bg-yellow-400 hover:bg-yellow-500'
                   : 'bg-white hover:bg-gray-50'
               }`}
+              aria-label={`Commandes en attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
             >
-              <Bell className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`} />
+              <Bell className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`} aria-hidden="true" />
               {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center" aria-hidden="true">
                   {pendingCount}
                 </span>
               )}
@@ -218,12 +233,13 @@ function LayoutContent({ children }: LayoutProps) {
             {/* New order button */}
             <button
               onClick={() => setShowQuickOrder(true)}
-              className="w-11 h-11 rounded-xl bg-white shadow-md hover:bg-gray-50 flex items-center justify-center transition-colors"
+              className="w-11 h-11 rounded-xl bg-white shadow-md hover:bg-gray-50 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              aria-label="Nouvelle commande"
             >
-              <Plus className="w-5 h-5 text-primary-500" />
+              <Plus className="w-5 h-5 text-primary-500" aria-hidden="true" />
             </button>
           </div>
-        </div>
+        </header>
 
         {/* Scroll container - separate from header */}
         <div
@@ -234,7 +250,7 @@ function LayoutContent({ children }: LayoutProps) {
             WebkitOverflowScrolling: 'touch',
           }}
         >
-          <main className="p-4 pb-8">
+          <main id="main-content" className="p-4 pb-8 animate-fade-in-up" tabIndex={-1} key={location.pathname}>
             {children}
           </main>
         </div>
@@ -252,15 +268,16 @@ function LayoutContent({ children }: LayoutProps) {
               {/* Pending orders - bell with badge */}
               <button
                 onClick={showAllPendingOrders}
-                className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                   pendingCount > 0
                     ? 'bg-yellow-400 hover:bg-yellow-500'
                     : 'bg-gray-100 hover:bg-gray-200'
                 }`}
+                aria-label={`Commandes en attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
               >
-                <Bell className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`} />
+                <Bell className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`} aria-hidden="true" />
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center" aria-hidden="true">
                     {pendingCount}
                   </span>
                 )}
@@ -268,16 +285,17 @@ function LayoutContent({ children }: LayoutProps) {
               {/* New order button */}
               <button
                 onClick={() => setShowQuickOrder(true)}
-                className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                aria-label="Nouvelle commande"
               >
-                <Plus className="w-5 h-5 text-primary-500" />
+                <Plus className="w-5 h-5 text-primary-500" aria-hidden="true" />
               </button>
             </div>
           </div>
         </header>
 
         {/* Desktop content */}
-        <main className="p-8">
+        <main id="main-content" className="p-8 animate-fade-in-up" tabIndex={-1} key={location.pathname}>
           {children}
         </main>
       </div>

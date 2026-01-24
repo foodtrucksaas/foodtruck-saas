@@ -98,23 +98,23 @@ export function OrderSummaryCard({
           const optionsText = meaningfulOptions?.map(opt => opt.name).join(', ');
 
           return (
-            <div key={cartKey} className="flex items-center gap-3 px-4 py-3 group">
+            <div key={cartKey} className="flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50">
               {/* Quantity stepper */}
-              <div className="flex items-center bg-gray-100 rounded-lg">
+              <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                 >
                   <Minus className="w-3.5 h-3.5" strokeWidth={2} />
                 </button>
-                <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
+                <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums transition-all">
                   {item.quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                 >
                   <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                 </button>
@@ -133,13 +133,13 @@ export function OrderSummaryCard({
                 {formatPrice(itemTotal)}
               </p>
 
-              {/* Remove button */}
+              {/* Remove button - always visible on mobile, hover on desktop */}
               <button
                 type="button"
                 onClick={() => onRemoveItem(cartKey)}
-                className="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:text-white hover:bg-red-500 transition-all opacity-0 group-hover:opacity-100"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
               >
-                <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                <X className="w-4 h-4" strokeWidth={2.5} />
               </button>
             </div>
           );
@@ -257,12 +257,12 @@ export function OrderSummaryCard({
                 </div>
               </div>
             ) : showPromoInput ? (
-              <div className="flex gap-2">
+              <div className="flex gap-2 animate-fade-in">
                 <input
                   type="text"
                   value={promoCode}
                   onChange={(e) => onPromoCodeChange?.(e.target.value.toUpperCase())}
-                  className="flex-1 bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 uppercase"
+                  className="flex-1 bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all duration-200 uppercase"
                   placeholder="CODE PROMO"
                   autoFocus
                 />
@@ -270,14 +270,14 @@ export function OrderSummaryCard({
                   type="button"
                   onClick={onValidatePromoCode}
                   disabled={promoLoading || !promoCode}
-                  className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium disabled:opacity-50 transition-all"
+                  className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium disabled:opacity-50 transition-all duration-150 active:scale-95"
                 >
-                  {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'OK'}
+                  {promoLoading ? <Loader2 className="w-4 h-4 animate-spinner" /> : 'OK'}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowPromoInput(false); onPromoCodeChange?.(''); }}
-                  className="p-2 text-gray-400 hover:text-gray-600"
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors active:scale-95"
                 >
                   <X className="w-4 h-4" />
                 </button>

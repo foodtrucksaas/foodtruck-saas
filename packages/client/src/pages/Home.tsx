@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, History } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function Home() {
   const [foodtrucks, setFoodtrucks] = useState<Foodtruck[]>([]);
@@ -83,10 +84,19 @@ export default function Home() {
                 className="card p-4 flex gap-4 active:scale-[0.98] transition-transform"
               >
                 {foodtruck.logo_url ? (
-                  <img
+                  <OptimizedImage
                     src={foodtruck.logo_url}
                     alt={foodtruck.name}
-                    className="w-20 h-20 rounded-xl object-cover"
+                    width={80}
+                    height={80}
+                    className="rounded-xl"
+                    sizes="80px"
+                    placeholderColor="#ffe8e4"
+                    fallback={
+                      <div className="w-20 h-20 rounded-xl bg-primary-100 flex items-center justify-center">
+                        <span className="text-3xl">🚚</span>
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-xl bg-primary-100 flex items-center justify-center">

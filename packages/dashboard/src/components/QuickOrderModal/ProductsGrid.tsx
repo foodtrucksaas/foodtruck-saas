@@ -2,6 +2,7 @@ import { ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { Category } from '@foodtruck/shared';
 import type { MenuItemWithOptions } from './useQuickOrder';
+import { OptimizedImage } from '../OptimizedImage';
 
 interface ProductsGridProps {
   categories: Category[];
@@ -69,13 +70,14 @@ export function ProductsGrid({
                 className="bg-white rounded-xl p-3 md:p-4 text-left hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] border border-gray-100"
               >
                 {item.image_url && (
-                  <div className="aspect-square rounded-lg overflow-hidden mb-2 md:mb-3 bg-gray-100">
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <OptimizedImage
+                    src={item.image_url}
+                    alt={item.name}
+                    aspectRatio="1/1"
+                    className="rounded-lg mb-2 md:mb-3"
+                    sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
+                    placeholderColor="#f3f4f6"
+                  />
                 )}
                 <h3 className="font-semibold text-gray-900 text-xs md:text-sm line-clamp-2 mb-1">
                   {item.name}

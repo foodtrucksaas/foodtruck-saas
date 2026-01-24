@@ -64,12 +64,12 @@ export default function NewOrderPopup({
     >
       {/* Backdrop - only for topmost */}
       {isTopmost && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-backdrop-in" onClick={onClose} />
       )}
 
       {/* Modal */}
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-bounce-in overflow-hidden"
         style={{
           transform: `translateY(${offsetY}px) translateX(${offsetX}px) scale(${scale})`,
           opacity: isTopmost ? 1 : 0.95
@@ -80,7 +80,7 @@ export default function NewOrderPopup({
           {/* Close button - inside header top right */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-90"
           >
             <X className="w-4 h-4 text-white" />
           </button>
@@ -167,7 +167,7 @@ export default function NewOrderPopup({
           {isAutoAccept ? (
             <button
               onClick={onClose}
-              className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <Check className="w-5 h-5" />
               OK
@@ -176,13 +176,13 @@ export default function NewOrderPopup({
             <div className="flex items-center gap-3">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-gray-400 hover:text-red-500 text-sm transition-colors"
+                className="px-4 py-2 text-gray-400 hover:text-red-500 text-sm transition-all duration-150 active:scale-95"
               >
                 Refuser
               </button>
               <button
                 onClick={onAccept}
-                className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
                 Accepter

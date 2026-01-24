@@ -131,19 +131,23 @@ export default function Orders() {
       <div className="sticky top-0 z-20 bg-gray-50 -mx-4 px-4 py-3 md:-mx-8 md:px-8 border-b border-gray-200">
         <div className="flex flex-col gap-3">
           {/* Date navigation */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" role="toolbar" aria-label="Navigation des dates">
             <div className="flex items-center gap-2 flex-1">
               <button
                 onClick={goToPreviousDay}
-                className="p-2 rounded-lg border bg-white border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors flex-shrink-0"
-                title="Jour précédent"
+                className="w-11 h-11 rounded-lg border bg-white border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="Jour precedent"
+                type="button"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               </button>
               <div className="relative flex-1">
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                  aria-expanded={showDatePicker}
+                  aria-haspopup="dialog"
+                  type="button"
+                  className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     isToday
                       ? 'bg-white border-gray-200 hover:bg-gray-50'
                       : isFuture
@@ -151,13 +155,15 @@ export default function Orders() {
                       : 'bg-amber-50 border-amber-300'
                   }`}
                 >
-                  <Calendar className={`w-4 h-4 flex-shrink-0 ${isToday ? 'text-gray-500' : isFuture ? 'text-blue-600' : 'text-amber-600'}`} />
+                  <Calendar className={`w-4 h-4 flex-shrink-0 ${isToday ? 'text-gray-500' : isFuture ? 'text-blue-600' : 'text-amber-600'}`} aria-hidden="true" />
                   <span className={`font-medium capitalize whitespace-nowrap ${isToday ? 'text-gray-900' : isFuture ? 'text-blue-800' : 'text-amber-800'}`}>{formatDate(selectedDate)}</span>
                   {isToday && <span className="text-xs bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Aujourd'hui</span>}
                 </button>
                 {showDatePicker && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-30">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-30" role="dialog" aria-label="Selecteur de date">
+                    <label htmlFor="orders-date-picker" className="sr-only">Choisir une date</label>
                     <input
+                      id="orders-date-picker"
                       type="date"
                       value={selectedDate.toISOString().split('T')[0]}
                       onChange={(e) => {
@@ -173,35 +179,43 @@ export default function Orders() {
               </div>
               <button
                 onClick={goToNextDay}
-                className="p-2 rounded-lg border bg-white border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors flex-shrink-0"
-                title="Jour suivant"
+                className="w-11 h-11 rounded-lg border bg-white border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="Jour suivant"
+                type="button"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
             {/* View toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 rounded-lg p-1" role="group" aria-label="Mode d'affichage">
               <button
                 onClick={() => handleViewModeChange('timeline')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'timeline' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Vue planning"
+                className={`p-2 min-w-[40px] min-h-[40px] rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'timeline' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                aria-label="Vue planning"
+                aria-pressed={viewMode === 'timeline'}
+                type="button"
               >
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 onClick={() => handleViewModeChange('list')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Vue liste"
+                className={`p-2 min-w-[40px] min-h-[40px] rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                aria-label="Vue liste"
+                aria-pressed={viewMode === 'list'}
+                type="button"
               >
-                <List className="w-4 h-4" />
+                <List className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2 rounded-lg flex items-center gap-2 text-sm ${soundEnabled ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-400'}`}
+              className={`p-2 min-h-[44px] rounded-lg flex items-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${soundEnabled ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-400'}`}
+              aria-pressed={soundEnabled}
+              aria-label={soundEnabled ? 'Desactiver le son' : 'Activer le son'}
+              type="button"
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span className="hidden md:inline">{soundEnabled ? 'Son activé' : 'Son désactivé'}</span>
+              {soundEnabled ? <Volume2 className="w-4 h-4" aria-hidden="true" /> : <VolumeX className="w-4 h-4" aria-hidden="true" />}
+              <span className="hidden md:inline">{soundEnabled ? 'Son active' : 'Son desactive'}</span>
             </button>
           </div>
 
@@ -221,63 +235,71 @@ export default function Orders() {
           )}
 
           {/* Filter buttons */}
-          <div className="flex items-center gap-1.5 w-full">
+          <div className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar" role="group" aria-label="Filtrer par statut">
             <button
               onClick={() => toggleFilter('pending')}
-              className={`flex-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              type="button"
+              aria-pressed={activeFilters.includes('pending')}
+              className={`flex-1 px-2 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('pending')
                   ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
                   : 'bg-gray-100 text-gray-500 border border-transparent hover:bg-gray-200'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('pending') ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-                Attente
-                {pending > 0 && <span className="bg-yellow-200 text-yellow-800 px-1 rounded-full text-xs">{pending}</span>}
+                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('pending') ? 'bg-yellow-500' : 'bg-gray-400'}`} aria-hidden="true" />
+                En attente
+                {pending > 0 && <span className="bg-yellow-200 text-yellow-800 px-1 rounded-full text-xs" aria-label={`${pending} commandes`}>{pending}</span>}
               </span>
             </button>
             <button
               onClick={() => toggleFilter('confirmed')}
-              className={`flex-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              type="button"
+              aria-pressed={activeFilters.includes('confirmed')}
+              className={`flex-1 px-2 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('confirmed')
                   ? 'bg-blue-100 text-blue-700 border border-blue-300'
                   : 'bg-gray-100 text-gray-500 border border-transparent hover:bg-gray-200'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('confirmed') ? 'bg-blue-500' : 'bg-gray-400'}`} />
-                Acceptée
-                {confirmed > 0 && <span className="bg-blue-200 text-blue-800 px-1 rounded-full text-xs">{confirmed}</span>}
+                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('confirmed') ? 'bg-blue-500' : 'bg-gray-400'}`} aria-hidden="true" />
+                Acceptee
+                {confirmed > 0 && <span className="bg-blue-200 text-blue-800 px-1 rounded-full text-xs" aria-label={`${confirmed} commandes`}>{confirmed}</span>}
               </span>
             </button>
             {useReadyStatus && (
               <button
                 onClick={() => toggleFilter('ready')}
-                className={`flex-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                type="button"
+                aria-pressed={activeFilters.includes('ready')}
+                className={`flex-1 px-2 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   activeFilters.includes('ready')
                     ? 'bg-purple-100 text-purple-700 border border-purple-300'
                     : 'bg-gray-100 text-gray-500 border border-transparent hover:bg-gray-200'
                 }`}
               >
                 <span className="inline-flex items-center justify-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('ready') ? 'bg-purple-500' : 'bg-gray-400'}`} />
-                  Prête
-                  {ready > 0 && <span className="bg-purple-200 text-purple-800 px-1 rounded-full text-xs">{ready}</span>}
+                  <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('ready') ? 'bg-purple-500' : 'bg-gray-400'}`} aria-hidden="true" />
+                  Prete
+                  {ready > 0 && <span className="bg-purple-200 text-purple-800 px-1 rounded-full text-xs" aria-label={`${ready} commandes`}>{ready}</span>}
                 </span>
               </button>
             )}
             <button
               onClick={() => toggleFilter('picked_up')}
-              className={`flex-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              type="button"
+              aria-pressed={activeFilters.includes('picked_up')}
+              className={`flex-1 px-2 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('picked_up')
                   ? 'bg-green-100 text-green-700 border border-green-300'
                   : 'bg-gray-100 text-gray-500 border border-transparent hover:bg-gray-200'
               }`}
             >
               <span className="inline-flex items-center justify-center gap-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('picked_up') ? 'bg-green-500' : 'bg-gray-400'}`} />
-                Retirée
-                {pickedUp > 0 && <span className="bg-green-200 text-green-800 px-1 rounded-full text-xs">{pickedUp}</span>}
+                <span className={`w-1.5 h-1.5 rounded-full ${activeFilters.includes('picked_up') ? 'bg-green-500' : 'bg-gray-400'}`} aria-hidden="true" />
+                Retiree
+                {pickedUp > 0 && <span className="bg-green-200 text-green-800 px-1 rounded-full text-xs" aria-label={`${pickedUp} commandes`}>{pickedUp}</span>}
               </span>
             </button>
           </div>

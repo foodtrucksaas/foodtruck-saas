@@ -42,7 +42,7 @@ export function Alert({ variant = 'info', children, className, onDismiss, title 
     <div
       role="alert"
       className={cn(
-        'flex gap-3 p-3 rounded-xl border text-sm',
+        'flex gap-3 p-3 rounded-xl border text-sm animate-fade-in-up',
         config.containerClass,
         className
       )}
@@ -55,7 +55,7 @@ export function Alert({ variant = 'info', children, className, onDismiss, title 
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 transition-colors"
+          className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 transition-all duration-150 active:scale-90"
           aria-label="Fermer"
         >
           <X className="w-4 h-4" />
