@@ -103,7 +103,7 @@ export default function Analytics() {
             {showPresetDropdown && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowPresetDropdown(false)} />
-                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20">
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-48 sm:w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 max-h-[70vh] overflow-y-auto">
                   {DATE_PRESETS.map((p) => (
                     <button
                       key={p.key}
@@ -121,19 +121,19 @@ export default function Analytics() {
             )}
           </div>
           {preset === 'custom' && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
               <input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
-              <span className="text-gray-400 hidden sm:inline">→</span>
+              <span className="text-gray-400 hidden sm:inline text-center">→</span>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
             </div>
           )}
@@ -148,7 +148,7 @@ export default function Analytics() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard
           icon={Package}
           iconBg="bg-emerald-100"
@@ -190,11 +190,13 @@ export default function Analytics() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Évolution des montants</h2>
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="card p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+            Évolution des montants
+          </h2>
           {revenueData.length > 0 ? (
-            <SafeChart className="h-64">
+            <SafeChart className="h-48 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -220,12 +222,16 @@ export default function Analytics() {
               </ResponsiveContainer>
             </SafeChart>
           ) : (
-            <p className="text-gray-500 text-center py-12">Pas de données pour cette période</p>
+            <p className="text-gray-500 text-center py-8 sm:py-12">
+              Pas de données pour cette période
+            </p>
           )}
         </div>
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Commandes par jour</h2>
-          <SafeChart className="h-64">
+        <div className="card p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+            Commandes par jour
+          </h2>
+          <SafeChart className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dayOfWeekData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -254,13 +260,13 @@ export default function Analytics() {
       </div>
 
       {/* Second Row */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="card p-6">
-          <div className="flex items-center gap-2 mb-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="card p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Clock className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900">Heures de pointe</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Heures de pointe</h2>
           </div>
-          <SafeChart className="h-48">
+          <SafeChart className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hourlyData}>
                 <XAxis dataKey="label" stroke="#6b7280" fontSize={10} interval={1} />
@@ -279,10 +285,10 @@ export default function Analytics() {
             </ResponsiveContainer>
           </SafeChart>
         </div>
-        <div className="card p-6">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="card p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <MapPin className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900">Par emplacement</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Par emplacement</h2>
           </div>
           {analytics?.amountByLocation && analytics.amountByLocation.length > 0 ? (
             <div className="space-y-3">
@@ -303,8 +309,10 @@ export default function Analytics() {
       </div>
 
       {/* Top Items */}
-      <div className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Produits les plus vendus</h2>
+      <div className="card p-4 sm:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+          Produits les plus vendus
+        </h2>
         {analytics?.topItems && analytics.topItems.length > 0 ? (
           <div className="space-y-4">
             {analytics.topItems.map((item, index) => {
@@ -346,9 +354,11 @@ export default function Analytics() {
 
       {/* Categories Performance */}
       {analytics?.categoryStats && analytics.categoryStats.length > 0 && (
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance par catégorie</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+            Performance par catégorie
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {analytics.categoryStats.map((cat, idx) => (
               <div
                 key={idx}

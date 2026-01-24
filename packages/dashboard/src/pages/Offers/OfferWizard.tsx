@@ -47,24 +47,27 @@ export function OfferWizard({
   const formProps = { form, categories, menuItems, updateForm };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white sm:rounded-xl w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {step > 1 && !editingOffer && (
               <button
                 onClick={() => onStepChange(step - 1)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
             <h2 className="text-lg font-semibold">
-              {editingOffer ? 'Modifier l\'offre' : 'Nouvelle offre'}
+              {editingOffer ? "Modifier l'offre" : 'Nouvelle offre'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -72,9 +75,7 @@ export function OfferWizard({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {/* Step 1: Select Type */}
-          {step === 1 && (
-            <OfferTypeSelector onSelect={selectOfferType} />
-          )}
+          {step === 1 && <OfferTypeSelector onSelect={selectOfferType} />}
 
           {/* Step 2: Configure Offer */}
           {step === 2 && (
@@ -110,8 +111,12 @@ export function OfferWizard({
               {/* Type-specific config */}
               {form.offerType === 'bundle' && <BundleConfig {...formProps} />}
               {form.offerType === 'buy_x_get_y' && <BuyXGetYConfig {...formProps} />}
-              {form.offerType === 'promo_code' && <PromoCodeConfig form={form} updateForm={updateForm} />}
-              {form.offerType === 'threshold_discount' && <ThresholdDiscountConfig form={form} updateForm={updateForm} />}
+              {form.offerType === 'promo_code' && (
+                <PromoCodeConfig form={form} updateForm={updateForm} />
+              )}
+              {form.offerType === 'threshold_discount' && (
+                <ThresholdDiscountConfig form={form} updateForm={updateForm} />
+              )}
 
               {/* Advanced Options */}
               <AdvancedOptions form={form} updateForm={updateForm} />
@@ -140,7 +145,7 @@ export function OfferWizard({
                 </>
               ) : (
                 <>
-                  {editingOffer ? 'Modifier' : 'Creer l\'offre'}
+                  {editingOffer ? 'Modifier' : "Creer l'offre"}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

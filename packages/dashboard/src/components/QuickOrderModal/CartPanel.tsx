@@ -32,21 +32,21 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
           <div className="flex items-center gap-2">
             <button
               onClick={() => onUpdateQuantity(item.uniqueId, -1)}
-              className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200"
+              className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="w-8 text-center font-semibold">{item.quantity}</span>
+            <span className="w-10 text-center font-semibold">{item.quantity}</span>
             <button
               onClick={() => onUpdateQuantity(item.uniqueId, 1)}
-              className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200"
+              className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
           <button
             onClick={() => onRemove(item.uniqueId)}
-            className="text-gray-400 hover:text-red-500 p-2"
+            className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -77,24 +77,24 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => onUpdateQuantity(item.uniqueId, -1)}
-            className="w-7 h-7 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100"
+            className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all"
           >
             <Minus className="w-3 h-3" />
           </button>
           <span className="w-8 text-center font-semibold text-sm">{item.quantity}</span>
           <button
             onClick={() => onUpdateQuantity(item.uniqueId, 1)}
-            className="w-7 h-7 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100"
+            className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all"
           >
             <Plus className="w-3 h-3" />
           </button>
         </div>
         <button
           onClick={() => onRemove(item.uniqueId)}
-          className="text-gray-400 hover:text-red-500 transition-colors"
+          className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -195,14 +195,20 @@ export function MobileCartOverlay({
 }: MobileCartOverlayProps) {
   return (
     <div className="md:hidden fixed inset-0 z-20 flex flex-col bg-white">
-      <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
+          >
             <ChevronLeft className="w-5 h-5 text-gray-500" />
           </button>
           <h3 className="font-bold text-gray-900 text-lg">Panier</h3>
         </div>
-        <button onClick={onCloseModal} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button
+          onClick={onCloseModal}
+          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
+        >
           <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>

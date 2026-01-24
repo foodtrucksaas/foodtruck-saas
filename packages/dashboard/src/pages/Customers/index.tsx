@@ -64,7 +64,7 @@ export default function Customers() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           icon={Users}
           iconBg="bg-blue-100"
@@ -168,7 +168,7 @@ export default function Customers() {
         {customers.length !== 1 ? 's' : ''}
       </p>
 
-      {/* Table */}
+      {/* Customers List */}
       {customers.length === 0 ? (
         <div className="card p-12 text-center">
           <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
@@ -178,136 +178,244 @@ export default function Customers() {
           </p>
         </div>
       ) : (
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Client
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Commandes
-                  </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total cmd
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Points
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Opt-in
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dernière commande
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Emplacements
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {customer.name || 'Client anonyme'}
-                        </p>
-                        <p className="text-sm text-gray-500">{customer.email}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        {customer.email && (
-                          <a
-                            href={`mailto:${customer.email}`}
-                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
-                          >
-                            <Mail className="w-4 h-4" />
-                          </a>
-                        )}
-                        {customer.phone && (
-                          <a
-                            href={`tel:${customer.phone}`}
-                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
-                          >
-                            <Phone className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-semibold text-sm">
-                        {customer.total_orders}
+        <>
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-3">
+            {customers.map((customer) => (
+              <div key={customer.id} className="card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {customer.name || 'Client anonyme'}
+                    </p>
+                    <p className="text-sm text-gray-500 truncate">{customer.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {customer.email && (
+                      <a
+                        href={`mailto:${customer.email}`}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
+                        aria-label="Envoyer un email"
+                      >
+                        <Mail className="w-4 h-4" />
+                      </a>
+                    )}
+                    {customer.phone && (
+                      <a
+                        href={`tel:${customer.phone}`}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
+                        aria-label="Appeler"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900">{customer.total_orders}</p>
+                    <p className="text-xs text-gray-500">Commandes</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {formatPrice(customer.total_spent)}
+                    </p>
+                    <p className="text-xs text-gray-500">Total</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-amber-600">
+                      {customer.loyalty_points}
+                    </p>
+                    <p className="text-xs text-gray-500">Points</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(customer.last_order_at)}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {customer.email_opt_in && (
+                      <span
+                        className="w-6 h-6 flex items-center justify-center rounded bg-green-100"
+                        title="Email opt-in"
+                      >
+                        <Mail className="w-3 h-3 text-green-600" />
                       </span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <span className="font-semibold text-gray-900">
-                        {formatPrice(customer.total_spent)}
+                    )}
+                    {customer.sms_opt_in && (
+                      <span
+                        className="w-6 h-6 flex items-center justify-center rounded bg-blue-100"
+                        title="SMS opt-in"
+                      >
+                        <MessageSquare className="w-3 h-3 text-blue-600" />
                       </span>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      {customer.loyalty_points > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
-                          <Gift className="w-3 h-3" />
-                          {customer.loyalty_points}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">0</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {customer.email_opt_in && (
-                          <span className="p-1 rounded bg-green-100" title="Email opt-in">
-                            <Mail className="w-3 h-3 text-green-600" />
-                          </span>
-                        )}
-                        {customer.sms_opt_in && (
-                          <span className="p-1 rounded bg-blue-100" title="SMS opt-in">
-                            <MessageSquare className="w-3 h-3 text-blue-600" />
-                          </span>
-                        )}
-                        {!customer.email_opt_in && !customer.sms_opt_in && (
-                          <span className="text-gray-400 text-xs">-</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        {formatDate(customer.last_order_at)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {customer.customer_locations?.slice(0, 2).map((cl) => (
-                          <span
-                            key={cl.location_id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-600"
-                          >
-                            <MapPin className="w-3 h-3" />
-                            {cl.location?.name}
-                            <span className="text-gray-400">({cl.order_count})</span>
-                          </span>
-                        ))}
-                        {customer.customer_locations && customer.customer_locations.length > 2 && (
-                          <span className="text-xs text-gray-400">
-                            +{customer.customer_locations.length - 2}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                  </div>
+                </div>
+                {customer.customer_locations && customer.customer_locations.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {customer.customer_locations.slice(0, 2).map((cl) => (
+                      <span
+                        key={cl.location_id}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        {cl.location?.name}
+                      </span>
+                    ))}
+                    {customer.customer_locations.length > 2 && (
+                      <span className="text-xs text-gray-400 py-1">
+                        +{customer.customer_locations.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Client
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Commandes
+                    </th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total cmd
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Points
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Opt-in
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Dernière commande
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Emplacements
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {customers.map((customer) => (
+                    <tr key={customer.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-4">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {customer.name || 'Client anonyme'}
+                          </p>
+                          <p className="text-sm text-gray-500">{customer.email}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          {customer.email && (
+                            <a
+                              href={`mailto:${customer.email}`}
+                              className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                              aria-label="Envoyer un email"
+                            >
+                              <Mail className="w-4 h-4" />
+                            </a>
+                          )}
+                          {customer.phone && (
+                            <a
+                              href={`tel:${customer.phone}`}
+                              className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                              aria-label="Appeler"
+                            >
+                              <Phone className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-semibold text-sm">
+                          {customer.total_orders}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className="font-semibold text-gray-900">
+                          {formatPrice(customer.total_spent)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {customer.loyalty_points > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
+                            <Gift className="w-3 h-3" />
+                            {customer.loyalty_points}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-sm">0</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          {customer.email_opt_in && (
+                            <span
+                              className="w-6 h-6 flex items-center justify-center rounded bg-green-100"
+                              title="Email opt-in"
+                            >
+                              <Mail className="w-3 h-3 text-green-600" />
+                            </span>
+                          )}
+                          {customer.sms_opt_in && (
+                            <span
+                              className="w-6 h-6 flex items-center justify-center rounded bg-blue-100"
+                              title="SMS opt-in"
+                            >
+                              <MessageSquare className="w-3 h-3 text-blue-600" />
+                            </span>
+                          )}
+                          {!customer.email_opt_in && !customer.sms_opt_in && (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          {formatDate(customer.last_order_at)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {customer.customer_locations?.slice(0, 2).map((cl) => (
+                            <span
+                              key={cl.location_id}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-600"
+                            >
+                              <MapPin className="w-3 h-3" />
+                              {cl.location?.name}
+                              <span className="text-gray-400">({cl.order_count})</span>
+                            </span>
+                          ))}
+                          {customer.customer_locations &&
+                            customer.customer_locations.length > 2 && (
+                              <span className="text-xs text-gray-400">
+                                +{customer.customer_locations.length - 2}
+                              </span>
+                            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

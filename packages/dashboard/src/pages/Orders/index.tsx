@@ -158,8 +158,8 @@ export default function Orders() {
       )}
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-4 md:-mx-8 md:px-8 border-b border-gray-200/80">
-        <div className="flex flex-col gap-4">
+      <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-3 sm:py-4 md:-mx-8 md:px-8 border-b border-gray-200/80">
+        <div className="flex flex-col gap-3 sm:gap-4">
           {/* Date navigation */}
           <div
             className="flex items-center justify-between gap-3"
@@ -296,9 +296,9 @@ export default function Orders() {
             </div>
           )}
 
-          {/* Filter buttons - Modern pill style */}
+          {/* Filter buttons - Modern pill style with responsive labels */}
           <div
-            className="flex items-center gap-2 w-full overflow-x-auto no-scrollbar pb-1"
+            className="flex items-center gap-1.5 sm:gap-2 w-full overflow-x-auto no-scrollbar pb-1"
             role="group"
             aria-label="Filtrer par statut"
           >
@@ -306,21 +306,22 @@ export default function Orders() {
               onClick={() => toggleFilter('pending')}
               type="button"
               aria-pressed={activeFilters.includes('pending')}
-              className={`flex-1 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('pending')
                   ? 'bg-yellow-50 text-yellow-700 border-2 border-yellow-300 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <span className="inline-flex items-center justify-center gap-1.5">
+              <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5">
                 <span
-                  className={`w-2 h-2 rounded-full ${activeFilters.includes('pending') ? 'bg-yellow-400' : 'bg-gray-300'}`}
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('pending') ? 'bg-yellow-400' : 'bg-gray-300'}`}
                   aria-hidden="true"
                 />
-                En attente
+                <span className="hidden sm:inline">En attente</span>
+                <span className="sm:hidden">Attente</span>
                 {pending > 0 && (
                   <span
-                    className="bg-yellow-400 text-white px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[20px]"
+                    className="bg-yellow-400 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${pending} commandes`}
                   >
                     {pending}
@@ -332,21 +333,22 @@ export default function Orders() {
               onClick={() => toggleFilter('confirmed')}
               type="button"
               aria-pressed={activeFilters.includes('confirmed')}
-              className={`flex-1 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('confirmed')
                   ? 'bg-blue-50 text-blue-700 border-2 border-blue-300 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <span className="inline-flex items-center justify-center gap-1.5">
+              <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5">
                 <span
-                  className={`w-2 h-2 rounded-full ${activeFilters.includes('confirmed') ? 'bg-blue-400' : 'bg-gray-300'}`}
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('confirmed') ? 'bg-blue-400' : 'bg-gray-300'}`}
                   aria-hidden="true"
                 />
-                Acceptees
+                <span className="hidden sm:inline">Acceptees</span>
+                <span className="sm:hidden">OK</span>
                 {confirmed > 0 && (
                   <span
-                    className="bg-blue-400 text-white px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[20px]"
+                    className="bg-blue-400 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${confirmed} commandes`}
                   >
                     {confirmed}
@@ -359,21 +361,22 @@ export default function Orders() {
                 onClick={() => toggleFilter('ready')}
                 type="button"
                 aria-pressed={activeFilters.includes('ready')}
-                className={`flex-1 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   activeFilters.includes('ready')
                     ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-300 shadow-sm'
                     : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <span className="inline-flex items-center justify-center gap-1.5">
+                <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5">
                   <span
-                    className={`w-2 h-2 rounded-full ${activeFilters.includes('ready') ? 'bg-emerald-400' : 'bg-gray-300'}`}
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('ready') ? 'bg-emerald-400' : 'bg-gray-300'}`}
                     aria-hidden="true"
                   />
-                  Pretes
+                  <span className="hidden sm:inline">Pretes</span>
+                  <span className="sm:hidden">Pret</span>
                   {ready > 0 && (
                     <span
-                      className="bg-emerald-400 text-white px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[20px]"
+                      className="bg-emerald-400 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                       aria-label={`${ready} commandes`}
                     >
                       {ready}
@@ -386,21 +389,22 @@ export default function Orders() {
               onClick={() => toggleFilter('picked_up')}
               type="button"
               aria-pressed={activeFilters.includes('picked_up')}
-              className={`flex-1 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('picked_up')
                   ? 'bg-gray-100 text-gray-700 border-2 border-gray-300 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <span className="inline-flex items-center justify-center gap-1.5">
+              <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5">
                 <span
-                  className={`w-2 h-2 rounded-full ${activeFilters.includes('picked_up') ? 'bg-gray-400' : 'bg-gray-300'}`}
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('picked_up') ? 'bg-gray-400' : 'bg-gray-300'}`}
                   aria-hidden="true"
                 />
-                Retirees
+                <span className="hidden sm:inline">Retirees</span>
+                <span className="sm:hidden">Fait</span>
                 {pickedUp > 0 && (
                   <span
-                    className="bg-gray-400 text-white px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[20px]"
+                    className="bg-gray-400 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${pickedUp} commandes`}
                   >
                     {pickedUp}
