@@ -30,8 +30,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({ errorInfo });
 
     // If Sentry is available, report the error
-    if (typeof window !== 'undefined' && (window as unknown as { Sentry?: { captureException: (e: Error, c?: unknown) => void } }).Sentry) {
-      (window as unknown as { Sentry: { captureException: (e: Error, c?: unknown) => void } }).Sentry.captureException(error, {
+    if (
+      typeof window !== 'undefined' &&
+      (window as unknown as { Sentry?: { captureException: (e: Error, c?: unknown) => void } })
+        .Sentry
+    ) {
+      (
+        window as unknown as { Sentry: { captureException: (e: Error, c?: unknown) => void } }
+      ).Sentry.captureException(error, {
         extra: { componentStack: errorInfo.componentStack },
       });
     }
@@ -84,14 +90,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </button>
             </div>
 
-            {/* Debug info in development */}
-            {import.meta.env.DEV && this.state.error && (
+            {/* Debug info - always visible to diagnose deploy issues */}
+            {this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">
-                  Détails techniques (dev)
+                  Détails techniques
                 </summary>
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-red-600 overflow-auto max-h-48">
-                  <p className="font-semibold mb-1">{this.state.error.name}: {this.state.error.message}</p>
+                  <p className="font-semibold mb-1">
+                    {this.state.error.name}: {this.state.error.message}
+                  </p>
                   {this.state.errorInfo && (
                     <pre className="whitespace-pre-wrap text-gray-500">
                       {this.state.errorInfo.componentStack}
@@ -100,6 +108,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </div>
               </details>
             )}
+            <p className="mt-4 text-xs text-gray-300">v2025-01-27a</p>
           </div>
         </div>
       );
