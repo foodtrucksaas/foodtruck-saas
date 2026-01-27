@@ -1,5 +1,6 @@
-import { X, ArrowLeft, ArrowRight } from 'lucide-react';
+import { X, ArrowLeft, ArrowRight, Package, Gift, Tag, TrendingUp } from 'lucide-react';
 import type { OfferType, MenuItem, OfferWithItems } from '@foodtruck/shared';
+import { OFFER_TYPE_LABELS } from '@foodtruck/shared';
 import type { OfferFormState, CategoryWithOptionGroups } from './useOffers';
 import {
   OfferTypeSelector,
@@ -22,6 +23,20 @@ interface OfferWizardProps {
   onSubmit: () => void;
   onClose: () => void;
 }
+
+const typeIcons: Record<OfferType, typeof Package> = {
+  bundle: Package,
+  buy_x_get_y: Gift,
+  promo_code: Tag,
+  threshold_discount: TrendingUp,
+};
+
+const typeBadgeColors: Record<OfferType, string> = {
+  bundle: 'bg-primary-100 text-primary-700',
+  buy_x_get_y: 'bg-amber-100 text-amber-700',
+  promo_code: 'bg-blue-100 text-blue-700',
+  threshold_discount: 'bg-emerald-100 text-emerald-700',
+};
 
 export function OfferWizard({
   editingOffer,
@@ -46,6 +61,9 @@ export function OfferWizard({
 
   const formProps = { form, categories, menuItems, updateForm };
 
+  const TypeIcon = step === 2 ? typeIcons[form.offerType] : null;
+  const typeBadgeColor = step === 2 ? typeBadgeColors[form.offerType] : '';
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4">
       <div className="bg-white sm:rounded-xl w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] overflow-hidden flex flex-col">
@@ -63,6 +81,14 @@ export function OfferWizard({
             <h2 className="text-lg font-semibold">
               {editingOffer ? "Modifier l'offre" : 'Nouvelle offre'}
             </h2>
+            {step === 2 && TypeIcon && (
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${typeBadgeColor}`}
+              >
+                <TypeIcon className="w-3.5 h-3.5" />
+                {OFFER_TYPE_LABELS[form.offerType]}
+              </span>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -91,7 +117,15 @@ export function OfferWizard({
                     value={form.name}
                     onChange={(e) => updateForm({ name: e.target.value })}
                     className="input"
-                    placeholder="Ex: Menu Midi, Code Bienvenue..."
+                    placeholder={
+                      form.offerType === 'bundle'
+                        ? 'Ex : Menu Midi, Formule Complet...'
+                        : form.offerType === 'buy_x_get_y'
+                          ? 'Ex : 3 pizzas = 1 boisson offerte...'
+                          : form.offerType === 'promo_code'
+                            ? 'Ex : Code Bienvenue, Promo Ete...'
+                            : 'Ex : -5 EUR des 25 EUR...'
+                    }
                   />
                 </div>
                 <div>
@@ -103,7 +137,7 @@ export function OfferWizard({
                     onChange={(e) => updateForm({ description: e.target.value })}
                     className="input"
                     rows={2}
-                    placeholder="Description interne..."
+                    placeholder="Note interne pour vous reperer..."
                   />
                 </div>
               </div>
