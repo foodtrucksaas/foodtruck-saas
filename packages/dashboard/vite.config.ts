@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -23,11 +24,11 @@ export default defineConfig({
           // Core React runtime - cached long-term
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           // Supabase client - separate chunk for auth/db
-          'supabase': ['@supabase/supabase-js'],
+          supabase: ['@supabase/supabase-js'],
           // Recharts - heavy charting library, only needed for Analytics
-          'recharts': ['recharts'],
+          recharts: ['recharts'],
           // Sentry - monitoring, can load async
-          'sentry': ['@sentry/react'],
+          sentry: ['@sentry/react'],
         },
         // Optimize asset file names for caching
         assetFileNames: (assetInfo) => {
