@@ -25,83 +25,141 @@ export function CampaignCard({
   const clickRate =
     campaign.sent_count > 0 ? (campaign.clicked_count / campaign.sent_count) * 100 : 0;
 
+  const isSent = campaign.sent_count > 0;
+
   return (
-    <div className="card p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="font-semibold text-gray-900 truncate">{campaign.name}</h3>
-            <StatusBadge sentCount={campaign.sent_count} />
-            <span className="flex items-center gap-1 text-gray-400">
-              <ChannelIcon channel={campaign.channel} />
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              {campaign.recipients_count} destinataires
-            </span>
-            <span>
-              {SEGMENT_OPTIONS.find((s) => s.key === targeting.segment)?.label}
-              {targeting.segment === 'location' &&
-                locations.find((l) => l.id === targeting.location_id) && (
-                  <span className="ml-1 text-gray-400">
-                    ({locations.find((l) => l.id === targeting.location_id)?.name})
-                  </span>
-                )}
-            </span>
-          </div>
-
-          {campaign.sent_count > 0 && (
-            <div className="flex items-center gap-6 mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-sm">
-                <Send className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">{campaign.sent_count} envoyés</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Eye className="w-4 h-4 text-blue-500" />
-                <span className="text-gray-600">{openRate.toFixed(1)}% ouverts</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MousePointer className="w-4 h-4 text-green-500" />
-                <span className="text-gray-600">{clickRate.toFixed(1)}% clics</span>
-              </div>
+    <div className="card p-4 sm:p-5 hover:shadow-md transition-shadow">
+      {/* Layout mobile: structure verticale optimisee */}
+      <div className="flex flex-col gap-3">
+        {/* Header row: nom + status + canal */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                {campaign.name}
+              </h3>
+              <StatusBadge sentCount={campaign.sent_count} />
             </div>
-          )}
+          </div>
+          <span className="flex items-center gap-1 text-gray-400 flex-shrink-0">
+            <ChannelIcon channel={campaign.channel} />
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {campaign.sent_count === 0 && (
+        {/* Info row: destinataires et segment */}
+        <div className="flex items-center gap-3 text-sm">
+          <span className="flex items-center gap-1.5 text-gray-600">
+            <Users className="w-4 h-4 text-gray-400" />
+            <span className="font-medium">{campaign.recipients_count}</span>
+            <span className="text-gray-500 hidden xs:inline">destinataires</span>
+          </span>
+          <span className="text-gray-300">|</span>
+          <span className="text-gray-500 text-xs sm:text-sm truncate">
+            {SEGMENT_OPTIONS.find((s) => s.key === targeting.segment)?.label}
+            {targeting.segment === 'location' &&
+              locations.find((l) => l.id === targeting.location_id) && (
+                <span className="ml-1 text-gray-400">
+                  ({locations.find((l) => l.id === targeting.location_id)?.name})
+                </span>
+              )}
+          </span>
+        </div>
+
+        {/* Stats row - grid layout pour mobile */}
+        {isSent && (
+          <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+            <StatItem
+              icon={<Send className="w-4 h-4" />}
+              value={campaign.sent_count.toString()}
+              label="Envoyes"
+              color="gray"
+            />
+            <StatItem
+              icon={<Eye className="w-4 h-4" />}
+              value={`${openRate.toFixed(0)}%`}
+              label="Ouverts"
+              color="blue"
+            />
+            <StatItem
+              icon={<MousePointer className="w-4 h-4" />}
+              value={`${clickRate.toFixed(0)}%`}
+              label="Clics"
+              color="green"
+            />
+          </div>
+        )}
+
+        {/* Actions row - toujours en bas */}
+        <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+          {!isSent && (
             <>
               <button
                 onClick={onSend}
                 disabled={sending}
-                className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium transition-all shadow-md active:scale-95"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium text-sm transition-all shadow-md active:scale-95"
               >
                 {sending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                Envoyer
+                <span>Envoyer</span>
               </button>
               <button
                 onClick={onEdit}
                 className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-xl text-gray-500 transition-colors active:scale-95"
+                aria-label="Modifier"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
             </>
           )}
+          {isSent && (
+            <div className="flex-1 text-xs text-gray-400">
+              Envoyee le{' '}
+              {new Date(
+                (campaign as { sent_at?: string }).sent_at || campaign.created_at
+              ).toLocaleDateString('fr-FR')}
+            </div>
+          )}
           <button
             onClick={onDelete}
             className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors active:scale-95"
+            aria-label="Supprimer"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Composant stat pour affichage inline
+function StatItem({
+  icon,
+  value,
+  label,
+  color,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  color: 'gray' | 'blue' | 'green';
+}) {
+  const colorClasses = {
+    gray: 'text-gray-500 bg-gray-50',
+    blue: 'text-blue-600 bg-blue-50',
+    green: 'text-green-600 bg-green-50',
+  };
+
+  return (
+    <div className={`flex flex-col items-center gap-1 p-2 rounded-lg ${colorClasses[color]}`}>
+      <div className="flex items-center gap-1">
+        {icon}
+        <span className="font-semibold text-sm">{value}</span>
+      </div>
+      <span className="text-[10px] uppercase tracking-wide opacity-75">{label}</span>
     </div>
   );
 }

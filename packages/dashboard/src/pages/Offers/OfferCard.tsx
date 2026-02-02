@@ -90,19 +90,19 @@ export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps)
 
   return (
     <div
-      className={`card p-5 border-l-4 hover:shadow-md transition-shadow ${
+      className={`card p-4 sm:p-5 border-l-4 hover:shadow-md transition-shadow ${
         offer.is_active ? 'border-l-emerald-500' : 'border-l-gray-300'
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4 flex-1 min-w-0">
-          <div className={`p-3 rounded-xl ${colorClass}`}>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+        <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+          <div className={`p-2.5 sm:p-3 rounded-xl ${colorClass} flex-shrink-0`}>
             <Icon className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-medium text-gray-900 truncate">{offer.name}</h3>
-              <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
+              <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium whitespace-nowrap">
                 {OFFER_TYPE_LABELS[offer.offer_type]}
               </span>
             </div>
@@ -145,7 +145,7 @@ export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps)
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 self-end sm:self-start ml-auto sm:ml-0">
           <button
             onClick={() => onToggle(offer)}
             className={`p-2.5 min-h-[44px] min-w-[44px] rounded-xl transition-all active:scale-95 ${

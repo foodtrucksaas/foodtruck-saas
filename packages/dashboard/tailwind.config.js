@@ -92,6 +92,7 @@ export default {
         // Toast animations
         'toast-in': 'toastIn 0.3s ease-out',
         'toast-out': 'toastOut 0.2s ease-in',
+        'slide-up-fade': 'slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         // Legacy support
         fadeIn: 'fadeIn 0.3s ease-out',
       },
@@ -214,6 +215,11 @@ export default {
         toastOut: {
           '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
           '100%': { opacity: '0', transform: 'translateY(-100%) scale(0.9)' },
+        },
+        // Slide up from bottom (for bottom toasts)
+        slideUpFade: {
+          '0%': { opacity: '0', transform: 'translateY(16px) scale(0.95)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
       },
       // Custom transition timing functions

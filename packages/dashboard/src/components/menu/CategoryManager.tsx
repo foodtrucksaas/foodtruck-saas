@@ -98,56 +98,62 @@ export function CategoryManager({
         </div>
 
         {categories.length === 0 ? (
-          <p className="text-gray-500 text-sm">Aucune catégorie. Créez-en une pour organiser vos plats.</p>
+          <p className="text-gray-500 text-sm">
+            Aucune catégorie. Créez-en une pour organiser vos plats.
+          </p>
         ) : (
           <div className="space-y-2">
             {categories.map((category, index) => (
               <div
                 key={category.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="flex flex-col -my-1">
                     <button
                       onClick={() => onMoveCategoryUp(category, index)}
                       disabled={index === 0}
-                      className="text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 active:scale-95 transition-all"
                     >
-                      <ChevronDown className="w-4 h-4 rotate-180" />
+                      <ChevronDown className="w-5 h-5 rotate-180" />
                     </button>
                     <button
                       onClick={() => onMoveCategoryDown(category, index)}
                       disabled={index === categories.length - 1}
-                      className="text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 active:scale-95 transition-all"
                     >
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-5 h-5" />
                     </button>
                   </div>
-                  <GripVertical className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium text-gray-900">{category.name}</span>
-                  <span className="text-sm text-gray-500">
-                    ({groupedItems[category.id]?.length || 0} plat{(groupedItems[category.id]?.length || 0) > 1 ? 's' : ''})
-                  </span>
+                  <GripVertical className="w-4 h-4 text-gray-400 hidden sm:block" />
+                  <div className="min-w-0">
+                    <span className="font-medium text-gray-900 block truncate">
+                      {category.name}
+                    </span>
+                    <span className="text-xs sm:text-sm text-gray-500">
+                      ({groupedItems[category.id]?.length || 0} plat
+                      {(groupedItems[category.id]?.length || 0) > 1 ? 's' : ''})
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleEditCategory(category)}
-                    className="p-1.5 rounded hover:bg-gray-200"
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
                   >
-                    <Edit2 className="w-4 h-4 text-gray-500" />
+                    <Edit2 className="w-5 h-5 text-gray-500" />
                   </button>
                   <button
                     onClick={() => onDeleteCategory(category)}
-                    className="p-1.5 rounded hover:bg-red-50"
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-5 h-5 text-red-500" />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-
       </div>
 
       {/* Category Form Modal */}
@@ -166,7 +172,12 @@ export function CategoryManager({
             required
           />
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" onClick={resetCategoryForm} className="flex-1">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={resetCategoryForm}
+              className="flex-1"
+            >
               Annuler
             </Button>
             <Button type="submit" variant="primary" className="flex-1">

@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Edit2, Trash2, Settings2, X, Circle, CheckSquare, ChevronUp, ChevronDown } from 'lucide-react';
+import {
+  Edit2,
+  Trash2,
+  Settings2,
+  X,
+  Circle,
+  CheckSquare,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react';
 import type { Category } from '@foodtruck/shared';
 
 export interface OptionWizardGroup {
@@ -50,7 +59,10 @@ export function OptionsWizard({
     const group = groups[index];
     const hasValues = group.values.length > 0;
 
-    if (hasValues && !confirm(`Supprimer "${group.name || 'ce groupe'}" et ses ${group.values.length} valeur(s) ?`)) {
+    if (
+      hasValues &&
+      !confirm(`Supprimer "${group.name || 'ce groupe'}" et ses ${group.values.length} valeur(s) ?`)
+    ) {
       return;
     }
 
@@ -93,7 +105,8 @@ export function OptionsWizard({
     const newGroups = [...groups];
     const valIdx = newGroups[groupIdx].values.findIndex((v) => v.name === valueName);
     if (valIdx !== -1) {
-      newGroups[groupIdx].values[valIdx].isAvailable = !newGroups[groupIdx].values[valIdx].isAvailable;
+      newGroups[groupIdx].values[valIdx].isAvailable =
+        !newGroups[groupIdx].values[valIdx].isAvailable;
       onGroupsChange(newGroups);
     }
   };
@@ -123,9 +136,8 @@ export function OptionsWizard({
 
   const addRequiredGroup = (name: string) => {
     // Insérer après les autres groupes obligatoires
-    const lastRequiredIndex = requiredGroups.length > 0
-      ? requiredGroups[requiredGroups.length - 1].originalIndex
-      : -1;
+    const lastRequiredIndex =
+      requiredGroups.length > 0 ? requiredGroups[requiredGroups.length - 1].originalIndex : -1;
     const newGroups = [...groups];
     newGroups.splice(lastRequiredIndex + 1, 0, { name, type: 'option', values: [] });
     onGroupsChange(newGroups);
@@ -156,7 +168,10 @@ export function OptionsWizard({
     const canMoveDown = positionInSection < sectionGroups.length - 1;
 
     return (
-      <div key={groupIdx} className={`p-4 bg-white rounded-lg border border-l-4 ${borderColor} shadow-sm`}>
+      <div
+        key={groupIdx}
+        className={`p-4 bg-white rounded-lg border border-l-4 ${borderColor} shadow-sm`}
+      >
         {isEditing ? (
           /* Mode édition */
           <>
@@ -168,19 +183,19 @@ export function OptionsWizard({
                     type="button"
                     onClick={() => moveGroupWithinSection(groupIdx, 'up', sectionGroups)}
                     disabled={!canMoveUp}
-                    className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                     title="Monter"
                   >
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-5 h-5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => moveGroupWithinSection(groupIdx, 'down', sectionGroups)}
                     disabled={!canMoveDown}
-                    className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                     title="Descendre"
                   >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5" />
                   </button>
                 </div>
               )}
@@ -188,16 +203,16 @@ export function OptionsWizard({
                 type="text"
                 value={group.name}
                 onChange={(e) => updateOptionGroup(groupIdx, 'name', e.target.value)}
-                className="input flex-1 font-medium"
+                className="input flex-1 font-medium min-h-[44px]"
                 placeholder="Nom du groupe"
               />
               <button
                 type="button"
                 onClick={() => removeOptionGroup(groupIdx)}
-                className="p-1.5 rounded hover:bg-red-50"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
                 title="Supprimer"
               >
-                <Trash2 className="w-4 h-4 text-red-500" />
+                <Trash2 className="w-5 h-5 text-red-500" />
               </button>
             </div>
             {/* Indication choix unique/multiple */}
@@ -226,7 +241,9 @@ export function OptionsWizard({
                       title={val.isAvailable ? 'Cliquer pour désactiver' : 'Cliquer pour réactiver'}
                     >
                       {val.name}
-                      {!val.isAvailable && <span className="ml-2 text-xs text-red-400">(rupture)</span>}
+                      {!val.isAvailable && (
+                        <span className="ml-2 text-xs text-red-400">(rupture)</span>
+                      )}
                     </button>
                     <span className="text-sm text-gray-400">+</span>
                     <input
@@ -284,7 +301,9 @@ export function OptionsWizard({
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         const nameInput = e.target as HTMLInputElement;
-                        const priceInput = document.getElementById(`supplement-price-${groupIdx}`) as HTMLInputElement;
+                        const priceInput = document.getElementById(
+                          `supplement-price-${groupIdx}`
+                        ) as HTMLInputElement;
                         if (nameInput.value.trim()) {
                           const newGroups = [...groups];
                           newGroups[groupIdx].values.push({
@@ -300,7 +319,9 @@ export function OptionsWizard({
                       }
                     }}
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Entrée ↵</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                    Entrée ↵
+                  </span>
                 </div>
                 <span className="text-sm text-gray-400">+</span>
                 <input
@@ -316,7 +337,9 @@ export function OptionsWizard({
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       const priceInput = e.target as HTMLInputElement;
-                      const nameInput = document.getElementById(`supplement-name-${groupIdx}`) as HTMLInputElement;
+                      const nameInput = document.getElementById(
+                        `supplement-name-${groupIdx}`
+                      ) as HTMLInputElement;
                       if (nameInput.value.trim()) {
                         const newGroups = [...groups];
                         newGroups[groupIdx].values.push({
@@ -348,7 +371,9 @@ export function OptionsWizard({
                     }
                   }}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Entrée ↵</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  Entrée ↵
+                </span>
               </div>
             )}
 
@@ -357,9 +382,9 @@ export function OptionsWizard({
               <button
                 type="button"
                 onClick={() => setEditingGroupIndex(null)}
-                className="mt-3 w-full py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                className="mt-3 w-full min-h-[48px] py-2.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98]"
               >
-                ✓ Terminer
+                Terminer
               </button>
             )}
           </>
@@ -375,19 +400,19 @@ export function OptionsWizard({
                       type="button"
                       onClick={() => moveGroupWithinSection(groupIdx, 'up', sectionGroups)}
                       disabled={!canMoveUp}
-                      className="p-0.5 text-gray-300 hover:text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                       title="Monter"
                     >
-                      <ChevronUp className="w-4 h-4" />
+                      <ChevronUp className="w-5 h-5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => moveGroupWithinSection(groupIdx, 'down', sectionGroups)}
                       disabled={!canMoveDown}
-                      className="p-0.5 text-gray-300 hover:text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                       title="Descendre"
                     >
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-5 h-5" />
                     </button>
                   </div>
                 )}
@@ -397,18 +422,18 @@ export function OptionsWizard({
                 <button
                   type="button"
                   onClick={() => setEditingGroupIndex(groupIdx)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
                   title="Modifier"
                 >
-                  <Edit2 className="w-4 h-4 text-gray-400" />
+                  <Edit2 className="w-5 h-5 text-gray-400" />
                 </button>
                 <button
                   type="button"
                   onClick={() => removeOptionGroup(groupIdx)}
-                  className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors active:scale-95"
                   title="Supprimer"
                 >
-                  <Trash2 className="w-4 h-4 text-red-400" />
+                  <Trash2 className="w-5 h-5 text-red-400" />
                 </button>
               </div>
             </div>
@@ -432,15 +457,24 @@ export function OptionsWizard({
                         ? valueBadgeStyle
                         : 'bg-gray-100 border-gray-200 text-gray-400 line-through'
                     }`}
-                    title={val.isAvailable ? 'Cliquer pour marquer en rupture' : 'Cliquer pour remettre en stock'}
+                    title={
+                      val.isAvailable
+                        ? 'Cliquer pour marquer en rupture'
+                        : 'Cliquer pour remettre en stock'
+                    }
                   >
                     {val.name}
-                    <span className={`ml-1 ${priceNum > 0 ? 'opacity-70' : 'text-green-600 opacity-80'}`}>
+                    <span
+                      className={`ml-1 ${priceNum > 0 ? 'opacity-70' : 'text-green-600 opacity-80'}`}
+                    >
                       {priceDisplay}
                     </span>
                   </button>
                 ) : (
-                  <span key={valIdx} className={`text-sm px-3 py-1.5 rounded-full border ${valueBadgeStyle}`}>
+                  <span
+                    key={valIdx}
+                    className={`text-sm px-3 py-1.5 rounded-full border ${valueBadgeStyle}`}
+                  >
                     {val.name}
                   </span>
                 );
@@ -458,36 +492,55 @@ export function OptionsWizard({
   const hasSupplements = groups.some((g) => g.type === 'supplement');
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-bold">Options : {category.name}</h2>
-              <p className="text-sm text-gray-500">Tailles, cuisson, suppléments...</p>
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-lg max-h-full sm:max-h-[90vh] overflow-hidden flex flex-col">
+        <div
+          className="p-4 sm:p-6 flex-1 overflow-y-auto"
+          style={{
+            paddingTop: 'max(env(safe-area-inset-top), 16px)',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <div className="flex items-start justify-between mb-4 gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold truncate">Options : {category.name}</h2>
+              <p className="text-xs sm:text-sm text-gray-500">Tailles, cuisson, suppléments...</p>
             </div>
-            <button onClick={onClose} className="p-1.5 rounded hover:bg-gray-100">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {hasNoGroups ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 mb-4">
-              <Settings2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Aucune option configurée</p>
-              <p className="text-xs text-gray-400 mt-1">Ajoutez des tailles, cuissons ou suppléments ci-dessous</p>
+            <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 mb-4">
+              <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-xs sm:text-sm text-gray-500">Aucune option configurée</p>
+              <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
+                Ajoutez des tailles, cuissons ou suppléments ci-dessous
+              </p>
             </div>
           ) : (
-            <div className="space-y-6 mb-4">
+            <div className="space-y-4 sm:space-y-6 mb-4 max-h-[40vh] sm:max-h-[50vh] overflow-y-auto">
               {/* Section Obligatoires */}
               {requiredGroups.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Circle className="w-4 h-4 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Obligatoires</h3>
-                    <span className="text-xs text-gray-400">1 seul choix par groupe</span>
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                    <Circle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Obligatoires</h3>
+                    <span className="text-[10px] sm:text-xs text-gray-400">
+                      1 seul choix par groupe
+                    </span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {requiredGroups.map(({ group, originalIndex }, positionInSection) =>
                       renderGroupCard(group, originalIndex, requiredGroups, positionInSection)
                     )}
@@ -498,12 +551,14 @@ export function OptionsWizard({
               {/* Section Optionnels */}
               {optionalGroups.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckSquare className="w-4 h-4 text-green-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Optionnels</h3>
-                    <span className="text-xs text-gray-400">Plusieurs choix possibles</span>
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                    <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Optionnels</h3>
+                    <span className="text-[10px] sm:text-xs text-gray-400">
+                      Plusieurs choix possibles
+                    </span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {optionalGroups.map(({ group, originalIndex }, positionInSection) =>
                       renderGroupCard(group, originalIndex, optionalGroups, positionInSection)
                     )}
@@ -515,13 +570,13 @@ export function OptionsWizard({
 
           {/* Add group buttons */}
           {groups.length < 5 && (
-            <div className="mb-6 p-4 border-2 border-dashed border-gray-200 rounded-lg">
-              <div className="flex justify-center gap-2 flex-wrap">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 border-2 border-dashed border-gray-200 rounded-lg">
+              <div className="flex justify-center gap-1.5 sm:gap-2 flex-wrap">
                 {!hasTaille && (
                   <button
                     type="button"
                     onClick={() => addRequiredGroup('Taille')}
-                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors min-h-[40px]"
                   >
                     + Taille
                   </button>
@@ -530,7 +585,7 @@ export function OptionsWizard({
                   <button
                     type="button"
                     onClick={() => addRequiredGroup('Cuisson')}
-                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors min-h-[40px]"
                   >
                     + Cuisson
                   </button>
@@ -538,7 +593,7 @@ export function OptionsWizard({
                 <button
                   type="button"
                   onClick={() => addRequiredGroup('')}
-                  className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100 border border-gray-200 transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-100 border border-gray-200 transition-colors min-h-[40px]"
                 >
                   + Autre obligatoire
                 </button>
@@ -546,7 +601,7 @@ export function OptionsWizard({
                   <button
                     type="button"
                     onClick={() => addOptionalGroup('Suppléments')}
-                    className="px-4 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-medium hover:bg-green-100 border border-green-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-green-50 text-green-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-100 border border-green-200 transition-colors min-h-[40px]"
                   >
                     + Suppléments
                   </button>
@@ -554,15 +609,28 @@ export function OptionsWizard({
               </div>
             </div>
           )}
+        </div>
 
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">
-              Annuler
-            </button>
-            <button type="button" onClick={onSave} disabled={saving} className="btn-primary flex-1">
-              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-            </button>
-          </div>
+        {/* Footer fixed on mobile with safe area */}
+        <div
+          className="flex gap-2 sm:gap-3 p-4 sm:p-6 pt-3 sm:pt-4 border-t sm:border-t-0 bg-white flex-shrink-0"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary flex-1 min-h-[48px] active:scale-[0.98] transition-transform"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="btn-primary flex-1 min-h-[48px] active:scale-[0.98] transition-transform"
+          >
+            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </button>
         </div>
       </div>
     </div>

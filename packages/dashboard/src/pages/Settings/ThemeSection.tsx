@@ -34,25 +34,25 @@ export default function ThemeSection() {
   };
 
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
           <Palette className="w-5 h-5 text-primary-500" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="font-bold text-gray-900">Thème de couleur</h2>
           <p className="text-sm text-gray-500">Personnalisez l'apparence de votre page client</p>
         </div>
-        {saving && <Loader2 className="w-5 h-5 animate-spin text-primary-500 ml-auto" />}
+        {saving && <Loader2 className="w-5 h-5 animate-spin text-primary-500 flex-shrink-0" />}
         {success && (
-          <div className="flex items-center gap-1 text-green-600 text-sm ml-auto">
+          <div className="flex items-center gap-1 text-green-600 text-sm flex-shrink-0">
             <Check className="w-4 h-4" />
-            Enregistré
+            <span className="hidden sm:inline">Enregistré</span>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         {COLOR_THEMES.map((theme) => {
           const isSelected = currentTheme === theme.id;
           return (
@@ -60,7 +60,7 @@ export default function ThemeSection() {
               key={theme.id}
               onClick={() => handleSelectTheme(theme.id)}
               disabled={saving}
-              className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+              className={`relative p-3 sm:p-4 rounded-xl border-2 transition-all text-left active:scale-[0.98] ${
                 isSelected
                   ? 'border-gray-900 bg-gray-50'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -68,19 +68,19 @@ export default function ThemeSection() {
             >
               {/* Color Preview */}
               <div
-                className="w-full h-12 rounded-lg mb-3"
+                className="w-full h-10 sm:h-12 rounded-lg mb-2 sm:mb-3"
                 style={{
                   background: `linear-gradient(135deg, ${theme.colors[400]} 0%, ${theme.colors[500]} 50%, ${theme.colors[600]} 100%)`,
                 }}
               />
 
-              <p className="font-semibold text-gray-900">{theme.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{theme.description}</p>
+              <p className="font-semibold text-gray-900 text-sm sm:text-base">{theme.name}</p>
+              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{theme.description}</p>
 
               {/* Selected indicator */}
               {isSelected && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="absolute top-2 right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gray-900 rounded-full flex items-center justify-center">
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
               )}
             </button>
@@ -89,8 +89,8 @@ export default function ThemeSection() {
       </div>
 
       <p className="text-xs text-gray-400 mt-4">
-        Le thème s'applique à votre page de commande vue par les clients.
-        Le dashboard conserve toujours le thème par défaut.
+        Le thème s'applique à votre page de commande vue par les clients. Le dashboard conserve
+        toujours le thème par défaut.
       </p>
     </div>
   );

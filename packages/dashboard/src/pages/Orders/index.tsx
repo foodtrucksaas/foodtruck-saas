@@ -127,7 +127,7 @@ export default function Orders() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-[env(safe-area-inset-bottom)]">
       {/* Order Detail Modal */}
       {selectedOrder && (
         <OrderDetailModal
@@ -157,31 +157,32 @@ export default function Orders() {
         />
       )}
 
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-3 sm:py-4 md:-mx-8 md:px-8 border-b border-gray-200/80">
+      {/* Sticky Header - compact on mobile */}
+      <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm -mx-3 px-3 py-2 sm:-mx-4 sm:px-4 sm:py-3 md:-mx-8 md:px-8 border-b border-gray-200/80">
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Date navigation */}
           <div
-            className="flex items-center justify-between gap-3"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3"
             role="toolbar"
             aria-label="Navigation des dates"
           >
-            <div className="flex items-center gap-2 flex-1">
+            {/* Date selector row */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={goToPreviousDay}
-                className="w-11 h-11 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
+                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
                 aria-label="Jour precedent"
                 type="button"
               >
                 <ChevronLeft className="w-5 h-5" aria-hidden="true" />
               </button>
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
                   aria-expanded={showDatePicker}
                   aria-haspopup="dialog"
                   type="button"
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${
+                  className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${
                     isToday
                       ? 'bg-white border-gray-200 hover:border-gray-300'
                       : isFuture
@@ -190,23 +191,23 @@ export default function Orders() {
                   }`}
                 >
                   <Calendar
-                    className={`w-4 h-4 flex-shrink-0 ${isToday ? 'text-gray-500' : isFuture ? 'text-blue-600' : 'text-amber-600'}`}
+                    className={`w-4 h-4 flex-shrink-0 hidden sm:block ${isToday ? 'text-gray-500' : isFuture ? 'text-blue-600' : 'text-amber-600'}`}
                     aria-hidden="true"
                   />
                   <span
-                    className={`font-semibold capitalize whitespace-nowrap ${isToday ? 'text-gray-900' : isFuture ? 'text-blue-800' : 'text-amber-800'}`}
+                    className={`font-semibold capitalize text-sm sm:text-base truncate ${isToday ? 'text-gray-900' : isFuture ? 'text-blue-800' : 'text-amber-800'}`}
                   >
                     {formatDate(selectedDate)}
                   </span>
                   {isToday && (
-                    <span className="text-xs bg-primary-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 font-medium">
+                    <span className="text-[10px] sm:text-xs bg-primary-500 text-white px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 font-medium hidden sm:inline">
                       Aujourd'hui
                     </span>
                   )}
                 </button>
                 {showDatePicker && (
                   <div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-30"
+                    className="absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-30"
                     role="dialog"
                     aria-label="Selecteur de date"
                   >
@@ -223,82 +224,88 @@ export default function Orders() {
                           setShowDatePicker(false);
                         }
                       }}
-                      className="px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 )}
               </div>
               <button
                 onClick={goToNextDay}
-                className="w-11 h-11 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
+                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
                 aria-label="Jour suivant"
                 type="button"
               >
                 <ChevronRight className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
-            {/* View toggle */}
-            <div
-              className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm"
-              role="group"
-              aria-label="Mode d'affichage"
-            >
+
+            {/* View toggle + Sound button row */}
+            <div className="flex items-center justify-end gap-2 flex-shrink-0">
+              {/* View toggle */}
+              <div
+                className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm"
+                role="group"
+                aria-label="Mode d'affichage"
+              >
+                <button
+                  onClick={() => handleViewModeChange('timeline')}
+                  className={`p-2 sm:p-2.5 min-w-[36px] min-h-[36px] sm:min-w-[42px] sm:min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'timeline' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                  aria-label="Vue planning"
+                  aria-pressed={viewMode === 'timeline'}
+                  type="button"
+                >
+                  <Clock className="w-4 h-4" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => handleViewModeChange('list')}
+                  className={`p-2 sm:p-2.5 min-w-[36px] min-h-[36px] sm:min-w-[42px] sm:min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'list' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                  aria-label="Vue liste"
+                  aria-pressed={viewMode === 'list'}
+                  type="button"
+                >
+                  <List className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
               <button
-                onClick={() => handleViewModeChange('timeline')}
-                className={`p-2.5 min-w-[42px] min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'timeline' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
-                aria-label="Vue planning"
-                aria-pressed={viewMode === 'timeline'}
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`p-2 sm:p-2.5 min-w-[40px] min-h-[40px] sm:min-h-[44px] rounded-xl flex items-center justify-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                aria-pressed={soundEnabled}
+                aria-label={soundEnabled ? 'Desactiver le son' : 'Activer le son'}
                 type="button"
               >
-                <Clock className="w-4 h-4" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => handleViewModeChange('list')}
-                className={`p-2.5 min-w-[42px] min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'list' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
-                aria-label="Vue liste"
-                aria-pressed={viewMode === 'list'}
-                type="button"
-              >
-                <List className="w-4 h-4" aria-hidden="true" />
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="w-4 h-4" aria-hidden="true" />
+                )}
+                <span className="hidden md:inline font-medium">
+                  {soundEnabled ? 'Son' : 'Muet'}
+                </span>
               </button>
             </div>
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2.5 min-h-[44px] rounded-xl flex items-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-              aria-pressed={soundEnabled}
-              aria-label={soundEnabled ? 'Desactiver le son' : 'Activer le son'}
-              type="button"
-            >
-              {soundEnabled ? (
-                <Volume2 className="w-4 h-4" aria-hidden="true" />
-              ) : (
-                <VolumeX className="w-4 h-4" aria-hidden="true" />
-              )}
-              <span className="hidden md:inline font-medium">{soundEnabled ? 'Son' : 'Muet'}</span>
-            </button>
           </div>
 
           {/* Past/Future day warning banner */}
           {!isToday && (
             <div
-              className={`${isFuture ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600'} text-white py-3 px-4 flex items-center justify-between rounded-xl shadow-sm`}
+              className={`${isFuture ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600'} text-white py-2.5 sm:py-3 px-3 sm:px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 rounded-xl shadow-sm`}
             >
-              <span className="font-semibold flex items-center gap-2">
+              <span className="font-semibold flex items-center gap-2 text-sm sm:text-base">
                 <span>{isFuture ? '📅' : '⏰'}</span>
                 {isFuture ? 'Commandes à venir' : 'Historique'}
               </span>
               <button
                 onClick={goToToday}
-                className="px-4 py-1.5 bg-white/95 rounded-lg text-sm font-semibold transition-all hover:bg-white hover:shadow-sm active:scale-95 text-gray-800"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-1.5 min-h-[40px] sm:min-h-[36px] bg-white/95 rounded-lg text-sm font-semibold transition-all hover:bg-white hover:shadow-sm active:scale-95 text-gray-800"
               >
                 Retour à aujourd'hui
               </button>
             </div>
           )}
 
-          {/* Filter buttons - Modern pill style with responsive labels */}
+          {/* Filter buttons - Modern pill style */}
           <div
-            className="flex items-center gap-1.5 sm:gap-2 w-full overflow-x-auto no-scrollbar pb-1"
+            className="flex flex-wrap items-center gap-1.5 sm:gap-2"
             role="group"
             aria-label="Filtrer par statut"
           >

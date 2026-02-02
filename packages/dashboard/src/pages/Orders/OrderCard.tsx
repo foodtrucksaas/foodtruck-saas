@@ -35,16 +35,16 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
 
   return (
     <article
-      className={`card rounded-xl px-4 py-3.5 cursor-pointer transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+      className={`card rounded-xl p-3 sm:p-4 cursor-pointer transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[72px] overflow-hidden active:scale-[0.98] ${
         isDone
           ? 'bg-gray-50 border border-gray-200 opacity-60 hover:opacity-80'
           : isPending
-            ? 'bg-yellow-50 border-2 border-yellow-300 hover:border-yellow-400 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
+            ? 'bg-yellow-50 border-2 border-yellow-300 hover:border-yellow-400 hover:shadow-lg hover:-translate-y-0.5'
             : isConfirmed
-              ? 'bg-blue-50 border-2 border-blue-300 hover:border-blue-400 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
+              ? 'bg-blue-50 border-2 border-blue-300 hover:border-blue-400 hover:shadow-lg hover:-translate-y-0.5'
               : isReady
-                ? 'bg-emerald-50 border-2 border-emerald-300 hover:border-emerald-400 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
-                : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
+                ? 'bg-emerald-50 border-2 border-emerald-300 hover:border-emerald-400 hover:shadow-lg hover:-translate-y-0.5'
+                : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
       }`}
       onClick={onClick}
       onKeyDown={(e) => {
@@ -58,30 +58,32 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
       aria-label={`Commande de ${order.customer_name}, ${status.label}, ${itemsSummary}, ${formatPrice(order.total_amount)}`}
     >
       {/* Row 1: Dot + Name + Badge + Chevron */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
         <div
-          className={`status-dot ${isPending ? 'status-dot-pending' : isConfirmed ? 'status-dot-confirmed' : isReady ? 'status-dot-ready' : 'status-dot-done'}`}
+          className={`status-dot flex-shrink-0 ${isPending ? 'status-dot-pending' : isConfirmed ? 'status-dot-confirmed' : isReady ? 'status-dot-ready' : 'status-dot-done'}`}
           aria-hidden="true"
         />
         <span
-          className={`font-semibold truncate flex-1 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
+          className={`font-semibold truncate max-w-[120px] sm:max-w-[180px] md:max-w-none flex-1 min-w-0 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
         >
           {order.customer_name}
         </span>
         <span
-          className={`inline-flex items-center gap-1 text-xs ${status.bg} ${status.text} px-2.5 py-1 rounded-full font-medium flex-shrink-0`}
+          className={`inline-flex items-center gap-1 text-[10px] sm:text-xs ${status.bg} ${status.text} px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0`}
         >
           {status.label}
         </span>
         <ChevronRight
-          className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+          className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all flex-shrink-0 hidden sm:block"
           aria-hidden="true"
         />
       </div>
 
       {/* Row 2: Items + Price */}
-      <div className="flex items-center justify-between mt-2 ml-5">
-        <span className={`text-sm line-clamp-1 ${isDone ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className="flex items-center justify-between mt-2 ml-0 sm:ml-5 gap-2">
+        <span
+          className={`text-xs sm:text-sm line-clamp-1 truncate min-w-0 flex-1 ${isDone ? 'text-gray-400' : 'text-gray-600'}`}
+        >
           {order.order_items.map((item, idx) => (
             <span key={idx}>
               {idx > 0 && ', '}
@@ -93,7 +95,7 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
           ))}
         </span>
         <span
-          className={`font-bold flex-shrink-0 ml-3 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
+          className={`font-bold flex-shrink-0 text-sm sm:text-base ${isDone ? 'text-gray-500' : 'text-gray-900'}`}
         >
           {formatPrice(order.total_amount)}
         </span>

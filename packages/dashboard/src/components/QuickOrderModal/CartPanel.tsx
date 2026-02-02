@@ -195,11 +195,15 @@ export function MobileCartOverlay({
 }: MobileCartOverlayProps) {
   return (
     <div className="md:hidden fixed inset-0 z-20 flex flex-col bg-white">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+      {/* Header with safe area */}
+      <div
+        className="px-3 py-3 border-b border-gray-200 flex items-center justify-between"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 12px)' }}
+      >
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
+            className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
           >
             <ChevronLeft className="w-5 h-5 text-gray-500" />
           </button>
@@ -207,13 +211,14 @@ export function MobileCartOverlay({
         </div>
         <button
           onClick={onCloseModal}
-          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
+          className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
         >
           <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-auto p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
         {cart.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-50" />
@@ -235,7 +240,11 @@ export function MobileCartOverlay({
         )}
       </div>
 
-      <div className="p-4 border-t border-gray-200 space-y-3">
+      {/* Footer with safe area */}
+      <div
+        className="p-4 border-t border-gray-200 space-y-3"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+      >
         <div className="flex items-center justify-between text-lg">
           <span className="font-semibold text-gray-900">Total</span>
           <span className="font-bold text-2xl text-gray-900">{formatPrice(cartTotal)}</span>
@@ -244,7 +253,7 @@ export function MobileCartOverlay({
         <button
           onClick={onContinue}
           disabled={cart.length === 0}
-          className="w-full py-4 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+          className="w-full min-h-[48px] py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
         >
           <ChevronRight className="w-5 h-5" />
           Continuer
@@ -263,7 +272,11 @@ export function FloatingCartButton({ cartItemsCount, onClick }: FloatingCartButt
   return (
     <button
       onClick={onClick}
-      className="md:hidden fixed bottom-6 right-6 z-10 bg-primary-500 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center"
+      className="md:hidden fixed z-10 bg-primary-500 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+      style={{
+        bottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+        right: '24px',
+      }}
     >
       <ShoppingBag className="w-6 h-6" />
       {cartItemsCount > 0 && (

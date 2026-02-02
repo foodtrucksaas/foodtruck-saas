@@ -53,7 +53,7 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
   };
 
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <Wallet className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">Moyens de paiement acceptés</h2>
@@ -64,7 +64,7 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
         vos clients.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         {PAYMENT_METHODS.map((method) => {
           const Icon = ICON_MAP[method.icon] || Wallet;
           const isSelected = currentMethods.includes(method.id);
@@ -74,15 +74,15 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
               key={method.id}
               onClick={() => toggleMethod(method.id)}
               disabled={loading}
-              className={`p-3 min-h-[48px] rounded-lg border-2 transition-all flex items-center gap-2 active:scale-[0.98] ${
+              className={`p-2.5 sm:p-3 min-h-[48px] rounded-lg border-2 transition-all flex items-center gap-2 active:scale-[0.98] ${
                 isSelected
                   ? 'border-primary-500 bg-primary-50 text-primary-700'
                   : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-sm font-medium flex-1 text-left">{method.label}</span>
-              {isSelected && <Check className="w-4 h-4" />}
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm font-medium flex-1 text-left truncate">{method.label}</span>
+              {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}
             </button>
           );
         })}

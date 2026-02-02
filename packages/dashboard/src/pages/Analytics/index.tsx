@@ -76,11 +76,11 @@ export default function Analytics() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Statistiques</h1>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - hidden on mobile (Layout provides header) */}
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="hidden sm:block">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Statistiques</h1>
           <p className="text-gray-600 text-sm sm:text-base">
             Analysez les performances de votre food truck
           </p>
@@ -147,8 +147,8 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* KPI Cards - 2 colonnes mobile, 4 desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard
           icon={Package}
           iconBg="bg-emerald-100"
@@ -196,7 +196,7 @@ export default function Analytics() {
             Évolution des montants
           </h2>
           {revenueData.length > 0 ? (
-            <SafeChart className="h-48 sm:h-64">
+            <SafeChart className="h-[220px] sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -207,8 +207,12 @@ export default function Analytics() {
                     contentStyle={{
                       backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
+                      padding: '12px 16px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      fontSize: '14px',
                     }}
+                    cursor={{ strokeWidth: 2 }}
                   />
                   <Line
                     type="monotone"
@@ -231,7 +235,7 @@ export default function Analytics() {
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
             Commandes par jour
           </h2>
-          <SafeChart className="h-48 sm:h-64">
+          <SafeChart className="h-[220px] sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dayOfWeekData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -249,8 +253,12 @@ export default function Analytics() {
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    fontSize: '14px',
                   }}
+                  cursor={{ fill: 'rgba(249, 112, 102, 0.1)' }}
                 />
                 <Bar dataKey="orders" fill="#F97066" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -266,7 +274,7 @@ export default function Analytics() {
             <Clock className="w-5 h-5 text-gray-400" />
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">Heures de pointe</h2>
           </div>
-          <SafeChart className="h-40 sm:h-48">
+          <SafeChart className="h-[200px] sm:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hourlyData}>
                 <XAxis dataKey="label" stroke="#6b7280" fontSize={10} interval={1} />
@@ -276,9 +284,12 @@ export default function Analytics() {
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '12px',
+                    borderRadius: '12px',
+                    padding: '10px 14px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    fontSize: '13px',
                   }}
+                  cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
                 />
                 <Bar dataKey="orders" fill="#3b82f6" radius={[2, 2, 0, 0]} />
               </BarChart>
@@ -398,29 +409,29 @@ function KpiCard({
   const displayChange = Number.isFinite(change) ? change : 0;
 
   return (
-    <div className="card p-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 mb-1">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+    <div className="card p-3 sm:p-5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm text-gray-500 mb-0.5 sm:mb-1 truncate">{label}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{value}</p>
         </div>
-        <div className={`p-2 rounded-xl ${iconBg}`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+        <div className={`p-2 rounded-xl ${iconBg} flex-shrink-0`}>
+          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
         </div>
       </div>
       <div
-        className={`flex items-center gap-1 mt-2 text-sm ${displayChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+        className={`flex items-center gap-1 mt-1.5 sm:mt-2 text-xs sm:text-sm ${displayChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
       >
         {displayChange >= 0 ? (
-          <TrendingUp className="w-4 h-4" />
+          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         ) : (
-          <TrendingDown className="w-4 h-4" />
+          <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         )}
         <span>
           {displayChange >= 0 ? '+' : ''}
           {displayChange.toFixed(1)}%
         </span>
-        <span className="text-gray-400 ml-1">vs période préc.</span>
+        <span className="text-gray-400 ml-1 hidden sm:inline">vs periode prec.</span>
       </div>
     </div>
   );

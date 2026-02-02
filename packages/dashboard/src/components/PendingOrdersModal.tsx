@@ -34,34 +34,37 @@ export default function PendingOrdersModal({
 
   // Initialize edited times for ASAP orders
   useEffect(() => {
-    const newEditedTimes: Record<string, string> = {};
-    orders.forEach((order) => {
-      if ((order as { is_asap?: boolean | null }).is_asap === true && !editedTimes[order.id]) {
-        // Calculate suggested time: order created_at + min prep time
-        const orderDate = new Date(order.created_at || new Date());
-        orderDate.setMinutes(orderDate.getMinutes() + minPrepTime);
+    setEditedTimes((prev) => {
+      const newEditedTimes: Record<string, string> = { ...prev };
+      let hasChanges = false;
 
-        // Round to next 5 minutes
-        const minutes = orderDate.getMinutes();
-        const roundedMinutes = Math.ceil(minutes / 5) * 5;
-        orderDate.setMinutes(roundedMinutes);
+      orders.forEach((order) => {
+        if ((order as { is_asap?: boolean | null }).is_asap === true && !prev[order.id]) {
+          hasChanges = true;
+          // Calculate suggested time: order created_at + min prep time
+          const orderDate = new Date(order.created_at || new Date());
+          orderDate.setMinutes(orderDate.getMinutes() + minPrepTime);
 
-        // Make sure it's not in the past
-        const now = new Date();
-        if (orderDate < now) {
-          now.setMinutes(now.getMinutes() + minPrepTime);
-          const nowMinutes = now.getMinutes();
-          now.setMinutes(Math.ceil(nowMinutes / 5) * 5);
-          newEditedTimes[order.id] = now.toTimeString().slice(0, 5);
-        } else {
-          newEditedTimes[order.id] = orderDate.toTimeString().slice(0, 5);
+          // Round to next 5 minutes
+          const minutes = orderDate.getMinutes();
+          const roundedMinutes = Math.ceil(minutes / 5) * 5;
+          orderDate.setMinutes(roundedMinutes);
+
+          // Make sure it's not in the past
+          const now = new Date();
+          if (orderDate < now) {
+            now.setMinutes(now.getMinutes() + minPrepTime);
+            const nowMinutes = now.getMinutes();
+            now.setMinutes(Math.ceil(nowMinutes / 5) * 5);
+            newEditedTimes[order.id] = now.toTimeString().slice(0, 5);
+          } else {
+            newEditedTimes[order.id] = orderDate.toTimeString().slice(0, 5);
+          }
         }
-      }
-    });
+      });
 
-    if (Object.keys(newEditedTimes).length > 0) {
-      setEditedTimes((prev) => ({ ...prev, ...newEditedTimes }));
-    }
+      return hasChanges ? newEditedTimes : prev;
+    });
   }, [orders, minPrepTime]);
 
   if (orders.length === 0) return null;
@@ -150,45 +153,51 @@ export default function PendingOrdersModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
       {/* Single backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* Modal - fullscreen on mobile with scroll */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
         {/* Header */}
-        <div className="bg-yellow-500 text-white px-5 py-4 relative">
-          {/* Close button */}
+        <div className="bg-yellow-500 text-white px-4 sm:px-5 py-4 relative flex-shrink-0">
+          {/* Close button - larger touch target */}
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-90"
+            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-90"
           >
             <X className="w-5 h-5 text-yellow-800" />
           </button>
 
-          <h2 className="text-xl font-bold pr-10">
+          <h2 className="text-lg sm:text-xl font-bold pr-12">
             {orders.length} commande{orders.length > 1 ? 's' : ''} à valider
           </h2>
         </div>
 
         {/* Navigation with dots */}
         {orders.length > 1 && (
-          <div className="flex items-center justify-between px-2 py-2 bg-gray-50 border-b">
+          <div className="flex items-center justify-between px-2 py-2 bg-gray-50 border-b flex-shrink-0">
             <button
               onClick={goPrev}
               disabled={safeIndex === 0}
-              className="w-12 h-12 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
 
             {/* Dots indicator */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
               {orders.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`h-3 rounded-full transition-all ${
+                  className={`min-h-[28px] min-w-[28px] h-3 rounded-full transition-all flex items-center justify-center ${
                     idx === safeIndex ? 'bg-yellow-500 w-8' : 'bg-gray-300 hover:bg-gray-400 w-3'
                   }`}
                 />
@@ -198,15 +207,18 @@ export default function PendingOrdersModal({
             <button
               onClick={goNext}
               disabled={safeIndex === orders.length - 1}
-              className="w-12 h-12 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
           </div>
         )}
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - scrollable */}
+        <div
+          className="p-4 sm:p-6 overflow-y-auto flex-1"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {/* Pickup time */}
           {/* Pickup time */}
           {isAsap ? (
@@ -295,18 +307,18 @@ export default function PendingOrdersModal({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="px-6 pb-6">
+        {/* Actions - sticky at bottom */}
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2 flex-shrink-0 border-t border-gray-100 bg-white">
           <div className="flex items-center gap-3">
             <button
               onClick={handleCancel}
-              className="px-4 py-3 min-h-[44px] text-gray-400 hover:text-red-500 text-sm transition-colors active:scale-95"
+              className="min-h-[48px] px-4 py-3 text-gray-400 hover:text-red-500 text-sm transition-colors active:scale-95"
             >
               Refuser
             </button>
             <button
               onClick={handleAccept}
-              className="flex-1 px-4 py-3 min-h-[44px] bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="flex-1 min-h-[48px] px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <Check className="w-5 h-5" />
               Accepter

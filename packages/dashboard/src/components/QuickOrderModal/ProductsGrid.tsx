@@ -23,11 +23,14 @@ export function ProductsGrid({
 }: ProductsGridProps) {
   return (
     <>
-      {/* Categories */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200 flex gap-2 overflow-x-auto no-scrollbar">
+      {/* Categories - horizontal scroll with touch-friendly buttons */}
+      <div
+        className="bg-white px-3 md:px-6 py-2 border-b border-gray-200 flex gap-2 overflow-x-auto no-scrollbar"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         <button
           onClick={() => onSelectCategory(null)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+          className={`min-h-[40px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
             selectedCategory === null
               ? 'bg-primary-500 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -39,7 +42,7 @@ export function ProductsGrid({
           <button
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`min-h-[40px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
               selectedCategory === cat.id
                 ? 'bg-primary-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -50,8 +53,14 @@ export function ProductsGrid({
         ))}
       </div>
 
-      {/* Products Grid */}
-      <div className="flex-1 overflow-auto p-3 md:p-4 pb-24 md:pb-4">
+      {/* Products Grid - with safe area for floating cart button */}
+      <div
+        className="flex-1 overflow-auto p-3 md:p-4"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 96px)',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
@@ -67,7 +76,7 @@ export function ProductsGrid({
               <button
                 key={item.id}
                 onClick={() => onItemClick(item)}
-                className="bg-white rounded-xl p-3 md:p-4 text-left hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] border border-gray-100"
+                className="min-h-[120px] bg-white rounded-xl p-3 md:p-4 text-left hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.97] border border-gray-100"
               >
                 {item.image_url && (
                   <OptimizedImage
@@ -82,7 +91,9 @@ export function ProductsGrid({
                 <h3 className="font-semibold text-gray-900 text-xs md:text-sm line-clamp-2 mb-1">
                   {item.name}
                 </h3>
-                <p className="text-primary-600 font-bold text-sm md:text-base">{formatPrice(item.price)}</p>
+                <p className="text-primary-600 font-bold text-sm md:text-base">
+                  {formatPrice(item.price)}
+                </p>
                 {item.option_groups && item.option_groups.length > 0 && (
                   <p className="text-xs text-gray-400 mt-1 hidden md:block">Options disponibles</p>
                 )}

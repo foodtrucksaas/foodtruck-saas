@@ -138,9 +138,9 @@ export function TimelineView({
   };
 
   return (
-    <div className="relative">
+    <div className="relative overflow-x-hidden">
       {/* Timeline container */}
-      <div className="space-y-0">
+      <div className="space-y-0 pb-[env(safe-area-inset-bottom)]">
         {timeSlots.map((slot, index) => {
           const slotOrders = ordersBySlot[slot] || [];
           const isCurrent = isToday && slot === currentSlotStr;
@@ -212,9 +212,9 @@ export function TimelineView({
 
               {/* Orders content */}
               <div
-                className={`flex-1 pl-3 sm:pl-4 pb-3 pt-1 ${
+                className={`flex-1 pl-3 sm:pl-4 pb-3 pt-1 min-w-0 overflow-hidden ${
                   isCurrent
-                    ? 'bg-gradient-to-r from-primary-50/80 to-transparent -mr-4 pr-4 rounded-l-2xl'
+                    ? 'bg-gradient-to-r from-primary-50/80 to-transparent rounded-l-2xl'
                     : ''
                 }`}
               >
@@ -236,9 +236,19 @@ export function TimelineView({
                         <div
                           key={order.id}
                           onClick={() => onOrderClick(order)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              onOrderClick(order);
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`Commande de ${order.customer_name}`}
                           className={`${colors.bg} border ${colors.border} rounded-xl p-3 cursor-pointer
-                            hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm
-                            transition-all duration-200 ${isDone ? 'opacity-50' : ''}`}
+                            min-h-[72px] overflow-hidden
+                            hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]
+                            transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${isDone ? 'opacity-50' : ''}`}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">

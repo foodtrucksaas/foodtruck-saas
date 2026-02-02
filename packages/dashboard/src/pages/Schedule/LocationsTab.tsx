@@ -1,4 +1,5 @@
-import { Plus, Trash2, MapPin, Pencil, X } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, MapPin, Pencil, X, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Location } from '@foodtruck/shared';
 import type { LocationFormState } from './useSchedule';
 
@@ -27,16 +28,18 @@ export function LocationsTab({
   onEdit,
   onDelete,
 }: LocationsTabProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   return (
     <section>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Emplacements</h2>
-          <p className="text-sm text-gray-500">Vos différents points de vente</p>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Emplacements</h2>
+          <p className="text-xs sm:text-sm text-gray-500">Vos differents points de vente</p>
         </div>
         <button
           onClick={onShowForm}
-          className="btn-secondary text-sm min-h-[40px] active:scale-[0.98]"
+          className="btn-secondary text-xs sm:text-sm min-h-[44px] active:scale-[0.98] w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-1" />
           Ajouter
@@ -44,50 +47,50 @@ export function LocationsTab({
       </div>
 
       {showForm && (
-        <form onSubmit={onSubmit} className="card p-4 mb-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">
+        <form onSubmit={onSubmit} className="card p-3 sm:p-4 mb-3 sm:mb-4 space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-medium text-gray-900 text-sm sm:text-base">
               {editingId ? "Modifier l'emplacement" : 'Nouvel emplacement'}
             </h3>
             <button
               type="button"
               onClick={onResetForm}
-              className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+              className="w-10 h-10 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           <div>
-            <label className="label">Nom du lieu *</label>
+            <label className="label text-xs sm:text-sm">Nom du lieu *</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => onFormChange({ ...form, name: e.target.value })}
-              className="input"
-              placeholder="Marché de Belleville, Place du Village..."
+              className="input min-h-[44px]"
+              placeholder="Marche de Belleville, Place du Village..."
               required
             />
           </div>
           <div>
-            <label className="label">Adresse complète (optionnel)</label>
+            <label className="label text-xs sm:text-sm">Adresse complete (optionnel)</label>
             <input
               type="text"
               value={form.address}
               onChange={(e) => onFormChange({ ...form, address: e.target.value })}
-              className="input"
-              placeholder="1 Place du Marché, 75001 Paris"
+              className="input min-h-[44px]"
+              placeholder="1 Place du Marche, 75001 Paris"
             />
           </div>
           <div>
-            <label className="label">Coordonnées GPS (optionnel)</label>
-            <div className="grid grid-cols-2 gap-4">
+            <label className="label text-xs sm:text-sm">Coordonnees GPS (optionnel)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <input
                 type="number"
                 step="any"
                 value={form.latitude}
                 onChange={(e) => onFormChange({ ...form, latitude: e.target.value })}
                 onWheel={(e) => e.currentTarget.blur()}
-                className="input"
+                className="input min-h-[44px]"
                 placeholder="Latitude (48.8566)"
               />
               <input
@@ -96,54 +99,92 @@ export function LocationsTab({
                 value={form.longitude}
                 onChange={(e) => onFormChange({ ...form, longitude: e.target.value })}
                 onWheel={(e) => e.currentTarget.blur()}
-                className="input"
+                className="input min-h-[44px]"
                 placeholder="Longitude (2.3522)"
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col-reverse sm:flex-row gap-2">
             <button
               type="button"
               onClick={onResetForm}
-              className="btn-secondary min-h-[44px] active:scale-[0.98]"
+              className="btn-secondary min-h-[44px] active:scale-[0.98] flex-1"
             >
               Annuler
             </button>
-            <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98]">
+            <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98] flex-1">
               Sauvegarder
             </button>
           </div>
         </form>
       )}
 
-      <div className="grid gap-3">
-        {locations.map((location) => (
-          <div key={location.id} className="card p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-primary-500" />
-              <div>
-                <p className="font-medium text-gray-900">{location.name}</p>
-                {location.address && <p className="text-sm text-gray-500">{location.address}</p>}
+      <div className="grid gap-2 sm:gap-3">
+        {locations.map((location) => {
+          const isExpanded = expandedId === location.id;
+          const hasLongAddress = location.address && location.address.length > 35;
+
+          return (
+            <div key={location.id} className="card p-3 sm:p-4">
+              <div className="flex items-start sm:items-center justify-between gap-2">
+                <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">
+                      {location.name}
+                    </p>
+                    {location.address && (
+                      <p
+                        className={`text-xs sm:text-sm text-gray-500 ${isExpanded ? '' : 'truncate'}`}
+                        title={location.address}
+                      >
+                        {location.address}
+                      </p>
+                    )}
+                  </div>
+                  {/* Mobile: expand button for long addresses */}
+                  {hasLongAddress && (
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : location.id)}
+                      className="sm:hidden w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center text-gray-400 active:scale-95"
+                      aria-label={isExpanded ? 'Reduire' : "Voir l'adresse complete"}
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => onEdit(location)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+                    aria-label="Modifier"
+                  >
+                    <Pencil className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(location.id)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+                    aria-label="Supprimer"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                </div>
               </div>
+              {/* GPS coordinates on mobile when expanded */}
+              {isExpanded && (location.latitude || location.longitude) && (
+                <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400 sm:hidden">
+                  GPS: {location.latitude}, {location.longitude}
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onEdit(location)}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
-              >
-                <Pencil className="w-4 h-4 text-gray-500" />
-              </button>
-              <button
-                onClick={() => onDelete(location.id)}
-                className="w-10 h-10 flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
-              >
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {locations.length === 0 && (
-          <p className="text-gray-500 text-sm">Aucun emplacement configuré</p>
+          <p className="text-gray-500 text-xs sm:text-sm">Aucun emplacement configure</p>
         )}
       </div>
     </section>

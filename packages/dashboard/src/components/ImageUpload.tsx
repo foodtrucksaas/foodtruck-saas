@@ -76,11 +76,11 @@ export function ImageUpload({
             placeholderColor="#f3f4f6"
           />
           {!uploading && (
-            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 bg-white rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-gray-700 hover:bg-gray-100 transition-colors active:scale-95"
                 title="Changer l'image"
               >
                 <Camera className="w-5 h-5" />
@@ -88,7 +88,7 @@ export function ImageUpload({
               <button
                 type="button"
                 onClick={onRemove}
-                className="p-2 bg-white rounded-full text-red-600 hover:bg-red-50 transition-colors"
+                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-red-600 hover:bg-red-50 transition-colors active:scale-95"
                 title="Supprimer l'image"
               >
                 <X className="w-5 h-5" />
@@ -109,7 +109,7 @@ export function ImageUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           disabled={uploading}
-          className={`${aspectClass} w-full rounded-lg border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-2 ${
+          className={`${aspectClass} w-full min-h-[120px] rounded-lg border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-2 active:scale-[0.99] ${
             dragOver
               ? 'border-primary-500 bg-primary-50'
               : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'

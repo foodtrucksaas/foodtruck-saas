@@ -28,6 +28,7 @@ const SEGMENTS = [
 export default function Customers() {
   const {
     customers,
+    totalCustomers,
     locations,
     loading,
     stats,
@@ -47,16 +48,18 @@ export default function Customers() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-          <p className="text-gray-600">Gérez votre base clients et vos campagnes</p>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - hidden on mobile (Layout provides header) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="hidden sm:block">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clients</h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Gerez votre base clients et vos campagnes
+          </p>
         </div>
         <button
           onClick={exportCSV}
-          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
         >
           <Download className="w-4 h-4" />
           Exporter
@@ -64,7 +67,7 @@ export default function Customers() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatCard
           icon={Users}
           iconBg="bg-blue-100"
@@ -102,25 +105,25 @@ export default function Customers() {
         />
       </div>
 
-      {/* Search & Filters */}
-      <div className="card p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search & Filters - Sticky on mobile */}
+      <div className="card p-3 sm:p-4 sticky top-0 z-10 bg-white shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher par nom, email ou téléphone..."
+              placeholder="Rechercher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-10 pr-4 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-50 text-primary-700 border-2 border-primary-200' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 ${showFilters || filterSegment !== 'all' || filterLocation ? 'bg-primary-50 text-primary-700 border-2 border-primary-200' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
           >
             <Filter className="w-4 h-4" />
-            Filtres
+            <span>Filtres</span>
             {(filterSegment !== 'all' || filterLocation) && (
               <span className="w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
                 {(filterSegment !== 'all' ? 1 : 0) + (filterLocation ? 1 : 0)}
@@ -129,7 +132,7 @@ export default function Customers() {
           </button>
         </div>
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-100 grid sm:grid-cols-2 gap-4">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Segment</label>
               <div className="flex flex-wrap gap-2">
@@ -137,7 +140,7 @@ export default function Customers() {
                   <button
                     key={seg.key}
                     onClick={() => setFilterSegment(seg.key as FilterSegment)}
-                    className={`px-3 py-2 min-h-[36px] rounded-xl text-sm font-medium transition-all active:scale-95 ${filterSegment === seg.key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
+                    className={`px-3 py-2 min-h-[40px] rounded-xl text-sm font-medium transition-all active:scale-95 ${filterSegment === seg.key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
                   >
                     {seg.label}
                   </button>
@@ -149,7 +152,7 @@ export default function Customers() {
               <select
                 value={filterLocation || ''}
                 onChange={(e) => setFilterLocation(e.target.value || null)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 min-h-[44px] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Tous les emplacements</option>
                 {locations.map((loc) => (
@@ -164,8 +167,8 @@ export default function Customers() {
       </div>
 
       <p className="text-sm text-gray-500">
-        {customers.length} client{customers.length !== 1 ? 's' : ''} trouvé
-        {customers.length !== 1 ? 's' : ''}
+        {totalCustomers} client{totalCustomers !== 1 ? 's' : ''} trouvé
+        {totalCustomers !== 1 ? 's' : ''}
       </p>
 
       {/* Customers List */}
@@ -435,14 +438,14 @@ function StatCard({
   label: string;
 }) {
   return (
-    <div className="card p-4">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-xl ${iconBg}`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+    <div className="card p-3 sm:p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <div className={`p-2 rounded-xl ${iconBg} w-fit`}>
+          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
         </div>
         <div>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-gray-500 leading-tight">{label}</p>
         </div>
       </div>
     </div>

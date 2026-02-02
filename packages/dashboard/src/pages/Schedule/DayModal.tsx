@@ -20,9 +20,14 @@ export function DayModal({
   onSave,
 }: DayModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-md shadow-xl flex flex-col sm:block overflow-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+      <div className="bg-white w-full h-[100dvh] sm:h-auto sm:max-h-[80vh] sm:rounded-2xl sm:max-w-md shadow-xl flex flex-col overflow-hidden rounded-t-3xl sm:rounded-2xl animate-slide-up sm:animate-fade-in">
+        {/* iOS-style drag handle */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
+        <div className="flex items-center justify-between p-4 pt-2 sm:pt-4 border-b border-gray-100 flex-shrink-0">
           <div>
             <h3 className="font-bold text-gray-900">
               {selectedDay.date.toLocaleDateString('fr-FR', {
@@ -39,13 +44,13 @@ export function DayModal({
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-4 space-y-4 flex-1">
+        <div className="p-4 space-y-4 flex-1 overflow-y-auto scroll-touch">
           {/* Mode Selection */}
           <div className="grid grid-cols-3 gap-2">
             <button
@@ -129,7 +134,7 @@ export function DayModal({
                     type="time"
                     value={form.start_time}
                     onChange={(e) => onFormChange({ ...form, start_time: e.target.value })}
-                    className="input min-h-[44px]"
+                    className="input min-h-[48px] text-base"
                   />
                 </div>
                 <div>
@@ -138,7 +143,7 @@ export function DayModal({
                     type="time"
                     value={form.end_time}
                     onChange={(e) => onFormChange({ ...form, end_time: e.target.value })}
-                    className="input min-h-[44px]"
+                    className="input min-h-[48px] text-base"
                   />
                 </div>
               </div>
@@ -167,14 +172,17 @@ export function DayModal({
           )}
         </div>
 
-        <div className="flex gap-2 p-4 border-t border-gray-100 mt-auto">
+        <div className="flex flex-col-reverse sm:flex-row gap-2 p-4 border-t border-gray-100 flex-shrink-0 bg-white safe-area-bottom">
           <button
             onClick={onClose}
-            className="flex-1 btn-secondary min-h-[44px] active:scale-[0.98]"
+            className="flex-1 btn-secondary min-h-[48px] sm:min-h-[44px] active:scale-[0.98]"
           >
             Annuler
           </button>
-          <button onClick={onSave} className="flex-1 btn-primary min-h-[44px] active:scale-[0.98]">
+          <button
+            onClick={onSave}
+            className="flex-1 btn-primary min-h-[48px] sm:min-h-[44px] active:scale-[0.98]"
+          >
             Sauvegarder
           </button>
         </div>

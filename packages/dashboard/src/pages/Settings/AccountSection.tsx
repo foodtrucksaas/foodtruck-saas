@@ -42,7 +42,7 @@ export function AccountSection() {
     }
 
     if (oldPassword === newPassword) {
-      setError('Le nouveau mot de passe doit être différent de l\'ancien');
+      setError("Le nouveau mot de passe doit être différent de l'ancien");
       return;
     }
 
@@ -93,7 +93,7 @@ export function AccountSection() {
   };
 
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <User className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">Compte</h2>
@@ -139,16 +139,20 @@ export function AccountSection() {
                         type={showOldPassword ? 'text' : 'password'}
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
-                        className="input pr-10"
+                        className="input min-h-[44px] pr-12"
                         placeholder="Votre mot de passe actuel"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={() => setShowOldPassword(!showOldPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 hover:text-gray-600"
                       >
-                        {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showOldPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -160,15 +164,19 @@ export function AccountSection() {
                         type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="input pr-10"
+                        className="input min-h-[44px] pr-12"
                         placeholder="Minimum 6 caractères"
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 hover:text-gray-600"
                       >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showNewPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -179,14 +187,14 @@ export function AccountSection() {
                       type={showNewPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="input"
+                      className="input min-h-[44px]"
                       placeholder="Répétez le nouveau mot de passe"
                     />
                   </div>
 
                   {error && <ErrorAlert>{error}</ErrorAlert>}
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -196,14 +204,14 @@ export function AccountSection() {
                         setConfirmPassword('');
                         setError('');
                       }}
-                      className="btn-secondary flex-1"
+                      className="btn-secondary min-h-[44px] flex-1"
                       disabled={loading}
                     >
                       Annuler
                     </button>
                     <button
                       type="submit"
-                      className="btn-primary flex-1"
+                      className="btn-primary min-h-[44px] flex-1"
                       disabled={loading || !oldPassword || !newPassword || !confirmPassword}
                     >
                       {loading ? 'Vérification...' : 'Enregistrer'}
@@ -219,7 +227,7 @@ export function AccountSection() {
         <div className="pt-2 flex items-center justify-between">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm"
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm min-h-[44px] active:scale-[0.98]"
           >
             <LogOut className="w-4 h-4" />
             Se déconnecter
@@ -230,7 +238,7 @@ export function AccountSection() {
         <div className="pt-4 mt-4 border-t border-gray-200">
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-2 text-gray-400 hover:text-red-600 text-sm transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-red-600 text-sm transition-colors min-h-[44px] active:scale-[0.98]"
           >
             <Trash2 className="w-4 h-4" />
             Supprimer mon compte
@@ -260,9 +268,7 @@ export function AccountSection() {
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 mb-4">
-            Cette action supprimera définitivement :
-          </p>
+          <p className="text-sm text-gray-600 mb-4">Cette action supprimera définitivement :</p>
           <ul className="text-sm text-gray-600 mb-4 list-disc list-inside space-y-1">
             <li>Votre profil et paramètres</li>
             <li>Votre menu et catégories</li>
@@ -279,7 +285,7 @@ export function AccountSection() {
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
             placeholder="SUPPRIMER"
-            className="input mb-4"
+            className="input min-h-[44px] mb-4"
           />
 
           {deleteError && <ErrorAlert className="mb-4">{deleteError}</ErrorAlert>}

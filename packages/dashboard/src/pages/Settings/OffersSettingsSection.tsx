@@ -26,7 +26,7 @@ export function OffersSettingsSection({
   onUpdateForm,
 }: OffersSettingsSectionProps) {
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <Tag className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">Offres & Promotions</h2>
@@ -60,14 +60,25 @@ export function OffersSettingsSection({
           editContent={
             <>
               <p className="text-sm text-gray-500 mb-3">
-                Définit si plusieurs offres (formules, X achetés = Y offert, etc.) peuvent se cumuler.
+                Définit si plusieurs offres (formules, X achetés = Y offert, etc.) peuvent se
+                cumuler.
               </p>
               <ToggleCards
                 currentValue={editForm.offers_stackable}
                 onChange={(value) => onUpdateForm('offers_stackable', value)}
                 options={[
-                  { value: false, icon: Check, title: 'Meilleure offre', description: 'Seule la meilleure réduction s\'applique' },
-                  { value: true, icon: Layers, title: 'Cumulables', description: 'Toutes les offres éligibles se cumulent' },
+                  {
+                    value: false,
+                    icon: Check,
+                    title: 'Meilleure offre',
+                    description: "Seule la meilleure réduction s'applique",
+                  },
+                  {
+                    value: true,
+                    icon: Layers,
+                    title: 'Cumulables',
+                    description: 'Toutes les offres éligibles se cumulent',
+                  },
                 ]}
               />
             </>
@@ -108,8 +119,18 @@ export function OffersSettingsSection({
                 currentValue={editForm.promo_codes_stackable}
                 onChange={(value) => onUpdateForm('promo_codes_stackable', value)}
                 options={[
-                  { value: true, icon: Ticket, title: 'Cumulable', description: 'Les codes promo s\'ajoutent aux offres' },
-                  { value: false, icon: X, title: 'Non cumulable', description: 'Codes promo désactivés si une offre est active' },
+                  {
+                    value: true,
+                    icon: Ticket,
+                    title: 'Cumulable',
+                    description: "Les codes promo s'ajoutent aux offres",
+                  },
+                  {
+                    value: false,
+                    icon: X,
+                    title: 'Non cumulable',
+                    description: 'Codes promo désactivés si une offre est active',
+                  },
                 ]}
               />
             </>

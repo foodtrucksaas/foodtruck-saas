@@ -61,7 +61,14 @@ export default function NewOrderPopup({
   const scale = 1 - stackIndex * 0.02;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }}>
+    <div
+      className="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{
+        zIndex,
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
       {/* Backdrop - only for topmost */}
       {isTopmost && (
         <div
@@ -72,7 +79,7 @@ export default function NewOrderPopup({
 
       {/* Modal */}
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-bounce-in overflow-hidden"
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md animate-bounce-in overflow-hidden max-h-[95vh] sm:max-h-[90vh] flex flex-col"
         style={{
           transform: `translateY(${offsetY}px) translateX(${offsetX}px) scale(${scale})`,
           opacity: isTopmost ? 1 : 0.95,
@@ -80,28 +87,31 @@ export default function NewOrderPopup({
       >
         {/* Header */}
         <div
-          className={`${isAutoAccept ? 'bg-green-500' : 'bg-yellow-500'} text-white px-5 py-4 relative`}
+          className={`${isAutoAccept ? 'bg-green-500' : 'bg-yellow-500'} text-white px-4 sm:px-5 py-4 relative flex-shrink-0`}
         >
-          {/* Close button - inside header top right */}
+          {/* Close button - larger touch target */}
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-90"
+            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-90"
           >
             <X className="w-5 h-5 text-white" />
           </button>
-          <div className="flex items-center justify-between gap-3 pr-10">
+          <div className="flex items-center justify-between gap-3 pr-12">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold">Nouvelle commande !</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Nouvelle commande !</h2>
               {isAutoAccept && <p className="text-green-100 text-sm">Acceptée automatiquement</p>}
             </div>
-            <div className="bg-white/20 rounded-xl px-4 py-2 flex-shrink-0">
-              <span className="text-3xl font-bold">{time}</span>
+            <div className="bg-white/20 rounded-xl px-3 sm:px-4 py-2 flex-shrink-0">
+              <span className="text-2xl sm:text-3xl font-bold">{time}</span>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - scrollable */}
+        <div
+          className="p-4 sm:p-6 overflow-y-auto flex-1"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {/* Customer name */}
           <h3 className="text-xl font-bold text-gray-900 mb-1">{order.customer_name}</h3>
           {/* Order ID */}
@@ -167,27 +177,30 @@ export default function NewOrderPopup({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="px-6 pb-6">
+        {/* Actions - with safe area */}
+        <div
+          className="px-4 sm:px-6 pt-2 border-t border-gray-100 flex-shrink-0 bg-white"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+        >
           {isAutoAccept ? (
             <button
               onClick={onClose}
-              className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 min-h-[48px] bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <Check className="w-5 h-5" />
               OK
             </button>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <button
                 onClick={onCancel}
-                className="px-4 py-3 min-h-[44px] text-gray-400 hover:text-red-500 text-sm transition-all duration-150 active:scale-95"
+                className="order-2 sm:order-1 px-4 py-3 min-h-[48px] text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
               >
                 Refuser
               </button>
               <button
                 onClick={onAccept}
-                className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
+                className="order-1 sm:order-2 flex-1 px-4 py-3.5 min-h-[52px] bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
                 Accepter

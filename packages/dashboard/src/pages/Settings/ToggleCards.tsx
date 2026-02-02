@@ -15,7 +15,7 @@ interface ToggleCardsProps {
 
 export function ToggleCards({ currentValue, onChange, options }: ToggleCardsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
       {options.map((option) => {
         const isSelected = currentValue === option.value;
         const Icon = option.icon;
@@ -24,13 +24,15 @@ export function ToggleCards({ currentValue, onChange, options }: ToggleCardsProp
             key={option.value.toString()}
             type="button"
             onClick={() => onChange(option.value)}
-            className={`p-4 rounded-lg border-2 text-left transition-all ${
+            className={`p-3 sm:p-4 min-h-[60px] rounded-lg border-2 text-left transition-all active:scale-[0.98] ${
               isSelected
                 ? 'border-primary-500 bg-primary-50'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-primary-500' : 'text-gray-400'}`} />
+            <Icon
+              className={`w-5 h-5 sm:w-6 sm:h-6 mb-2 ${isSelected ? 'text-primary-500' : 'text-gray-400'}`}
+            />
             <p className={`font-medium ${isSelected ? 'text-primary-700' : 'text-gray-700'}`}>
               {option.title}
             </p>
@@ -49,7 +51,12 @@ interface IntervalButtonsProps {
   suffix?: string;
 }
 
-export function IntervalButtons({ currentValue, onChange, intervals, suffix = 'min' }: IntervalButtonsProps) {
+export function IntervalButtons({
+  currentValue,
+  onChange,
+  intervals,
+  suffix = 'min',
+}: IntervalButtonsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {intervals.map((interval) => (
@@ -57,7 +64,7 @@ export function IntervalButtons({ currentValue, onChange, intervals, suffix = 'm
           key={interval}
           type="button"
           onClick={() => onChange(interval)}
-          className={`px-4 py-2 rounded-lg border font-medium transition-all ${
+          className={`px-4 py-2.5 min-h-[44px] rounded-lg border font-medium transition-all active:scale-[0.98] ${
             currentValue === interval
               ? 'border-primary-500 bg-primary-50 text-primary-700'
               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'

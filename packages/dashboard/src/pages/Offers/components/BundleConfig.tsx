@@ -1,15 +1,5 @@
 import { useState } from 'react';
-import {
-  Plus,
-  Minus,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  Package,
-  Eye,
-  ArrowRight,
-} from 'lucide-react';
+import { Plus, Minus, Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { WizardFormProps } from './wizardTypes';
 import { getSizeOptions, getItemsForCategories } from './wizardTypes';
@@ -146,132 +136,67 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
     return cat.excludedSizes?.[itemId]?.includes(sizeId) || false;
   };
 
-  // Build live preview text
-  const buildPreview = (): { parts: string[]; price: string } | null => {
-    const price = form.bundleFixedPrice
-      ? `${parseFloat(form.bundleFixedPrice).toFixed(2).replace('.', ',')} EUR`
-      : '';
-
-    if (form.bundleType === 'category_choice') {
-      if (form.bundleCategories.length === 0) return null;
-      const parts = form.bundleCategories.map((bc) => {
-        const names = categories.filter((c) => bc.categoryIds.includes(c.id)).map((c) => c.name);
-        if (names.length === 0) return '...';
-        if (names.length === 1) return `1 ${names[0]}`;
-        return `1 ${names.join(' ou ')}`;
-      });
-      return { parts, price };
-    } else {
-      if (form.bundleItems.length === 0) return null;
-      const parts = form.bundleItems.map((bi) => {
-        const item = menuItems.find((m) => m.id === bi.menuItemId);
-        return item ? `${bi.quantity}x ${item.name}` : '...';
-      });
-      return { parts, price };
-    }
-  };
-
-  const preview = buildPreview();
-
   return (
-    <div className="space-y-5 border-t pt-4">
-      {/* Live preview banner */}
-      {preview && preview.parts.length > 0 && (
-        <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
-          <div className="flex items-center gap-2 text-primary-700 mb-2">
-            <Eye className="w-4 h-4" />
-            <span className="text-xs font-semibold uppercase tracking-wide">Apercu de l'offre</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-gray-800">
-            {preview.parts.map((part, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-primary-400 font-bold">+</span>}
-                <span className="bg-white px-2.5 py-1 rounded-lg border border-primary-200 text-primary-700">
-                  {part}
-                </span>
-              </span>
-            ))}
-            {preview.price && (
-              <>
-                <span className="text-primary-400 font-bold mx-1">=</span>
-                <span className="bg-primary-600 text-white px-3 py-1 rounded-lg font-bold">
-                  {preview.price}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+    <div className="space-y-4 border-t pt-4">
+      <h3 className="font-medium">Configuration de la formule</h3>
 
       {/* Bundle type selector */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Comment composer la formule ?
-        </label>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => updateForm({ bundleType: 'category_choice' })}
-            className={`flex-1 p-3 rounded-xl border-2 text-sm transition-all ${
-              form.bundleType === 'category_choice'
-                ? 'border-primary-500 bg-primary-50 text-primary-700 ring-1 ring-primary-200'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="font-semibold">Le client compose</div>
-            <div className="text-xs text-gray-500 mt-0.5">Il choisit 1 article par categorie</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateForm({ bundleType: 'specific_items' })}
-            className={`flex-1 p-3 rounded-xl border-2 text-sm transition-all ${
-              form.bundleType === 'specific_items'
-                ? 'border-primary-500 bg-primary-50 text-primary-700 ring-1 ring-primary-200'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="font-semibold">Articles predetermines</div>
-            <div className="text-xs text-gray-500 mt-0.5">Vous definissez les articles exacts</div>
-          </button>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => updateForm({ bundleType: 'category_choice' })}
+          className={`p-3 min-h-[60px] rounded-lg border-2 text-sm font-medium transition-all text-left active:scale-[0.98] ${
+            form.bundleType === 'category_choice'
+              ? 'border-primary-500 bg-primary-50 text-primary-700'
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+        >
+          <div className="font-semibold">Choix par categorie</div>
+          <div className="text-xs text-gray-500 mt-0.5">1 entree + 1 plat + 1 boisson</div>
+        </button>
+        <button
+          type="button"
+          onClick={() => updateForm({ bundleType: 'specific_items' })}
+          className={`p-3 min-h-[60px] rounded-lg border-2 text-sm font-medium transition-all text-left active:scale-[0.98] ${
+            form.bundleType === 'specific_items'
+              ? 'border-primary-500 bg-primary-50 text-primary-700'
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+        >
+          <div className="font-semibold">Articles fixes</div>
+          <div className="text-xs text-gray-500 mt-0.5">Articles specifiques uniquement</div>
+        </button>
       </div>
 
-      {/* Fixed price - prominent position */}
+      {/* Fixed price */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Prix de la formule *</label>
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2">
-            <Package className="w-4 h-4 text-gray-400" />
-          </div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Prix fixe de la formule *
+        </label>
+        <div className="relative w-full sm:w-48">
           <input
             type="number"
             step="0.01"
             value={form.bundleFixedPrice}
             onChange={(e) => updateForm({ bundleFixedPrice: e.target.value })}
             onWheel={(e) => e.currentTarget.blur()}
-            className="input pl-10 pr-14 text-lg font-semibold"
-            placeholder="12.90"
+            className="input min-h-[44px] pr-12 w-full"
+            placeholder="15.00"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-            EUR
-          </span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">EUR</span>
         </div>
       </div>
 
       {/* Category choice mode */}
       {form.bundleType === 'category_choice' && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Contenu de la formule *
-              </label>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Ajoutez les choix que le client pourra faire. Pour chaque choix, il selectionnera 1
-                article.
-              </p>
-            </div>
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Categories de la formule *
+          </label>
+          <p className="text-xs text-gray-500 mb-3">
+            Le client choisira 1 article par choix. Utilisez "OU" pour regrouper plusieurs
+            categories en un seul choix.
+          </p>
           <div className="space-y-3">
             {form.bundleCategories.map((bundleCat, catIndex) => {
               const selectedCategories = categories.filter((c) =>
@@ -285,37 +210,24 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                 (i) => !bundleCat.excludedItems.includes(i.id)
               ).length;
               const supplementCount = Object.keys(bundleCat.supplements).length;
-              const categoryNames = selectedCategories.map((c) => c.name).join(' ou ');
+              const categoryNames = selectedCategories.map((c) => c.name).join(' OU ');
 
               return (
-                <div
-                  key={catIndex}
-                  className="border rounded-xl overflow-hidden bg-white shadow-sm"
-                >
-                  {/* Choice header with step number */}
+                <div key={catIndex} className="border rounded-lg overflow-hidden">
+                  {/* Category header */}
                   <div className="p-3 bg-gray-50">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white text-xs font-bold">
-                          {catIndex + 1}
-                        </span>
-                        <span className="text-sm font-semibold text-gray-700">
-                          {categoryNames
-                            ? `Le client choisit 1 ${categoryNames}`
-                            : 'Selectionnez une categorie'}
-                        </span>
-                      </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        Choix {catIndex + 1}: {categoryNames || 'Selectionnez une categorie'}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeBundleCategory(catIndex)}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Supprimer ce choix"
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-
-                    {/* Category toggles */}
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat) => {
                         const isSelected = bundleCat.categoryIds.includes(cat.id);
@@ -346,14 +258,13 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                       })}
                     </div>
                     {bundleCat.categoryIds.length > 1 && (
-                      <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                        <ArrowRight className="w-3 h-3" />
+                      <p className="text-xs text-amber-600 mt-2">
                         Le client pourra choisir un article parmi {categoryNames}
                       </p>
                     )}
                   </div>
 
-                  {/* Expand/collapse for fine-tuning */}
+                  {/* Expand/collapse button */}
                   <button
                     type="button"
                     onClick={() => setExpandedCategory(isExpanded ? null : catIndex)}
@@ -361,7 +272,8 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   >
                     <div className="flex flex-wrap gap-2 text-xs">
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                        {eligibleCount} article{eligibleCount > 1 ? 's' : ''} inclus
+                        {eligibleCount} article{eligibleCount > 1 ? 's' : ''} eligible
+                        {eligibleCount > 1 ? 's' : ''}
                       </span>
                       {supplementCount > 0 && (
                         <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full">
@@ -374,8 +286,8 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                      {isExpanded ? 'Replier' : 'Personnaliser les articles'}
+                    <div className="flex items-center gap-1 text-xs text-primary-600 font-medium">
+                      {isExpanded ? 'Fermer' : 'Configurer'}
                       {isExpanded ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
@@ -388,13 +300,13 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   {isExpanded && items.length > 0 && (
                     <div className="p-3 border-t space-y-2">
                       <div className="flex items-center justify-between text-xs text-gray-500 pb-2 border-b">
-                        <span>Decochez les articles a exclure de ce choix</span>
-                        {!sizeOptions && <span className="text-right">Supplement</span>}
+                        <span>Cochez les articles inclus dans la formule</span>
+                        <span className="text-right">Supplement client</span>
                       </div>
                       <p className="text-xs text-gray-400 italic">
                         {sizeOptions
-                          ? "Le supplement par taille s'ajoute au prix de la formule si le client choisit cet article"
-                          : "Le supplement s'ajoute au prix de la formule (ex : +2 EUR pour un plat premium)"}
+                          ? "Le supplement par taille s'ajoute au prix fixe si le client choisit cet article"
+                          : "Le supplement s'ajoute au prix fixe si le client choisit cet article (ex: +2EUR pour un plat premium)"}
                       </p>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {items.map((item) => {
@@ -539,69 +451,49 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
               );
             })}
 
-            {/* Add choice button */}
             {form.bundleCategories.length < categories.length && (
               <button
                 type="button"
                 onClick={addBundleCategory}
-                className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-colors"
+                className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 py-2 min-h-[44px] active:scale-[0.98]"
               >
                 <Plus className="w-4 h-4" />
-                Ajouter un choix a la formule
+                Ajouter une categorie
               </button>
-            )}
-
-            {form.bundleCategories.length === 0 && (
-              <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                <Package className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Aucun choix dans la formule</p>
-                <p className="text-xs text-gray-400 mt-1">Commencez par ajouter un premier choix</p>
-                <button
-                  type="button"
-                  onClick={addBundleCategory}
-                  className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  + Ajouter le premier choix
-                </button>
-              </div>
             )}
           </div>
 
           {/* Free options toggle */}
-          <label className="flex items-start gap-3 mt-4 cursor-pointer p-3 bg-gray-50 rounded-xl">
+          <label className="flex items-center gap-2 mt-4 cursor-pointer">
             <input
               type="checkbox"
               checked={form.bundleFreeOptions}
               onChange={(e) => updateForm({ bundleFreeOptions: e.target.checked })}
-              className="rounded border-gray-300 mt-0.5"
+              className="rounded border-gray-300"
             />
-            <div>
-              <span className="text-sm font-medium text-gray-700">Options/supplements offerts</span>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Si coche, les toppings et supplements ajoutes par le client sont inclus dans le prix
-                de la formule
-              </p>
-            </div>
+            <span className="text-sm text-gray-700">
+              Supplements gratuits sur les articles du menu
+            </span>
           </label>
+          <p className="text-xs text-gray-500 ml-6">
+            Si coche, les toppings/supplements ajoutes par le client sont offerts
+          </p>
         </div>
       )}
 
       {/* Specific items mode */}
       {form.bundleType === 'specific_items' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Articles de la formule *
           </label>
-          <p className="text-xs text-gray-500 mb-3">
-            Selectionnez les articles exacts inclus dans cette formule.
-          </p>
           <div className="space-y-2">
             {form.bundleItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-2 bg-white border rounded-xl p-2">
+              <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <select
                   value={item.menuItemId}
                   onChange={(e) => updateBundleItem(index, 'menuItemId', e.target.value)}
-                  className="input flex-1 border-0 bg-transparent"
+                  className="input min-h-[44px] flex-1"
                 >
                   {menuItems.map((mi) => (
                     <option key={mi.id} value={mi.id}>
@@ -609,38 +501,40 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                     </option>
                   ))}
                 </select>
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-1">
+                <div className="flex items-center gap-1 justify-between sm:justify-start">
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateBundleItem(index, 'quantity', Math.max(1, item.quantity - 1))
+                      }
+                      className="p-2 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-lg active:scale-95"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateBundleItem(index, 'quantity', item.quantity + 1)}
+                      className="p-2 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-lg active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={() =>
-                      updateBundleItem(index, 'quantity', Math.max(1, item.quantity - 1))
-                    }
-                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    onClick={() => removeBundleItem(index)}
+                    className="p-2 min-h-[44px] min-w-[44px] text-red-500 hover:bg-red-50 rounded-lg active:scale-95"
                   >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateBundleItem(index, 'quantity', item.quantity + 1)}
-                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeBundleItem(index)}
-                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
             ))}
             <button
               type="button"
               onClick={addBundleItem}
-              className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-colors"
+              className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 min-h-[44px] active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" />
               Ajouter un article

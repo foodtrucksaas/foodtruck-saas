@@ -68,6 +68,25 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* Safe area bottom with extra padding for modal footers */
+  .safe-area-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* iOS-style smooth momentum scrolling */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+
   @screen lg {
     .pt-safe-header {
       padding-top: 2rem; /* lg:pt-8 equivalent */
@@ -356,6 +375,37 @@
   .page-content {
     @apply animate-fade-in-up;
   }
+}
+
+/* Modal animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
 
 /* Respect reduced motion preference */

@@ -149,9 +149,10 @@ function LayoutContent({ children }: LayoutProps) {
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-smooth-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Navigation principale"
       >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100">
+        <div className="flex items-center justify-between h-14 lg:h-16 px-4 border-b border-gray-100">
           <Link to="/" className="flex items-center gap-2.5">
             <div
               className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/25"
@@ -163,7 +164,7 @@ function LayoutContent({ children }: LayoutProps) {
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="lg:hidden min-w-[44px] min-h-[44px] p-2 rounded-md hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Fermer le menu"
           >
             <X className="w-5 h-5" aria-hidden="true" />
@@ -189,7 +190,7 @@ function LayoutContent({ children }: LayoutProps) {
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  className={`flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     isActive
                       ? 'bg-primary-50 text-primary-600 shadow-sm'
                       : 'text-gray-700 hover:bg-gray-50 hover:translate-x-0.5 active:scale-[0.98]'
@@ -203,10 +204,13 @@ function LayoutContent({ children }: LayoutProps) {
           </nav>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div
+          className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+        >
           <button
             onClick={signOut}
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] w-full rounded-xl text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <LogOut className="w-5 h-5" aria-hidden="true" />
             Déconnexion
@@ -215,36 +219,39 @@ function LayoutContent({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile Layout - header OUTSIDE scroll context */}
-      <div className="lg:hidden absolute inset-0 bg-gray-50">
-        {/* Header - absolute, NOT inside scroll container */}
+      <div className="lg:hidden absolute inset-0 bg-gray-50 overflow-hidden">
+        {/* Header - ultra compact for mobile, sticks right below safe area */}
         <header
-          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-gray-50"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8px)' }}
+          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-3 bg-gray-50"
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            height: 'calc(env(safe-area-inset-top, 0px) + 44px)',
+          }}
         >
           <button
             onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 transition-transform"
             aria-label="Ouvrir le menu de navigation"
             aria-expanded={sidebarOpen}
           >
             <Menu className="w-5 h-5 text-gray-700" aria-hidden="true" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Pending orders - bell with badge */}
             <button
               onClick={showAllPendingOrders}
-              className={`relative w-11 h-11 rounded-xl shadow-md flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`relative w-10 h-10 rounded-xl shadow-sm flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 ${
                 pendingCount > 0 ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-white hover:bg-gray-50'
               }`}
               aria-label={`Commandes en attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
             >
               <Bell
-                className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`}
+                className={`w-4 h-4 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`}
                 aria-hidden="true"
               />
               {pendingCount > 0 && (
                 <span
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
                   aria-hidden="true"
                 >
                   {pendingCount}
@@ -254,7 +261,7 @@ function LayoutContent({ children }: LayoutProps) {
             {/* New order button */}
             <button
               onClick={() => setShowQuickOrder(true)}
-              className="w-11 h-11 rounded-xl bg-white shadow-md hover:bg-gray-50 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="w-10 h-10 rounded-xl bg-white shadow-sm hover:bg-gray-50 flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95"
               aria-label="Nouvelle commande"
             >
               <Plus className="w-5 h-5 text-primary-500" aria-hidden="true" />
@@ -262,18 +269,18 @@ function LayoutContent({ children }: LayoutProps) {
           </div>
         </header>
 
-        {/* Scroll container - separate from header */}
+        {/* Scroll container - starts after header (safe-area + 44px) */}
         <div
-          className="absolute left-0 right-0 bottom-0 overflow-y-auto"
+          className="absolute left-0 right-0 bottom-0 overflow-y-auto overflow-x-hidden"
           style={{
-            top: 'calc(env(safe-area-inset-top) + 56px)',
+            top: 'calc(env(safe-area-inset-top, 0px) + 44px)',
             paddingBottom: 'env(safe-area-inset-bottom)',
             WebkitOverflowScrolling: 'touch',
           }}
         >
           <main
             id="main-content"
-            className="p-4 pb-8 animate-fade-in-up"
+            className="px-3 py-3 pb-6 animate-fade-in-up overflow-x-hidden"
             tabIndex={-1}
             key={location.pathname}
           >
@@ -292,7 +299,7 @@ function LayoutContent({ children }: LayoutProps) {
               {/* Pending orders - bell with badge */}
               <button
                 onClick={showAllPendingOrders}
-                className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                className={`relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ease-out active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                   pendingCount > 0
                     ? 'bg-gradient-to-br from-yellow-400 to-amber-500 shadow-md shadow-yellow-500/30 hover:shadow-lg'
                     : 'bg-gray-100 hover:bg-gray-200'
@@ -315,7 +322,7 @@ function LayoutContent({ children }: LayoutProps) {
               {/* New order button */}
               <button
                 onClick={() => setShowQuickOrder(true)}
-                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-200 ease-out active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 aria-label="Nouvelle commande"
               >
                 <Plus className="w-5 h-5 text-primary-500" aria-hidden="true" />

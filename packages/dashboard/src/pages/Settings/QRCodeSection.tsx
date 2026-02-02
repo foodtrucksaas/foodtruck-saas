@@ -60,7 +60,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
   };
 
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <QrCode className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">QR Code</h2>
@@ -94,7 +94,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
         </div>
 
         {/* Size selector */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row items-center gap-2 mb-4">
           <span className="text-sm text-gray-500">Taille :</span>
           <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
             {(['small', 'medium', 'large'] as const).map((s) => (
@@ -106,7 +106,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
                     setSize(s);
                   }
                 }}
-                className={`px-3 py-2 min-h-[40px] text-sm font-medium rounded-lg transition-all active:scale-95 ${
+                className={`px-3 py-2 min-h-[44px] text-sm font-medium rounded-lg transition-all active:scale-95 ${
                   size === s
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -120,16 +120,16 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
 
         {/* Link display */}
         <div className="w-full max-w-md mb-4">
-          <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg">
             <input
               type="text"
               readOnly
               value={clientLink}
-              className="flex-1 bg-transparent text-sm text-gray-600 outline-none truncate"
+              className="flex-1 bg-transparent text-sm text-gray-600 outline-none truncate min-h-[36px]"
             />
             <button
               onClick={copyLink}
-              className="p-2 w-10 h-10 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-95"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-95"
               title="Copier le lien"
             >
               {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
@@ -138,10 +138,10 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
         </div>
 
         {/* Download button */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
           <button
             onClick={downloadQRCode}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
           >
             <Download className="w-4 h-4" />
             Télécharger le QR Code

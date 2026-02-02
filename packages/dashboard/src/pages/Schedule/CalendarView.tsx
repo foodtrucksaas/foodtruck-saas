@@ -32,39 +32,41 @@ export function CalendarView({
   getEffectiveScheduleForDay,
 }: CalendarViewProps) {
   return (
-    <section className="card p-4">
+    <section className="card p-3 sm:p-4">
       {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button
           onClick={onPreviousMonth}
-          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+          aria-label="Mois precedent"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-lg font-semibold text-gray-900 capitalize">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 capitalize">
           {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
         </h2>
         <button
           onClick={onNextMonth}
-          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+          aria-label="Mois suivant"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mb-4 text-xs">
+      {/* Legend - scrollable on mobile */}
+      <div className="flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4 text-[10px] sm:text-xs">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-primary-100 border border-primary-300" />
-          <span className="text-gray-600">Ouvert (récurrent)</span>
+          <span className="text-gray-600">Ouvert</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300" />
-          <span className="text-gray-600">Modifié</span>
+          <span className="text-gray-600">Modifie</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-red-100 border border-red-300" />
-          <span className="text-gray-600">Fermé</span>
+          <span className="text-gray-600">Ferme</span>
         </div>
       </div>
 
@@ -78,7 +80,7 @@ export function CalendarView({
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {calendarDays.map((day, idx) => {
           const effective = getEffectiveScheduleForDay(day);
           const isPast = day.date < new Date(new Date().setHours(0, 0, 0, 0));
@@ -108,7 +110,7 @@ export function CalendarView({
               onClick={() => onDayClick(day)}
               disabled={isPast && !day.isToday}
               className={`
-                min-h-[80px] p-1.5 sm:p-2 rounded-lg border text-left transition-all
+                min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 rounded-lg border text-left transition-all
                 ${bgColor} ${borderColor}
                 ${!day.isCurrentMonth ? 'opacity-40' : ''}
                 ${isPast && !day.isToday ? 'cursor-not-allowed opacity-50' : 'cursor-pointer active:scale-[0.98]'}
@@ -116,30 +118,35 @@ export function CalendarView({
               `}
             >
               <div
-                className={`text-sm font-medium ${day.isToday ? 'text-primary-600' : 'text-gray-700'}`}
+                className={`text-xs sm:text-sm font-medium ${day.isToday ? 'text-primary-600' : 'text-gray-700'}`}
               >
                 {day.date.getDate()}
               </div>
 
               {day.isCurrentMonth && (
-                <div className="mt-1 space-y-0.5">
+                <div className="mt-0.5 sm:mt-1 space-y-0.5">
                   {effective.type === 'closed' && (
-                    <div className="text-[10px] text-red-600 font-medium flex items-center gap-0.5">
-                      <XCircle className="w-3 h-3" />
-                      Fermé
+                    <div className="text-[8px] sm:text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                      <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <span className="hidden sm:inline">Ferme</span>
                     </div>
                   )}
                   {effective.type === 'override' && effective.location && (
-                    <div className="text-[10px] text-blue-600 truncate">
+                    <div className="text-[8px] sm:text-[10px] text-blue-600 truncate">
                       {effective.location.name}
                     </div>
                   )}
                   {effective.type === 'normal' &&
-                    effective.schedules.map((s, i) => (
-                      <div key={i} className="text-[10px] text-primary-600 truncate">
+                    effective.schedules.slice(0, 1).map((s, i) => (
+                      <div key={i} className="text-[8px] sm:text-[10px] text-primary-600 truncate">
                         {s.location.name}
                       </div>
                     ))}
+                  {effective.type === 'normal' && effective.schedules.length > 1 && (
+                    <div className="text-[8px] sm:text-[10px] text-primary-500">
+                      +{effective.schedules.length - 1}
+                    </div>
+                  )}
                 </div>
               )}
             </button>
@@ -147,9 +154,8 @@ export function CalendarView({
         })}
       </div>
 
-      <p className="text-xs text-gray-500 mt-4">
-        Cliquez sur un jour pour modifier le planning, fermer exceptionnellement ou changer
-        d'emplacement.
+      <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">
+        Cliquez sur un jour pour modifier le planning.
       </p>
     </section>
   );

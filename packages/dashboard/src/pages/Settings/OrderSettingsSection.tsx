@@ -1,4 +1,19 @@
-import { ShoppingBag, Hand, Zap, Check, X, CalendarClock, Clock, Bell, Mail, MailX, BellRing, BellOff, Timer, ListOrdered } from 'lucide-react';
+import {
+  ShoppingBag,
+  Hand,
+  Zap,
+  Check,
+  X,
+  CalendarClock,
+  Clock,
+  Bell,
+  Mail,
+  MailX,
+  BellRing,
+  BellOff,
+  Timer,
+  ListOrdered,
+} from 'lucide-react';
 import { EditableField } from './EditableField';
 import { ToggleCards, IntervalButtons } from './ToggleCards';
 import type { EditingField, EditFormState } from './useSettings';
@@ -36,7 +51,7 @@ export function OrderSettingsSection({
   onUpdateForm,
 }: OrderSettingsSectionProps) {
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <ShoppingBag className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">Gestion des commandes</h2>
@@ -72,8 +87,18 @@ export function OrderSettingsSection({
               currentValue={editForm.auto_accept_orders}
               onChange={(value) => onUpdateForm('auto_accept_orders', value)}
               options={[
-                { value: false, icon: Hand, title: 'Manuelle', description: 'Vous validez chaque commande reçue' },
-                { value: true, icon: Zap, title: 'Automatique', description: 'Chaque commande est acceptée automatiquement' },
+                {
+                  value: false,
+                  icon: Hand,
+                  title: 'Manuelle',
+                  description: 'Vous validez chaque commande reçue',
+                },
+                {
+                  value: true,
+                  icon: Zap,
+                  title: 'Automatique',
+                  description: 'Chaque commande est acceptée automatiquement',
+                },
               ]}
             />
           }
@@ -98,8 +123,18 @@ export function OrderSettingsSection({
               currentValue={editForm.show_order_popup}
               onChange={(value) => onUpdateForm('show_order_popup', value)}
               options={[
-                { value: true, icon: Check, title: 'Activé', description: 'Une popup s\'affiche à chaque nouvelle commande' },
-                { value: false, icon: X, title: 'Désactivé', description: 'Les commandes apparaissent dans la liste' },
+                {
+                  value: true,
+                  icon: Check,
+                  title: 'Activé',
+                  description: "Une popup s'affiche à chaque nouvelle commande",
+                },
+                {
+                  value: false,
+                  icon: X,
+                  title: 'Désactivé',
+                  description: 'Les commandes apparaissent dans la liste',
+                },
               ]}
             />
           }
@@ -124,8 +159,18 @@ export function OrderSettingsSection({
               currentValue={editForm.use_ready_status}
               onChange={(value) => onUpdateForm('use_ready_status', value)}
               options={[
-                { value: false, icon: X, title: 'Désactivé', description: 'Acceptée → Retirée (2 étapes)' },
-                { value: true, icon: Bell, title: 'Activé', description: 'Acceptée → Prête → Retirée (3 étapes)' },
+                {
+                  value: false,
+                  icon: X,
+                  title: 'Désactivé',
+                  description: 'Acceptée → Retirée (2 étapes)',
+                },
+                {
+                  value: true,
+                  icon: Bell,
+                  title: 'Activé',
+                  description: 'Acceptée → Prête → Retirée (3 étapes)',
+                },
               ]}
             />
           }
@@ -141,7 +186,9 @@ export function OrderSettingsSection({
           onSave={onSave}
           onCancel={onCancel}
           displayValue={
-            <p className="text-gray-900 font-medium">{foodtruck?.order_slot_interval ?? 15} minutes</p>
+            <p className="text-gray-900 font-medium">
+              {foodtruck?.order_slot_interval ?? 15} minutes
+            </p>
           }
           editContent={
             <>
@@ -170,12 +217,15 @@ export function OrderSettingsSection({
           onSave={onSave}
           onCancel={onCancel}
           displayValue={
-            <p className="text-gray-900 font-medium">{foodtruck?.min_preparation_time ?? 15} minutes</p>
+            <p className="text-gray-900 font-medium">
+              {foodtruck?.min_preparation_time ?? 15} minutes
+            </p>
           }
           editContent={
             <>
               <p className="text-sm text-gray-500">
-                Délai minimum avant qu'un client puisse récupérer sa commande. Nous ne recommandons pas un temps supérieur à 15 min.
+                Délai minimum avant qu'un client puisse récupérer sa commande. Nous ne recommandons
+                pas un temps supérieur à 15 min.
               </p>
               <IntervalButtons
                 currentValue={editForm.min_preparation_time}
@@ -198,7 +248,9 @@ export function OrderSettingsSection({
           hasBorder={false}
           displayValue={
             <p className="text-gray-900 font-medium">
-              {foodtruck?.max_orders_per_slot ? `${foodtruck.max_orders_per_slot} commandes` : 'Illimité'}
+              {foodtruck?.max_orders_per_slot
+                ? `${foodtruck.max_orders_per_slot} commandes`
+                : 'Illimité'}
             </p>
           }
           editContent={
@@ -211,9 +263,14 @@ export function OrderSettingsSection({
                 min="1"
                 max="100"
                 value={editForm.max_orders_per_slot || ''}
-                onChange={(e) => onUpdateForm('max_orders_per_slot', e.target.value ? parseInt(e.target.value) : null)}
+                onChange={(e) =>
+                  onUpdateForm(
+                    'max_orders_per_slot',
+                    e.target.value ? parseInt(e.target.value) : null
+                  )
+                }
                 onWheel={(e) => e.currentTarget.blur()}
-                className="input w-32"
+                className="input min-h-[44px] w-full sm:w-32"
                 placeholder="Illimité"
                 autoFocus
               />
@@ -255,13 +312,25 @@ export function OrderSettingsSection({
                   currentValue={editForm.allow_advance_orders}
                   onChange={(value) => onUpdateForm('allow_advance_orders', value)}
                   options={[
-                    { value: true, icon: CalendarClock, title: 'Autorisé', description: 'Les clients peuvent commander à l\'avance' },
-                    { value: false, icon: Clock, title: 'Heures d\'ouverture', description: 'Les clients ne peuvent commander que si vous êtes ouvert' },
+                    {
+                      value: true,
+                      icon: CalendarClock,
+                      title: 'Autorisé',
+                      description: "Les clients peuvent commander à l'avance",
+                    },
+                    {
+                      value: false,
+                      icon: Clock,
+                      title: "Heures d'ouverture",
+                      description: 'Les clients ne peuvent commander que si vous êtes ouvert',
+                    },
                   ]}
                 />
                 {editForm.allow_advance_orders && (
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm font-medium text-gray-700 mb-3">Délai maximum de commande à l'avance</p>
+                    <p className="text-sm font-medium text-gray-700 mb-3">
+                      Délai maximum de commande à l'avance
+                    </p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
                         { value: 1, label: '24h' },
@@ -273,7 +342,7 @@ export function OrderSettingsSection({
                           key={option.value}
                           type="button"
                           onClick={() => onUpdateForm('advance_order_days', option.value)}
-                          className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                          className={`px-4 py-3 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
                             editForm.advance_order_days === option.value
                               ? 'bg-primary-500 text-white shadow-md'
                               : 'bg-white border border-gray-200 text-gray-700 hover:border-primary-300'
@@ -326,8 +395,18 @@ export function OrderSettingsSection({
                 currentValue={editForm.allow_asap_orders}
                 onChange={(value) => onUpdateForm('allow_asap_orders', value)}
                 options={[
-                  { value: true, icon: Timer, title: 'Activé', description: 'Les clients peuvent choisir "Au plus vite" en plus des créneaux' },
-                  { value: false, icon: ListOrdered, title: 'Désactivé', description: 'Les clients doivent choisir un créneau horaire précis' },
+                  {
+                    value: true,
+                    icon: Timer,
+                    title: 'Activé',
+                    description: 'Les clients peuvent choisir "Au plus vite" en plus des créneaux',
+                  },
+                  {
+                    value: false,
+                    icon: ListOrdered,
+                    title: 'Désactivé',
+                    description: 'Les clients doivent choisir un créneau horaire précis',
+                  },
                 ]}
               />
             </>
@@ -365,8 +444,18 @@ export function OrderSettingsSection({
                 currentValue={editForm.send_confirmation_email}
                 onChange={(value) => onUpdateForm('send_confirmation_email', value)}
                 options={[
-                  { value: true, icon: Mail, title: 'Activé', description: 'Un email est envoyé au client quand sa commande est confirmée' },
-                  { value: false, icon: MailX, title: 'Désactivé', description: 'Aucun email de confirmation n\'est envoyé' },
+                  {
+                    value: true,
+                    icon: Mail,
+                    title: 'Activé',
+                    description: 'Un email est envoyé au client quand sa commande est confirmée',
+                  },
+                  {
+                    value: false,
+                    icon: MailX,
+                    title: 'Désactivé',
+                    description: "Aucun email de confirmation n'est envoyé",
+                  },
                 ]}
               />
             }
@@ -401,14 +490,25 @@ export function OrderSettingsSection({
           editContent={
             <>
               <p className="text-sm text-gray-500 mb-3">
-                Envoie un rappel 30 min avant le retrait si la commande a été passée plus de 2h avant.
+                Envoie un rappel 30 min avant le retrait si la commande a été passée plus de 2h
+                avant.
               </p>
               <ToggleCards
                 currentValue={editForm.send_reminder_email}
                 onChange={(value) => onUpdateForm('send_reminder_email', value)}
                 options={[
-                  { value: true, icon: BellRing, title: 'Activé', description: 'Un email de rappel est envoyé 30 min avant le retrait' },
-                  { value: false, icon: BellOff, title: 'Désactivé', description: 'Aucun rappel n\'est envoyé' },
+                  {
+                    value: true,
+                    icon: BellRing,
+                    title: 'Activé',
+                    description: 'Un email de rappel est envoyé 30 min avant le retrait',
+                  },
+                  {
+                    value: false,
+                    icon: BellOff,
+                    title: 'Désactivé',
+                    description: "Aucun rappel n'est envoyé",
+                  },
                 ]}
               />
             </>

@@ -12,13 +12,13 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#ed7b20',
+      backgroundColor: '#F97066',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
     },
     StatusBar: {
       style: 'LIGHT',
-      backgroundColor: '#ed7b20',
+      backgroundColor: '#F97066',
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],

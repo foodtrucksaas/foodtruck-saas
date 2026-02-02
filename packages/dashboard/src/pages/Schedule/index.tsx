@@ -55,48 +55,55 @@ export default function SchedulePage() {
   const calendarDays = generateCalendarDays();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Planning</h1>
-        <p className="text-gray-600">Gérez vos horaires, emplacements et exceptions</p>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - hidden on mobile (Layout provides header) */}
+      <div className="hidden sm:block">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Planning</h1>
+        <p className="text-sm sm:text-base text-gray-600">
+          Gerez vos horaires, emplacements et exceptions
+        </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100/80 p-1.5 rounded-2xl w-fit backdrop-blur-sm">
-        <button
-          onClick={() => setActiveTab('calendar')}
-          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
-            activeTab === 'calendar'
-              ? 'bg-white shadow-md text-gray-900'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          Calendrier
-        </button>
-        <button
-          onClick={() => setActiveTab('recurring')}
-          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
-            activeTab === 'recurring'
-              ? 'bg-white shadow-md text-gray-900'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          <span className="hidden sm:inline">Horaires récurrents</span>
-          <span className="sm:hidden">Horaires</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('locations')}
-          className={`px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center gap-2 ${
-            activeTab === 'locations'
-              ? 'bg-white shadow-md text-gray-900'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-          }`}
-        >
-          <MapPin className="w-4 h-4" />
-          Emplacements
-        </button>
+      {/* Tabs - full width on mobile, scrollable */}
+      <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 no-scrollbar">
+        <div className="flex gap-1 bg-gray-100/80 p-1.5 rounded-2xl w-full sm:w-fit backdrop-blur-sm min-w-max">
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
+              activeTab === 'calendar'
+                ? 'bg-white shadow-md text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="hidden sm:inline">Calendrier</span>
+            <span className="sm:hidden">Cal.</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('recurring')}
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
+              activeTab === 'recurring'
+                ? 'bg-white shadow-md text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span className="hidden sm:inline">Horaires recurrents</span>
+            <span className="sm:hidden">Horaires</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('locations')}
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
+              activeTab === 'locations'
+                ? 'bg-white shadow-md text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span className="hidden sm:inline">Emplacements</span>
+            <span className="sm:hidden">Lieux</span>
+          </button>
+        </div>
       </div>
 
       {/* Calendar Tab */}

@@ -58,7 +58,7 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
   };
 
   return (
-    <section className="card p-6">
+    <section className="card p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <Building className="w-6 h-6 text-primary-500" />
         <h2 className="text-lg font-semibold text-gray-900">Informations entreprise</h2>
@@ -71,41 +71,47 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-500 mb-1">Numéro SIRET</label>
               {editingSiret ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <input
                     type="text"
                     value={siretValue}
                     onChange={(e) => setSiretValue(e.target.value.replace(/[^\d\s]/g, ''))}
                     placeholder="123 456 789 12345"
-                    className="input flex-1"
+                    className="input min-h-[44px] flex-1"
                     maxLength={17}
                     autoFocus
                   />
-                  <button
-                    onClick={saveSiret}
-                    disabled={loading}
-                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={cancelEditSiret}
-                    disabled={loading}
-                    className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveSiret}
+                      disabled={loading}
+                      className="p-2 min-h-[44px] min-w-[44px] text-green-600 hover:bg-green-50 rounded-lg flex items-center justify-center flex-1 sm:flex-initial"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={cancelEditSiret}
+                      disabled={loading}
+                      className="p-2 min-h-[44px] min-w-[44px] text-gray-400 hover:bg-gray-100 rounded-lg flex items-center justify-center flex-1 sm:flex-initial"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-900">
-                  {foodtruck?.siret ? formatSiret(foodtruck.siret) : <span className="text-gray-400">Non renseigné</span>}
+                  {foodtruck?.siret ? (
+                    formatSiret(foodtruck.siret)
+                  ) : (
+                    <span className="text-gray-400">Non renseigné</span>
+                  )}
                 </p>
               )}
             </div>
             {!editingSiret && (
               <button
                 onClick={startEditSiret}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium min-h-[44px] px-2 -mr-2 flex items-center active:scale-[0.98] transition-transform"
               >
                 {foodtruck?.siret ? 'Modifier' : 'Ajouter'}
               </button>

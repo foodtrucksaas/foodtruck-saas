@@ -88,34 +88,39 @@ export function OrderDetailModal({
     order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-black/60 animate-backdrop-in" />
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-modal-in"
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className={`${getHeaderColor()} text-white px-5 py-4 relative`}>
+        {/* Header - with safe area for notch/Dynamic Island */}
+        <div
+          className={`${getHeaderColor()} text-white px-4 sm:px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 sm:py-4 relative`}
+        >
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-11 h-11 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center transition-colors active:scale-95"
+            className="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-2 sm:right-3 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center transition-colors active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="flex items-center justify-between pr-10">
-            <div>
-              <p className="text-sm opacity-80">#{shortOrderId}</p>
-              <h2 className="text-xl font-bold">{order.customer_name}</h2>
+          <div className="flex items-center justify-between pr-12 sm:pr-10 gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm opacity-80">#{shortOrderId}</p>
+              <h2 className="text-lg sm:text-xl font-bold truncate">{order.customer_name}</h2>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold">{pickupTime}</p>
-              <p className="text-sm opacity-80">{pickupDate}</p>
+            <div className="text-right flex-shrink-0">
+              <p className="text-xl sm:text-2xl font-bold">{pickupTime}</p>
+              <p className="text-xs sm:text-sm opacity-80">{pickupDate}</p>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 sm:space-y-4">
           {/* Contact info */}
           {(order.customer_email || order.customer_phone) && (
             <div className="bg-gray-50 rounded-xl p-3 space-y-1">
@@ -206,8 +211,8 @@ export function OrderDetailModal({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="border-t p-4 sm:p-5 space-y-3">
+        {/* Actions - with safe area for iPhone home indicator */}
+        <div className="border-t p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-3">
           {showCancelModal ? (
             <CancelReasonForm
               reasons={CANCEL_REASONS}
@@ -234,11 +239,11 @@ export function OrderDetailModal({
           ) : (
             <>
               {/* Secondary actions - icon buttons */}
-              <div className="flex items-center justify-center gap-3 pb-2">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 pb-2">
                 {canModifyTime && (
                   <button
                     onClick={handleEditTime}
-                    className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
                     title="Modifier l'heure"
                   >
                     <Pencil className="w-4 h-4 text-gray-500" />
@@ -247,7 +252,7 @@ export function OrderDetailModal({
                 {canCancel && (
                   <button
                     onClick={() => setShowCancelModal(true)}
-                    className="w-11 h-11 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors active:scale-95"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors active:scale-95"
                     title="Annuler la commande"
                   >
                     <XCircle className="w-4 h-4 text-red-500" />
@@ -256,11 +261,11 @@ export function OrderDetailModal({
               </div>
 
               {/* Main action buttons */}
-              <div className="flex gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 {isPending && (
                   <button
                     onClick={onAccept}
-                    className="flex-1 px-4 py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-3.5 min-h-[48px] sm:min-h-[44px] bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Check className="w-5 h-5" />
                     Accepter la commande
@@ -271,14 +276,14 @@ export function OrderDetailModal({
                   <>
                     <button
                       onClick={onMarkReady}
-                      className="flex-1 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
                     >
                       <Check className="w-4 h-4" />
                       Prête
                     </button>
                     <button
                       onClick={onMarkPickedUp}
-                      className="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
                     >
                       <Package className="w-4 h-4" />
                       Retirée
@@ -289,7 +294,7 @@ export function OrderDetailModal({
                 {!useReadyStatus && isConfirmed && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="flex-1 px-4 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
@@ -299,7 +304,7 @@ export function OrderDetailModal({
                 {isReady && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="flex-1 px-4 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
@@ -338,11 +343,11 @@ function CancelReasonForm({
     <div className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Motif d'annulation *</label>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[40vh] overflow-y-auto">
           {reasons.map((reason) => (
             <label
               key={reason}
-              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-center gap-3 p-3 min-h-[44px] rounded-lg border cursor-pointer transition-all ${
                 selectedReason === reason
                   ? 'border-red-500 bg-red-50'
                   : 'border-gray-200 hover:border-gray-300'
@@ -354,7 +359,7 @@ function CancelReasonForm({
                 value={reason}
                 checked={selectedReason === reason}
                 onChange={(e) => onReasonChange(e.target.value)}
-                className="w-4 h-4 text-red-500 focus:ring-red-500"
+                className="w-5 h-5 min-w-[20px] text-red-500 focus:ring-red-500"
               />
               <span className="text-sm text-gray-700">{reason}</span>
             </label>
@@ -364,25 +369,25 @@ function CancelReasonForm({
           <textarea
             value={otherReason}
             onChange={(e) => onOtherReasonChange(e.target.value)}
-            placeholder="Précisez le motif..."
-            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+            placeholder="Precisez le motif..."
+            className="w-full mt-2 px-3 py-2.5 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-base"
             rows={2}
             autoFocus
           />
         )}
       </div>
       {error && <ErrorAlert>{error}</ErrorAlert>}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-3 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
+          className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Retour
         </button>
         <button
           onClick={onSubmit}
           disabled={!selectedReason}
-          className="flex-1 px-4 py-3 min-h-[44px] bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
+          className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Confirmer l'annulation
         </button>
@@ -410,19 +415,19 @@ function EditTimeForm({
           type="time"
           value={editTime}
           onChange={(e) => onTimeChange(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full px-3 py-2.5 min-h-[44px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base"
         />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-3 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
+          className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Retour
         </button>
         <button
           onClick={onSubmit}
-          className="flex-1 px-4 py-3 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
+          className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors active:scale-[0.98]"
         >
           Enregistrer
         </button>
