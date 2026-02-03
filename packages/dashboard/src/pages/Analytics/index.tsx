@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode, memo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -17,7 +17,13 @@ import { useAnalytics, DATE_PRESETS } from './useAnalytics';
 import { AnalyticsPageSkeleton } from '../../components/Skeleton';
 
 // Chart wrapper that only renders when container has valid dimensions
-function SafeChart({ children, className }: { children: ReactNode; className?: string }) {
+const SafeChart = memo(function SafeChart({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasSize, setHasSize] = useState(false);
 
@@ -47,7 +53,7 @@ function SafeChart({ children, className }: { children: ReactNode; className?: s
       {hasSize && children}
     </div>
   );
-}
+});
 
 export default function Analytics() {
   const {
@@ -71,6 +77,22 @@ export default function Analytics() {
     exportCSV,
   } = useAnalytics();
 
+  const toggleDropdown = useCallback(() => {
+    setShowPresetDropdown((prev) => !prev);
+  }, [setShowPresetDropdown]);
+
+  const closeDropdown = useCallback(() => {
+    setShowPresetDropdown(false);
+  }, [setShowPresetDropdown]);
+
+  const handlePresetSelect = useCallback(
+    (key: typeof preset) => {
+      setPreset(key);
+      setShowPresetDropdown(false);
+    },
+    [setPreset, setShowPresetDropdown]
+  );
+
   if (loading) {
     return <AnalyticsPageSkeleton />;
   }
@@ -88,7 +110,7 @@ export default function Analytics() {
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative">
             <button
-              onClick={() => setShowPresetDropdown(!showPresetDropdown)}
+              onClick={toggleDropdown}
               className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
             >
               <Calendar className="w-4 h-4" />
@@ -102,15 +124,12 @@ export default function Analytics() {
             </button>
             {showPresetDropdown && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowPresetDropdown(false)} />
+                <div className="fixed inset-0 z-10" onClick={closeDropdown} />
                 <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-48 sm:w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 max-h-[70vh] overflow-y-auto">
                   {DATE_PRESETS.map((p) => (
                     <button
                       key={p.key}
-                      onClick={() => {
-                        setPreset(p.key);
-                        setShowPresetDropdown(false);
-                      }}
+                      onClick={() => handlePresetSelect(p.key)}
                       className={`w-full text-left px-4 py-3 min-h-[44px] text-sm hover:bg-gray-50 transition-colors ${preset === p.key ? 'text-primary-600 font-medium bg-primary-50' : 'text-gray-700'}`}
                     >
                       {p.label}
@@ -391,7 +410,7 @@ export default function Analytics() {
   );
 }
 
-function KpiCard({
+const KpiCard = memo(function KpiCard({
   icon: Icon,
   iconBg,
   iconColor,
@@ -435,4 +454,4 @@ function KpiCard({
       </div>
     </div>
   );
-}
+});

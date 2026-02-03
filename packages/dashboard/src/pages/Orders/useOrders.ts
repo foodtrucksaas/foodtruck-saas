@@ -20,7 +20,12 @@ function getBusinessDate(): Date {
 
 export function useOrders() {
   const { foodtruck } = useFoodtruck();
-  const { soundEnabled, setSoundEnabled, acceptOrder: contextAcceptOrder, refreshTrigger } = useOrderNotification();
+  const {
+    soundEnabled,
+    setSoundEnabled,
+    acceptOrder: contextAcceptOrder,
+    refreshTrigger,
+  } = useOrderNotification();
   const [orders, setOrders] = useState<OrderWithItemsAndOptions[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItemsAndOptions | null>(null);
@@ -52,9 +57,21 @@ export function useOrders() {
     nextDay.setDate(nextDay.getDate() + 1);
     const nextDayStr = formatLocalDate(nextDay);
 
+    // Optimized select: only fetch needed fields for the orders list view
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+      .select(
+        `
+        id, status, pickup_time, total_amount, discount_amount, notes,
+        customer_email, customer_name, customer_phone, created_at,
+        cancellation_reason, cancelled_by,
+        order_items (
+          id, quantity, unit_price, notes,
+          menu_item:menu_items (id, name, price),
+          order_item_options (id, option_name, option_group_name, price_modifier)
+        )
+      `
+      )
       .eq('foodtruck_id', foodtruck.id)
       .gte('pickup_time', `${dateStr}T00:00:00`)
       .lt('pickup_time', `${nextDayStr}T00:00:00`)
@@ -102,109 +119,124 @@ export function useOrders() {
   }, [loading]);
 
   // Accept order
-  const acceptOrder = useCallback(async (id: string) => {
-    await contextAcceptOrder(id);
-    fetchOrders();
-  }, [contextAcceptOrder, fetchOrders]);
+  const acceptOrder = useCallback(
+    async (id: string) => {
+      await contextAcceptOrder(id);
+      fetchOrders();
+    },
+    [contextAcceptOrder, fetchOrders]
+  );
 
   // Cancel order with reason (required)
-  const cancelOrderWithReason = useCallback(async (id: string, reason: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({
-        status: 'cancelled',
-        cancellation_reason: reason,
-        cancelled_by: 'merchant'
-      })
-      .eq('id', id)
-      .select();
+  const cancelOrderWithReason = useCallback(
+    async (id: string, reason: string) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          status: 'cancelled',
+          cancellation_reason: reason,
+          cancelled_by: 'merchant',
+        })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      console.error('Error cancelling order:', error.message);
-      return;
-    }
+      if (error) {
+        console.error('Error cancelling order:', error.message);
+        return;
+      }
 
-    if (!data || data.length === 0) {
-      console.error('Cancel order failed: no data returned (test mode?)');
-      return;
-    }
+      if (!data || data.length === 0) {
+        console.error('Cancel order failed: no data returned (test mode?)');
+        return;
+      }
 
-    await fetchOrders();
-  }, [fetchOrders]);
+      await fetchOrders();
+    },
+    [fetchOrders]
+  );
 
   // Mark order as ready
-  const markReady = useCallback(async (id: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ status: 'ready' })
-      .eq('id', id)
-      .select();
+  const markReady = useCallback(
+    async (id: string) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'ready' })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      console.error('Error marking order as ready:', error.message);
-      return;
-    }
+      if (error) {
+        console.error('Error marking order as ready:', error.message);
+        return;
+      }
 
-    if (!data || data.length === 0) {
-      console.error('Mark ready failed: no data returned (test mode?)');
-      return;
-    }
+      if (!data || data.length === 0) {
+        console.error('Mark ready failed: no data returned (test mode?)');
+        return;
+      }
 
-    await fetchOrders();
-  }, [fetchOrders]);
+      await fetchOrders();
+    },
+    [fetchOrders]
+  );
 
   // Mark order as picked up
-  const markPickedUp = useCallback(async (id: string) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ status: 'picked_up' })
-      .eq('id', id)
-      .select();
+  const markPickedUp = useCallback(
+    async (id: string) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'picked_up' })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      console.error('Error marking order as picked up:', error.message);
-      return;
-    }
+      if (error) {
+        console.error('Error marking order as picked up:', error.message);
+        return;
+      }
 
-    if (!data || data.length === 0) {
-      console.error('Mark picked up failed: no data returned (test mode?)');
-      return;
-    }
+      if (!data || data.length === 0) {
+        console.error('Mark picked up failed: no data returned (test mode?)');
+        return;
+      }
 
-    await fetchOrders();
-  }, [fetchOrders]);
+      await fetchOrders();
+    },
+    [fetchOrders]
+  );
 
   // Update pickup time
-  const updatePickupTime = useCallback(async (id: string, currentPickupTime: string, newTime: string) => {
-    const currentDate = new Date(currentPickupTime);
-    const [hours, minutes] = newTime.split(':').map(Number);
-    currentDate.setHours(hours, minutes, 0, 0);
+  const updatePickupTime = useCallback(
+    async (id: string, currentPickupTime: string, newTime: string) => {
+      const currentDate = new Date(currentPickupTime);
+      const [hours, minutes] = newTime.split(':').map(Number);
+      currentDate.setHours(hours, minutes, 0, 0);
 
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ pickup_time: currentDate.toISOString() })
-      .eq('id', id)
-      .select();
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ pickup_time: currentDate.toISOString() })
+        .eq('id', id)
+        .select();
 
-    if (error) {
-      console.error('Error updating pickup time:', error.message);
-      return;
-    }
+      if (error) {
+        console.error('Error updating pickup time:', error.message);
+        return;
+      }
 
-    if (!data || data.length === 0) {
-      console.error('Update pickup time failed: no data returned (test mode?)');
-      return;
-    }
+      if (!data || data.length === 0) {
+        console.error('Update pickup time failed: no data returned (test mode?)');
+        return;
+      }
 
-    await fetchOrders();
-  }, [fetchOrders]);
+      await fetchOrders();
+    },
+    [fetchOrders]
+  );
 
   // Group orders by time slots
   const groupedOrders = useMemo(() => {
     const grouped: { slot: string; orders: OrderWithItemsAndOptions[] }[] = [];
     const map: Record<string, OrderWithItemsAndOptions[]> = {};
 
-    orders.forEach(o => {
+    orders.forEach((o) => {
       const pickupDate = new Date(o.pickup_time);
       const hour = pickupDate.getHours().toString().padStart(2, '0');
       const minute = pickupDate.getMinutes();
@@ -214,9 +246,11 @@ export function useOrders() {
       map[slotKey].push(o);
     });
 
-    Object.keys(map).sort().forEach(slot => {
-      grouped.push({ slot, orders: map[slot] });
-    });
+    Object.keys(map)
+      .sort()
+      .forEach((slot) => {
+        grouped.push({ slot, orders: map[slot] });
+      });
 
     return grouped;
   }, [orders, slotInterval]);
@@ -232,12 +266,14 @@ export function useOrders() {
   const useReadyStatus = foodtruck?.use_ready_status || false;
 
   // Stats - separate ready count when useReadyStatus is enabled
-  const pending = orders.filter(o => o.status === 'pending').length;
+  const pending = orders.filter((o) => o.status === 'pending').length;
   const confirmed = useReadyStatus
-    ? orders.filter(o => o.status === 'confirmed').length
-    : orders.filter(o => o.status === 'confirmed' || o.status === 'ready').length;
-  const ready = orders.filter(o => o.status === 'ready').length;
-  const pickedUp = orders.filter(o => o.status === 'picked_up' || o.status === 'cancelled' || o.status === 'no_show').length;
+    ? orders.filter((o) => o.status === 'confirmed').length
+    : orders.filter((o) => o.status === 'confirmed' || o.status === 'ready').length;
+  const ready = orders.filter((o) => o.status === 'ready').length;
+  const pickedUp = orders.filter(
+    (o) => o.status === 'picked_up' || o.status === 'cancelled' || o.status === 'no_show'
+  ).length;
 
   // Date navigation
   const goToPreviousDay = useCallback(() => {

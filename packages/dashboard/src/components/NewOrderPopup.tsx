@@ -74,11 +74,15 @@ export default function NewOrderPopup({
         <div
           className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-backdrop-in"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
       {/* Modal */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="order-popup-title"
         className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md animate-bounce-in overflow-hidden max-h-[95vh] sm:max-h-[90vh] flex flex-col"
         style={{
           transform: `translateY(${offsetY}px) translateX(${offsetX}px) scale(${scale})`,
@@ -93,12 +97,15 @@ export default function NewOrderPopup({
           <button
             onClick={onClose}
             className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-90"
+            aria-label="Fermer"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5 text-white" aria-hidden="true" />
           </button>
           <div className="flex items-center justify-between gap-3 pr-12">
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold">Nouvelle commande !</h2>
+              <h2 id="order-popup-title" className="text-lg sm:text-xl font-bold">
+                Nouvelle commande !
+              </h2>
               {isAutoAccept && <p className="text-success-100 text-sm">Acceptée automatiquement</p>}
             </div>
             <div className="bg-white/20 rounded-xl px-3 sm:px-4 py-2 flex-shrink-0">
@@ -187,7 +194,7 @@ export default function NewOrderPopup({
               onClick={onClose}
               className="w-full px-4 py-3.5 min-h-[48px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              <Check className="w-5 h-5" />
+              <Check className="w-5 h-5" aria-hidden="true" />
               OK
             </button>
           ) : (
@@ -202,7 +209,7 @@ export default function NewOrderPopup({
                 onClick={onAccept}
                 className="order-1 sm:order-2 flex-1 px-4 py-3.5 min-h-[52px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <Check className="w-5 h-5" />
+                <Check className="w-5 h-5" aria-hidden="true" />
                 Accepter
               </button>
             </div>

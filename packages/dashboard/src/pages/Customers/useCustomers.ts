@@ -25,10 +25,17 @@ export function useCustomers() {
   useEffect(() => {
     if (!foodtruck) return;
     setLoading(true);
+    // Optimized select: only fetch needed fields for the customers list view
     Promise.all([
       supabase
         .from('customers')
-        .select('*, customer_locations(location_id, order_count, location:locations(*))')
+        .select(
+          `
+          id, email, name, phone, total_orders, total_spent, loyalty_points,
+          email_opt_in, sms_opt_in, first_order_at, last_order_at,
+          customer_locations(location_id, order_count, location:locations(id, name))
+        `
+        )
         .eq('foodtruck_id', foodtruck.id)
         .order('last_order_at', { ascending: false }),
       supabase.from('locations').select('*').eq('foodtruck_id', foodtruck.id).order('name'),

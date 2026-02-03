@@ -68,8 +68,18 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
+          <div className="grid gap-4">
+            {/* Skeleton loading cards for better perceived performance */}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card p-4 flex gap-4 animate-pulse">
+                <div className="w-20 h-20 rounded-xl bg-gray-200" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredFoodtrucks.length === 0 ? (
           <div className="text-center py-12">
