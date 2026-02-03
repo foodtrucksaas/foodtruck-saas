@@ -271,19 +271,19 @@
   }
 
   .status-dot-pending {
-    @apply bg-yellow-400 ring-yellow-200;
+    @apply bg-warning-500 ring-warning-100;
   }
 
   .status-dot-confirmed {
-    @apply bg-blue-400 ring-blue-200;
+    @apply bg-info-500 ring-info-100;
   }
 
   .status-dot-ready {
-    @apply bg-emerald-400 ring-emerald-200;
+    @apply bg-success-500 ring-success-100;
   }
 
   .status-dot-done {
-    @apply bg-gray-300 ring-gray-200;
+    @apply bg-gray-400 ring-gray-200;
   }
 
   /* Animated card with hover effects */

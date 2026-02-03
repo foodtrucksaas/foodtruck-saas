@@ -10,6 +10,8 @@ interface FoodtruckContextType {
   loading: boolean;
   refresh: () => Promise<void>;
   updateFoodtruck: (data: Partial<Foodtruck>) => Promise<void>;
+  updateMenuItemsOrder: (reorderedItems: MenuItem[]) => void;
+  updateCategoriesOrder: (reorderedCategories: Category[]) => void;
 }
 
 const FoodtruckContext = createContext<FoodtruckContextType | undefined>(undefined);
@@ -52,7 +54,8 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
           .select('*')
           .eq('foodtruck_id', foodtruckData.id)
           .or('is_archived.is.null,is_archived.eq.false')
-          .order('display_order'),
+          .order('display_order', { nullsFirst: false })
+          .order('created_at'),
       ]);
 
       setCategories(categoriesRes.data || []);
@@ -69,10 +72,7 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
   const updateFoodtruck = async (data: Partial<Foodtruck>) => {
     if (!foodtruck) throw new Error('No foodtruck');
 
-    const { error } = await supabase
-      .from('foodtrucks')
-      .update(data)
-      .eq('id', foodtruck.id);
+    const { error } = await supabase.from('foodtrucks').update(data).eq('id', foodtruck.id);
 
     if (error) {
       console.error('Update foodtruck error:', error);
@@ -80,6 +80,32 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
     }
 
     setFoodtruck({ ...foodtruck, ...data });
+  };
+
+  // Update menu items order locally without refetching
+  const updateMenuItemsOrder = (reorderedItems: MenuItem[]) => {
+    const reorderedIds = new Set(reorderedItems.map((item) => item.id));
+    // Update display_order for reordered items and keep others unchanged
+    setMenuItems((prev) => {
+      const updatedItems = prev.map((item) => {
+        if (reorderedIds.has(item.id)) {
+          const newIndex = reorderedItems.findIndex((i) => i.id === item.id);
+          return { ...item, display_order: newIndex };
+        }
+        return item;
+      });
+      return updatedItems;
+    });
+  };
+
+  // Update categories order locally without refetching
+  const updateCategoriesOrder = (reorderedCategories: Category[]) => {
+    setCategories(
+      reorderedCategories.map((cat, index) => ({
+        ...cat,
+        display_order: index,
+      }))
+    );
   };
 
   return (
@@ -91,6 +117,8 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
         loading,
         refresh: fetchFoodtruck,
         updateFoodtruck,
+        updateMenuItemsOrder,
+        updateCategoriesOrder,
       }}
     >
       {children}

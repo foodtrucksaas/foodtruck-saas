@@ -8,6 +8,7 @@ import {
   Pencil,
   Trash2,
   Users,
+  GripVertical,
 } from 'lucide-react';
 import { formatPrice, OFFER_TYPE_LABELS } from '@foodtruck/shared';
 import type {
@@ -18,12 +19,19 @@ import type {
   PromoCodeConfig,
   ThresholdDiscountConfig,
 } from '@foodtruck/shared';
+import type { DraggableAttributes } from '@dnd-kit/core';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 interface OfferCardProps {
   offer: OfferWithItems;
   onToggle: (offer: OfferWithItems) => void;
   onEdit: (offer: OfferWithItems) => void;
   onDelete: (id: string) => void;
+  isDragging?: boolean;
+  dragHandleProps?: {
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
+  };
 }
 
 const typeIcons: Record<OfferType, typeof Package> = {
@@ -34,10 +42,10 @@ const typeIcons: Record<OfferType, typeof Package> = {
 };
 
 const typeColors: Record<OfferType, string> = {
-  bundle: 'bg-primary-100 text-primary-600',
-  buy_x_get_y: 'bg-amber-100 text-amber-600',
-  promo_code: 'bg-blue-100 text-blue-600',
-  threshold_discount: 'bg-emerald-100 text-emerald-600',
+  bundle: 'bg-primary-500 text-white',
+  buy_x_get_y: 'bg-warning-500 text-white',
+  promo_code: 'bg-info-500 text-white',
+  threshold_discount: 'bg-success-500 text-white',
 };
 
 function formatOfferSummary(offer: OfferWithItems): string {
@@ -84,18 +92,36 @@ function formatOfferSummary(offer: OfferWithItems): string {
   }
 }
 
-export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps) {
+export function OfferCard({
+  offer,
+  onToggle,
+  onEdit,
+  onDelete,
+  isDragging = false,
+  dragHandleProps,
+}: OfferCardProps) {
   const Icon = typeIcons[offer.offer_type];
   const colorClass = typeColors[offer.offer_type];
 
   return (
     <div
       className={`card p-4 sm:p-5 border-l-4 hover:shadow-md transition-shadow ${
-        offer.is_active ? 'border-l-emerald-500' : 'border-l-gray-300'
-      }`}
+        offer.is_active ? 'border-l-success-500' : 'border-l-gray-300'
+      } ${isDragging ? 'shadow-lg ring-2 ring-primary-300 bg-primary-50' : ''}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
         <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+          {/* Drag handle */}
+          {dragHandleProps && (
+            <button
+              {...dragHandleProps.attributes}
+              {...dragHandleProps.listeners}
+              className="flex items-center justify-center w-8 h-8 -ml-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+              aria-label="Glisser pour réorganiser"
+            >
+              <GripVertical className="w-5 h-5" />
+            </button>
+          )}
           <div className={`p-2.5 sm:p-3 rounded-xl ${colorClass} flex-shrink-0`}>
             <Icon className="w-5 h-5" />
           </div>
@@ -125,17 +151,17 @@ export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps)
             {(offer.start_date || offer.end_date || offer.time_start) && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {offer.start_date && (
-                  <span className="text-xs px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full font-medium">
+                  <span className="text-xs px-2.5 py-1 bg-info-50 text-info-600 rounded-full font-medium">
                     Du {new Date(offer.start_date).toLocaleDateString('fr-FR')}
                   </span>
                 )}
                 {offer.end_date && (
-                  <span className="text-xs px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full font-medium">
+                  <span className="text-xs px-2.5 py-1 bg-info-50 text-info-600 rounded-full font-medium">
                     Jusqu'au {new Date(offer.end_date).toLocaleDateString('fr-FR')}
                   </span>
                 )}
                 {offer.time_start && offer.time_end && (
-                  <span className="text-xs px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full font-medium">
+                  <span className="text-xs px-2.5 py-1 bg-warning-50 text-warning-600 rounded-full font-medium">
                     {offer.time_start.slice(0, 5)} - {offer.time_end.slice(0, 5)}
                   </span>
                 )}
@@ -148,29 +174,35 @@ export function OfferCard({ offer, onToggle, onEdit, onDelete }: OfferCardProps)
         <div className="flex items-center gap-1 self-end sm:self-start ml-auto sm:ml-0">
           <button
             onClick={() => onToggle(offer)}
-            className={`p-2.5 min-h-[44px] min-w-[44px] rounded-xl transition-all active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 ${
               offer.is_active
-                ? 'text-emerald-600 hover:bg-emerald-50'
-                : 'text-gray-400 hover:bg-gray-100'
+                ? 'bg-success-500 text-white hover:bg-success-600'
+                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
             title={offer.is_active ? 'Désactiver' : 'Activer'}
           >
             {offer.is_active ? (
-              <ToggleRight className="w-6 h-6" />
+              <>
+                <ToggleRight className="w-4 h-4" />
+                <span>Dispo</span>
+              </>
             ) : (
-              <ToggleLeft className="w-6 h-6" />
+              <>
+                <ToggleLeft className="w-4 h-4" />
+                <span>Indispo</span>
+              </>
             )}
           </button>
           <button
             onClick={() => onEdit(offer)}
-            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
+            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-info-600 hover:bg-info-50 transition-all active:scale-95"
             title="Modifier"
           >
             <Pencil className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(offer.id)}
-            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
+            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-error-600 hover:bg-error-50 transition-all active:scale-95"
             title="Supprimer"
           >
             <Trash2 className="w-4 h-4" />

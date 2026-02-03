@@ -31,14 +31,13 @@ export default function ForgotPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-success-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Email envoyé
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Email envoyé</h2>
           <p className="text-gray-600 mb-6">
-            Si un compte existe avec l'adresse <strong>{email}</strong>, vous recevrez un lien pour réinitialiser votre mot de passe.
+            Si un compte existe avec l'adresse <strong>{email}</strong>, vous recevrez un lien pour
+            réinitialiser votre mot de passe.
           </p>
           <p className="text-sm text-gray-500 mb-6">
             Pensez à vérifier vos spams si vous ne trouvez pas l'email.
@@ -63,7 +62,9 @@ export default function ForgotPassword() {
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Mot de passe oublié</h1>
-          <p className="text-gray-600 mt-2">Entrez votre email pour recevoir un lien de réinitialisation</p>
+          <p className="text-gray-600 mt-2">
+            Entrez votre email pour recevoir un lien de réinitialisation
+          </p>
         </div>
 
         <div className="card p-6">
@@ -89,16 +90,8 @@ export default function ForgotPassword() {
 
             {error && <ErrorAlert>{error}</ErrorAlert>}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Envoyer le lien'
-              )}
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Envoyer le lien'}
             </button>
           </form>
 

@@ -132,7 +132,11 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
               className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-95"
               title="Copier le lien"
             >
-              {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+              {copied ? (
+                <Check className="w-5 h-5 text-success-500" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -147,10 +151,10 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
             Télécharger le QR Code
           </button>
           {downloadStatus === 'success' && (
-            <span className="text-sm text-green-600">QR Code téléchargé</span>
+            <span className="text-sm text-success-600">QR Code téléchargé</span>
           )}
           {downloadStatus === 'error' && (
-            <span className="text-sm text-red-600">Erreur lors du téléchargement</span>
+            <span className="text-sm text-error-600">Erreur lors du téléchargement</span>
           )}
         </div>
       </div>

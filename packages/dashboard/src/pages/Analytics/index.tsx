@@ -151,24 +151,24 @@ export default function Analytics() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard
           icon={Package}
-          iconBg="bg-emerald-100"
-          iconColor="text-emerald-600"
+          iconBg="bg-success-500"
+          iconColor="text-white"
           label="Montant des commandes"
           value={formatPrice(analytics?.orderAmount || 0)}
           change={revenueChange}
         />
         <KpiCard
           icon={ShoppingBag}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
+          iconBg="bg-info-500"
+          iconColor="text-white"
           label="Commandes"
           value={analytics?.orderCount || 0}
           change={orderChange}
         />
         <KpiCard
           icon={TrendingUp}
-          iconBg="bg-primary-100"
-          iconColor="text-primary-600"
+          iconBg="bg-primary-500"
+          iconColor="text-white"
           label="Panier moyen"
           value={formatPrice(analytics?.averageOrderValue || 0)}
           change={avgChange}
@@ -179,8 +179,8 @@ export default function Analytics() {
               <p className="text-sm text-gray-500 mb-1">Clients uniques</p>
               <p className="text-2xl font-bold text-gray-900">{analytics?.uniqueCustomers || 0}</p>
             </div>
-            <div className="p-2 rounded-xl bg-amber-100">
-              <Users className="w-5 h-5 text-amber-600" />
+            <div className="p-2 rounded-xl bg-warning-500">
+              <Users className="w-5 h-5 text-white" />
             </div>
           </div>
           <div className="flex items-center gap-1 mt-2 text-sm text-gray-500">
@@ -420,7 +420,7 @@ function KpiCard({
         </div>
       </div>
       <div
-        className={`flex items-center gap-1 mt-1.5 sm:mt-2 text-xs sm:text-sm ${displayChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+        className={`flex items-center gap-1 mt-1.5 sm:mt-2 text-xs sm:text-sm ${displayChange >= 0 ? 'text-success-600' : 'text-error-600'}`}
       >
         {displayChange >= 0 ? (
           <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

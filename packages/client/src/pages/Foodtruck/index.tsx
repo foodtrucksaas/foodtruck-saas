@@ -19,23 +19,20 @@ import {
   FileText,
   Building,
 } from 'lucide-react';
-import {
-  formatPrice,
-  formatTime,
-  DAY_NAMES,
-  PAYMENT_METHODS,
-} from '@foodtruck/shared';
+import { formatPrice, formatTime, DAY_NAMES, PAYMENT_METHODS } from '@foodtruck/shared';
 import LocationCard from '../../components/LocationCard';
 import { OptimizedImage } from '../../components/OptimizedImage';
+import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection } from '../../hooks';
-import { useFoodtruck } from './useFoodtruck';
+import { useFoodtruck, type BundleOffer } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
 
 export default function FoodtruckPage() {
   const { foodtruckId } = useParams<{ foodtruckId: string }>();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const {
     // Data
@@ -78,34 +75,35 @@ export default function FoodtruckPage() {
   } = useFoodtruck(foodtruckId);
 
   // Get cart items for offer detection
-  const { items } = useCart();
+  const { items, addBundleItem } = useCart();
 
   // Detect applicable offers in real-time
-  const {
-    applicableOffers,
-    appliedOffers,
-    bestOffer,
-    totalOfferDiscount,
-  } = useOffers(foodtruckId, items, total);
+  const { applicableOffers, appliedOffers, bestOffer, totalOfferDiscount } = useOffers(
+    foodtruckId,
+    items,
+    total
+  );
 
   // Filter offers to show (exclude promo codes)
-  const visibleOffers = applicableOffers.filter(o => o.offer_type !== 'promo_code');
+  const visibleOffers = applicableOffers.filter((o) => o.offer_type !== 'promo_code');
 
   // useBundleDetection is only for UI hints, not for discount calculation
   // get_optimized_offers already handles bundle discounts
-  const {
-    bestBundle: _bestBundle,
-    totalBundleSavings: _totalBundleSavings,
-  } = useBundleDetection(foodtruckId, items);
-  void _bestBundle; void _totalBundleSavings; // Suppress unused warnings
+  const { bestBundle: _bestBundle, totalBundleSavings: _totalBundleSavings } = useBundleDetection(
+    foodtruckId,
+    items
+  );
+  void _bestBundle;
+  void _totalBundleSavings; // Suppress unused warnings
 
   // get_optimized_offers already handles ALL offers including bundles
   // So we just use totalOfferDiscount directly
   const appliedDiscount = totalOfferDiscount || 0;
   // For display name, check if we have applied offers from the API
-  const appliedDiscountName = appliedOffers.length > 0
-    ? appliedOffers.map(o => o.offer_name).join(' + ')
-    : bestOffer?.offer_name;
+  const appliedDiscountName =
+    appliedOffers.length > 0
+      ? appliedOffers.map((o) => o.offer_name).join(' + ')
+      : bestOffer?.offer_name;
   const finalTotal = Math.max(0, total - appliedDiscount);
 
   // Track active category based on scroll position
@@ -136,7 +134,7 @@ export default function FoodtruckPage() {
   // Set first category as active by default
   useEffect(() => {
     if (!activeCategory && categories.length > 0) {
-      const firstWithItems = categories.find(c => groupedItems[c.id]?.length > 0);
+      const firstWithItems = categories.find((c) => groupedItems[c.id]?.length > 0);
       if (firstWithItems) {
         setActiveCategory(firstWithItems.id);
       }
@@ -191,7 +189,12 @@ export default function FoodtruckPage() {
                     <span className="text-white text-xs font-medium">
                       {todaySchedules.length === 1 ? (
                         <>
-                          Ouvert aujourd'hui{todaySchedules[0].location?.name ? ` à ${todaySchedules[0].location.name}` : ''} • {formatTime(todaySchedules[0].start_time)} - {formatTime(todaySchedules[0].end_time)}
+                          Ouvert aujourd'hui
+                          {todaySchedules[0].location?.name
+                            ? ` à ${todaySchedules[0].location.name}`
+                            : ''}{' '}
+                          • {formatTime(todaySchedules[0].start_time)} -{' '}
+                          {formatTime(todaySchedules[0].end_time)}
                         </>
                       ) : (
                         <>{todaySchedules.length} emplacements aujourd'hui</>
@@ -221,7 +224,10 @@ export default function FoodtruckPage() {
       {/* Info Card - Only show full card if there's a cover image */}
       {foodtruck.cover_image_url ? (
         <div className="px-4 -mt-10 relative z-10">
-          <div className="bg-white rounded-xl border border-gray-100 p-3" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+          <div
+            className="bg-white rounded-xl border border-gray-100 p-3"
+            style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+          >
             <div className="flex gap-3">
               {foodtruck.logo_url ? (
                 <OptimizedImage
@@ -235,25 +241,34 @@ export default function FoodtruckPage() {
                   placeholderColor="#f97066"
                   fallback={
                     <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center -mt-7 border-2 border-white shadow-md">
-                      <span className="text-xl font-bold text-white">{foodtruck.name.charAt(0).toUpperCase()}</span>
+                      <span className="text-xl font-bold text-white">
+                        {foodtruck.name.charAt(0).toUpperCase()}
+                      </span>
                     </div>
                   }
                 />
               ) : (
                 <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center -mt-7 border-2 border-white shadow-md">
-                  <span className="text-xl font-bold text-white">{foodtruck.name.charAt(0).toUpperCase()}</span>
+                  <span className="text-xl font-bold text-white">
+                    {foodtruck.name.charAt(0).toUpperCase()}
+                  </span>
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg font-bold text-anthracite truncate">{foodtruck.name}</h1>
-                <p className="text-primary-500 font-medium text-sm">{foodtruck.cuisine_types?.join(' - ') || 'Non specifie'}</p>
+                <p className="text-primary-500 font-medium text-sm">
+                  {foodtruck.cuisine_types?.join(' - ') || 'Non specifie'}
+                </p>
               </div>
             </div>
 
             {todaySchedules.length > 0 && (
               <div className="mt-2.5 space-y-1.5">
                 {todaySchedules.map((sched, idx) => (
-                  <div key={sched.id} className="flex items-center gap-1.5 text-xs text-gray-600 flex-wrap">
+                  <div
+                    key={sched.id}
+                    className="flex items-center gap-1.5 text-xs text-gray-600 flex-wrap"
+                  >
                     {idx === 0 && <span>Aujourd'hui :</span>}
                     <MapPin className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
                     <span>{sched.location.name}</span>
@@ -276,7 +291,10 @@ export default function FoodtruckPage() {
         <div className="px-4 pt-3">
           {foodtruck.is_mobile && todaySchedules.length > 0 ? (
             /* Itinerant: show all locations for today */
-            <div className="bg-white rounded-xl border border-gray-100 p-3" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+            <div
+              className="bg-white rounded-xl border border-gray-100 p-3"
+              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+            >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-5 h-5 text-primary-500" />
@@ -284,9 +302,12 @@ export default function FoodtruckPage() {
                 <div className="flex-1 min-w-0">
                   {todaySchedules.length === 1 ? (
                     <>
-                      <p className="text-sm font-semibold text-anthracite">Aujourd'hui a {todaySchedules[0].location.name}</p>
+                      <p className="text-sm font-semibold text-anthracite">
+                        Aujourd'hui a {todaySchedules[0].location.name}
+                      </p>
                       <p className="text-xs text-gray-500">
-                        {formatTime(todaySchedules[0].start_time)} - {formatTime(todaySchedules[0].end_time)}
+                        {formatTime(todaySchedules[0].start_time)} -{' '}
+                        {formatTime(todaySchedules[0].end_time)}
                       </p>
                     </>
                   ) : (
@@ -295,8 +316,10 @@ export default function FoodtruckPage() {
                       <div className="space-y-1">
                         {todaySchedules.map((sched) => (
                           <p key={sched.id} className="text-xs text-gray-500">
-                            <span className="font-medium text-gray-700">{formatTime(sched.start_time)} - {formatTime(sched.end_time)}</span>
-                            {' '}a {sched.location.name}
+                            <span className="font-medium text-gray-700">
+                              {formatTime(sched.start_time)} - {formatTime(sched.end_time)}
+                            </span>{' '}
+                            a {sched.location.name}
                           </p>
                         ))}
                       </div>
@@ -307,7 +330,10 @@ export default function FoodtruckPage() {
             </div>
           ) : todaySchedule ? (
             /* Fixed: just show hours */
-            <div className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+            <div
+              className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3"
+              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+            >
               <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-primary-500" />
               </div>
@@ -324,8 +350,15 @@ export default function FoodtruckPage() {
       )}
 
       {/* Tabs */}
-      <nav className="sticky top-0 z-20 bg-[#FAFAFA] px-4 pt-2 pb-1" aria-label="Navigation du contenu">
-        <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100" role="tablist" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <nav
+        className="sticky top-0 z-20 bg-[#FAFAFA] px-4 pt-2 pb-1"
+        aria-label="Navigation du contenu"
+      >
+        <div
+          className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100"
+          role="tablist"
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+        >
           <button
             onClick={() => setActiveTab('menu')}
             type="button"
@@ -334,7 +367,9 @@ export default function FoodtruckPage() {
             aria-controls="tab-panel-menu"
             id="tab-menu"
             className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-              activeTab === 'menu' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'menu'
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Menu
@@ -347,7 +382,9 @@ export default function FoodtruckPage() {
             aria-controls="tab-panel-info"
             id="tab-info"
             className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-              activeTab === 'info' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'info'
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Infos et Planning
@@ -356,59 +393,76 @@ export default function FoodtruckPage() {
       </nav>
 
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
-      {activeTab === 'menu' && categories.filter(c => groupedItems[c.id]?.length > 0).length > 1 && (
-        <div className="sticky top-[60px] z-10 bg-[#FAFAFA] px-4 py-2">
-          <nav className="flex gap-2 overflow-x-auto no-scrollbar py-1" aria-label="Categories du menu">
-            {categories
-              .filter((c) => groupedItems[c.id]?.length > 0)
-              .map((category) => {
-                const isActive = activeCategory === category.id;
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    aria-current={isActive ? 'true' : undefined}
-                    onClick={() => {
-                      setActiveCategory(category.id);
-                      document.getElementById(`category-${category.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
-                    className={`flex-shrink-0 px-4 py-2.5 min-h-[40px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                      isActive
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
-          </nav>
-        </div>
-      )}
+      {activeTab === 'menu' &&
+        categories.filter((c) => groupedItems[c.id]?.length > 0).length > 1 && (
+          <div className="sticky top-[60px] z-10 bg-[#FAFAFA] px-4 py-2">
+            <nav
+              className="flex gap-2 overflow-x-auto no-scrollbar py-1"
+              aria-label="Categories du menu"
+            >
+              {categories
+                .filter((c) => groupedItems[c.id]?.length > 0)
+                .map((category) => {
+                  const isActive = activeCategory === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      aria-current={isActive ? 'true' : undefined}
+                      onClick={() => {
+                        setActiveCategory(category.id);
+                        document
+                          .getElementById(`category-${category.id}`)
+                          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      className={`flex-shrink-0 px-4 py-2.5 min-h-[40px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                        isActive
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+            </nav>
+          </div>
+        )}
 
       {/* Content */}
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-8">
             {/* Unified Offers Section - Warm styled */}
-            {(bundles.length > 0 || specificItemsBundles.length > 0 || buyXGetYOffers.length > 0 || visibleOffers.filter(o => o.offer_type !== 'bundle').length > 0) && (
+            {(bundles.length > 0 ||
+              specificItemsBundles.length > 0 ||
+              buyXGetYOffers.length > 0 ||
+              visibleOffers.filter((o) => o.offer_type !== 'bundle').length > 0) && (
               <div className="bg-gradient-to-br from-primary-50 to-orange-50/50 rounded-2xl p-4 border border-primary-100/50">
                 <h2 className="text-base font-bold text-gray-900 mb-1">Nos offres du moment</h2>
-                <p className="text-xs text-gray-500 mb-3">
-                  S'appliquent automatiquement au panier
-                </p>
+                <p className="text-xs text-gray-500 mb-3">S'appliquent automatiquement au panier</p>
                 <div className="space-y-2">
-                  {/* Bundle offers */}
+                  {/* Bundle offers - clickable to open builder */}
                   {bundles.map((bundle) => {
-                    const categoryNames = bundle.config.bundle_categories
-                      ?.map(bc => categories.find(c => c.id === bc.category_id)?.name)
-                      .filter(Boolean)
-                      .join(' + ') || '';
+                    const bundleCats = bundle.config.bundle_categories || [];
+                    const categoryNames =
+                      bundleCats
+                        .map((bc) => {
+                          const catIds =
+                            bc.category_ids || (bc.category_id ? [bc.category_id] : []);
+                          return catIds
+                            .map((id) => categories.find((c) => c.id === id)?.name)
+                            .filter(Boolean)
+                            .join('/');
+                        })
+                        .filter(Boolean)
+                        .join(' + ') || '';
 
                     return (
-                      <div
+                      <button
                         key={bundle.id}
-                        className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
+                        onClick={() => setSelectedBundle(bundle)}
+                        className="w-full bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400 hover:bg-gray-50 active:scale-[0.98] transition-all text-left"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -417,19 +471,24 @@ export default function FoodtruckPage() {
                               <p className="text-xs text-gray-500 mt-0.5">{categoryNames}</p>
                             )}
                           </div>
-                          <span className="font-bold text-primary-600 whitespace-nowrap">
-                            {formatPrice(bundle.config.fixed_price)}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-primary-600 whitespace-nowrap">
+                              {formatPrice(bundle.config.fixed_price)}
+                            </span>
+                            <span className="text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded-full font-medium">
+                              Composer
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
 
                   {/* Specific items bundles */}
                   {specificItemsBundles.map((bundle) => {
                     const itemNames = bundle.offer_items
-                      .map(oi => {
-                        const item = menuItems.find(mi => mi.id === oi.menu_item_id);
+                      .map((oi) => {
+                        const item = menuItems.find((mi) => mi.id === oi.menu_item_id);
                         return item?.name;
                       })
                       .filter(Boolean)
@@ -472,13 +531,14 @@ export default function FoodtruckPage() {
 
                   {/* Other offers with progress tracking */}
                   {visibleOffers
-                    .filter(o => o.offer_type !== 'bundle' && o.offer_type !== 'buy_x_get_y')
+                    .filter((o) => o.offer_type !== 'bundle' && o.offer_type !== 'buy_x_get_y')
                     .map((offer) => {
                       const isApplicable = offer.is_applicable;
                       const hasProgress = offer.progress_required > 0;
-                      const progress = offer.progress_required > 0
-                        ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
-                        : 0;
+                      const progress =
+                        offer.progress_required > 0
+                          ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
+                          : 0;
 
                       return (
                         <div
@@ -487,11 +547,15 @@ export default function FoodtruckPage() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className={`font-semibold text-sm ${isApplicable ? 'text-emerald-700' : 'text-gray-900'}`}>
+                              <p
+                                className={`font-semibold text-sm ${isApplicable ? 'text-emerald-700' : 'text-gray-900'}`}
+                              >
                                 {offer.offer_name}
                               </p>
                               {isApplicable ? (
-                                <p className="text-xs text-emerald-600 mt-0.5">Appliquée à votre panier</p>
+                                <p className="text-xs text-emerald-600 mt-0.5">
+                                  Appliquée à votre panier
+                                </p>
                               ) : hasProgress ? (
                                 <p className="text-xs text-gray-500 mt-0.5">
                                   {offer.progress_current}/{offer.progress_required} articles
@@ -535,7 +599,6 @@ export default function FoodtruckPage() {
                       quantity={getItemQuantity(item.id)}
                       onAdd={() => handleAddItem(item)}
                       onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
-                      showPhoto={foodtruck.show_menu_photos ?? true}
                     />
                   ))}
                 </div>
@@ -568,7 +631,6 @@ export default function FoodtruckPage() {
                         quantity={getItemQuantity(item.id)}
                         onAdd={() => handleAddItem(item)}
                         onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
-                        showPhoto={foodtruck.show_menu_photos ?? true}
                       />
                     ))}
                   </div>
@@ -614,7 +676,11 @@ export default function FoodtruckPage() {
                 )}
                 {foodtruck.website_url && (
                   <a
-                    href={foodtruck.website_url.startsWith('http') ? foodtruck.website_url : `https://${foodtruck.website_url}`}
+                    href={
+                      foodtruck.website_url.startsWith('http')
+                        ? foodtruck.website_url
+                        : `https://${foodtruck.website_url}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-gray-600 hover:text-primary-500 transition-colors"
@@ -622,7 +688,9 @@ export default function FoodtruckPage() {
                     <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-primary-500" />
                     </div>
-                    <span className="font-medium">{foodtruck.website_url.replace(/^https?:\/\//, '')}</span>
+                    <span className="font-medium">
+                      {foodtruck.website_url.replace(/^https?:\/\//, '')}
+                    </span>
                   </a>
                 )}
               </div>
@@ -681,13 +749,14 @@ export default function FoodtruckPage() {
                     const method = PAYMENT_METHODS.find((m) => m.id === methodId);
                     if (!method) return null;
 
-                    const IconComponent = {
-                      Banknote,
-                      CreditCard,
-                      Smartphone,
-                      Wallet,
-                      FileText,
-                    }[method.icon] || CreditCard;
+                    const IconComponent =
+                      {
+                        Banknote,
+                        CreditCard,
+                        Smartphone,
+                        Wallet,
+                        FileText,
+                      }[method.icon] || CreditCard;
 
                     return (
                       <div
@@ -758,13 +827,10 @@ export default function FoodtruckPage() {
                             {daySchedules.map((sched) => (
                               <div key={sched.id}>
                                 <p className="text-sm font-medium text-anthracite">
-                                  {formatTime(sched.start_time)} -{' '}
-                                  {formatTime(sched.end_time)}
+                                  {formatTime(sched.start_time)} - {formatTime(sched.end_time)}
                                 </p>
                                 {sched.location?.name && (
-                                  <p className="text-xs text-gray-500">
-                                    {sched.location.name}
-                                  </p>
+                                  <p className="text-xs text-gray-500">{sched.location.name}</p>
                                 )}
                               </div>
                             ))}
@@ -780,23 +846,25 @@ export default function FoodtruckPage() {
             )}
 
             {/* Map - only show if coordinates are available */}
-            {todaySchedule && (todaySchedule.location.latitude && todaySchedule.location.longitude) && (
-              <div>
-                <h2 className="font-bold text-anthracite mb-3">Position du jour</h2>
-                <LocationCard
-                  location={{
-                    name: todaySchedule.location.name,
-                    address: todaySchedule.location.address,
-                    latitude: todaySchedule.location.latitude,
-                    longitude: todaySchedule.location.longitude,
-                    start_time: todaySchedule.start_time,
-                    end_time: todaySchedule.end_time,
-                  }}
-                  showMap={true}
-                  showHours={true}
-                />
-              </div>
-            )}
+            {todaySchedule &&
+              todaySchedule.location.latitude &&
+              todaySchedule.location.longitude && (
+                <div>
+                  <h2 className="font-bold text-anthracite mb-3">Position du jour</h2>
+                  <LocationCard
+                    location={{
+                      name: todaySchedule.location.name,
+                      address: todaySchedule.location.address,
+                      latitude: todaySchedule.location.latitude,
+                      longitude: todaySchedule.location.longitude,
+                      start_time: todaySchedule.start_time,
+                      end_time: todaySchedule.end_time,
+                    }}
+                    showMap={true}
+                    showHours={true}
+                  />
+                </div>
+              )}
           </div>
         )}
       </div>
@@ -850,6 +918,17 @@ export default function FoodtruckPage() {
           category={selectedCategory}
           onClose={closeOptionsModal}
           onConfirm={handleOptionsConfirm}
+        />
+      )}
+
+      {/* Bundle Builder Modal */}
+      {selectedBundle && (
+        <BundleBuilder
+          bundle={selectedBundle}
+          menuItems={menuItems}
+          categories={categories}
+          onAddToCart={addBundleItem}
+          onClose={() => setSelectedBundle(null)}
         />
       )}
     </div>

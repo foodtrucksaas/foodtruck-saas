@@ -11,7 +11,7 @@ import {
 import { formatPrice } from '@foodtruck/shared';
 import { useMenuPage } from '../hooks';
 import {
-  MenuItemCard,
+  SortableMenuItemList,
   MenuItemForm,
   CategoryManager,
   OptionsWizard,
@@ -53,12 +53,10 @@ export default function Menu() {
     createCategory,
     updateCategory,
     deleteCategory,
-    moveCategoryUp,
-    moveCategoryDown,
+    reorderCategories,
 
     // Item reordering
-    moveItemUp,
-    moveItemDown,
+    reorderCategoryItems,
 
     // Options wizard
     showOptionsWizard,
@@ -104,8 +102,8 @@ export default function Menu() {
         </button>
       </div>
 
-      {/* Mobile action button */}
-      <div className="flex lg:hidden">
+      {/* Mobile action buttons */}
+      <div className="flex flex-wrap gap-2 lg:hidden">
         <button
           onClick={() => setShowCategoryManager(!showCategoryManager)}
           className="btn-secondary flex-1"
@@ -123,8 +121,7 @@ export default function Menu() {
         onCreateCategory={createCategory}
         onUpdateCategory={updateCategory}
         onDeleteCategory={deleteCategory}
-        onMoveCategoryUp={moveCategoryUp}
-        onMoveCategoryDown={moveCategoryDown}
+        onReorderCategories={reorderCategories}
         openWithForm={openCategoryForm}
         onOpenWithFormHandled={() => setOpenCategoryForm(false)}
       />
@@ -191,21 +188,14 @@ export default function Menu() {
               </button>
             </div>
             {groupedItems[category.id]?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                {groupedItems[category.id].map((item, index) => (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    totalItems={groupedItems[category.id].length}
-                    onEdit={handleEdit}
-                    onToggle={toggleAvailability}
-                    onDelete={deleteItem}
-                    onMoveUp={() => moveItemUp(item, groupedItems[category.id], index)}
-                    onMoveDown={() => moveItemDown(item, groupedItems[category.id], index)}
-                  />
-                ))}
-              </div>
+              <SortableMenuItemList
+                items={groupedItems[category.id]}
+                isReorderMode={true}
+                onEdit={handleEdit}
+                onToggle={toggleAvailability}
+                onDelete={deleteItem}
+                onReorder={reorderCategoryItems}
+              />
             ) : (
               <button
                 onClick={() => {
@@ -237,21 +227,14 @@ export default function Menu() {
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
               Sans catégorie
             </h2>
-            <div className="grid grid-cols-1 gap-2 sm:gap-3">
-              {uncategorizedItems.map((item, index) => (
-                <MenuItemCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  totalItems={uncategorizedItems.length}
-                  onEdit={handleEdit}
-                  onToggle={toggleAvailability}
-                  onDelete={deleteItem}
-                  onMoveUp={() => moveItemUp(item, uncategorizedItems, index)}
-                  onMoveDown={() => moveItemDown(item, uncategorizedItems, index)}
-                />
-              ))}
-            </div>
+            <SortableMenuItemList
+              items={uncategorizedItems}
+              isReorderMode={true}
+              onEdit={handleEdit}
+              onToggle={toggleAvailability}
+              onDelete={deleteItem}
+              onReorder={reorderCategoryItems}
+            />
           </div>
         )}
 

@@ -88,7 +88,7 @@ export function ImageUpload({
               <button
                 type="button"
                 onClick={onRemove}
-                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-red-600 hover:bg-red-50 transition-colors active:scale-95"
+                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-error-600 hover:bg-error-50 transition-colors active:scale-95"
                 title="Supprimer l'image"
               >
                 <X className="w-5 h-5" />

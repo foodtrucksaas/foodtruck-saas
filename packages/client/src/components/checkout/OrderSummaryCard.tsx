@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Minus, Plus, X, Tag, Check, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Minus, Plus, X, Tag, Check, Loader2, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type {
   CartItem,
@@ -67,10 +67,78 @@ export function OrderSummaryCard({
   appliedPromo,
 }: OrderSummaryCardProps) {
   const [showPromoInput, setShowPromoInput] = useState(false);
+  const [expandedBundles, setExpandedBundles] = useState<Set<string>>(new Set());
+
+  const toggleBundleExpand = (bundleId: string) => {
+    setExpandedBundles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(bundleId)) {
+        newSet.delete(bundleId);
+      } else {
+        newSet.add(bundleId);
+      }
+      return newSet;
+    });
+  };
 
   const totalSavings =
     appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0) + promoDiscount + loyaltyDiscount;
   const hasDiscounts = totalSavings > 0;
+
+  // Separate manual bundles from regular items
+  const manualBundles = items.filter((item) => item.bundleInfo);
+  const regularItems = items.filter((item) => !item.bundleInfo);
+
+  // Get auto-detected bundle offers that consume REGULAR cart items (not items inside manual bundles)
+  const autoBundleOffers = useMemo(() => {
+    const bundleOffers = appliedOffers.filter((offer) => offer.offer_type === 'bundle');
+
+    // Only keep bundles that have at least one consumed item matching a regular cart item
+    return bundleOffers.filter((offer) => {
+      return offer.items_consumed.some((consumed) =>
+        regularItems.some((item) => item.menuItem.id === consumed.menu_item_id)
+      );
+    });
+  }, [appliedOffers, regularItems]);
+
+  // Build a map of which regular items are consumed by which auto-bundle
+  const itemsConsumedByBundle = useMemo(() => {
+    const map = new Map<string, { offerId: string; quantityConsumed: number }>();
+
+    for (const offer of autoBundleOffers) {
+      for (const consumed of offer.items_consumed) {
+        const existing = map.get(consumed.menu_item_id);
+        if (existing) {
+          existing.quantityConsumed += consumed.quantity;
+        } else {
+          map.set(consumed.menu_item_id, {
+            offerId: offer.offer_id,
+            quantityConsumed: consumed.quantity,
+          });
+        }
+      }
+    }
+
+    return map;
+  }, [autoBundleOffers]);
+
+  // Regular items not consumed by any bundle
+  const independentItems = regularItems.filter((item) => {
+    const consumed = itemsConsumedByBundle.get(item.menuItem.id);
+    return !consumed || consumed.quantityConsumed < item.quantity;
+  });
+
+  // Get items consumed by a specific bundle offer
+  const getItemsForBundle = (offer: AppliedOfferDetail) => {
+    return offer.items_consumed.map((consumed) => {
+      const cartItem = regularItems.find((item) => item.menuItem.id === consumed.menu_item_id);
+      return {
+        ...consumed,
+        name: cartItem?.menuItem.name || 'Article',
+        cartItem,
+      };
+    });
+  };
 
   // Loyalty calculations
   const currentPoints = loyaltyInfo?.loyalty_points || 0;
@@ -95,7 +163,193 @@ export function OrderSummaryCard({
 
       {/* Items */}
       <div className="divide-y divide-gray-50">
-        {items.map((item) => {
+        {/* Auto-detected Bundles - Grouped from regular items */}
+        {autoBundleOffers.map((offer) => {
+          const bundleItems = getItemsForBundle(offer);
+          const isExpanded = expandedBundles.has(offer.offer_id);
+          // Calculate bundle total from config (we show the discounted total)
+          const bundleTotal = bundleItems.reduce((sum, bi) => {
+            if (!bi.cartItem) return sum;
+            const sizeOpt = bi.cartItem.selectedOptions?.find((o) => o.isSizeOption);
+            const price = sizeOpt ? sizeOpt.priceModifier : bi.cartItem.menuItem.price;
+            return sum + price * bi.quantity;
+          }, 0);
+          const discountedTotal = bundleTotal - offer.discount_amount / offer.times_applied;
+
+          return (
+            <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
+              {/* Bundle header */}
+              <button
+                type="button"
+                onClick={() => toggleBundleExpand(offer.offer_id)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50/50 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <Package className="w-4 h-4 text-primary-600" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
+                    {offer.times_applied > 1 && (
+                      <span className="text-xs px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded-full">
+                        ×{offer.times_applied}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {bundleItems.map((bi) => bi.name).join(' + ')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-primary-600 text-sm tabular-nums">
+                    {formatPrice(discountedTotal * offer.times_applied)}
+                  </p>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </div>
+              </button>
+
+              {/* Expanded bundle details */}
+              {isExpanded && (
+                <div className="pl-14 pr-4 pb-3 space-y-1">
+                  {bundleItems.map((bi, idx) => (
+                    <p key={idx} className="text-xs text-gray-500 italic">
+                      {bi.quantity > 1 && `${bi.quantity}× `}
+                      {bi.name}
+                    </p>
+                  ))}
+                  <p className="text-xs text-emerald-600 font-medium pt-1">
+                    Économie: {formatPrice(offer.discount_amount)}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Manual Bundles (from BundleBuilder) */}
+        {manualBundles.map((item) => {
+          const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
+          const bundleInfo = item.bundleInfo!;
+          const bundlePrice = bundleInfo.fixedPrice;
+          const supplementsTotal = bundleInfo.selections.reduce(
+            (sum, sel) => sum + sel.supplement,
+            0
+          );
+          let optionsTotal = 0;
+          if (!bundleInfo.freeOptions) {
+            bundleInfo.selections.forEach((sel) => {
+              const selOptionPrice =
+                sel.selectedOptions?.reduce(
+                  (optSum, opt) => optSum + (opt.isSizeOption ? 0 : opt.priceModifier),
+                  0
+                ) || 0;
+              optionsTotal += selOptionPrice;
+            });
+          }
+          const itemTotal = (bundlePrice + supplementsTotal + optionsTotal) * item.quantity;
+          const isExpanded = expandedBundles.has(cartKey);
+
+          return (
+            <div key={cartKey} className="bg-primary-50/30">
+              {/* Bundle header */}
+              <div className="flex items-center gap-3 px-4 py-3 group">
+                {/* Quantity stepper */}
+                <div className="flex items-center bg-white rounded-lg transition-all duration-200 hover:bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
+                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  >
+                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
+                    {item.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
+                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                </div>
+
+                {/* Bundle info */}
+                <button
+                  type="button"
+                  onClick={() => toggleBundleExpand(cartKey)}
+                  className="flex-1 min-w-0 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-primary-600" />
+                    <p className="font-medium text-gray-900 text-sm">{bundleInfo.bundleName}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">
+                    {bundleInfo.selections.map((s) => s.menuItem.name).join(' + ')}
+                  </p>
+                </button>
+
+                {/* Price and expand */}
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
+                    {formatPrice(itemTotal)}
+                  </p>
+                  <button type="button" onClick={() => toggleBundleExpand(cartKey)} className="p-1">
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => onRemoveItem(cartKey)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                >
+                  <X className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Expanded bundle details */}
+              {isExpanded && (
+                <div className="pl-[88px] pr-4 pb-3 space-y-1">
+                  {bundleInfo.selections.map((sel, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <p className="text-xs text-gray-500 italic">
+                        {sel.menuItem.name}
+                        {sel.selectedOptions
+                          ?.filter((o) => o.isSizeOption)
+                          .map((o) => ` (${o.name})`)}
+                      </p>
+                      {sel.supplement > 0 && (
+                        <span className="text-xs text-amber-600">
+                          +{formatPrice(sel.supplement)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Independent items (not part of any bundle) */}
+        {independentItems.map((item) => {
+          const consumed = itemsConsumedByBundle.get(item.menuItem.id);
+          const displayQuantity = consumed
+            ? item.quantity - consumed.quantityConsumed
+            : item.quantity;
+
+          if (displayQuantity <= 0) return null;
+
           const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
           const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
           const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
@@ -104,7 +358,7 @@ export function OrderSummaryCard({
               (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
               0
             ) || 0;
-          const itemTotal = (basePrice + supplementsTotal) * item.quantity;
+          const itemTotal = (basePrice + supplementsTotal) * displayQuantity;
 
           // Only show non-default options
           const meaningfulOptions = item.selectedOptions?.filter(
@@ -127,7 +381,7 @@ export function OrderSummaryCard({
                   <Minus className="w-3.5 h-3.5" strokeWidth={2} />
                 </button>
                 <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums transition-all">
-                  {item.quantity}
+                  {consumed ? `${displayQuantity}` : item.quantity}
                 </span>
                 <button
                   type="button"
@@ -170,20 +424,22 @@ export function OrderSummaryCard({
           <span className="text-gray-700 tabular-nums">{formatPrice(total)}</span>
         </div>
 
-        {/* Discounts */}
-        {appliedOffers.map((offer) => (
-          <div key={offer.offer_id} className="flex justify-between text-sm">
-            <span className="text-emerald-600 truncate pr-2">
-              {offer.offer_name}
-              {offer.times_applied > 1 && (
-                <span className="opacity-60"> ×{offer.times_applied}</span>
-              )}
-            </span>
-            <span className="text-emerald-600 font-medium tabular-nums whitespace-nowrap">
-              −{formatPrice(offer.discount_amount)}
-            </span>
-          </div>
-        ))}
+        {/* Discounts (excluding bundles which are shown grouped above) */}
+        {appliedOffers
+          .filter((offer) => offer.offer_type !== 'bundle')
+          .map((offer) => (
+            <div key={offer.offer_id} className="flex justify-between text-sm">
+              <span className="text-emerald-600 truncate pr-2">
+                {offer.offer_name}
+                {offer.times_applied > 1 && (
+                  <span className="opacity-60"> ×{offer.times_applied}</span>
+                )}
+              </span>
+              <span className="text-emerald-600 font-medium tabular-nums whitespace-nowrap">
+                −{formatPrice(offer.discount_amount)}
+              </span>
+            </div>
+          ))}
         {/* Only show loyalty discount here if NOT showing the checkbox (which already displays it) */}
         {loyaltyDiscount > 0 && !loyaltyInfo?.can_redeem && (
           <div className="flex justify-between text-sm">

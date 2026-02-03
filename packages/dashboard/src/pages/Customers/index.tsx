@@ -70,36 +70,36 @@ export default function Customers() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatCard
           icon={Users}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
+          iconBg="bg-info-500"
+          iconColor="text-white"
           value={stats.total}
           label="Clients total"
         />
         <StatCard
           icon={MailCheck}
-          iconBg="bg-emerald-100"
-          iconColor="text-emerald-600"
+          iconBg="bg-success-500"
+          iconColor="text-white"
           value={stats.emailOptIn}
           label="Opt-in email"
         />
         <StatCard
           icon={MessageSquare}
-          iconBg="bg-primary-100"
-          iconColor="text-primary-600"
+          iconBg="bg-primary-500"
+          iconColor="text-white"
           value={stats.smsOptIn}
           label="Opt-in SMS"
         />
         <StatCard
           icon={TrendingUp}
-          iconBg="bg-amber-100"
-          iconColor="text-amber-600"
+          iconBg="bg-warning-500"
+          iconColor="text-white"
           value={stats.active}
           label="Actifs (30j)"
         />
         <StatCard
           icon={ShoppingBag}
-          iconBg="bg-primary-100"
-          iconColor="text-primary-600"
+          iconBg="bg-primary-500"
+          iconColor="text-white"
           value={stats.loyal}
           label="Fidèles (5+ cmd)"
         />
@@ -226,7 +226,7 @@ export default function Customers() {
                     <p className="text-xs text-gray-500">Total</p>
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-amber-600">
+                    <p className="text-lg font-semibold text-warning-600">
                       {customer.loyalty_points}
                     </p>
                     <p className="text-xs text-gray-500">Points</p>
@@ -240,18 +240,18 @@ export default function Customers() {
                   <div className="flex items-center gap-1">
                     {customer.email_opt_in && (
                       <span
-                        className="w-6 h-6 flex items-center justify-center rounded bg-green-100"
+                        className="w-6 h-6 flex items-center justify-center rounded bg-success-500"
                         title="Email opt-in"
                       >
-                        <Mail className="w-3 h-3 text-green-600" />
+                        <Mail className="w-3 h-3 text-white" />
                       </span>
                     )}
                     {customer.sms_opt_in && (
                       <span
-                        className="w-6 h-6 flex items-center justify-center rounded bg-blue-100"
+                        className="w-6 h-6 flex items-center justify-center rounded bg-info-500"
                         title="SMS opt-in"
                       >
-                        <MessageSquare className="w-3 h-3 text-blue-600" />
+                        <MessageSquare className="w-3 h-3 text-white" />
                       </span>
                     )}
                   </div>
@@ -355,7 +355,7 @@ export default function Customers() {
                       </td>
                       <td className="px-4 py-4 text-center">
                         {customer.loyalty_points > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-warning-500 text-white text-sm font-medium">
                             <Gift className="w-3 h-3" />
                             {customer.loyalty_points}
                           </span>
@@ -367,18 +367,18 @@ export default function Customers() {
                         <div className="flex items-center justify-center gap-2">
                           {customer.email_opt_in && (
                             <span
-                              className="w-6 h-6 flex items-center justify-center rounded bg-green-100"
+                              className="w-6 h-6 flex items-center justify-center rounded bg-success-500"
                               title="Email opt-in"
                             >
-                              <Mail className="w-3 h-3 text-green-600" />
+                              <Mail className="w-3 h-3 text-white" />
                             </span>
                           )}
                           {customer.sms_opt_in && (
                             <span
-                              className="w-6 h-6 flex items-center justify-center rounded bg-blue-100"
+                              className="w-6 h-6 flex items-center justify-center rounded bg-info-500"
                               title="SMS opt-in"
                             >
-                              <MessageSquare className="w-3 h-3 text-blue-600" />
+                              <MessageSquare className="w-3 h-3 text-white" />
                             </span>
                           )}
                           {!customer.email_opt_in && !customer.sms_opt_in && (

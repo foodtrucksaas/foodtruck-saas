@@ -96,7 +96,7 @@ export function CampaignCard({
               <button
                 onClick={onSend}
                 disabled={sending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium text-sm transition-all shadow-md active:scale-95"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-600 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium text-sm transition-all shadow-md active:scale-95"
               >
                 {sending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -148,9 +148,9 @@ function StatItem({
   color: 'gray' | 'blue' | 'green';
 }) {
   const colorClasses = {
-    gray: 'text-gray-500 bg-gray-50',
-    blue: 'text-blue-600 bg-blue-50',
-    green: 'text-green-600 bg-green-50',
+    gray: 'text-gray-600 bg-gray-100',
+    blue: 'text-white bg-info-500',
+    green: 'text-white bg-success-500',
   };
 
   return (
@@ -167,13 +167,13 @@ function StatItem({
 function StatusBadge({ sentCount }: { sentCount: number }) {
   if (sentCount > 0) {
     return (
-      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-success-500 text-white">
         Envoyée
       </span>
     );
   }
   return (
-    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-warning-500 text-white">
       Brouillon
     </span>
   );

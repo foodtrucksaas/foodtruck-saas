@@ -123,7 +123,7 @@ export function SocialMediaSection({ foodtruck }: SocialMediaSectionProps) {
                   <button
                     onClick={saveEdit}
                     disabled={loading}
-                    className="p-2 min-h-[44px] min-w-[44px] text-green-600 hover:bg-green-50 rounded-lg flex items-center justify-center flex-1 sm:flex-initial"
+                    className="p-2 min-h-[44px] min-w-[44px] text-success-600 hover:bg-success-50 rounded-lg flex items-center justify-center flex-1 sm:flex-initial"
                   >
                     <Check className="w-4 h-4" />
                   </button>

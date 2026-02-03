@@ -87,7 +87,7 @@ export default function NewOrderPopup({
       >
         {/* Header */}
         <div
-          className={`${isAutoAccept ? 'bg-green-500' : 'bg-yellow-500'} text-white px-4 sm:px-5 py-4 relative flex-shrink-0`}
+          className={`${isAutoAccept ? 'bg-success-500' : 'bg-warning-500'} text-white px-4 sm:px-5 py-4 relative flex-shrink-0`}
         >
           {/* Close button - larger touch target */}
           <button
@@ -99,7 +99,7 @@ export default function NewOrderPopup({
           <div className="flex items-center justify-between gap-3 pr-12">
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-bold">Nouvelle commande !</h2>
-              {isAutoAccept && <p className="text-green-100 text-sm">Acceptée automatiquement</p>}
+              {isAutoAccept && <p className="text-success-100 text-sm">Acceptée automatiquement</p>}
             </div>
             <div className="bg-white/20 rounded-xl px-3 sm:px-4 py-2 flex-shrink-0">
               <span className="text-2xl sm:text-3xl font-bold">{time}</span>
@@ -139,7 +139,7 @@ export default function NewOrderPopup({
                     </div>
                   )}
                   {item.notes && (
-                    <p className="ml-6 text-xs text-amber-600 italic">💬 {item.notes}</p>
+                    <p className="ml-6 text-xs text-warning-600 italic">💬 {item.notes}</p>
                   )}
                 </div>
               ))}
@@ -148,9 +148,9 @@ export default function NewOrderPopup({
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4">
-              <h4 className="text-sm font-medium text-yellow-800 mb-1">Note du client</h4>
-              <p className="text-yellow-900">{order.notes}</p>
+            <div className="bg-warning-50 border border-warning-200 rounded-xl px-4 py-3 mb-4">
+              <h4 className="text-sm font-medium text-warning-800 mb-1">Note du client</h4>
+              <p className="text-warning-900">{order.notes}</p>
             </div>
           )}
 
@@ -162,7 +162,7 @@ export default function NewOrderPopup({
                   <span>Sous-total</span>
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-green-600">
+                <div className="flex items-center justify-between text-success-600">
                   <span>{getDiscountLabel()}</span>
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
@@ -185,7 +185,7 @@ export default function NewOrderPopup({
           {isAutoAccept ? (
             <button
               onClick={onClose}
-              className="w-full px-4 py-3.5 min-h-[48px] bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 min-h-[48px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <Check className="w-5 h-5" />
               OK
@@ -194,13 +194,13 @@ export default function NewOrderPopup({
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <button
                 onClick={onCancel}
-                className="order-2 sm:order-1 px-4 py-3 min-h-[48px] text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
+                className="order-2 sm:order-1 px-4 py-3 min-h-[48px] text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
               >
                 Refuser
               </button>
               <button
                 onClick={onAccept}
-                className="order-1 sm:order-2 flex-1 px-4 py-3.5 min-h-[52px] bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
+                className="order-1 sm:order-2 flex-1 px-4 py-3.5 min-h-[52px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
                 Accepter

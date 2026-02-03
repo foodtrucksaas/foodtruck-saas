@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2, Check, ArrowRight, ArrowLeft, Truck, ChefHat, Sparkles } from 'lucide-react';
+import {
+  UtensilsCrossed,
+  Loader2,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Truck,
+  ChefHat,
+  Sparkles,
+} from 'lucide-react';
 import { CUISINE_TYPES, DEFAULT_CATEGORIES } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -118,7 +127,7 @@ export default function Onboarding() {
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-xl text-error-700 text-sm">
             {error}
           </div>
         )}
@@ -172,8 +181,8 @@ export default function Onboarding() {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6">
-              <p className="text-amber-800 text-sm">
+            <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 mt-6">
+              <p className="text-warning-800 text-sm">
                 <strong>💡 Conseil :</strong> Choisissez un nom mémorable et facile à prononcer.
                 Vous pourrez le modifier plus tard dans les paramètres.
               </p>
@@ -218,7 +227,9 @@ export default function Onboarding() {
               {cuisineTypes.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium text-primary-600">{cuisineTypes.length}</span> type{cuisineTypes.length > 1 ? 's' : ''} sélectionné{cuisineTypes.length > 1 ? 's' : ''}
+                    <span className="font-medium text-primary-600">{cuisineTypes.length}</span> type
+                    {cuisineTypes.length > 1 ? 's' : ''} sélectionné
+                    {cuisineTypes.length > 1 ? 's' : ''}
                   </p>
                 </div>
               )}
@@ -233,9 +244,7 @@ export default function Onboarding() {
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="w-8 h-8 text-primary-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Presque terminé !
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Presque terminé !</h1>
               <p className="text-gray-600">
                 Ajoutez une description pour donner envie à vos clients
               </p>
@@ -263,11 +272,16 @@ export default function Onboarding() {
                     <UtensilsCrossed className="w-8 h-8 text-primary-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 truncate">{name || 'Votre Food Truck'}</h3>
+                    <h3 className="font-bold text-gray-900 truncate">
+                      {name || 'Votre Food Truck'}
+                    </h3>
                     {tagline && <p className="text-sm text-gray-600 truncate">{tagline}</p>}
                     <div className="flex flex-wrap gap-1 mt-2">
                       {cuisineTypes.slice(0, 3).map((type) => (
-                        <span key={type} className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">
+                        <span
+                          key={type}
+                          className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded"
+                        >
                           {type}
                         </span>
                       ))}
@@ -280,10 +294,10 @@ export default function Onboarding() {
               </div>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6">
-              <p className="text-green-800 text-sm">
-                <strong>✨ Bonne nouvelle :</strong> Vous pourrez personnaliser votre profil (logo, horaires, réseaux sociaux...)
-                depuis les paramètres après la création.
+            <div className="bg-success-50 border border-success-200 rounded-xl p-4 mt-6">
+              <p className="text-success-800 text-sm">
+                <strong>✨ Bonne nouvelle :</strong> Vous pourrez personnaliser votre profil (logo,
+                horaires, réseaux sociaux...) depuis les paramètres après la création.
               </p>
             </div>
           </div>

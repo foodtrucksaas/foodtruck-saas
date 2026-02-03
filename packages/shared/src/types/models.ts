@@ -202,10 +202,23 @@ export interface CustomerWithLocations extends Customer {
 }
 
 export type CampaignType = 'manual' | 'automated';
-export type CampaignTrigger = 'manual' | 'location_day' | 'inactive' | 'welcome' | 'milestone' | 'birthday';
+export type CampaignTrigger =
+  | 'manual'
+  | 'location_day'
+  | 'inactive'
+  | 'welcome'
+  | 'milestone'
+  | 'birthday';
 export type CampaignChannel = 'email' | 'sms' | 'both';
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
-export type SendStatus = 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'failed';
+export type SendStatus =
+  | 'pending'
+  | 'sent'
+  | 'delivered'
+  | 'opened'
+  | 'clicked'
+  | 'bounced'
+  | 'failed';
 
 export interface CampaignTargeting {
   segment: 'all' | 'location' | 'inactive' | 'loyal' | 'new';
@@ -481,11 +494,7 @@ export interface ThresholdDiscountConfig {
   discount_value: number;
 }
 
-export type OfferConfig =
-  | BundleConfig
-  | BuyXGetYConfig
-  | PromoCodeConfig
-  | ThresholdDiscountConfig;
+export type OfferConfig = BundleConfig | BuyXGetYConfig | PromoCodeConfig | ThresholdDiscountConfig;
 
 export interface Offer {
   id: string;
@@ -506,6 +515,7 @@ export interface Offer {
   total_discount_given: number;
   /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable: boolean;
+  display_order: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -526,6 +536,7 @@ export interface OfferInsert {
   max_uses_per_customer?: number;
   /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable?: boolean;
+  display_order?: number;
 }
 
 export interface OfferUpdate {
@@ -542,6 +553,7 @@ export interface OfferUpdate {
   max_uses_per_customer?: number | null;
   /** @deprecated Plus utilisé. Les offres s'appliquent automatiquement sur des articles différents. */
   stackable?: boolean;
+  display_order?: number | null;
 }
 
 export type OfferItemRole = 'trigger' | 'reward' | 'bundle_item';
@@ -600,9 +612,10 @@ export interface AppliedOfferDetail {
   offer_id: string;
   offer_name: string;
   offer_type: OfferType;
-  times_applied: number;        // How many times this offer was applied (e.g., 2x for 6 pizzas with "3rd free")
-  discount_amount: number;      // Total discount from this offer (in centimes)
-  items_consumed: Array<{       // Array of items consumed by this offer
+  times_applied: number; // How many times this offer was applied (e.g., 2x for 6 pizzas with "3rd free")
+  discount_amount: number; // Total discount from this offer (in centimes)
+  items_consumed: Array<{
+    // Array of items consumed by this offer
     menu_item_id: string;
     quantity: number;
   }>;
@@ -656,7 +669,8 @@ export const OFFER_TYPE_DESCRIPTIONS: Record<OfferType, string> = {
   bundle: 'Créez une formule avec plusieurs plats à prix fixe. Idéal pour les menus du midi.',
   buy_x_get_y: 'Récompensez la fidélité ! Ex: 3 achetés = 1 offert',
   promo_code: 'Créez un code à partager pour attirer de nouveaux clients',
-  threshold_discount: 'Encouragez les commandes plus importantes avec une remise à partir d\'un montant',
+  threshold_discount:
+    "Encouragez les commandes plus importantes avec une remise à partir d'un montant",
 };
 
 export const OFFER_TYPE_ICONS: Record<OfferType, string> = {

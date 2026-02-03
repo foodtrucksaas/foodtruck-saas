@@ -59,14 +59,14 @@ export function ConfirmDialog({
 
   const variantStyles = {
     danger: {
-      icon: <Trash2 className="w-6 h-6 text-red-600" />,
-      iconBg: 'bg-red-100',
-      button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+      icon: <Trash2 className="w-6 h-6 text-error-600" />,
+      iconBg: 'bg-error-100',
+      button: 'bg-error-600 hover:bg-error-700 focus:ring-error-500',
     },
     warning: {
-      icon: <AlertTriangle className="w-6 h-6 text-amber-600" />,
-      iconBg: 'bg-amber-100',
-      button: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
+      icon: <AlertTriangle className="w-6 h-6 text-warning-600" />,
+      iconBg: 'bg-warning-100',
+      button: 'bg-warning-600 hover:bg-warning-700 focus:ring-warning-500',
     },
     info: {
       icon: <AlertTriangle className="w-6 h-6 text-primary-600" />,

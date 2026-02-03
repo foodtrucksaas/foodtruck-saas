@@ -1,4 +1,4 @@
-import { Store, Check, MapPin, Building2, Image as ImageIcon } from 'lucide-react';
+import { Store, Check, MapPin, Building2 } from 'lucide-react';
 import { CUISINE_TYPES } from '@foodtruck/shared';
 import { EditableField } from './EditableField';
 import { ToggleCards } from './ToggleCards';
@@ -266,53 +266,6 @@ export function ProfileSection({
                 />
               </div>
             </div>
-          }
-        />
-
-        {/* Affichage des photos */}
-        <EditableField
-          label="Affichage du menu"
-          field="show_menu_photos"
-          editingField={editingField}
-          editLoading={editLoading}
-          onStartEdit={onStartEdit}
-          onSave={onSave}
-          onCancel={onCancel}
-          hasBorder={false}
-          displayValue={
-            <div className="flex items-center gap-2">
-              {foodtruck?.show_menu_photos !== false ? (
-                <>
-                  <ImageIcon className="w-5 h-5 text-primary-500" />
-                  <span className="text-gray-900 font-medium">Avec photos</span>
-                </>
-              ) : (
-                <>
-                  <Store className="w-5 h-5 text-primary-500" />
-                  <span className="text-gray-900 font-medium">Sans photos</span>
-                </>
-              )}
-            </div>
-          }
-          editContent={
-            <ToggleCards
-              currentValue={editForm.show_menu_photos}
-              onChange={(value) => onUpdateForm('show_menu_photos', value)}
-              options={[
-                {
-                  value: true,
-                  icon: ImageIcon,
-                  title: 'Avec photos',
-                  description: 'Les photos des plats sont affichees',
-                },
-                {
-                  value: false,
-                  icon: Store,
-                  title: 'Sans photos',
-                  description: 'Menu en mode liste simple',
-                },
-              ]}
-            />
           }
         />
       </div>

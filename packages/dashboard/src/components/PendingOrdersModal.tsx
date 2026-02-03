@@ -166,13 +166,13 @@ export default function PendingOrdersModal({
       {/* Modal - fullscreen on mobile with scroll */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
         {/* Header */}
-        <div className="bg-yellow-500 text-white px-4 sm:px-5 py-4 relative flex-shrink-0">
+        <div className="bg-warning-500 text-white px-4 sm:px-5 py-4 relative flex-shrink-0">
           {/* Close button - larger touch target */}
           <button
             onClick={onClose}
             className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-90"
           >
-            <X className="w-5 h-5 text-yellow-800" />
+            <X className="w-5 h-5 text-warning-800" />
           </button>
 
           <h2 className="text-lg sm:text-xl font-bold pr-12">
@@ -198,7 +198,7 @@ export default function PendingOrdersModal({
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`min-h-[28px] min-w-[28px] h-3 rounded-full transition-all flex items-center justify-center ${
-                    idx === safeIndex ? 'bg-yellow-500 w-8' : 'bg-gray-300 hover:bg-gray-400 w-3'
+                    idx === safeIndex ? 'bg-warning-500 w-8' : 'bg-gray-300 hover:bg-gray-400 w-3'
                   }`}
                 />
               ))}
@@ -238,7 +238,7 @@ export default function PendingOrdersModal({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-lg mb-3">
+            <div className="flex items-center gap-2 bg-warning-100 text-warning-800 px-3 py-1.5 rounded-lg mb-3">
               <Clock className="w-4 h-4" />
               <span className="font-bold text-lg">{displayTime}</span>
             </div>
@@ -269,7 +269,7 @@ export default function PendingOrdersModal({
                     </div>
                   )}
                   {item.notes && (
-                    <p className="ml-6 text-xs text-amber-600 italic">💬 {item.notes}</p>
+                    <p className="ml-6 text-xs text-warning-600 italic">💬 {item.notes}</p>
                   )}
                 </div>
               ))}
@@ -278,9 +278,9 @@ export default function PendingOrdersModal({
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4">
-              <h4 className="text-sm font-medium text-yellow-800 mb-1">Note du client</h4>
-              <p className="text-yellow-900">{order.notes}</p>
+            <div className="bg-warning-50 border border-warning-200 rounded-xl px-4 py-3 mb-4">
+              <h4 className="text-sm font-medium text-warning-800 mb-1">Note du client</h4>
+              <p className="text-warning-900">{order.notes}</p>
             </div>
           )}
 
@@ -292,7 +292,7 @@ export default function PendingOrdersModal({
                   <span>Sous-total</span>
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-green-600">
+                <div className="flex items-center justify-between text-success-600">
                   <span>{getDiscountLabel()}</span>
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
@@ -312,13 +312,13 @@ export default function PendingOrdersModal({
           <div className="flex items-center gap-3">
             <button
               onClick={handleCancel}
-              className="min-h-[48px] px-4 py-3 text-gray-400 hover:text-red-500 text-sm transition-colors active:scale-95"
+              className="min-h-[48px] px-4 py-3 text-gray-400 hover:text-error-500 text-sm transition-colors active:scale-95"
             >
               Refuser
             </button>
             <button
               onClick={handleAccept}
-              className="flex-1 min-h-[48px] px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="flex-1 min-h-[48px] px-4 py-3 bg-warning-500 hover:bg-warning-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <Check className="w-5 h-5" />
               Accepter

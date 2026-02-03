@@ -1,11 +1,94 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Category, MenuItem } from '@foodtruck/shared';
 import { Modal, Button, Input } from '@foodtruck/shared/components';
 
 export interface CategoryFormData {
   name: string;
   display_order: number;
+}
+
+interface SortableCategoryItemProps {
+  category: Category;
+  itemCount: number;
+  onEdit: (category: Category) => void;
+  onDelete: (category: Category) => void;
+}
+
+function SortableCategoryItem({
+  category,
+  itemCount,
+  onEdit,
+  onDelete,
+}: SortableCategoryItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: category.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl ${
+        isDragging ? 'shadow-lg ring-2 ring-primary-300 bg-primary-50' : ''
+      }`}
+    >
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+          aria-label="Glisser pour réorganiser"
+        >
+          <GripVertical className="w-5 h-5" />
+        </button>
+        <div className="min-w-0">
+          <span className="font-medium text-gray-900 block truncate">{category.name}</span>
+          <span className="text-xs sm:text-sm text-gray-500">
+            ({itemCount} plat{itemCount > 1 ? 's' : ''})
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button
+          onClick={() => onEdit(category)}
+          className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
+        >
+          <Edit2 className="w-5 h-5 text-gray-500" />
+        </button>
+        <button
+          onClick={() => onDelete(category)}
+          className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+        >
+          <Trash2 className="w-5 h-5 text-red-500" />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 interface CategoryManagerProps {
@@ -15,8 +98,7 @@ interface CategoryManagerProps {
   onCreateCategory: (data: CategoryFormData) => Promise<void>;
   onUpdateCategory: (id: string, data: CategoryFormData) => Promise<void>;
   onDeleteCategory: (category: Category) => Promise<void>;
-  onMoveCategoryUp: (category: Category, index: number) => Promise<void>;
-  onMoveCategoryDown: (category: Category, index: number) => Promise<void>;
+  onReorderCategories: (categories: Category[]) => Promise<void>;
   openWithForm?: boolean;
   onOpenWithFormHandled?: () => void;
 }
@@ -28,8 +110,7 @@ export function CategoryManager({
   onCreateCategory,
   onUpdateCategory,
   onDeleteCategory,
-  onMoveCategoryUp,
-  onMoveCategoryDown,
+  onReorderCategories,
   openWithForm,
   onOpenWithFormHandled,
 }: CategoryManagerProps) {
@@ -39,6 +120,23 @@ export function CategoryManager({
     name: '',
     display_order: 0,
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Open form directly when openWithForm is true
   useEffect(() => {
@@ -76,6 +174,17 @@ export function CategoryManager({
     resetCategoryForm();
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+      const newIndex = categories.findIndex((cat) => cat.id === over.id);
+      const newCategories = arrayMove(categories, oldIndex, newIndex);
+      onReorderCategories(newCategories);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -102,57 +211,28 @@ export function CategoryManager({
             Aucune catégorie. Créez-en une pour organiser vos plats.
           </p>
         ) : (
-          <div className="space-y-2">
-            {categories.map((category, index) => (
-              <div
-                key={category.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-              >
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <div className="flex flex-col -my-1">
-                    <button
-                      onClick={() => onMoveCategoryUp(category, index)}
-                      disabled={index === 0}
-                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 active:scale-95 transition-all"
-                    >
-                      <ChevronDown className="w-5 h-5 rotate-180" />
-                    </button>
-                    <button
-                      onClick={() => onMoveCategoryDown(category, index)}
-                      disabled={index === categories.length - 1}
-                      className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 active:scale-95 transition-all"
-                    >
-                      <ChevronDown className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <GripVertical className="w-4 h-4 text-gray-400 hidden sm:block" />
-                  <div className="min-w-0">
-                    <span className="font-medium text-gray-900 block truncate">
-                      {category.name}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      ({groupedItems[category.id]?.length || 0} plat
-                      {(groupedItems[category.id]?.length || 0) > 1 ? 's' : ''})
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => handleEditCategory(category)}
-                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
-                  >
-                    <Edit2 className="w-5 h-5 text-gray-500" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteCategory(category)}
-                    className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={categories.map((c) => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {categories.map((category) => (
+                  <SortableCategoryItem
+                    key={category.id}
+                    category={category}
+                    itemCount={groupedItems[category.id]?.length || 0}
+                    onEdit={handleEditCategory}
+                    onDelete={onDeleteCategory}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

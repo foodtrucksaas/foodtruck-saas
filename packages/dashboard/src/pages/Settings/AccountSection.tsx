@@ -126,7 +126,7 @@ export function AccountSection() {
           {showPasswordForm && (
             <form onSubmit={handlePasswordChange} className="mt-4 space-y-3">
               {success ? (
-                <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
+                <div className="flex items-center gap-2 p-3 bg-success-50 text-success-700 rounded-lg">
                   <CheckCircle className="w-5 h-5" />
                   <span className="text-sm font-medium">Mot de passe modifié avec succès</span>
                 </div>
@@ -227,7 +227,7 @@ export function AccountSection() {
         <div className="pt-2 flex items-center justify-between">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm min-h-[44px] active:scale-[0.98]"
+            className="flex items-center gap-2 text-error-600 hover:text-error-700 font-medium text-sm min-h-[44px] active:scale-[0.98]"
           >
             <LogOut className="w-4 h-4" />
             Se déconnecter
@@ -238,7 +238,7 @@ export function AccountSection() {
         <div className="pt-4 mt-4 border-t border-gray-200">
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-2 text-gray-400 hover:text-red-600 text-sm transition-colors min-h-[44px] active:scale-[0.98]"
+            className="flex items-center gap-2 text-gray-400 hover:text-error-600 text-sm transition-colors min-h-[44px] active:scale-[0.98]"
           >
             <Trash2 className="w-4 h-4" />
             Supprimer mon compte
@@ -258,11 +258,11 @@ export function AccountSection() {
         size="sm"
       >
         <div className="p-6">
-          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg mb-4">
-            <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-error-50 rounded-lg mb-4">
+            <AlertTriangle className="w-6 h-6 text-error-500 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-red-800">Action irréversible</p>
-              <p className="text-sm text-red-600">
+              <p className="text-sm font-medium text-error-800">Action irréversible</p>
+              <p className="text-sm text-error-600">
                 Toutes vos données seront définitivement supprimées.
               </p>
             </div>

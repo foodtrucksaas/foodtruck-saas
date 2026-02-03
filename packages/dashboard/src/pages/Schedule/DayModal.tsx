@@ -76,15 +76,15 @@ export function DayModal({
               onClick={() => onFormChange({ ...form, mode: 'override' })}
               className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'override'
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-info-500 bg-info-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
               <Pencil
-                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-blue-500' : 'text-gray-400'}`}
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-info-500' : 'text-gray-400'}`}
               />
               <p
-                className={`text-xs font-medium ${form.mode === 'override' ? 'text-blue-700' : 'text-gray-600'}`}
+                className={`text-xs font-medium ${form.mode === 'override' ? 'text-info-700' : 'text-gray-600'}`}
               >
                 Modifier
               </p>
@@ -94,15 +94,15 @@ export function DayModal({
               onClick={() => onFormChange({ ...form, mode: 'closed' })}
               className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'closed'
-                  ? 'border-red-500 bg-red-50'
+                  ? 'border-error-500 bg-error-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
               <XCircle
-                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'closed' ? 'text-red-500' : 'text-gray-400'}`}
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'closed' ? 'text-error-500' : 'text-gray-400'}`}
               />
               <p
-                className={`text-xs font-medium ${form.mode === 'closed' ? 'text-red-700' : 'text-gray-600'}`}
+                className={`text-xs font-medium ${form.mode === 'closed' ? 'text-error-700' : 'text-gray-600'}`}
               >
                 Fermé
               </p>

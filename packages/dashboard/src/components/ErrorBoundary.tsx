@@ -60,8 +60,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 rounded-full bg-error-50 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-error-500" />
             </div>
 
             <h1 className="text-xl font-bold text-gray-900 mb-2">
@@ -96,7 +96,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">
                   Détails techniques (dev)
                 </summary>
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-red-600 overflow-auto max-h-48">
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-error-600 overflow-auto max-h-48">
                   <p className="font-semibold mb-1">
                     {this.state.error.name}: {this.state.error.message}
                   </p>

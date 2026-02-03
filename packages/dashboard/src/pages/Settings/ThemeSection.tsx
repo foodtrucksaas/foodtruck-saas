@@ -45,7 +45,7 @@ export default function ThemeSection() {
         </div>
         {saving && <Loader2 className="w-5 h-5 animate-spin text-primary-500 flex-shrink-0" />}
         {success && (
-          <div className="flex items-center gap-1 text-green-600 text-sm flex-shrink-0">
+          <div className="flex items-center gap-1 text-success-600 text-sm flex-shrink-0">
             <Check className="w-4 h-4" />
             <span className="hidden sm:inline">Enregistré</span>
           </div>

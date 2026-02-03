@@ -43,9 +43,11 @@ vi.mock('../lib/api', () => ({
       createCategoryOptionGroup: (...args: unknown[]) => mockCreateCategoryOptionGroup(...args),
       updateCategoryOptionGroup: (...args: unknown[]) => mockUpdateCategoryOptionGroup(...args),
       deleteCategoryOptionGroup: (...args: unknown[]) => mockDeleteCategoryOptionGroup(...args),
-      deleteCategoryOptionGroupsByCategory: (...args: unknown[]) => mockDeleteCategoryOptionGroupsByCategory(...args),
+      deleteCategoryOptionGroupsByCategory: (...args: unknown[]) =>
+        mockDeleteCategoryOptionGroupsByCategory(...args),
       createCategoryOption: (...args: unknown[]) => mockCreateCategoryOption(...args),
-      deleteCategoryOptionsByGroup: (...args: unknown[]) => mockDeleteCategoryOptionsByGroup(...args),
+      deleteCategoryOptionsByGroup: (...args: unknown[]) =>
+        mockDeleteCategoryOptionsByGroup(...args),
       getCategoryRequiredGroups: (...args: unknown[]) => mockGetCategoryRequiredGroups(...args),
       getCategorySupplementGroups: (...args: unknown[]) => mockGetCategorySupplementGroups(...args),
     },
@@ -54,8 +56,20 @@ vi.mock('../lib/api', () => ({
 
 // Mock FoodtruckContext
 const mockCategories: Category[] = [
-  { id: 'cat-1', foodtruck_id: 'ft-1', name: 'Burgers', display_order: 0, created_at: '2024-01-01' },
-  { id: 'cat-2', foodtruck_id: 'ft-1', name: 'Boissons', display_order: 1, created_at: '2024-01-01' },
+  {
+    id: 'cat-1',
+    foodtruck_id: 'ft-1',
+    name: 'Burgers',
+    display_order: 0,
+    created_at: '2024-01-01',
+  },
+  {
+    id: 'cat-2',
+    foodtruck_id: 'ft-1',
+    name: 'Boissons',
+    display_order: 1,
+    created_at: '2024-01-01',
+  },
 ];
 
 const mockMenuItems: MenuItem[] = [
@@ -122,12 +136,17 @@ const mockFoodtruck = {
 
 const mockRefresh = vi.fn();
 
+const mockUpdateMenuItemsOrder = vi.fn();
+const mockUpdateCategoriesOrder = vi.fn();
+
 vi.mock('../contexts/FoodtruckContext', () => ({
   useFoodtruck: () => ({
     foodtruck: mockFoodtruck,
     categories: mockCategories,
     menuItems: mockMenuItems,
     refresh: mockRefresh,
+    updateMenuItemsOrder: mockUpdateMenuItemsOrder,
+    updateCategoriesOrder: mockUpdateCategoriesOrder,
   }),
 }));
 
@@ -448,52 +467,19 @@ describe('useMenuPage', () => {
   });
 
   describe('category reordering', () => {
-    it('should move category up', async () => {
+    it('should reorder categories', async () => {
       const { result } = renderHook(() => useMenuPage());
 
+      const reorderedCategories = [mockCategories[1], mockCategories[0]];
+
       await act(async () => {
-        await result.current.moveCategoryUp(mockCategories[1], 1);
+        await result.current.reorderCategories(reorderedCategories);
       });
 
       expect(mockReorderCategories).toHaveBeenCalledWith([
-        { id: 'cat-2', display_order: 1 },
-        { id: 'cat-1', display_order: 2 },
+        { id: 'cat-2', display_order: 0 },
+        { id: 'cat-1', display_order: 1 },
       ]);
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-
-    it('should not move first category up', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.moveCategoryUp(mockCategories[0], 0);
-      });
-
-      expect(mockReorderCategories).not.toHaveBeenCalled();
-    });
-
-    it('should move category down', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.moveCategoryDown(mockCategories[0], 0);
-      });
-
-      expect(mockReorderCategories).toHaveBeenCalledWith([
-        { id: 'cat-1', display_order: 2 },
-        { id: 'cat-2', display_order: 1 },
-      ]);
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-
-    it('should not move last category down', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.moveCategoryDown(mockCategories[1], 1);
-      });
-
-      expect(mockReorderCategories).not.toHaveBeenCalled();
     });
   });
 

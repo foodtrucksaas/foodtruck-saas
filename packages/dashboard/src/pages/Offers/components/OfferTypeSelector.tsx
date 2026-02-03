@@ -23,8 +23,8 @@ const templates: OfferTemplate[] = [
     title: 'Menu / Formule',
     example: 'Entree + Plat + Boisson = 15€',
     description: 'Creez une formule a prix fixe avec plusieurs choix',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+    color: 'text-white',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-primary-500 hover:shadow-md',
     popular: true,
   },
   {
@@ -33,8 +33,8 @@ const templates: OfferTemplate[] = [
     title: 'X achetes = Y offert',
     example: '3 pizzas = 1 boisson offerte',
     description: 'Offrez un article quand le client en achete plusieurs',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+    color: 'text-white',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-warning-500 hover:shadow-md',
   },
   {
     type: 'promo_code',
@@ -42,8 +42,8 @@ const templates: OfferTemplate[] = [
     title: 'Code Promo',
     example: '-10% avec WELCOME10',
     description: 'Un code a saisir pour avoir une reduction',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+    color: 'text-white',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-info-500 hover:shadow-md',
   },
   {
     type: 'threshold_discount',
@@ -51,8 +51,8 @@ const templates: OfferTemplate[] = [
     title: 'Remise au palier',
     example: "Des 25€ d'achat = 5€ offerts",
     description: "Reduction automatique a partir d'un montant",
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
+    color: 'text-white',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-success-500 hover:shadow-md',
   },
 ];
 
@@ -73,7 +73,7 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
             <button
               key={template.type}
               onClick={() => onSelect(template.type)}
-              className={`relative flex items-start gap-4 p-4 border-2 rounded-xl transition-all text-left active:scale-[0.98] ${template.bgColor}`}
+              className={`group relative flex items-start gap-4 p-4 border-2 rounded-xl transition-all text-left active:scale-[0.98] ${template.bgColor}`}
             >
               {/* Popular badge */}
               {template.popular && (
@@ -84,8 +84,18 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
               )}
 
               {/* Icon */}
-              <div className={`p-3 rounded-xl bg-white shadow-sm flex-shrink-0`}>
-                <Icon className={`w-6 h-6 ${template.color}`} />
+              <div
+                className={`p-3 rounded-xl flex-shrink-0 transition-colors ${
+                  template.type === 'bundle'
+                    ? 'bg-primary-500'
+                    : template.type === 'buy_x_get_y'
+                      ? 'bg-warning-500'
+                      : template.type === 'promo_code'
+                        ? 'bg-info-500'
+                        : 'bg-success-500'
+                }`}
+              >
+                <Icon className={`w-6 h-6 ${template.color} transition-colors`} />
               </div>
 
               {/* Content */}
@@ -103,7 +113,15 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
               {/* Arrow indicator */}
               <div className="flex-shrink-0 self-center">
                 <svg
-                  className="w-5 h-5 text-gray-400"
+                  className={`w-5 h-5 text-gray-300 transition-colors ${
+                    template.type === 'bundle'
+                      ? 'group-hover:text-primary-500'
+                      : template.type === 'buy_x_get_y'
+                        ? 'group-hover:text-warning-500'
+                        : template.type === 'promo_code'
+                          ? 'group-hover:text-info-500'
+                          : 'group-hover:text-success-500'
+                  }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

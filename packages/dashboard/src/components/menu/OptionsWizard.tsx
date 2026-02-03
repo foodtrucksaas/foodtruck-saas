@@ -157,10 +157,10 @@ export function OptionsWizard({
   ) => {
     const isEditing = editingGroupIndex === groupIdx || !group.id;
     const isSupplement = group.type === 'supplement';
-    const borderColor = isSupplement ? 'border-l-green-500' : 'border-l-blue-500';
+    const borderColor = isSupplement ? 'border-l-success-500' : 'border-l-info-500';
     const valueBadgeStyle = isSupplement
-      ? 'bg-green-50 border-green-200 text-green-700'
-      : 'bg-blue-50 border-blue-200 text-blue-700';
+      ? 'bg-success-50 border-success-200 text-success-700'
+      : 'bg-info-50 border-info-200 text-info-700';
     const ChoiceIcon = isSupplement ? CheckSquare : Circle;
     const choiceLabel = isSupplement ? 'Plusieurs choix possibles' : '1 seul choix';
 
@@ -209,10 +209,10 @@ export function OptionsWizard({
               <button
                 type="button"
                 onClick={() => removeOptionGroup(groupIdx)}
-                className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-error-50 active:scale-95 transition-all"
                 title="Supprimer"
               >
-                <Trash2 className="w-5 h-5 text-red-500" />
+                <Trash2 className="w-5 h-5 text-error-500" />
               </button>
             </div>
             {/* Indication choix unique/multiple */}
@@ -242,7 +242,7 @@ export function OptionsWizard({
                     >
                       {val.name}
                       {!val.isAvailable && (
-                        <span className="ml-2 text-xs text-red-400">(rupture)</span>
+                        <span className="ml-2 text-xs text-error-400">(rupture)</span>
                       )}
                     </button>
                     <span className="text-sm text-gray-400">+</span>
@@ -260,7 +260,7 @@ export function OptionsWizard({
                     <button
                       type="button"
                       onClick={() => removeValueFromGroup(groupIdx, val.name)}
-                      className="p-1.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500"
+                      className="p-1.5 rounded hover:bg-error-100 text-gray-400 hover:text-error-500"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -430,10 +430,10 @@ export function OptionsWizard({
                 <button
                   type="button"
                   onClick={() => removeOptionGroup(groupIdx)}
-                  className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors active:scale-95"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-error-50 transition-colors active:scale-95"
                   title="Supprimer"
                 >
-                  <Trash2 className="w-5 h-5 text-red-400" />
+                  <Trash2 className="w-5 h-5 text-error-400" />
                 </button>
               </div>
             </div>
@@ -465,7 +465,7 @@ export function OptionsWizard({
                   >
                     {val.name}
                     <span
-                      className={`ml-1 ${priceNum > 0 ? 'opacity-70' : 'text-green-600 opacity-80'}`}
+                      className={`ml-1 ${priceNum > 0 ? 'opacity-70' : 'text-success-600 opacity-80'}`}
                     >
                       {priceDisplay}
                     </span>
@@ -534,7 +534,7 @@ export function OptionsWizard({
               {requiredGroups.length > 0 && (
                 <div>
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                    <Circle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                    <Circle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info-500" />
                     <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Obligatoires</h3>
                     <span className="text-[10px] sm:text-xs text-gray-400">
                       1 seul choix par groupe
@@ -552,7 +552,7 @@ export function OptionsWizard({
               {optionalGroups.length > 0 && (
                 <div>
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                    <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />
+                    <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success-500" />
                     <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Optionnels</h3>
                     <span className="text-[10px] sm:text-xs text-gray-400">
                       Plusieurs choix possibles
@@ -576,7 +576,7 @@ export function OptionsWizard({
                   <button
                     type="button"
                     onClick={() => addRequiredGroup('Taille')}
-                    className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors min-h-[40px]"
+                    className="px-3 sm:px-4 py-2 bg-info-50 text-info-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-info-100 border border-info-200 transition-colors min-h-[40px]"
                   >
                     + Taille
                   </button>
@@ -585,7 +585,7 @@ export function OptionsWizard({
                   <button
                     type="button"
                     onClick={() => addRequiredGroup('Cuisson')}
-                    className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-100 border border-blue-200 transition-colors min-h-[40px]"
+                    className="px-3 sm:px-4 py-2 bg-info-50 text-info-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-info-100 border border-info-200 transition-colors min-h-[40px]"
                   >
                     + Cuisson
                   </button>
@@ -601,7 +601,7 @@ export function OptionsWizard({
                   <button
                     type="button"
                     onClick={() => addOptionalGroup('Suppléments')}
-                    className="px-3 sm:px-4 py-2 bg-green-50 text-green-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-100 border border-green-200 transition-colors min-h-[40px]"
+                    className="px-3 sm:px-4 py-2 bg-success-50 text-success-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-success-100 border border-success-200 transition-colors min-h-[40px]"
                   >
                     + Suppléments
                   </button>

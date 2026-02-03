@@ -9,6 +9,7 @@ import {
   PromoCodeConfig,
   ThresholdDiscountConfig,
   AdvancedOptions,
+  OfferRecap,
 } from './components';
 
 interface OfferWizardProps {
@@ -103,7 +104,7 @@ export function OfferWizard({
                       <div
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all ${
                           step > s.number
-                            ? 'bg-emerald-500 text-white'
+                            ? 'bg-success-500 text-white'
                             : step === s.number
                               ? 'bg-primary-500 text-white'
                               : 'bg-gray-200 text-gray-500'
@@ -129,7 +130,7 @@ export function OfferWizard({
                     {index < WIZARD_STEPS.length - 1 && (
                       <div
                         className={`h-0.5 flex-1 mx-2 rounded ${
-                          step > s.number ? 'bg-emerald-500' : 'bg-gray-200'
+                          step > s.number ? 'bg-success-500' : 'bg-gray-200'
                         }`}
                       />
                     )}
@@ -193,6 +194,9 @@ export function OfferWizard({
                 {form.offerType === 'threshold_discount' && (
                   <ThresholdDiscountConfig form={form} updateForm={updateForm} />
                 )}
+
+                {/* Recap */}
+                <OfferRecap form={form} categories={categories} />
 
                 {/* Advanced Options */}
                 <AdvancedOptions form={form} updateForm={updateForm} />

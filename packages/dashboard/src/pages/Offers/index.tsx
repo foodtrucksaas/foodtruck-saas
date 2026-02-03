@@ -1,6 +1,6 @@
 import { Plus, Sparkles, Users } from 'lucide-react';
 import { useOffers } from './useOffers';
-import { OfferCard } from './OfferCard';
+import { SortableOfferList } from './SortableOfferList';
 import { OfferWizard } from './OfferWizard';
 
 export default function Offers() {
@@ -24,6 +24,7 @@ export default function Offers() {
     openEditWizard,
     closeWizard,
     openCreateWizard,
+    reorderOffers,
   } = useOffers();
 
   if (loading) {
@@ -57,8 +58,8 @@ export default function Offers() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <div className="card p-3 sm:p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex-shrink-0">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-success-500 flex-shrink-0">
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{activeCount}</p>
@@ -68,8 +69,8 @@ export default function Offers() {
         </div>
         <div className="card p-3 sm:p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex-shrink-0">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-info-500 flex-shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalUses}</p>
@@ -96,17 +97,13 @@ export default function Offers() {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
-          {offers.map((offer) => (
-            <OfferCard
-              key={offer.id}
-              offer={offer}
-              onToggle={toggleActive}
-              onEdit={openEditWizard}
-              onDelete={deleteOffer}
-            />
-          ))}
-        </div>
+        <SortableOfferList
+          offers={offers}
+          onToggle={toggleActive}
+          onEdit={openEditWizard}
+          onDelete={deleteOffer}
+          onReorder={reorderOffers}
+        />
       )}
 
       {/* Wizard Modal */}

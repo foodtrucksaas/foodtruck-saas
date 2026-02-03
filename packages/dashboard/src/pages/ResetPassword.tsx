@@ -20,7 +20,9 @@ export default function ResetPassword() {
     // Give a small delay for Supabase to process the recovery token
     const timer = setTimeout(() => {
       if (!user) {
-        setError('Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande.');
+        setError(
+          'Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande.'
+        );
       }
     }, 2000);
 
@@ -62,19 +64,14 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-success-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Mot de passe modifié
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe modifié</h2>
           <p className="text-gray-600 mb-6">
             Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé...
           </p>
-          <Link
-            to="/"
-            className="text-primary-600 hover:text-primary-700 font-medium"
-          >
+          <Link to="/" className="text-primary-600 hover:text-primary-700 font-medium">
             Accéder au tableau de bord
           </Link>
         </div>
@@ -86,17 +83,12 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-error-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Lien invalide
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Lien invalide</h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <Link
-            to="/forgot-password"
-            className="btn-primary inline-block"
-          >
+          <Link to="/forgot-password" className="btn-primary inline-block">
             Demander un nouveau lien
           </Link>
         </div>
@@ -165,18 +157,18 @@ export default function ResetPassword() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             {error && <ErrorAlert>{error}</ErrorAlert>}
 
-            <button
-              type="submit"
-              disabled={loading || !user}
-              className="btn-primary w-full"
-            >
+            <button type="submit" disabled={loading || !user} className="btn-primary w-full">
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (

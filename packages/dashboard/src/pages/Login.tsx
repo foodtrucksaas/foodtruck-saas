@@ -50,9 +50,7 @@ export default function Login() {
       <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center" role="status" aria-live="polite">
           <Mail className="w-16 h-16 text-primary-500 mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Verifiez votre boite mail
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifiez votre boite mail</h1>
           <p className="text-gray-600 mb-6">
             Nous avons envoye un lien de connexion a <strong>{email}</strong>
           </p>
@@ -72,7 +70,10 @@ export default function Login() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+          <div
+            className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            aria-hidden="true"
+          >
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">FoodTruck SaaS</h1>
@@ -84,14 +85,21 @@ export default function Login() {
           <div className="card p-4 border-2 border-primary-500 bg-primary-50" aria-current="page">
             <p className="text-sm font-medium text-primary-700 text-center">Connexion</p>
           </div>
-          <Link to="/register" className="card p-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+          <Link
+            to="/register"
+            className="card p-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
             <p className="text-sm font-medium text-gray-700 text-center">Creer un compte</p>
           </Link>
         </nav>
 
         <div className="card p-6">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm" role="alert" aria-live="assertive">
+            <div
+              className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm"
+              role="alert"
+              aria-live="assertive"
+            >
               {error}
             </div>
           )}
@@ -101,7 +109,10 @@ export default function Login() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                  aria-hidden="true"
+                />
                 <input
                   id="login-email"
                   type="email"
@@ -129,7 +140,10 @@ export default function Login() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                  aria-hidden="true"
+                />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}

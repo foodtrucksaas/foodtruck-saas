@@ -33,17 +33,27 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
-  { name: 'Commandes', href: '/orders', icon: ClipboardList },
-  { name: 'Menu', href: '/menu', icon: UtensilsCrossed },
-  { name: 'Planning', href: '/schedule', icon: Calendar },
-  { name: 'Statistiques', href: '/analytics', icon: BarChart3 },
-  { name: 'Clients', href: '/customers', icon: Users },
-  { name: 'Campagnes', href: '/campaigns', icon: Send },
-  { name: 'Offres', href: '/offers', icon: Sparkles },
-  { name: 'Fidélité', href: '/loyalty', icon: Gift },
-  { name: 'Paramètres', href: '/settings', icon: Settings },
+type NavItem =
+  | { type: 'link'; name: string; href: string; icon: typeof LayoutDashboard }
+  | { type: 'separator'; label: string };
+
+const navigation: NavItem[] = [
+  // Opérations quotidiennes
+  { type: 'separator', label: 'Opérations' },
+  { type: 'link', name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
+  { type: 'link', name: 'Commandes', href: '/orders', icon: ClipboardList },
+  { type: 'link', name: 'Carte', href: '/menu', icon: UtensilsCrossed },
+  { type: 'link', name: 'Planning', href: '/schedule', icon: Calendar },
+  { type: 'link', name: 'Menus & Offres', href: '/offers', icon: Sparkles },
+  // Performance & Clients
+  { type: 'separator', label: 'Performance' },
+  { type: 'link', name: 'Statistiques', href: '/analytics', icon: BarChart3 },
+  { type: 'link', name: 'Clients', href: '/customers', icon: Users },
+  { type: 'link', name: 'Fidélité', href: '/loyalty', icon: Gift },
+  { type: 'link', name: 'Campagnes', href: '/campaigns', icon: Send },
+  // Paramètres seul en bas
+  { type: 'separator', label: '' },
+  { type: 'link', name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 
 function LayoutContent({ children }: LayoutProps) {
@@ -88,7 +98,10 @@ function LayoutContent({ children }: LayoutProps) {
 
   // Get current page name for mobile header
   const currentPageName =
-    navigation.find((item) => item.href === location.pathname)?.name || 'Tableau de bord';
+    navigation.find(
+      (item): item is Extract<NavItem, { type: 'link' }> =>
+        item.type === 'link' && item.href === location.pathname
+    )?.name || 'Tableau de bord';
 
   return (
     <>
@@ -182,7 +195,20 @@ function LayoutContent({ children }: LayoutProps) {
           </div>
 
           <nav className="space-y-1" aria-label="Menu principal">
-            {navigation.map((item) => {
+            {navigation.map((item, index) => {
+              if (item.type === 'separator') {
+                return (
+                  <div
+                    key={`sep-${item.label}`}
+                    className={`px-3 pt-4 pb-1 ${index > 0 ? 'mt-2' : ''}`}
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                      {item.label}
+                    </span>
+                  </div>
+                );
+              }
+
               const isActive = location.pathname === item.href;
               return (
                 <Link
@@ -241,12 +267,14 @@ function LayoutContent({ children }: LayoutProps) {
             <button
               onClick={showAllPendingOrders}
               className={`relative w-10 h-10 rounded-xl shadow-sm flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 ${
-                pendingCount > 0 ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-white hover:bg-gray-50'
+                pendingCount > 0
+                  ? 'bg-warning-400 hover:bg-warning-500'
+                  : 'bg-white hover:bg-gray-50'
               }`}
               aria-label={`Commandes en attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
             >
               <Bell
-                className={`w-4 h-4 ${pendingCount > 0 ? 'text-yellow-800' : 'text-gray-400'}`}
+                className={`w-4 h-4 ${pendingCount > 0 ? 'text-warning-800' : 'text-gray-400'}`}
                 aria-hidden="true"
               />
               {pendingCount > 0 && (
@@ -301,13 +329,13 @@ function LayoutContent({ children }: LayoutProps) {
                 onClick={showAllPendingOrders}
                 className={`relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ease-out active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                   pendingCount > 0
-                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 shadow-md shadow-yellow-500/30 hover:shadow-lg'
+                    ? 'bg-gradient-to-br from-warning-400 to-warning-500 shadow-md shadow-warning-500/30 hover:shadow-lg'
                     : 'bg-gray-100 hover:bg-gray-200'
                 }`}
                 aria-label={`Commandes en attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
               >
                 <Bell
-                  className={`w-5 h-5 ${pendingCount > 0 ? 'text-yellow-900' : 'text-gray-400'}`}
+                  className={`w-5 h-5 ${pendingCount > 0 ? 'text-warning-900' : 'text-gray-400'}`}
                   aria-hidden="true"
                 />
                 {pendingCount > 0 && (

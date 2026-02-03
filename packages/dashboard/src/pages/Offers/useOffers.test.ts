@@ -31,14 +31,77 @@ global.confirm = vi.fn(() => true);
 
 describe('useOffers', () => {
   const mockCategories: Category[] = [
-    { id: 'cat-1', foodtruck_id: 'ft-1', name: 'Plats', display_order: 0, created_at: '2024-01-01' },
-    { id: 'cat-2', foodtruck_id: 'ft-1', name: 'Boissons', display_order: 1, created_at: '2024-01-01' },
+    {
+      id: 'cat-1',
+      foodtruck_id: 'ft-1',
+      name: 'Plats',
+      display_order: 0,
+      created_at: '2024-01-01',
+    },
+    {
+      id: 'cat-2',
+      foodtruck_id: 'ft-1',
+      name: 'Boissons',
+      display_order: 1,
+      created_at: '2024-01-01',
+    },
   ];
 
   const mockMenuItems: MenuItem[] = [
-    { id: 'item-1', foodtruck_id: 'ft-1', name: 'Burger', price: 1200, category_id: 'cat-1', is_available: true, is_daily_special: false, is_archived: false, created_at: '2024-01-01', updated_at: '2024-01-01', description: null, allergens: null, image_url: null, display_order: 0, option_prices: {}, disabled_options: [] },
-    { id: 'item-2', foodtruck_id: 'ft-1', name: 'Pizza', price: 1500, category_id: 'cat-1', is_available: true, is_daily_special: false, is_archived: false, created_at: '2024-01-01', updated_at: '2024-01-01', description: null, allergens: null, image_url: null, display_order: 1, option_prices: {}, disabled_options: [] },
-    { id: 'item-3', foodtruck_id: 'ft-1', name: 'Coca', price: 300, category_id: 'cat-2', is_available: true, is_daily_special: false, is_archived: false, created_at: '2024-01-01', updated_at: '2024-01-01', description: null, allergens: null, image_url: null, display_order: 0, option_prices: {}, disabled_options: [] },
+    {
+      id: 'item-1',
+      foodtruck_id: 'ft-1',
+      name: 'Burger',
+      price: 1200,
+      category_id: 'cat-1',
+      is_available: true,
+      is_daily_special: false,
+      is_archived: false,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+      description: null,
+      allergens: null,
+      image_url: null,
+      display_order: 0,
+      option_prices: {},
+      disabled_options: [],
+    },
+    {
+      id: 'item-2',
+      foodtruck_id: 'ft-1',
+      name: 'Pizza',
+      price: 1500,
+      category_id: 'cat-1',
+      is_available: true,
+      is_daily_special: false,
+      is_archived: false,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+      description: null,
+      allergens: null,
+      image_url: null,
+      display_order: 1,
+      option_prices: {},
+      disabled_options: [],
+    },
+    {
+      id: 'item-3',
+      foodtruck_id: 'ft-1',
+      name: 'Coca',
+      price: 300,
+      category_id: 'cat-2',
+      is_available: true,
+      is_daily_special: false,
+      is_archived: false,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+      description: null,
+      allergens: null,
+      image_url: null,
+      display_order: 0,
+      option_prices: {},
+      disabled_options: [],
+    },
   ];
 
   const mockOffers: OfferWithItems[] = [
@@ -60,6 +123,7 @@ describe('useOffers', () => {
       max_uses_per_customer: 1,
       current_uses: 25,
       total_discount_given: 5000,
+      display_order: 0,
       created_at: '2024-01-01',
       updated_at: '2024-01-01',
       offer_items: [],
@@ -82,11 +146,28 @@ describe('useOffers', () => {
       max_uses_per_customer: null,
       current_uses: 50,
       total_discount_given: 10000,
+      display_order: 1,
       created_at: '2024-01-01',
       updated_at: '2024-01-01',
       offer_items: [
-        { id: 'oi-1', offer_id: 'offer-2', menu_item_id: 'item-1', role: 'bundle_item', quantity: 1, created_at: '2024-01-01', menu_item: mockMenuItems[0] },
-        { id: 'oi-2', offer_id: 'offer-2', menu_item_id: 'item-3', role: 'bundle_item', quantity: 1, created_at: '2024-01-01', menu_item: mockMenuItems[2] },
+        {
+          id: 'oi-1',
+          offer_id: 'offer-2',
+          menu_item_id: 'item-1',
+          role: 'bundle_item',
+          quantity: 1,
+          created_at: '2024-01-01',
+          menu_item: mockMenuItems[0],
+        },
+        {
+          id: 'oi-2',
+          offer_id: 'offer-2',
+          menu_item_id: 'item-3',
+          role: 'bundle_item',
+          quantity: 1,
+          created_at: '2024-01-01',
+          menu_item: mockMenuItems[2],
+        },
       ],
     },
   ];
@@ -99,7 +180,9 @@ describe('useOffers', () => {
         return {
           select: () => ({
             eq: () => ({
-              order: () => Promise.resolve({ data: mockOffers, error: null }),
+              order: () => ({
+                order: () => Promise.resolve({ data: mockOffers, error: null }),
+              }),
             }),
           }),
           insert: () => ({
@@ -423,7 +506,10 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Form validation error:', 'Le montant minimum est requis');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Form validation error:',
+        'Le montant minimum est requis'
+      );
 
       consoleSpy.mockRestore();
     });
@@ -572,14 +658,14 @@ describe('useOffers', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const callCountBefore = mockFrom.mock.calls.filter(c => c[0] === 'offers').length;
+      const callCountBefore = mockFrom.mock.calls.filter((c) => c[0] === 'offers').length;
 
       await act(async () => {
         await result.current.deleteOffer('offer-1');
       });
 
       // Should not have made delete call
-      const deleteCalls = mockFrom.mock.calls.filter(c => c[0] === 'offers').length;
+      const deleteCalls = mockFrom.mock.calls.filter((c) => c[0] === 'offers').length;
       expect(deleteCalls).toBe(callCountBefore); // No additional calls
     });
   });

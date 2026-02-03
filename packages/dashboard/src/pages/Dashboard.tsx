@@ -51,24 +51,24 @@ export default function Dashboard() {
       ]
     : [
         {
-          name: 'Acceptées',
-          value: stats?.confirmedOrders ?? stats?.preparingOrders ?? '-',
-          icon: CheckCircle,
-          color: 'bg-blue-500',
-          onClick: undefined as (() => void) | undefined,
-        },
-        {
           name: 'En attente',
           value: stats?.pendingOrders ?? '-',
           icon: Clock,
-          color: 'bg-amber-500',
+          color: 'bg-warning-500',
           onClick: stats?.pendingOrders ? showAllPendingOrders : undefined,
+        },
+        {
+          name: 'Acceptées',
+          value: stats?.confirmedOrders ?? stats?.preparingOrders ?? '-',
+          icon: CheckCircle,
+          color: 'bg-info-500',
+          onClick: undefined as (() => void) | undefined,
         },
         {
           name: 'Retirées',
           value: stats?.pickedUpOrders ?? '-',
           icon: Package,
-          color: 'bg-emerald-500',
+          color: 'bg-success-500',
           onClick: undefined as (() => void) | undefined,
         },
       ];
@@ -137,9 +137,9 @@ export default function Dashboard() {
       </div>
 
       {/* Stats - Row 2: Montant commandes du jour */}
-      <div className="card p-4 sm:p-6 bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
+      <div className="card p-4 sm:p-6 bg-white border-l-4 border-l-success-500">
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg flex-shrink-0">
+          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-success-500 shadow-lg flex-shrink-0">
             <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">

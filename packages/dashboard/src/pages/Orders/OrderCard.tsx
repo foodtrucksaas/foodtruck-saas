@@ -16,12 +16,12 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
   const isDone = isPickedUp || order.status === 'cancelled' || order.status === 'no_show';
 
   const getStatusStyle = () => {
-    if (isPending) return { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'En attente' };
-    if (isConfirmed) return { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Acceptée' };
-    if (isReady) return { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Prête' };
-    if (isPickedUp) return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Retirée' };
+    if (isPending) return { bg: 'bg-warning-100', text: 'text-warning-600', label: 'En attente' };
+    if (isConfirmed) return { bg: 'bg-info-100', text: 'text-info-600', label: 'Acceptée' };
+    if (isReady) return { bg: 'bg-success-100', text: 'text-success-600', label: 'Prête' };
+    if (isPickedUp) return { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Retirée' };
     if (order.status === 'cancelled')
-      return { bg: 'bg-red-100', text: 'text-red-700', label: 'Annulée' };
+      return { bg: 'bg-error-100', text: 'text-error-600', label: 'Annulée' };
     if (order.status === 'no_show')
       return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Non récupérée' };
     return { bg: 'bg-gray-100', text: 'text-gray-500', label: order.status };
@@ -37,13 +37,13 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
     <article
       className={`card rounded-xl p-3 sm:p-4 cursor-pointer transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[72px] overflow-hidden active:scale-[0.98] ${
         isDone
-          ? 'bg-gray-50 border border-gray-200 opacity-60 hover:opacity-80'
+          ? 'bg-gray-50 border border-gray-300 opacity-60 hover:opacity-80'
           : isPending
-            ? 'bg-yellow-50 border-2 border-yellow-300 hover:border-yellow-400 hover:shadow-lg hover:-translate-y-0.5'
+            ? 'bg-warning-50 border-2 border-warning-500 hover:border-warning-600 hover:shadow-lg hover:-translate-y-0.5'
             : isConfirmed
-              ? 'bg-blue-50 border-2 border-blue-300 hover:border-blue-400 hover:shadow-lg hover:-translate-y-0.5'
+              ? 'bg-info-50 border-2 border-info-500 hover:border-info-600 hover:shadow-lg hover:-translate-y-0.5'
               : isReady
-                ? 'bg-emerald-50 border-2 border-emerald-300 hover:border-emerald-400 hover:shadow-lg hover:-translate-y-0.5'
+                ? 'bg-success-50 border-2 border-success-500 hover:border-success-600 hover:shadow-lg hover:-translate-y-0.5'
                 : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
       }`}
       onClick={onClick}

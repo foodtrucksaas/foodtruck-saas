@@ -17,10 +17,7 @@ import {
 } from '../hooks';
 
 // Components
-import {
-  DatePickerModal,
-  OrderSummaryCard,
-} from '../components/checkout';
+import { DatePickerModal, OrderSummaryCard } from '../components/checkout';
 
 export default function Checkout() {
   const { foodtruckId } = useParams<{ foodtruckId: string }>();
@@ -47,14 +44,8 @@ export default function Checkout() {
   const [formError, setFormError] = useState<string | null>(null);
 
   // Custom hooks
-  const {
-    loading,
-    allSchedules,
-    exceptions,
-    settings,
-    availableDates,
-    showPromoSection,
-  } = useCheckoutData(foodtruckId);
+  const { loading, allSchedules, exceptions, settings, availableDates, showPromoSection } =
+    useCheckoutData(foodtruckId);
 
   const {
     slots,
@@ -95,7 +86,9 @@ export default function Checkout() {
     totalBundleSavings: _totalBundleSavings,
     loading: _bundleLoading,
   } = useBundleDetection(foodtruckId, items);
-  void _bestBundle; void _totalBundleSavings; void _bundleLoading;
+  void _bestBundle;
+  void _totalBundleSavings;
+  void _bundleLoading;
 
   // Set initial selected date when available dates are loaded
   useEffect(() => {
@@ -109,7 +102,10 @@ export default function Checkout() {
     if (slots.length > 0) {
       const firstAvailable = slots.find((s) => s.available);
       if (firstAvailable) {
-        setForm((prev) => ({ ...prev, pickupTime: `${firstAvailable.time}|${firstAvailable.scheduleId}` }));
+        setForm((prev) => ({
+          ...prev,
+          pickupTime: `${firstAvailable.time}|${firstAvailable.scheduleId}`,
+        }));
       } else {
         setForm((prev) => ({ ...prev, pickupTime: '' }));
       }
@@ -119,7 +115,7 @@ export default function Checkout() {
   // Update loyalty opt-in when loyalty info is loaded
   useEffect(() => {
     if (loyaltyInfo?.loyalty_opt_in === true) {
-      setForm(prev => ({ ...prev, loyaltyOptIn: true }));
+      setForm((prev) => ({ ...prev, loyaltyOptIn: true }));
     }
   }, [loyaltyInfo]);
 
@@ -153,7 +149,11 @@ export default function Checkout() {
   const isToday = selectedDate.toDateString() === new Date().toDateString();
   const dateLabel = isToday
     ? "Aujourd'hui"
-    : selectedDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+    : selectedDate.toLocaleDateString('fr-FR', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,8 +196,8 @@ export default function Checkout() {
     }
 
     const bundlesUsed = items
-      .filter(item => item.bundleInfo)
-      .map(item => ({
+      .filter((item) => item.bundleInfo)
+      .map((item) => ({
         bundle_id: item.bundleInfo!.bundleId,
         quantity: item.quantity,
       }));
@@ -214,20 +214,26 @@ export default function Checkout() {
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
       promo_code_id: appliedPromo?.id,
-      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount + appliedBundleDiscount,
+      discount_amount:
+        promoDiscount + loyaltyDiscount + appliedOfferDiscount + appliedBundleDiscount,
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
       deal_id: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.offer_id : undefined,
-      deal_discount: appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
-      deal_free_item_name: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
-      applied_offers: appliedOffers.length > 0 ? appliedOffers.map(o => ({
-        offer_id: o.offer_id,
-        times_applied: o.times_applied,
-        discount_amount: o.discount_amount,
-        items_consumed: o.items_consumed,
-        free_item_name: o.free_item_name,
-      })) : undefined,
+      deal_discount:
+        appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
+      deal_free_item_name:
+        appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
+      applied_offers:
+        appliedOffers.length > 0
+          ? appliedOffers.map((o) => ({
+              offer_id: o.offer_id,
+              times_applied: o.times_applied,
+              discount_amount: o.discount_amount,
+              items_consumed: o.items_consumed,
+              free_item_name: o.free_item_name,
+            }))
+          : undefined,
       bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
       items: items.flatMap((item) => {
         if (item.bundleInfo) {
@@ -250,19 +256,21 @@ export default function Checkout() {
             bundle_free_options: item.bundleInfo!.freeOptions,
           }));
         }
-        return [{
-          menu_item_id: item.menuItem.id,
-          quantity: item.quantity,
-          notes: item.notes,
-          selected_options: item.selectedOptions?.map((opt) => ({
-            option_id: opt.optionId,
-            option_group_id: opt.optionGroupId,
-            name: opt.name,
-            group_name: opt.groupName,
-            price_modifier: opt.priceModifier,
-            is_size_option: opt.isSizeOption || false,
-          })),
-        }];
+        return [
+          {
+            menu_item_id: item.menuItem.id,
+            quantity: item.quantity,
+            notes: item.notes,
+            selected_options: item.selectedOptions?.map((opt) => ({
+              option_id: opt.optionId,
+              option_group_id: opt.optionGroupId,
+              name: opt.name,
+              group_name: opt.groupName,
+              price_modifier: opt.priceModifier,
+              is_size_option: opt.isSizeOption || false,
+            })),
+          },
+        ];
       }),
     };
 
@@ -296,8 +304,15 @@ export default function Checkout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50" role="status" aria-label="Chargement en cours">
-        <div className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full" aria-hidden="true" />
+      <div
+        className="min-h-screen flex items-center justify-center bg-gray-50"
+        role="status"
+        aria-label="Chargement en cours"
+      >
+        <div
+          className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full"
+          aria-hidden="true"
+        />
         <span className="sr-only">Chargement du formulaire de commande</span>
       </div>
     );
@@ -305,8 +320,14 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50" id="main-content">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4" aria-hidden="true">
+      <main
+        className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50"
+        id="main-content"
+      >
+        <div
+          className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4"
+          aria-hidden="true"
+        >
           <span className="text-3xl">🛒</span>
         </div>
         <p className="text-gray-500 mb-4">Votre panier est vide</p>
@@ -320,7 +341,9 @@ export default function Checkout() {
     );
   }
 
-  const canShowPromo = showPromoSection && (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0));
+  const canShowPromo =
+    showPromoSection &&
+    (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0));
 
   return (
     <main className="min-h-screen bg-gray-50 animate-fade-in" id="main-content">
@@ -339,10 +362,19 @@ export default function Checkout() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="pb-32" id="checkout-form" aria-label="Formulaire de commande">
+      <form
+        onSubmit={handleSubmit}
+        className="pb-32"
+        id="checkout-form"
+        aria-label="Formulaire de commande"
+      >
         {/* Form Error */}
         {formError && (
-          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-fade-in-up" role="alert" aria-live="assertive">
+          <div
+            className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-fade-in-up"
+            role="alert"
+            aria-live="assertive"
+          >
             {formError}
           </div>
         )}
@@ -377,9 +409,27 @@ export default function Checkout() {
           />
         </div>
 
-        {/* Pending Offers (progress) */}
+        {/* Pending Offers (progress) - exclude buy_x_get_y if bundles are in cart */}
         {(() => {
-          const pendingOffers = applicableOffers.filter(o => !o.is_applicable && o.progress_current > 0);
+          // Check if cart has manual bundles
+          const hasManualBundles = items.some((item) => item.bundleInfo);
+
+          // Check if auto bundles are applied
+          const hasAppliedBundles = appliedOffers.some((o) => o.offer_type === 'bundle');
+
+          // Filter pending offers, excluding buy_x_get_y if bundles exist
+          // (items in bundles shouldn't count towards buy_x_get_y progress)
+          const pendingOffers = applicableOffers
+            .filter((o) => !o.is_applicable && o.progress_current > 0)
+            .filter((o) => {
+              // If there are bundles, don't show buy_x_get_y progress
+              // because it's confusing (bundle items shouldn't count)
+              if ((hasManualBundles || hasAppliedBundles) && o.offer_type === 'buy_x_get_y') {
+                return false;
+              }
+              return true;
+            });
+
           if (pendingOffers.length === 0) return null;
           return (
             <div className="mx-4 mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
@@ -396,7 +446,9 @@ export default function Checkout() {
         <div className="mx-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           {/* Pickup Time */}
           <div className="p-4 border-b border-gray-100">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Retrait</label>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Retrait
+            </label>
             <div className="mt-2 flex items-center gap-2">
               {settings?.allowAsapOrders && (
                 <button
@@ -424,11 +476,17 @@ export default function Checkout() {
                     ) : slots.length === 0 ? (
                       <option>Aucun créneau disponible</option>
                     ) : (
-                      slots.filter(s => s.available).map((slot) => (
-                        <option key={`${slot.time}|${slot.scheduleId}`} value={`${slot.time}|${slot.scheduleId}`}>
-                          {dateLabel} · {formatTime(slot.time)}{schedules.length > 1 ? ` · ${slot.locationName}` : ''}
-                        </option>
-                      ))
+                      slots
+                        .filter((s) => s.available)
+                        .map((slot) => (
+                          <option
+                            key={`${slot.time}|${slot.scheduleId}`}
+                            value={`${slot.time}|${slot.scheduleId}`}
+                          >
+                            {dateLabel} · {formatTime(slot.time)}
+                            {schedules.length > 1 ? ` · ${slot.locationName}` : ''}
+                          </option>
+                        ))
                     )}
                   </select>
                   <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -443,21 +501,27 @@ export default function Checkout() {
               </button>
             </div>
             {/* Address display */}
-            {!form.isAsap && form.pickupTime && (() => {
-              const [, scheduleId] = form.pickupTime.split('|');
-              const selectedSchedule = schedules.find(s => s.id === scheduleId);
-              if (!selectedSchedule?.location?.address) return null;
-              return (
-                <p className="mt-2 text-xs text-gray-400">{selectedSchedule.location.address}</p>
-              );
-            })()}
+            {!form.isAsap &&
+              form.pickupTime &&
+              (() => {
+                const [, scheduleId] = form.pickupTime.split('|');
+                const selectedSchedule = schedules.find((s) => s.id === scheduleId);
+                if (!selectedSchedule?.location?.address) return null;
+                return (
+                  <p className="mt-2 text-xs text-gray-400">{selectedSchedule.location.address}</p>
+                );
+              })()}
           </div>
 
           {/* Contact Info */}
           <fieldset className="p-4 border-b border-gray-100 space-y-3">
-            <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide">Coordonnées</legend>
+            <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Coordonnées
+            </legend>
             <div>
-              <label htmlFor="checkout-name" className="sr-only">Nom (obligatoire)</label>
+              <label htmlFor="checkout-name" className="sr-only">
+                Nom (obligatoire)
+              </label>
               <input
                 id="checkout-name"
                 type="text"
@@ -471,7 +535,9 @@ export default function Checkout() {
               />
             </div>
             <div>
-              <label htmlFor="checkout-email" className="sr-only">Email (obligatoire)</label>
+              <label htmlFor="checkout-email" className="sr-only">
+                Email (obligatoire)
+              </label>
               <input
                 id="checkout-email"
                 type="email"
@@ -485,7 +551,9 @@ export default function Checkout() {
               />
             </div>
             <div>
-              <label htmlFor="checkout-phone" className="sr-only">Telephone (optionnel)</label>
+              <label htmlFor="checkout-phone" className="sr-only">
+                Telephone (optionnel)
+              </label>
               <input
                 id="checkout-phone"
                 type="tel"
@@ -502,7 +570,12 @@ export default function Checkout() {
           <div className="p-4 border-b border-gray-100">
             {showNotes ? (
               <div>
-                <label htmlFor="checkout-notes" className="text-xs font-medium text-gray-500 uppercase tracking-wide block">Instructions</label>
+                <label
+                  htmlFor="checkout-notes"
+                  className="text-xs font-medium text-gray-500 uppercase tracking-wide block"
+                >
+                  Instructions
+                </label>
                 <textarea
                   id="checkout-notes"
                   value={form.notes}
@@ -533,7 +606,10 @@ export default function Checkout() {
                   onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
                   className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                 />
-                <span className="text-xs text-gray-500">J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le cadre du programme de fidélité.</span>
+                <span className="text-xs text-gray-500">
+                  J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le
+                  cadre du programme de fidélité.
+                </span>
               </label>
             )}
             <label className="flex items-start gap-3 cursor-pointer">
@@ -561,7 +637,8 @@ export default function Checkout() {
 
         {/* Privacy */}
         <p className="text-[10px] text-gray-400 text-center mt-4 px-8">
-          En confirmant, vous acceptez que vos informations soient conservées pour le suivi de vos commandes.
+          En confirmant, vous acceptez que vos informations soient conservées pour le suivi de vos
+          commandes.
         </p>
       </form>
 
@@ -583,7 +660,9 @@ export default function Checkout() {
           ) : (
             <>
               <span>Confirmer la commande</span>
-              <span className="text-white/60" aria-hidden="true">.</span>
+              <span className="text-white/60" aria-hidden="true">
+                .
+              </span>
               <span>{formatPrice(finalTotal)}</span>
             </>
           )}

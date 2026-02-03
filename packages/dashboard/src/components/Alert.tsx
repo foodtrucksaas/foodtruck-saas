@@ -15,23 +15,23 @@ interface AlertProps {
 const variantConfig = {
   error: {
     icon: AlertCircle,
-    containerClass: 'bg-red-50 border-red-200 text-red-800',
-    iconClass: 'text-red-500',
+    containerClass: 'bg-error-50 border-error-200 text-error-800',
+    iconClass: 'text-error-500',
   },
   success: {
     icon: CheckCircle,
-    containerClass: 'bg-green-50 border-green-200 text-green-800',
-    iconClass: 'text-green-500',
+    containerClass: 'bg-success-50 border-success-200 text-success-800',
+    iconClass: 'text-success-500',
   },
   warning: {
     icon: AlertTriangle,
-    containerClass: 'bg-amber-50 border-amber-200 text-amber-800',
-    iconClass: 'text-amber-500',
+    containerClass: 'bg-warning-50 border-warning-200 text-warning-800',
+    iconClass: 'text-warning-500',
   },
   info: {
     icon: Info,
-    containerClass: 'bg-blue-50 border-blue-200 text-blue-800',
-    iconClass: 'text-blue-500',
+    containerClass: 'bg-info-50 border-info-200 text-info-800',
+    iconClass: 'text-info-500',
   },
 };
 

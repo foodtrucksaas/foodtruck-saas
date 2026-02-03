@@ -63,12 +63,12 @@ export default function Register() {
 
         <div className="card p-6">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-lg text-success-700 text-sm">
               {success}
             </div>
           )}
@@ -138,32 +138,27 @@ export default function Register() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
-                  aria-label={showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  aria-label={
+                    showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                  }
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Créer mon compte'
-              )}
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Créer mon compte'}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Déjà un compte ?{' '}
-            <Link
-              to="/login"
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
+            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
               Se connecter
             </Link>
           </p>

@@ -28,57 +28,57 @@ function getStatusColors(status: string) {
   switch (status) {
     case 'pending':
       return {
-        bg: 'bg-yellow-50',
-        border: 'border-yellow-200',
-        dot: 'bg-yellow-400',
-        text: 'text-yellow-700',
-        ring: 'ring-yellow-100',
+        bg: 'bg-warning-50',
+        border: 'border-warning-500',
+        dot: 'bg-warning-500',
+        text: 'text-warning-600',
+        ring: 'ring-warning-100',
       };
     case 'confirmed':
       return {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        dot: 'bg-blue-400',
-        text: 'text-blue-700',
-        ring: 'ring-blue-100',
+        bg: 'bg-info-50',
+        border: 'border-info-500',
+        dot: 'bg-info-500',
+        text: 'text-info-600',
+        ring: 'ring-info-100',
       };
     case 'ready':
       return {
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        dot: 'bg-emerald-400',
-        text: 'text-emerald-700',
-        ring: 'ring-emerald-100',
+        bg: 'bg-success-50',
+        border: 'border-success-500',
+        dot: 'bg-success-500',
+        text: 'text-success-600',
+        ring: 'ring-success-100',
       };
     case 'picked_up':
       return {
         bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        dot: 'bg-gray-300',
-        text: 'text-gray-500',
+        border: 'border-gray-300',
+        dot: 'bg-gray-400',
+        text: 'text-gray-600',
         ring: 'ring-gray-100',
       };
     case 'cancelled':
       return {
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        dot: 'bg-red-400',
-        text: 'text-red-600',
-        ring: 'ring-red-100',
+        bg: 'bg-error-50',
+        border: 'border-error-500',
+        dot: 'bg-error-500',
+        text: 'text-error-600',
+        ring: 'ring-error-100',
       };
     case 'no_show':
       return {
         bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        dot: 'bg-gray-300',
-        text: 'text-gray-500',
+        border: 'border-gray-300',
+        dot: 'bg-gray-400',
+        text: 'text-gray-600',
         ring: 'ring-gray-100',
       };
     default:
       return {
         bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        dot: 'bg-gray-300',
+        border: 'border-gray-300',
+        dot: 'bg-gray-400',
         text: 'text-gray-600',
         ring: 'ring-gray-100',
       };
@@ -188,12 +188,12 @@ export function TimelineView({
                   <div
                     className={`relative z-10 mt-2.5 w-3 h-3 rounded-full shadow-sm ring-2 ring-white ${
                       stats.pending > 0
-                        ? 'bg-yellow-400'
+                        ? 'bg-warning-500'
                         : stats.confirmed > 0
-                          ? 'bg-blue-400'
+                          ? 'bg-info-500'
                           : stats.ready > 0
-                            ? 'bg-emerald-400'
-                            : 'bg-gray-300'
+                            ? 'bg-success-500'
+                            : 'bg-gray-400'
                     }`}
                   />
                 ) : (

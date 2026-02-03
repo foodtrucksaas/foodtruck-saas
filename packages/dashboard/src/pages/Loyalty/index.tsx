@@ -181,7 +181,7 @@ export default function Loyalty() {
           </p>
         </div>
         <div
-          className={`px-3 py-1.5 rounded-full text-sm font-medium self-start sm:self-auto ${settings.loyalty_enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium self-start sm:self-auto ${settings.loyalty_enabled ? 'bg-success-500 text-white' : 'bg-gray-100 text-gray-600'}`}
         >
           {settings.loyalty_enabled ? 'Active' : 'Desactive'}
         </div>
@@ -191,29 +191,29 @@ export default function Loyalty() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           icon={Users}
-          iconBg="bg-primary-100"
-          iconColor="text-primary-600"
+          iconBg="bg-primary-500"
+          iconColor="text-white"
           value={stats.activeCustomers}
           label="Clients inscrits"
         />
         <StatCard
           icon={TrendingUp}
-          iconBg="bg-amber-100"
-          iconColor="text-amber-600"
+          iconBg="bg-warning-500"
+          iconColor="text-white"
           value={stats.totalPoints}
           label="Points en circulation"
         />
         <StatCard
           icon={Award}
-          iconBg="bg-green-100"
-          iconColor="text-green-600"
+          iconBg="bg-success-500"
+          iconColor="text-white"
           value={0}
           label="Récompenses utilisées"
         />
         <StatCard
           icon={Gift}
-          iconBg="bg-purple-100"
-          iconColor="text-purple-600"
+          iconBg="bg-info-500"
+          iconColor="text-white"
           value={stats.customersNearThreshold}
           label="Proches du seuil"
         />
@@ -435,7 +435,7 @@ export default function Loyalty() {
                     <tr key={customer.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${index < 3 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}
+                          className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${index < 3 ? 'bg-warning-500 text-white' : 'bg-gray-100 text-gray-600'}`}
                         >
                           {index + 1}
                         </span>
@@ -454,12 +454,12 @@ export default function Loyalty() {
                         <div className="flex items-center gap-2 justify-end">
                           <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${canRedeem ? 'bg-green-500' : 'bg-primary-500'}`}
+                              className={`h-full rounded-full ${canRedeem ? 'bg-success-500' : 'bg-primary-500'}`}
                               style={{ width: `${progress}%` }}
                             />
                           </div>
                           {canRedeem && (
-                            <span className="text-xs font-medium text-green-600">
+                            <span className="text-xs font-medium text-success-600">
                               {redeemableCount}x
                             </span>
                           )}

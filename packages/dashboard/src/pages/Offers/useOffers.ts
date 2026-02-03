@@ -154,6 +154,7 @@ export function useOffers() {
           `
           )
           .eq('foodtruck_id', foodtruck.id)
+          .order('display_order', { nullsFirst: false })
           .order('created_at', { ascending: false }),
         supabase
           .from('categories')
@@ -571,6 +572,35 @@ export function useOffers() {
     setShowWizard(true);
   }, []);
 
+  const reorderOffers = useCallback(
+    async (reorderedOffers: OfferWithItems[]) => {
+      // Optimistic update
+      setOffers(reorderedOffers);
+
+      try {
+        // Update display_order for each offer
+        const updates = reorderedOffers.map((offer, index) => ({
+          id: offer.id,
+          display_order: index,
+        }));
+
+        // Update each offer's display_order
+        for (const update of updates) {
+          const { error } = await (supabase.from('offers') as any)
+            .update({ display_order: update.display_order })
+            .eq('id', update.id);
+
+          if (error) throw error;
+        }
+      } catch (error) {
+        console.error('Error reordering offers:', error);
+        // Revert on error
+        await loadData();
+      }
+    },
+    [loadData]
+  );
+
   // Stats
   const activeCount = offers.filter((o) => o.is_active).length;
   const totalUses = offers.reduce((sum, o) => sum + (o.current_uses || 0), 0);
@@ -597,5 +627,6 @@ export function useOffers() {
     openEditWizard,
     closeWizard,
     openCreateWizard,
+    reorderOffers,
   };
 }

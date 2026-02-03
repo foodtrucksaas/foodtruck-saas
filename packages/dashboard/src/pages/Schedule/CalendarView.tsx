@@ -61,11 +61,11 @@ export function CalendarView({
           <span className="text-gray-600">Ouvert</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300" />
+          <div className="w-3 h-3 rounded bg-info-100 border border-info-300" />
           <span className="text-gray-600">Modifie</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-red-100 border border-red-300" />
+          <div className="w-3 h-3 rounded bg-error-100 border border-error-300" />
           <span className="text-gray-600">Ferme</span>
         </div>
       </div>
@@ -89,11 +89,11 @@ export function CalendarView({
           let borderColor = 'border-gray-100';
 
           if (effective.type === 'closed') {
-            bgColor = 'bg-red-50 hover:bg-red-100';
-            borderColor = 'border-red-200';
+            bgColor = 'bg-error-50 hover:bg-error-100';
+            borderColor = 'border-error-200';
           } else if (effective.type === 'override') {
-            bgColor = 'bg-blue-50 hover:bg-blue-100';
-            borderColor = 'border-blue-200';
+            bgColor = 'bg-info-50 hover:bg-info-100';
+            borderColor = 'border-info-200';
           } else if (effective.type === 'normal') {
             bgColor = 'bg-primary-50 hover:bg-primary-100';
             borderColor = 'border-primary-200';
@@ -126,13 +126,13 @@ export function CalendarView({
               {day.isCurrentMonth && (
                 <div className="mt-0.5 sm:mt-1 space-y-0.5">
                   {effective.type === 'closed' && (
-                    <div className="text-[8px] sm:text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                    <div className="text-[8px] sm:text-[10px] text-error-600 font-medium flex items-center gap-0.5">
                       <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span className="hidden sm:inline">Ferme</span>
                     </div>
                   )}
                   {effective.type === 'override' && effective.location && (
-                    <div className="text-[8px] sm:text-[10px] text-blue-600 truncate">
+                    <div className="text-[8px] sm:text-[10px] text-info-600 truncate">
                       {effective.location.name}
                     </div>
                   )}

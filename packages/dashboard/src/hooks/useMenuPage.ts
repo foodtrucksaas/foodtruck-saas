@@ -24,17 +24,24 @@ const initialFormData: MenuItemFormData = {
 };
 
 export function useMenuPage() {
-  const { foodtruck, categories, menuItems, refresh } = useFoodtruck();
+  const { foodtruck, categories, menuItems, refresh, updateMenuItemsOrder, updateCategoriesOrder } =
+    useFoodtruck();
 
   // Menu item state
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formData, setFormData] = useState<MenuItemFormData>(initialFormData);
-  const [selectedCategorySizeOptions, setSelectedCategorySizeOptions] = useState<CategoryOption[]>([]);
-  const [selectedCategorySupplements, setSelectedCategorySupplements] = useState<CategoryOption[]>([]);
+  const [selectedCategorySizeOptions, setSelectedCategorySizeOptions] = useState<CategoryOption[]>(
+    []
+  );
+  const [selectedCategorySupplements, setSelectedCategorySupplements] = useState<CategoryOption[]>(
+    []
+  );
   // New: groups with their options for better price management
   const [requiredOptionGroups, setRequiredOptionGroups] = useState<OptionGroupWithOptions[]>([]);
-  const [supplementOptionGroups, setSupplementOptionGroups] = useState<OptionGroupWithOptions[]>([]);
+  const [supplementOptionGroups, setSupplementOptionGroups] = useState<OptionGroupWithOptions[]>(
+    []
+  );
 
   // Category manager state
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -47,7 +54,9 @@ export function useMenuPage() {
 
   // Category options modal state
   const [showCategoryOptionsModal, setShowCategoryOptionsModal] = useState(false);
-  const [selectedCategoryForOptions, setSelectedCategoryForOptions] = useState<Category | null>(null);
+  const [selectedCategoryForOptions, setSelectedCategoryForOptions] = useState<Category | null>(
+    null
+  );
   const [categoryOptionGroups, setCategoryOptionGroups] = useState<OptionGroupFormData[]>([]);
   const [savingOptions, setSavingOptions] = useState(false);
 
@@ -64,12 +73,14 @@ export function useMenuPage() {
 
   const handleEdit = useCallback((item: MenuItem) => {
     const optionPricesInEuros: Record<string, string> = {};
-    const itemOptionPrices = (item as MenuItem & { option_prices?: Record<string, number> }).option_prices || {};
+    const itemOptionPrices =
+      (item as MenuItem & { option_prices?: Record<string, number> }).option_prices || {};
     Object.entries(itemOptionPrices).forEach(([optId, priceInCents]) => {
       optionPricesInEuros[optId] = (priceInCents / 100).toFixed(2);
     });
 
-    const disabledOptions = (item as MenuItem & { disabled_options?: string[] }).disabled_options || [];
+    const disabledOptions =
+      (item as MenuItem & { disabled_options?: string[] }).disabled_options || [];
 
     setFormData({
       name: item.name,
@@ -85,112 +96,124 @@ export function useMenuPage() {
     setShowForm(true);
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!foodtruck) return;
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!foodtruck) return;
 
-    const priceInCents = Math.round(parseFloat(formData.price || '0') * 100);
+      const priceInCents = Math.round(parseFloat(formData.price || '0') * 100);
 
-    // Convert all option prices to cents
-    // Format: "optionId" for absolute price, "optionId:sizeId" for per-size supplement
-    const optionPricesInCents: Record<string, number> = {};
+      // Convert all option prices to cents
+      // Format: "optionId" for absolute price, "optionId:sizeId" for per-size supplement
+      const optionPricesInCents: Record<string, number> = {};
 
-    Object.entries(formData.option_prices).forEach(([key, priceInEuros]) => {
-      if (priceInEuros) {
-        optionPricesInCents[key] = Math.round(parseFloat(priceInEuros) * 100);
-      }
-    });
+      Object.entries(formData.option_prices).forEach(([key, priceInEuros]) => {
+        if (priceInEuros) {
+          optionPricesInCents[key] = Math.round(parseFloat(priceInEuros) * 100);
+        }
+      });
 
-    // Calculate base price:
-    // 1. Get min price from first required group (Taille) if exists
-    // 2. Add min modifier from each other required group (Base, Cuisson)
-    let basePriceInCents = priceInCents;
+      // Calculate base price:
+      // 1. Get min price from first required group (Taille) if exists
+      // 2. Add min modifier from each other required group (Base, Cuisson)
+      let basePriceInCents = priceInCents;
 
-    if (requiredOptionGroups.length > 0) {
-      // First group (Taille): use absolute prices
-      const firstGroup = requiredOptionGroups[0];
-      const firstGroupPrices = (firstGroup.category_options || [])
-        .filter(opt => !formData.disabled_options.includes(opt.id))
-        .map(opt => optionPricesInCents[opt.id])
-        .filter(p => p !== undefined && p > 0);
+      if (requiredOptionGroups.length > 0) {
+        // First group (Taille): use absolute prices
+        const firstGroup = requiredOptionGroups[0];
+        const firstGroupPrices = (firstGroup.category_options || [])
+          .filter((opt) => !formData.disabled_options.includes(opt.id))
+          .map((opt) => optionPricesInCents[opt.id])
+          .filter((p) => p !== undefined && p > 0);
 
-      if (firstGroupPrices.length > 0) {
-        basePriceInCents = Math.min(...firstGroupPrices);
-      }
+        if (firstGroupPrices.length > 0) {
+          basePriceInCents = Math.min(...firstGroupPrices);
+        }
 
-      // Other required groups: add min modifier
-      for (let i = 1; i < requiredOptionGroups.length; i++) {
-        const group = requiredOptionGroups[i];
-        const modifiers = (group.category_options || [])
-          .filter(opt => !formData.disabled_options.includes(opt.id))
-          .map(opt => {
-            // Check if there's an item-specific price, otherwise use category modifier
-            const itemPrice = optionPricesInCents[opt.id];
-            return itemPrice !== undefined ? itemPrice : (opt.price_modifier || 0);
-          });
+        // Other required groups: add min modifier
+        for (let i = 1; i < requiredOptionGroups.length; i++) {
+          const group = requiredOptionGroups[i];
+          const modifiers = (group.category_options || [])
+            .filter((opt) => !formData.disabled_options.includes(opt.id))
+            .map((opt) => {
+              // Check if there's an item-specific price, otherwise use category modifier
+              const itemPrice = optionPricesInCents[opt.id];
+              return itemPrice !== undefined ? itemPrice : opt.price_modifier || 0;
+            });
 
-        if (modifiers.length > 0) {
-          basePriceInCents += Math.min(...modifiers);
+          if (modifiers.length > 0) {
+            basePriceInCents += Math.min(...modifiers);
+          }
         }
       }
-    }
 
-    try {
-      if (editingItem) {
-        await api.menu.updateItem(editingItem.id, {
-          name: formData.name,
-          description: formData.description || null,
-          price: basePriceInCents,
-          category_id: formData.category_id || null,
-          allergens: formData.allergens,
-          is_daily_special: formData.is_daily_special,
-          option_prices: optionPricesInCents,
-          disabled_options: formData.disabled_options,
-        });
-      } else {
-        await api.menu.createItem({
-          foodtruck_id: foodtruck.id,
-          name: formData.name,
-          description: formData.description || null,
-          price: basePriceInCents,
-          category_id: formData.category_id || null,
-          allergens: formData.allergens,
-          is_daily_special: formData.is_daily_special,
-          option_prices: optionPricesInCents,
-          disabled_options: formData.disabled_options,
-        });
+      try {
+        if (editingItem) {
+          await api.menu.updateItem(editingItem.id, {
+            name: formData.name,
+            description: formData.description || null,
+            price: basePriceInCents,
+            category_id: formData.category_id || null,
+            allergens: formData.allergens,
+            is_daily_special: formData.is_daily_special,
+            option_prices: optionPricesInCents,
+            disabled_options: formData.disabled_options,
+          });
+        } else {
+          await api.menu.createItem({
+            foodtruck_id: foodtruck.id,
+            name: formData.name,
+            description: formData.description || null,
+            price: basePriceInCents,
+            category_id: formData.category_id || null,
+            allergens: formData.allergens,
+            is_daily_special: formData.is_daily_special,
+            option_prices: optionPricesInCents,
+            disabled_options: formData.disabled_options,
+          });
+        }
+        await refresh();
+        resetForm();
+      } catch (error) {
+        console.error(
+          editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création',
+          error
+        );
       }
-      await refresh();
-      resetForm();
-    } catch (error) {
-      console.error(editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création', error);
-    }
-  }, [foodtruck, formData, editingItem, requiredOptionGroups, refresh, resetForm]);
+    },
+    [foodtruck, formData, editingItem, requiredOptionGroups, refresh, resetForm]
+  );
 
-  const toggleAvailability = useCallback(async (item: MenuItem) => {
-    try {
-      await api.menu.toggleAvailability(item.id, !item.is_available);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors du changement de disponibilité', error);
-    }
-  }, [refresh]);
-
-  const deleteItem = useCallback(async (item: MenuItem) => {
-    if (!confirm(`Supprimer "${item.name}" ?`)) return;
-
-    try {
-      await api.menu.deleteItem(item.id);
-      await refresh();
-      // Refresh archived items too
-      if (foodtruck) {
-        const archived = await api.menu.getArchivedItems(foodtruck.id);
-        setArchivedItems(archived);
+  const toggleAvailability = useCallback(
+    async (item: MenuItem) => {
+      try {
+        await api.menu.toggleAvailability(item.id, !item.is_available);
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors du changement de disponibilité', error);
       }
-    } catch (error) {
-      console.error('Erreur lors de la suppression', error);
-    }
-  }, [refresh, foodtruck]);
+    },
+    [refresh]
+  );
+
+  const deleteItem = useCallback(
+    async (item: MenuItem) => {
+      if (!confirm(`Supprimer "${item.name}" ?`)) return;
+
+      try {
+        await api.menu.deleteItem(item.id);
+        await refresh();
+        // Refresh archived items too
+        if (foodtruck) {
+          const archived = await api.menu.getArchivedItems(foodtruck.id);
+          setArchivedItems(archived);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression', error);
+      }
+    },
+    [refresh, foodtruck]
+  );
 
   // Archived items state
   const [archivedItems, setArchivedItems] = useState<MenuItem[]>([]);
@@ -199,136 +222,170 @@ export function useMenuPage() {
   // Load archived items when section is expanded
   useEffect(() => {
     if (showArchivedSection && foodtruck) {
-      api.menu.getArchivedItems(foodtruck.id).then(setArchivedItems).catch(() => {});
+      api.menu
+        .getArchivedItems(foodtruck.id)
+        .then(setArchivedItems)
+        .catch(() => {});
     }
   }, [showArchivedSection, foodtruck]);
 
-  const restoreItem = useCallback(async (item: MenuItem) => {
-    if (!confirm(`Restaurer "${item.name}" ?`)) return;
+  const restoreItem = useCallback(
+    async (item: MenuItem) => {
+      if (!confirm(`Restaurer "${item.name}" ?`)) return;
 
-    try {
-      await api.menu.restoreItem(item.id);
-      await refresh();
-      // Refresh archived items
-      if (foodtruck) {
-        const archived = await api.menu.getArchivedItems(foodtruck.id);
-        setArchivedItems(archived);
+      try {
+        await api.menu.restoreItem(item.id);
+        await refresh();
+        // Refresh archived items
+        if (foodtruck) {
+          const archived = await api.menu.getArchivedItems(foodtruck.id);
+          setArchivedItems(archived);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la restauration', error);
       }
-    } catch (error) {
-      console.error('Erreur lors de la restauration', error);
-    }
-  }, [refresh, foodtruck]);
+    },
+    [refresh, foodtruck]
+  );
 
   // Category functions
-  const createCategory = useCallback(async (data: CategoryFormData) => {
-    if (!foodtruck) return;
+  const createCategory = useCallback(
+    async (data: CategoryFormData) => {
+      if (!foodtruck) return;
 
-    const maxOrder = categories.length > 0
-      ? Math.max(...categories.map(c => c.display_order ?? 0)) + 1
-      : 0;
+      const maxOrder =
+        categories.length > 0 ? Math.max(...categories.map((c) => c.display_order ?? 0)) + 1 : 0;
 
-    try {
-      await api.menu.createCategory({
-        foodtruck_id: foodtruck.id,
-        name: data.name,
-        display_order: maxOrder,
-      });
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors de la création de la catégorie', error);
-    }
-  }, [foodtruck, categories, refresh]);
+      try {
+        await api.menu.createCategory({
+          foodtruck_id: foodtruck.id,
+          name: data.name,
+          display_order: maxOrder,
+        });
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors de la création de la catégorie', error);
+      }
+    },
+    [foodtruck, categories, refresh]
+  );
 
-  const updateCategory = useCallback(async (id: string, data: CategoryFormData) => {
-    try {
-      await api.menu.updateCategory(id, {
-        name: data.name,
-        display_order: data.display_order,
-      });
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors de la modification de la catégorie', error);
-    }
-  }, [refresh]);
+  const updateCategory = useCallback(
+    async (id: string, data: CategoryFormData) => {
+      try {
+        await api.menu.updateCategory(id, {
+          name: data.name,
+          display_order: data.display_order,
+        });
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors de la modification de la catégorie', error);
+      }
+    },
+    [refresh]
+  );
 
-  const deleteCategory = useCallback(async (category: Category) => {
-    const itemsInCategory = menuItems.filter(item => item.category_id === category.id);
+  const deleteCategory = useCallback(
+    async (category: Category) => {
+      const itemsInCategory = menuItems.filter((item) => item.category_id === category.id);
 
-    if (itemsInCategory.length > 0) {
-      console.error(`Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`);
-      return;
-    }
+      if (itemsInCategory.length > 0) {
+        console.error(
+          `Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`
+        );
+        return;
+      }
 
-    if (!confirm(`Supprimer la catégorie "${category.name}" ?`)) return;
+      if (!confirm(`Supprimer la catégorie "${category.name}" ?`)) return;
 
-    try {
-      await api.menu.deleteCategory(category.id);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la catégorie', error);
-    }
-  }, [menuItems, refresh]);
+      try {
+        await api.menu.deleteCategory(category.id);
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors de la suppression de la catégorie', error);
+      }
+    },
+    [menuItems, refresh]
+  );
 
-  const moveCategoryUp = useCallback(async (category: Category, index: number) => {
-    if (index === 0) return;
+  const reorderCategories = useCallback(
+    async (reorderedCategories: Category[]) => {
+      // Update local state immediately (optimistic update)
+      updateCategoriesOrder(reorderedCategories);
 
-    const prevCategory = categories[index - 1];
-    try {
-      await api.menu.reorderCategories([
-        { id: category.id, display_order: index },
-        { id: prevCategory.id, display_order: index + 1 },
-      ]);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors du déplacement de la catégorie', error);
-    }
-  }, [categories, refresh]);
-
-  const moveCategoryDown = useCallback(async (category: Category, index: number) => {
-    if (index === categories.length - 1) return;
-
-    const nextCategory = categories[index + 1];
-    try {
-      await api.menu.reorderCategories([
-        { id: category.id, display_order: index + 2 },
-        { id: nextCategory.id, display_order: index + 1 },
-      ]);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors du déplacement de la catégorie', error);
-    }
-  }, [categories, refresh]);
+      // Then persist to database
+      try {
+        const updates = reorderedCategories.map((cat, index) => ({
+          id: cat.id,
+          display_order: index,
+        }));
+        await api.menu.reorderCategories(updates);
+      } catch (error) {
+        console.error('Erreur lors du réordonnancement des catégories', error);
+        // Refresh to rollback on error
+        await refresh();
+      }
+    },
+    [updateCategoriesOrder, refresh]
+  );
 
   // Menu item reordering
-  const moveItemUp = useCallback(async (item: MenuItem, categoryItems: MenuItem[], index: number) => {
-    if (index === 0) return;
+  const moveItemUp = useCallback(
+    async (item: MenuItem, categoryItems: MenuItem[], index: number) => {
+      if (index === 0) return;
 
-    const prevItem = categoryItems[index - 1];
-    try {
-      await api.menu.reorderItems([
-        { id: item.id, display_order: index - 1 },
-        { id: prevItem.id, display_order: index },
-      ]);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors du déplacement du plat', error);
-    }
-  }, [refresh]);
+      const prevItem = categoryItems[index - 1];
+      try {
+        await api.menu.reorderItems([
+          { id: item.id, display_order: index - 1 },
+          { id: prevItem.id, display_order: index },
+        ]);
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors du déplacement du plat', error);
+      }
+    },
+    [refresh]
+  );
 
-  const moveItemDown = useCallback(async (item: MenuItem, categoryItems: MenuItem[], index: number) => {
-    if (index === categoryItems.length - 1) return;
+  const moveItemDown = useCallback(
+    async (item: MenuItem, categoryItems: MenuItem[], index: number) => {
+      if (index === categoryItems.length - 1) return;
 
-    const nextItem = categoryItems[index + 1];
-    try {
-      await api.menu.reorderItems([
-        { id: item.id, display_order: index + 1 },
-        { id: nextItem.id, display_order: index },
-      ]);
-      await refresh();
-    } catch (error) {
-      console.error('Erreur lors du déplacement du plat', error);
-    }
-  }, [refresh]);
+      const nextItem = categoryItems[index + 1];
+      try {
+        await api.menu.reorderItems([
+          { id: item.id, display_order: index + 1 },
+          { id: nextItem.id, display_order: index },
+        ]);
+        await refresh();
+      } catch (error) {
+        console.error('Erreur lors du déplacement du plat', error);
+      }
+    },
+    [refresh]
+  );
+
+  const reorderCategoryItems = useCallback(
+    async (reorderedItems: MenuItem[]) => {
+      // Update local state immediately (optimistic update)
+      updateMenuItemsOrder(reorderedItems);
+
+      // Then persist to database
+      try {
+        const updates = reorderedItems.map((item, index) => ({
+          id: item.id,
+          display_order: index,
+        }));
+        await api.menu.reorderItems(updates);
+      } catch (error) {
+        console.error('Erreur lors du réordonnancement des plats', error);
+        // Refresh to rollback on error
+        await refresh();
+      }
+    },
+    [updateMenuItemsOrder, refresh]
+  );
 
   // Options wizard functions
   const openOptionsWizard = useCallback(async (category: Category) => {
@@ -433,11 +490,14 @@ export function useMenuPage() {
     }
   }, []);
 
-  const openCategoryOptionsModal = useCallback(async (category: Category) => {
-    setSelectedCategoryForOptions(category);
-    await fetchCategoryOptionGroups(category.id);
-    setShowCategoryOptionsModal(true);
-  }, [fetchCategoryOptionGroups]);
+  const openCategoryOptionsModal = useCallback(
+    async (category: Category) => {
+      setSelectedCategoryForOptions(category);
+      await fetchCategoryOptionGroups(category.id);
+      setShowCategoryOptionsModal(true);
+    },
+    [fetchCategoryOptionGroups]
+  );
 
   const closeCategoryOptionsModal = useCallback(() => {
     setShowCategoryOptionsModal(false);
@@ -544,7 +604,8 @@ export function useMenuPage() {
         setRequiredOptionGroups(requiredGroups as OptionGroupWithOptions[]);
 
         // First required group options are used for "size" pricing
-        const sizeOptions = requiredGroups.length > 0 ? requiredGroups[0].category_options || [] : [];
+        const sizeOptions =
+          requiredGroups.length > 0 ? requiredGroups[0].category_options || [] : [];
         setSelectedCategorySizeOptions(sizeOptions as CategoryOption[]);
 
         // Fetch supplement groups
@@ -552,7 +613,7 @@ export function useMenuPage() {
         setSupplementOptionGroups(suppGroups as OptionGroupWithOptions[]);
 
         // Flat list of supplements for backwards compatibility
-        const allSupplements = suppGroups.flatMap(g => g.category_options || []);
+        const allSupplements = suppGroups.flatMap((g) => g.category_options || []);
         setSelectedCategorySupplements(allSupplements as CategoryOption[]);
       } catch (error) {
         console.error('Error fetching category options:', error);
@@ -613,12 +674,12 @@ export function useMenuPage() {
     createCategory,
     updateCategory,
     deleteCategory,
-    moveCategoryUp,
-    moveCategoryDown,
+    reorderCategories,
 
     // Item reordering
     moveItemUp,
     moveItemDown,
+    reorderCategoryItems,
 
     // Options wizard
     showOptionsWizard,

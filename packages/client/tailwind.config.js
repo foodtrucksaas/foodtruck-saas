@@ -4,20 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary colors using CSS variables for dynamic theming
-        // Default values are coral theme (fallback if CSS vars not set)
+        // Palette Orange Pêche (#FF8C42)
         primary: {
-          50: 'var(--color-primary-50, #FFF5F3)',
-          100: 'var(--color-primary-100, #FFE8E4)',
-          200: 'var(--color-primary-200, #FFD4CC)',
-          300: 'var(--color-primary-300, #FFB4A8)',
-          400: 'var(--color-primary-400, #FB923C)',
-          500: 'var(--color-primary-500, #F97066)',
-          600: 'var(--color-primary-600, #E5634D)',
-          700: 'var(--color-primary-700, #C94D3A)',
-          800: '#A13D2E',
-          900: '#7C2D22',
-          950: '#431410',
+          50: '#FFF7ED',   // Background très léger
+          100: '#FFEDD5',
+          200: '#FED7AA',
+          300: '#FDBA74',
+          400: '#FF8C42',  // Version claire
+          500: '#FF8C42',  // Couleur principale
+          600: '#EA7D3B',  // Hover
+          700: '#C2410C',
+          800: '#9A3412',
+          900: '#7C2D12',
+          950: '#431407',
         },
         // Neutres personnalisés
         anthracite: '#2D2D2D',

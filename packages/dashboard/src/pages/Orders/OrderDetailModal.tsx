@@ -56,10 +56,10 @@ export function OrderDetailModal({
   const shortOrderId = order.id.slice(-6).toUpperCase();
 
   const getHeaderColor = () => {
-    if (isPending) return 'bg-gradient-to-r from-yellow-500 to-amber-500';
-    if (isConfirmed) return 'bg-gradient-to-r from-blue-500 to-blue-600';
-    if (isReady) return 'bg-gradient-to-r from-emerald-500 to-emerald-600';
-    if (order.status === 'cancelled') return 'bg-gradient-to-r from-red-500 to-red-600';
+    if (isPending) return 'bg-gradient-to-r from-warning-500 to-warning-600';
+    if (isConfirmed) return 'bg-gradient-to-r from-info-500 to-info-600';
+    if (isReady) return 'bg-gradient-to-r from-success-500 to-success-600';
+    if (order.status === 'cancelled') return 'bg-gradient-to-r from-error-500 to-error-600';
     return 'bg-gradient-to-r from-gray-400 to-gray-500';
   };
 
@@ -138,13 +138,13 @@ export function OrderDetailModal({
             <span
               className={`text-xs px-3 py-1.5 rounded-full font-semibold ${
                 isPending
-                  ? 'bg-yellow-100 text-yellow-700'
+                  ? 'bg-warning-100 text-warning-600'
                   : isConfirmed
-                    ? 'bg-blue-100 text-blue-700'
+                    ? 'bg-info-100 text-info-600'
                     : isReady
-                      ? 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-success-100 text-success-600'
                       : order.status === 'cancelled'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-error-100 text-error-600'
                         : order.status === 'no_show'
                           ? 'bg-gray-100 text-gray-700'
                           : 'bg-gray-100 text-gray-600'
@@ -198,9 +198,9 @@ export function OrderDetailModal({
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-              <h4 className="text-sm font-medium text-yellow-800 mb-1">Note</h4>
-              <p className="text-yellow-900">{order.notes}</p>
+            <div className="bg-warning-50 border border-warning-500 rounded-xl p-3">
+              <h4 className="text-sm font-medium text-warning-600 mb-1">Note</h4>
+              <p className="text-gray-900">{order.notes}</p>
             </div>
           )}
 
@@ -252,10 +252,10 @@ export function OrderDetailModal({
                 {canCancel && (
                   <button
                     onClick={() => setShowCancelModal(true)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors active:scale-95"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-error-50 hover:bg-error-100 flex items-center justify-center transition-colors active:scale-95"
                     title="Annuler la commande"
                   >
-                    <XCircle className="w-4 h-4 text-red-500" />
+                    <XCircle className="w-4 h-4 text-error-500" />
                   </button>
                 )}
               </div>
@@ -265,7 +265,7 @@ export function OrderDetailModal({
                 {isPending && (
                   <button
                     onClick={onAccept}
-                    className="w-full sm:flex-1 px-4 py-3.5 min-h-[48px] sm:min-h-[44px] bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-3.5 min-h-[48px] sm:min-h-[44px] bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Check className="w-5 h-5" />
                     Accepter la commande
@@ -276,7 +276,7 @@ export function OrderDetailModal({
                   <>
                     <button
                       onClick={onMarkReady}
-                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
                     >
                       <Check className="w-4 h-4" />
                       Prête
@@ -294,7 +294,7 @@ export function OrderDetailModal({
                 {!useReadyStatus && isConfirmed && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
@@ -304,7 +304,7 @@ export function OrderDetailModal({
                 {isReady && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
