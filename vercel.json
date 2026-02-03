@@ -1,4 +1,10 @@
 {
-  "outputDirectory": "public",
-  "routes": [{ "handle": "filesystem" }, { "src": "/(.*)", "dest": "/index.html" }]
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/client/(.*)", "destination": "/client/index.html" },
+    { "source": "/dashboard/(.*)", "destination": "/dashboard/index.html" }
+  ]
 }
