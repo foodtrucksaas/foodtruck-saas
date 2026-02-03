@@ -3,13 +3,8 @@
   "outputDirectory": "dist",
   "installCommand": "pnpm install",
   "framework": null,
-  "trailingSlash": false,
   "rewrites": [
-    { "source": "/client", "destination": "/client/index.html" },
-    { "source": "/client/", "destination": "/client/index.html" },
-    { "source": "/client/:path((?!assets/).*)", "destination": "/client/index.html" },
-    { "source": "/dashboard", "destination": "/dashboard/index.html" },
-    { "source": "/dashboard/", "destination": "/dashboard/index.html" },
-    { "source": "/dashboard/:path((?!assets/).*)", "destination": "/dashboard/index.html" }
+    { "source": "/client/:path*", "destination": "/client/index.html" },
+    { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" }
   ]
 }
