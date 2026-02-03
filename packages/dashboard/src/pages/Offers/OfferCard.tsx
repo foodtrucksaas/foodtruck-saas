@@ -41,11 +41,19 @@ const typeIcons: Record<OfferType, typeof Package> = {
   threshold_discount: TrendingUp,
 };
 
+// Couleurs spécifiques aux offres (distinctes des statuts commandes)
 const typeColors: Record<OfferType, string> = {
-  bundle: 'bg-primary-500 text-white',
-  buy_x_get_y: 'bg-warning-500 text-white',
-  promo_code: 'bg-info-500 text-white',
-  threshold_discount: 'bg-success-500 text-white',
+  bundle: 'bg-violet-500 text-white',
+  buy_x_get_y: 'bg-amber-500 text-white',
+  promo_code: 'bg-indigo-500 text-white',
+  threshold_discount: 'bg-teal-500 text-white',
+};
+
+const typeBadgeColors: Record<OfferType, string> = {
+  bundle: 'bg-violet-100 text-violet-700',
+  buy_x_get_y: 'bg-amber-100 text-amber-700',
+  promo_code: 'bg-indigo-100 text-indigo-700',
+  threshold_discount: 'bg-teal-100 text-teal-700',
 };
 
 function formatOfferSummary(offer: OfferWithItems): string {
@@ -102,6 +110,7 @@ export function OfferCard({
 }: OfferCardProps) {
   const Icon = typeIcons[offer.offer_type];
   const colorClass = typeColors[offer.offer_type];
+  const badgeColorClass = typeBadgeColors[offer.offer_type];
 
   return (
     <div
@@ -128,7 +137,9 @@ export function OfferCard({
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-medium text-gray-900 truncate">{offer.name}</h3>
-              <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium whitespace-nowrap">
+              <span
+                className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${badgeColorClass}`}
+              >
                 {OFFER_TYPE_LABELS[offer.offer_type]}
               </span>
             </div>

@@ -36,16 +36,17 @@ export function OfferRecap({ form, categories }: OfferRecapProps) {
     }
   };
 
+  // Couleurs spécifiques aux offres (distinctes des statuts commandes)
   const getIconBgColor = () => {
     switch (form.offerType) {
       case 'bundle':
-        return 'bg-primary-500';
+        return 'bg-violet-500';
       case 'buy_x_get_y':
-        return 'bg-warning-500';
+        return 'bg-amber-500';
       case 'promo_code':
-        return 'bg-info-500';
+        return 'bg-indigo-500';
       case 'threshold_discount':
-        return 'bg-success-500';
+        return 'bg-teal-500';
     }
   };
 
