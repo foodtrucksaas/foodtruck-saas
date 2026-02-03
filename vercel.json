@@ -3,11 +3,14 @@
   "outputDirectory": "dist",
   "installCommand": "pnpm install",
   "framework": null,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/client/(.*)", "dest": "/client/index.html" },
-    { "src": "/client", "dest": "/client/index.html" },
-    { "src": "/dashboard/(.*)", "dest": "/dashboard/index.html" },
-    { "src": "/dashboard", "dest": "/dashboard/index.html" }
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/client", "destination": "/client/index.html" },
+    { "source": "/client/", "destination": "/client/index.html" },
+    { "source": "/client/:path+", "destination": "/client/index.html" },
+    { "source": "/dashboard", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/:path+", "destination": "/dashboard/index.html" }
   ]
 }
