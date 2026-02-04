@@ -41,6 +41,57 @@ if (fs.existsSync(dashboardDist)) {
   console.log('✓ Dashboard copied to dist/dashboard');
 }
 
+// Create .vercel/output structure for Build Output API v3
+const vercelOutputDir = path.join(rootDir, '.vercel/output');
+fs.rmSync(path.join(rootDir, '.vercel'), { recursive: true, force: true });
+fs.mkdirSync(path.join(vercelOutputDir, 'static'), { recursive: true });
+
+// Copy dist to static
+copyDir(distDir, path.join(vercelOutputDir, 'static'));
+
+// Create config.json with routing rules
+const config = {
+  version: 3,
+  routes: [
+    // Security headers for all routes
+    {
+      src: "/(.*)",
+      headers: {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
+      },
+      continue: true
+    },
+    // Handle filesystem (static files) first
+    { handle: "filesystem" },
+    // Subdomain routing - serve client app for foodtruck slugs
+    {
+      src: "/(.*)",
+      dest: "/client/index.html",
+      has: [{ type: "host", value: "(?<slug>[^.]+)\\.onmange\\.app" }]
+    },
+    // Client SPA fallback for paths that don't match static files
+    {
+      src: "/client/(.*)",
+      dest: "/client/index.html"
+    },
+    // Dashboard SPA fallback for paths that don't match static files
+    {
+      src: "/dashboard/(.*)",
+      dest: "/dashboard/index.html"
+    }
+  ]
+};
+
+fs.writeFileSync(
+  path.join(vercelOutputDir, 'config.json'),
+  JSON.stringify(config, null, 2)
+);
+console.log('✓ Vercel Build Output API config created');
+
 console.log('✓ Build combined successfully!');
 
 function copyDir(src, dest) {
