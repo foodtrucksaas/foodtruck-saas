@@ -21,6 +21,11 @@ if (fs.existsSync(publicDir)) {
 const clientDist = path.join(rootDir, 'packages/client/dist');
 if (fs.existsSync(clientDist)) {
   copyDir(clientDist, path.join(distDir, 'client'));
+  // Copy index.html to 200.html for SPA fallback on Vercel
+  const clientIndex = path.join(distDir, 'client', 'index.html');
+  if (fs.existsSync(clientIndex)) {
+    fs.copyFileSync(clientIndex, path.join(distDir, 'client', '200.html'));
+  }
   console.log('✓ Client copied to dist/client');
 }
 
@@ -28,6 +33,11 @@ if (fs.existsSync(clientDist)) {
 const dashboardDist = path.join(rootDir, 'packages/dashboard/dist');
 if (fs.existsSync(dashboardDist)) {
   copyDir(dashboardDist, path.join(distDir, 'dashboard'));
+  // Copy index.html to 200.html for SPA fallback on Vercel
+  const dashboardIndex = path.join(distDir, 'dashboard', 'index.html');
+  if (fs.existsSync(dashboardIndex)) {
+    fs.copyFileSync(dashboardIndex, path.join(distDir, 'dashboard', '200.html'));
+  }
   console.log('✓ Dashboard copied to dist/dashboard');
 }
 
