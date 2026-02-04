@@ -36,6 +36,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   const { foodtruckId: paramId } = useParams<{ foodtruckId: string }>();
   // Use slug prop if provided (subdomain), otherwise use URL param
   const foodtruckId = slug || paramId;
+  // On subdomain, use simple paths; otherwise include foodtruckId in URL
+  const isSubdomain = !!slug;
+  const checkoutPath = isSubdomain ? '/checkout' : `/${foodtruckId}/checkout`;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -861,7 +864,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       {itemCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
-            to={`/${foodtruckId}/checkout`}
+            to={checkoutPath}
             className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"
             style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
           >
