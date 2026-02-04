@@ -39,15 +39,15 @@ const MenuItemCard = memo(function MenuItemCard({
       tabIndex={0}
       role="button"
       aria-label={`${item.name}, ${formatPrice(item.price)}${item.description ? `, ${item.description}` : ''}${isInCart ? `, ${quantity} dans le panier` : ''}`}
-      className={`bg-white rounded-xl p-4 flex gap-4 cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+      className={`bg-white rounded-2xl p-4 flex gap-4 cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
         isInCart
-          ? 'border-l-4 border-l-primary-400 border-y border-r border-primary-100 bg-gradient-to-r from-primary-50/50 to-white'
-          : 'border border-gray-100 hover:border-primary-200 hover:shadow-md hover:-translate-y-0.5'
+          ? 'ring-2 ring-primary-500/20 bg-primary-50/30'
+          : 'border border-gray-100 hover:border-gray-200 hover:shadow-md'
       }`}
       style={{
         boxShadow: isInCart
-          ? '0 2px 12px rgba(249, 112, 102, 0.12)'
-          : '0 2px 8px rgba(0, 0, 0, 0.04)',
+          ? '0 2px 12px rgba(249, 112, 102, 0.08)'
+          : '0 1px 4px rgba(0, 0, 0, 0.04)',
       }}
     >
       {/* Content */}

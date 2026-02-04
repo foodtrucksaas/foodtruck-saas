@@ -229,10 +229,10 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
       {/* Info Card - Only show full card if there's a cover image */}
       {foodtruck.cover_image_url ? (
-        <div className="px-4 -mt-10 relative z-10">
+        <div className="px-4 -mt-8 relative z-10">
           <div
-            className="bg-white rounded-xl border border-gray-100 p-3"
-            style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            className="bg-white rounded-2xl border border-gray-100/80 p-4"
+            style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)' }}
           >
             <div className="flex gap-3">
               {foodtruck.logo_url ? (
@@ -355,16 +355,12 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs - underline style, scrollable */}
       <nav
-        className="sticky top-0 z-20 bg-[#FAFAFA] px-4 pt-2 pb-1"
+        className="sticky top-0 z-20 bg-[#FAFAFA]/95 backdrop-blur-sm border-b border-gray-100"
         aria-label="Navigation du contenu"
       >
-        <div
-          className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100"
-          role="tablist"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
-        >
+        <div className="flex overflow-x-auto no-scrollbar" role="tablist">
           <button
             onClick={() => setActiveTab('menu')}
             type="button"
@@ -372,13 +368,14 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             aria-selected={activeTab === 'menu'}
             aria-controls="tab-panel-menu"
             id="tab-menu"
-            className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-              activeTab === 'menu'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+            className={`flex-shrink-0 px-6 py-3 min-h-[48px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 relative ${
+              activeTab === 'menu' ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             Menu
+            {activeTab === 'menu' && (
+              <span className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary-500 rounded-full" />
+            )}
           </button>
           <button
             onClick={() => setActiveTab('info')}
@@ -387,13 +384,14 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             aria-selected={activeTab === 'info'}
             aria-controls="tab-panel-info"
             id="tab-info"
-            className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-              activeTab === 'info'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+            className={`flex-shrink-0 px-6 py-3 min-h-[48px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 relative ${
+              activeTab === 'info' ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             Infos et Planning
+            {activeTab === 'info' && (
+              <span className="absolute bottom-0 left-6 right-6 h-0.5 bg-primary-500 rounded-full" />
+            )}
           </button>
         </div>
       </nav>
@@ -401,9 +399,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' &&
         categories.filter((c) => groupedItems[c.id]?.length > 0).length > 1 && (
-          <div className="sticky top-[60px] z-10 bg-[#FAFAFA] px-4 py-2">
+          <div className="sticky top-[48px] z-10 bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
             <nav
-              className="flex gap-2 overflow-x-auto no-scrollbar py-1"
+              className="flex gap-2 overflow-x-auto no-scrollbar"
               aria-label="Categories du menu"
             >
               {categories
@@ -421,10 +419,10 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                           .getElementById(`category-${category.id}`)
                           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }}
-                      className={`flex-shrink-0 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                      className={`flex-shrink-0 px-4 py-2 min-h-[40px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                         isActive
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-gray-900 text-white shadow-sm'
+                          : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                       }`}
                     >
                       {category.name}
@@ -439,14 +437,17 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-8">
-            {/* Unified Offers Section - Warm styled */}
+            {/* Unified Offers Section - Clean white */}
             {(bundles.length > 0 ||
               specificItemsBundles.length > 0 ||
               buyXGetYOffers.length > 0 ||
               visibleOffers.filter((o) => o.offer_type !== 'bundle').length > 0) && (
-              <div className="bg-gradient-to-br from-primary-50 to-orange-50/50 rounded-2xl p-4 border border-primary-100/50">
-                <h2 className="text-base font-bold text-gray-900 mb-1">Nos offres du moment</h2>
-                <p className="text-xs text-gray-500 mb-3">S'appliquent automatiquement au panier</p>
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <Tag className="w-4 h-4 text-primary-500" />
+                  <h2 className="text-base font-bold text-gray-900">Nos offres</h2>
+                </div>
+                <p className="text-xs text-gray-400 mb-4">S'appliquent automatiquement au panier</p>
                 <div className="space-y-2">
                   {/* Bundle offers - clickable to open builder */}
                   {bundles.map((bundle) => {
@@ -468,7 +469,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                       <button
                         key={bundle.id}
                         onClick={() => setSelectedBundle(bundle)}
-                        className="w-full bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400 hover:bg-gray-50 active:scale-[0.98] transition-all text-left"
+                        className="w-full bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-3 active:scale-[0.98] transition-all text-left"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -481,7 +482,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             <span className="font-bold text-primary-600 whitespace-nowrap">
                               {formatPrice(bundle.config.fixed_price)}
                             </span>
-                            <span className="text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded-full font-medium">
+                            <span className="text-xs px-2.5 py-1 bg-primary-500 text-white rounded-full font-medium">
                               Composer
                             </span>
                           </div>
@@ -501,10 +502,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                       .join(' + ');
 
                     return (
-                      <div
-                        key={bundle.id}
-                        className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
-                      >
+                      <div key={bundle.id} className="bg-gray-50 rounded-xl px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
@@ -522,10 +520,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
                   {/* Buy X Get Y offers */}
                   {buyXGetYOffers.map((offer) => (
-                    <div
-                      key={offer.id}
-                      className="bg-white rounded-xl px-4 py-3 border-l-4 border-primary-400"
-                    >
+                    <div key={offer.id} className="bg-gray-50 rounded-xl px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 text-sm">{offer.name}</p>
                         {offer.description && (
@@ -549,7 +544,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                       return (
                         <div
                           key={offer.offer_id}
-                          className={`bg-white rounded-xl px-4 py-3 border-l-4 ${isApplicable ? 'border-emerald-500' : 'border-primary-400'}`}
+                          className={`rounded-xl px-4 py-3 ${isApplicable ? 'bg-emerald-50' : 'bg-gray-50'}`}
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
@@ -575,9 +570,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             )}
                           </div>
                           {!isApplicable && hasProgress && (
-                            <div className="mt-2 h-2 bg-primary-100 rounded-full overflow-hidden">
+                            <div className="mt-2.5 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all"
+                                className="h-full bg-primary-500 rounded-full transition-all"
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
