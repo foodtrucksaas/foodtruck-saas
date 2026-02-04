@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, Gift, ChevronDown } from 'lucide-react';
 import { formatPrice, formatTime, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
+import { supabase } from '../lib/supabase';
 import OffersBanner from '../components/OffersBanner';
 
 // Hooks
@@ -23,6 +24,10 @@ interface CheckoutProps {
   slug?: string; // Optional slug from subdomain routing
 }
 
+// Helper to check if a string is a valid UUID
+const isUUID = (str: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
 export default function Checkout({ slug }: CheckoutProps) {
   const { foodtruckId: paramId } = useParams<{ foodtruckId: string }>();
   const navigate = useNavigate();
@@ -36,9 +41,39 @@ export default function Checkout({ slug }: CheckoutProps) {
     foodtruckId: cartFoodtruckId,
   } = useCart();
 
-  // Use cart's foodtruckId (always the real UUID) for API calls
-  // For URL display, use param or slug
-  const foodtruckId = cartFoodtruckId || paramId;
+  // State to store resolved UUID (in case we need to fetch it from slug)
+  const [resolvedFoodtruckId, setResolvedFoodtruckId] = useState<string | undefined>(undefined);
+
+  // Resolve foodtruck UUID from slug if needed
+  useEffect(() => {
+    const identifier = cartFoodtruckId || paramId || slug;
+    if (!identifier) return;
+
+    // If we already have a valid UUID, use it
+    if (isUUID(identifier)) {
+      setResolvedFoodtruckId(identifier);
+      return;
+    }
+
+    // Otherwise, fetch the UUID from the slug
+    const fetchFoodtruckId = async () => {
+      const { data } = await supabase
+        .from('foodtrucks')
+        .select('id')
+        .eq('slug', identifier)
+        .single();
+      if (data) {
+        setResolvedFoodtruckId(data.id);
+      }
+    };
+    fetchFoodtruckId();
+  }, [cartFoodtruckId, paramId, slug]);
+
+  // Use resolved UUID for API calls, fallback to cart/param if already UUID
+  const foodtruckId =
+    resolvedFoodtruckId ||
+    (cartFoodtruckId && isUUID(cartFoodtruckId) ? cartFoodtruckId : undefined) ||
+    (paramId && isUUID(paramId) ? paramId : undefined);
   const urlIdentifier = slug || paramId;
 
   // Form state
