@@ -21,17 +21,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/client", "destination": "/client/index.html" },
-    { "source": "/client/", "destination": "/client/index.html" },
-    { "source": "/client/:path+", "destination": "/client/index.html" },
-    { "source": "/dashboard", "destination": "/dashboard/index.html" },
-    { "source": "/dashboard/", "destination": "/dashboard/index.html" },
-    { "source": "/dashboard/:path+", "destination": "/dashboard/index.html" },
     {
       "source": "/:path*",
       "destination": "/client/index.html",
       "has": [{ "type": "host", "value": "(?<slug>[^.]+)\\.onmange\\.app" }]
     },
-    { "source": "/((?!client|dashboard).*)", "destination": "/client/index.html" }
+    { "source": "/client/:path*", "destination": "/client/index.html" },
+    { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" }
   ]
 }
