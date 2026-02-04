@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    // Auto-redirect if on a foodtruck subdomain
+    (function() {
+      var hostname = window.location.hostname;
+      var parts = hostname.split('.');
+      if (parts.length >= 3 && parts.slice(-2).join('.') === 'onmange.app') {
+        var subdomain = parts[0];
+        if (subdomain !== 'www' && subdomain !== 'app' && subdomain !== 'dashboard') {
+          // Redirect to client app - it will handle the subdomain
+          window.location.href = '/client/';
+          return;
+        }
+      }
+    })();
+  </script>
   <style>
     * {
       margin: 0;
