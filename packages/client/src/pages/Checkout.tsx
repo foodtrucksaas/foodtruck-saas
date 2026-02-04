@@ -650,19 +650,38 @@ export default function Checkout({ slug }: CheckoutProps) {
 
           {/* Opt-ins - intégrés dans le formulaire */}
           <div className="p-4 space-y-3">
-            {settings?.loyaltyEnabled && (!loyaltyInfo || loyaltyInfo.loyalty_opt_in !== true) && (
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.loyaltyOptIn}
-                  onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
-                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-                />
-                <span className="text-xs text-gray-500">
-                  J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans le
-                  cadre du programme de fidélité.
-                </span>
-              </label>
+            {settings?.loyaltyEnabled && (
+              <>
+                {loyaltyInfo?.loyalty_opt_in === true ? (
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <p className="text-xs text-emerald-600 font-medium">
+                        Vous êtes inscrit au programme fidélité
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, loyaltyOptIn: false })}
+                        className="text-xs text-gray-400 hover:text-red-500 underline mt-1"
+                      >
+                        Se désinscrire
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.loyaltyOptIn}
+                      onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
+                      className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                    />
+                    <span className="text-xs text-gray-500">
+                      J'accepte que mon adresse email soit utilisée pour le suivi de mes achats dans
+                      le cadre du programme de fidélité.
+                    </span>
+                  </label>
+                )}
+              </>
             )}
             <label className="flex items-start gap-3 cursor-pointer">
               <input
