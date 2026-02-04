@@ -662,21 +662,6 @@ export function MenuItemForm({
             ))}
           </div>
         </div>
-
-        {/* Daily special */}
-        <div>
-          <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
-            <input
-              type="checkbox"
-              checked={formData.is_daily_special}
-              onChange={(e) =>
-                onFormDataChange({ ...formData, is_daily_special: e.target.checked })
-              }
-              className="w-5 h-5 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-            />
-            <span className="text-xs sm:text-sm font-medium text-gray-700">Menu du jour</span>
-          </label>
-        </div>
       </form>
     </Modal>
   );

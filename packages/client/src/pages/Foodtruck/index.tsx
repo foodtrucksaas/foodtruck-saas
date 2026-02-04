@@ -7,7 +7,6 @@ import {
   Phone,
   Mail,
   ShoppingBag,
-  Star,
   Tag,
   Globe,
   Instagram,
@@ -64,7 +63,6 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
     todaySchedules,
     todaySchedule,
     groupedItems,
-    dailySpecials,
 
     // Cart data
     total,
@@ -595,28 +593,6 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                         </div>
                       );
                     })}
-                </div>
-              </div>
-            )}
-
-            {/* Daily Specials */}
-            {dailySpecials.length > 0 && (
-              <div className="scroll-mt-[120px]">
-                <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                  <h2 className="text-lg font-bold text-gray-900">Menu du jour</h2>
-                </div>
-                <div className="grid gap-3 stagger-children">
-                  {dailySpecials.map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      hasOptions={!!getCategoryOptions(item.category_id)}
-                      quantity={getItemQuantity(item.id)}
-                      onAdd={() => handleAddItem(item)}
-                      onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
-                    />
-                  ))}
                 </div>
               </div>
             )}

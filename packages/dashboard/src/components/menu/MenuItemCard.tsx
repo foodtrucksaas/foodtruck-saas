@@ -1,4 +1,4 @@
-import { Edit2, Trash2, ToggleLeft, ToggleRight, Star, GripVertical } from 'lucide-react';
+import { Edit2, Trash2, ToggleLeft, ToggleRight, GripVertical } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
 import type { DraggableAttributes } from '@dnd-kit/core';
@@ -46,14 +46,9 @@ export function MenuItemCard({
           {/* Header with name and price */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                  {item.name}
-                </h3>
-                {item.is_daily_special && (
-                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                )}
-              </div>
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                {item.name}
+              </h3>
               {item.description && (
                 <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2">
                   {item.description}
