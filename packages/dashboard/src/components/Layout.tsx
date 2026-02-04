@@ -234,14 +234,14 @@ function LayoutContent({ children }: LayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile Layout - header OUTSIDE scroll context */}
-      <div className="lg:hidden absolute inset-0 bg-gray-50 overflow-hidden">
-        {/* Header - ultra compact for mobile, sticks right below safe area */}
+      {/* Mobile Layout - native document scroll for Safari address bar collapse */}
+      <div className="lg:hidden min-h-screen bg-gray-50">
+        {/* Sticky header */}
         <header
-          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-3 bg-gray-50"
+          className="sticky top-0 z-30 flex items-center justify-between px-3 bg-gray-50/95 backdrop-blur-sm"
           style={{
             paddingTop: 'env(safe-area-inset-top, 0px)',
-            height: 'calc(env(safe-area-inset-top, 0px) + 44px)',
+            height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
           }}
         >
           <button
@@ -287,24 +287,16 @@ function LayoutContent({ children }: LayoutProps) {
           </div>
         </header>
 
-        {/* Scroll container - starts after header (safe-area + 44px) */}
-        <div
-          className="absolute left-0 right-0 bottom-0 overflow-y-auto overflow-x-hidden"
-          style={{
-            top: 'calc(env(safe-area-inset-top, 0px) + 44px)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-            WebkitOverflowScrolling: 'touch',
-          }}
+        {/* Content - native scroll */}
+        <main
+          id="main-content"
+          className="px-3 py-3 animate-fade-in-up"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+          tabIndex={-1}
+          key={location.pathname}
         >
-          <main
-            id="main-content"
-            className="px-3 py-3 pb-6 animate-fade-in-up overflow-x-hidden"
-            tabIndex={-1}
-            key={location.pathname}
-          >
-            {children}
-          </main>
-        </div>
+          {children}
+        </main>
       </div>
 
       {/* Desktop Layout */}
