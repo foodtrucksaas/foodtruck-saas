@@ -12,15 +12,15 @@ SaaS permettant aux foodtrucks de digitaliser leurs **pré-commandes**. Les clie
 
 ## 🛠 Stack Technique
 
-| Élément | Technologie |
-|---------|-------------|
-| Monorepo | pnpm workspaces |
-| Client PWA | React + Vite + TailwindCSS |
-| Dashboard Gestionnaire | React + Vite + TailwindCSS |
-| Backend | Supabase (Auth, PostgreSQL, Storage, Realtime, Edge Functions) |
-| Maps | Google Maps API ou Leaflet |
-| Hébergement | Vercel |
-| Langage | TypeScript (strict mode) |
+| Élément                | Technologie                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| Monorepo               | pnpm workspaces                                                |
+| Client PWA             | React + Vite + TailwindCSS                                     |
+| Dashboard Gestionnaire | React + Vite + TailwindCSS                                     |
+| Backend                | Supabase (Auth, PostgreSQL, Storage, Realtime, Edge Functions) |
+| Maps                   | Google Maps API ou Leaflet                                     |
+| Hébergement            | Vercel                                                         |
+| Langage                | TypeScript (strict mode)                                       |
 
 ---
 
@@ -48,10 +48,12 @@ foodtruck-saas/
 ### Interface Gestionnaire (Dashboard)
 
 #### Authentification
+
 - [x] Inscription/connexion email + magic link
 - [x] Gestion profil foodtruck (nom, description, photo, type de cuisine)
 
 #### Gestion du menu
+
 - [x] CRUD plats (nom, description, prix, photo, allergènes, catégorie)
 - [x] Activation/désactivation rapide (rupture de stock)
 - [x] Catégories : entrées, plats, desserts, boissons
@@ -60,12 +62,14 @@ foodtruck-saas/
 - [x] Options/variantes sur les plats (tailles, suppléments, cuissons)
 
 #### Planning récurrent
+
 - [x] Sélection jours de la semaine (checkboxes "tous les lundis", etc.)
 - [x] Horaires par jour (arrivée/départ)
 - [x] Adresse/emplacement par jour
 - [x] Exceptions (vacances, jours fériés)
 
 #### Commandes
+
 - [x] Liste commandes en temps réel (Supabase Realtime)
 - [x] Statuts : nouvelle → en préparation → prête → retirée
 - [x] Notification sonore nouvelles commandes
@@ -73,9 +77,11 @@ foodtruck-saas/
 - [x] Prise de commande manuelle (interface POS pour commandes sur place)
 
 #### Paramètres
+
 - [x] Option affichage photos dans le menu (avec/sans photos côté client)
 
 #### Analytics avancée
+
 - [x] CA jour/semaine/mois avec périodes personnalisables
 - [x] Comparaison avec la période précédente (%)
 - [x] Commandes par jour et par heure (heures de pointe)
@@ -86,6 +92,7 @@ foodtruck-saas/
 - [x] Export CSV des données
 
 #### CRM & Marketing
+
 - [x] Base clients avec historique (créée automatiquement depuis commandes)
 - [x] Opt-in RGPD email/SMS au checkout
 - [x] Segmentation clients (tous, par emplacement, inactifs, fidèles, nouveaux)
@@ -97,6 +104,7 @@ foodtruck-saas/
 - [x] Page de désabonnement (RGPD)
 
 #### Système Unifié d'Offres (/offers)
+
 - [x] 4 templates d'offres : Menu/Formule, X achetés = Y offert, Code Promo, Remise au palier
 - [x] Wizard de création avec formulaires adaptés par type
 - [x] Configuration flexible via JSONB (prix fixe, quantités, codes...)
@@ -110,11 +118,13 @@ foodtruck-saas/
 - [x] Application automatique des offres (pas de sélection manuelle)
 
 **Stratégie d'optimisation des offres :**
+
 - Les bundles utilisent automatiquement les articles les plus chers du panier
 - Les offres "X achetés = Y offert" offrent l'article le moins cher
 - La fonction SQL calcule la meilleure combinaison d'offres pour maximiser la réduction client
 
 #### Codes Promo (legacy - migré vers /offers)
+
 - [x] Création de codes promo (pourcentage ou montant fixe)
 - [x] Validité temporelle (date début/fin)
 - [x] Limites d'utilisation (max total, max par client)
@@ -124,6 +134,7 @@ foodtruck-saas/
 - [x] Application côté client au checkout
 
 #### Formules / Deals (legacy - migré vers /offers)
+
 - [x] Création de formules (ex: "3 pizzas = boisson offerte")
 - [x] Conditions par catégorie et quantité
 - [x] 3 types de récompenses : article offert, réduction %, réduction €
@@ -134,6 +145,7 @@ foodtruck-saas/
 - [x] Option cumulable avec codes promo
 
 #### Programme de fidélité
+
 - [x] Configuration (activer/désactiver, points par euro, seuil, récompense)
 - [x] Crédit automatique des points après commande
 - [x] Affichage progression client au checkout (barre de progression)
@@ -142,16 +154,19 @@ foodtruck-saas/
 ### Interface Client (PWA)
 
 #### Accès
+
 - [x] Pas d'app store : lien direct ou QR code
 - [x] Connexion optionnelle (email pour historique)
 
 #### Consultation
+
 - [x] Menu complet avec photos
 - [x] Infos foodtruck (description, type cuisine)
 - [x] Planning de la semaine (où et quand)
 - [x] Carte avec position du jour
 
 #### Commande
+
 - [x] Sélection plats + quantités
 - [x] Personnalisation (notes spéciales)
 - [x] Choix créneau de retrait (par tranches de 15min)
@@ -159,6 +174,7 @@ foodtruck-saas/
 - [x] Affichage "Montant à régler sur place" (paiement externe)
 
 #### Suivi
+
 - [ ] Confirmation par email
 - [x] Statut commande en temps réel
 - [x] Historique commandes (si connecté)
@@ -182,6 +198,7 @@ foodtrucks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),
   name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,  -- URL-friendly identifier for subdomain routing (e.g., "le-gourmet")
   description TEXT,
   cuisine_types TEXT[],  -- Tableau pour supporter plusieurs types de cuisine
   photo_url TEXT,
@@ -464,12 +481,12 @@ offer_uses (
 
 ### Structure config JSONB par type d'offre
 
-| Type | Configuration JSONB |
-|------|---------------------|
-| `bundle` | `{ fixed_price: 1200 }` |
-| `buy_x_get_y` | `{ trigger_quantity: 3, reward_quantity: 1, reward_type: 'free'|'discount', reward_value?: 500 }` |
-| `promo_code` | `{ code: 'BIENVENUE', discount_type: 'percentage'|'fixed', discount_value: 10, min_order_amount?: 1500, max_discount?: 1000 }` |
-| `threshold_discount` | `{ min_amount: 2500, discount_type: 'percentage'|'fixed', discount_value: 10 }` |
+| Type                 | Configuration JSONB                                             |
+| -------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `bundle`             | `{ fixed_price: 1200 }`                                         |
+| `buy_x_get_y`        | `{ trigger_quantity: 3, reward_quantity: 1, reward_type: 'free' | 'discount', reward_value?: 500 }`                                            |
+| `promo_code`         | `{ code: 'BIENVENUE', discount_type: 'percentage'               | 'fixed', discount_value: 10, min_order_amount?: 1500, max_discount?: 1000 }` |
+| `threshold_discount` | `{ min_amount: 2500, discount_type: 'percentage'                | 'fixed', discount_value: 10 }`                                               |
 
 ### Row Level Security (RLS)
 
@@ -541,9 +558,55 @@ vercel --prod
 
 ---
 
+## 🌐 Sous-domaines (Subdomain Routing)
+
+Chaque foodtruck possède une URL personnalisée sous forme de sous-domaine :
+
+- Format : `https://[slug].onmange.app`
+- Exemple : `https://le-gourmet-roulant.onmange.app`
+
+### Fonctionnement
+
+1. **Génération du slug** : Automatique à partir du nom lors de la création (via `generateSlug()`)
+   - Conversion en minuscules
+   - Suppression des accents (NFD normalization)
+   - Remplacement des caractères spéciaux par des tirets
+   - Exemple : "Le Gourmet Français" → "le-gourmet-francais"
+
+2. **Unicité** : Si le slug existe déjà, un suffixe temporel est ajouté (ex: "le-gourmet-abc1")
+
+3. **Personnalisation** : Le gestionnaire peut modifier son slug dans les paramètres
+
+4. **Rétrocompatibilité** : Les anciennes URLs avec UUID (`/:foodtruckId`) continuent de fonctionner
+
+### Fichiers clés
+
+| Fichier                                                  | Description                                     |
+| -------------------------------------------------------- | ----------------------------------------------- |
+| `packages/shared/src/utils/slug.ts`                      | Utilitaires `generateSlug()` et `isValidSlug()` |
+| `packages/client/src/lib/subdomain.ts`                   | Extraction du sous-domaine côté client          |
+| `packages/client/src/App.tsx`                            | Routing conditionnel selon subdomain            |
+| `supabase/migrations/20260203230000_add_slug_column.sql` | Migration BDD                                   |
+
+### Configuration DNS/Vercel
+
+1. **DNS** : Ajouter un enregistrement CNAME wildcard `*.onmange.app → cname.vercel-dns.com`
+2. **Vercel** : Ajouter `*.onmange.app` (wildcard) dans Project Settings > Domains
+
+### Sous-domaines réservés
+
+Les sous-domaines suivants sont exclus du routing foodtruck :
+
+- `www`
+- `app`
+- `dashboard`
+
+---
+
 ## 📞 Parcours utilisateur
 
 ### Gestionnaire (Foodtruck)
+
 1. S'inscrit, choisit son plan (30j gratuits)
 2. Configure menu + photos
 3. Définit planning hebdomadaire récurrent
@@ -552,6 +615,7 @@ vercel --prod
 6. Valide et prépare selon planning vertical
 
 ### Client
+
 1. Scanne QR code ou clique sur lien
 2. Voit menu + planning du foodtruck
 3. Compose commande + choisit créneau retrait
@@ -566,6 +630,7 @@ vercel --prod
 ## 🔄 Workflows de modification
 
 ### Règle d'or
+
 **Après CHAQUE modification, mets à jour ce fichier CLAUDE.md** pour refléter les changements (fonctionnalités cochées, nouvelles tables, etc.)
 
 ---
@@ -573,12 +638,14 @@ vercel --prod
 ### 1. Ajouter une nouvelle table en base
 
 **Fichiers à modifier :**
+
 1. `supabase/migrations/xxx_nouvelle_table.sql` → créer la migration
 2. `packages/shared/src/types/database.ts` → ajouter les types TypeScript
 3. `packages/shared/src/types/index.ts` → exporter les nouveaux types
 4. `CLAUDE.md` → documenter la table dans la section BDD
 
 **Commandes :**
+
 ```bash
 supabase migration new nom_de_la_migration
 supabase db reset  # Applique toutes les migrations
@@ -589,6 +656,7 @@ supabase db reset  # Applique toutes les migrations
 ### 2. Ajouter un nouveau champ à une table existante
 
 **Fichiers à modifier :**
+
 1. `supabase/migrations/xxx_add_field.sql` → ALTER TABLE
 2. `packages/shared/src/types/database.ts` → mettre à jour le type
 3. Composants qui utilisent cette table → ajouter le champ
@@ -599,12 +667,14 @@ supabase db reset  # Applique toutes les migrations
 ### 3. Créer une nouvelle page/route
 
 **Dashboard (gestionnaire) :**
+
 1. `packages/dashboard/src/pages/NouvelePage.tsx` → créer la page
 2. `packages/dashboard/src/router.tsx` → ajouter la route
 3. `packages/dashboard/src/components/Sidebar.tsx` → ajouter le lien navigation
 4. `CLAUDE.md` → documenter la fonctionnalité
 
 **Client (PWA) :**
+
 1. `packages/client/src/pages/NouvelePage.tsx` → créer la page
 2. `packages/client/src/router.tsx` → ajouter la route
 3. `packages/client/src/components/Navigation.tsx` → si besoin, ajouter lien
@@ -615,6 +685,7 @@ supabase db reset  # Applique toutes les migrations
 ### 4. Ajouter une nouvelle fonctionnalité complète
 
 **Ordre des modifications :**
+
 1. **BDD** : migration SQL + types TypeScript
 2. **Shared** : types, interfaces, helpers partagés
 3. **Backend** : Edge Function Supabase si logique serveur nécessaire
@@ -627,6 +698,7 @@ supabase db reset  # Applique toutes les migrations
 ### 5. Modifier le planning/horaires
 
 **Fichiers concernés :**
+
 1. `supabase/migrations/` → si changement structure
 2. `packages/shared/src/types/schedules.ts` → types planning
 3. `packages/dashboard/src/pages/Schedule.tsx` → édition planning
@@ -639,12 +711,14 @@ supabase db reset  # Applique toutes les migrations
 ### 6. Ajouter une Edge Function Supabase
 
 **Fichiers à créer/modifier :**
+
 1. `supabase/functions/nom-fonction/index.ts` → créer la fonction
 2. `.env` → ajouter les variables nécessaires
 3. `packages/shared/src/api/` → helper pour appeler la fonction
 4. `CLAUDE.md` → documenter la fonction
 
 **Commandes :**
+
 ```bash
 supabase functions new nom-fonction
 supabase functions serve  # Test local
@@ -675,6 +749,7 @@ supabase functions deploy nom-fonction  # Déploiement
 ```
 
 **Règle : Toute modification en amont impacte l'aval**
+
 - Modifier SQL → mettre à jour types shared → vérifier dashboard + client
 - Modifier shared → vérifier dashboard + client
 - Modifier dashboard → aucun impact sur client (et vice-versa)
@@ -698,6 +773,7 @@ supabase functions deploy nom-fonction  # Déploiement
 ### Configuration actuelle (Supabase)
 
 **Backups automatiques inclus :**
+
 - **Plan Free** : 0 jours (pas de backup)
 - **Plan Pro** : 7 jours de backups quotidiens
 - **Plan Team** : 14 jours de backups quotidiens
@@ -708,6 +784,7 @@ supabase functions deploy nom-fonction  # Déploiement
 Le PITR permet de restaurer la base à n'importe quel instant précis (granularité seconde).
 
 **Activation :**
+
 1. Dashboard Supabase → Project Settings → Add-ons
 2. Activer "Point-in-Time Recovery"
 3. Coût : ~$100/mois selon volume de WAL
@@ -757,7 +834,7 @@ Créer un cron job ou GitHub Action pour backup hebdomadaire :
 name: Weekly DB Backup
 on:
   schedule:
-    - cron: '0 3 * * 0'  # Dimanche 3h du matin
+    - cron: '0 3 * * 0' # Dimanche 3h du matin
 jobs:
   backup:
     runs-on: ubuntu-latest
@@ -789,7 +866,7 @@ Format : `- [ ]` → `- [x]`
 
 ---
 
-*Dernière mise à jour : 23 Janvier 2026*
+_Dernière mise à jour : 3 Février 2026_
 
 ---
 
@@ -798,12 +875,14 @@ Format : `- [ ]` → `- [x]`
 **V1 MVP : 98% complété**
 
 ### Fonctionnalités restantes à implémenter :
+
 - [x] Vue planning vertical (créneaux de retrait par tranches de 15min) - Dashboard ✅
 - [ ] Confirmation par email (nécessite configuration SMTP)
 
 ### Fichiers implémentés :
 
 **Dashboard (packages/dashboard/src/pages/):**
+
 - `Login.tsx`, `Register.tsx` - Authentification
 - `Onboarding.tsx` - Création foodtruck
 - `Dashboard.tsx` - Stats temps réel
@@ -816,9 +895,11 @@ Format : `- [ ]` → `- [x]`
 - `Settings.tsx` - Profil foodtruck
 
 **Dashboard (packages/dashboard/src/components/):**
+
 - `QuickOrderModal.tsx` - Interface POS pour commandes sur place
 
 **Client PWA (packages/client/src/pages/):**
+
 - `Home.tsx` - Liste foodtrucks
 - `Foodtruck.tsx` - Menu + infos + carte
 - `Checkout.tsx` - Panier + confirmation pré-commande + opt-in RGPD
@@ -826,6 +907,7 @@ Format : `- [ ]` → `- [x]`
 - `OrderHistory.tsx` - Historique
 
 **Supabase Edge Functions:**
+
 - `create-order` - Création de pré-commande
 - `send-order-confirmation` - Envoi email de confirmation
 - `send-campaign` - Envoi campagnes email (Resend) et SMS (Twilio)

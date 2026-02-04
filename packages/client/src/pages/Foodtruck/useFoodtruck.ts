@@ -96,7 +96,11 @@ interface UseFoodtruckResult {
   getCategoryOptions: (categoryId: string | null) => CategoryWithOptions | null;
   getItemQuantity: (itemId: string) => number;
   handleAddItem: (item: MenuItem) => void;
-  handleOptionsConfirm: (selectedOptions: SelectedOption[], quantity: number, notes?: string) => void;
+  handleOptionsConfirm: (
+    selectedOptions: SelectedOption[],
+    quantity: number,
+    notes?: string
+  ) => void;
   handleUpdateQuantity: (itemId: string, delta: number) => void;
   closeOptionsModal: () => void;
   navigateBack: () => void;
@@ -134,75 +138,95 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     async function fetchData() {
       if (!foodtruckId) return;
 
-      // Fetch foodtruck data
-      const foodtruckRes = await supabase
-        .from('foodtrucks')
-        .select('*')
-        .eq('id', foodtruckId)
-        .single();
+      // Fetch foodtruck data - try by ID first, then by slug
+      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        foodtruckId
+      );
+
+      let foodtruckRes;
+      if (isUUID) {
+        foodtruckRes = await supabase.from('foodtrucks').select('*').eq('id', foodtruckId).single();
+      } else {
+        // Try to find by slug
+        foodtruckRes = await supabase
+          .from('foodtrucks')
+          .select('*')
+          .eq('slug', foodtruckId)
+          .single();
+      }
 
       const foodtruckData = foodtruckRes.data as Foodtruck | null;
-      if (foodtruckData) {
-        setFoodtruckData(foodtruckData);
-        setFoodtruck(foodtruckData.id);
-        // Apply the foodtruck's color theme
-        applyTheme(foodtruckData.theme);
+      if (!foodtruckData) {
+        setLoading(false);
+        return;
       }
+
+      setFoodtruckData(foodtruckData);
+      setFoodtruck(foodtruckData.id);
+      // Apply the foodtruck's color theme
+      applyTheme(foodtruckData.theme);
+
+      // Use the actual foodtruck ID for all subsequent queries (not the slug)
+      const actualFoodtruckId = foodtruckData.id;
 
       // Fetch other data in parallel
       const todayStr = formatLocalDate(new Date());
       const now = new Date().toISOString();
-      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] = await Promise.all([
-        supabase
-          .from('categories')
-          .select('*, category_option_groups(*, category_options(*))')
-          .eq('foodtruck_id', foodtruckId)
-          .order('display_order'),
-        supabase
-          .from('menu_items')
-          .select('*')
-          .eq('foodtruck_id', foodtruckId)
-          .eq('is_available', true)
-          .or('is_archived.is.null,is_archived.eq.false')
-          .order('display_order'),
-        supabase
-          .from('schedules')
-          .select('*, location:locations(*)')
-          .eq('foodtruck_id', foodtruckId)
-          .eq('is_active', true)
-          .order('day_of_week'),
-        supabase
-          .from('schedule_exceptions')
-          .select('*, location:locations(*)')
-          .eq('foodtruck_id', foodtruckId)
-          .gte('date', todayStr)
-          .order('date'),
-        // Fetch active bundle offers (with offer_items for specific_items bundles)
-        supabase
-          .from('offers')
-          .select('*, offer_items(id, menu_item_id, quantity)')
-          .eq('foodtruck_id', foodtruckId)
-          .eq('offer_type', 'bundle')
-          .eq('is_active', true)
-          .or(`start_date.is.null,start_date.lte.${now}`)
-          .or(`end_date.is.null,end_date.gte.${now}`),
-        // Fetch active buy_x_get_y offers (category_choice type only)
-        supabase
-          .from('offers')
-          .select('*')
-          .eq('foodtruck_id', foodtruckId)
-          .eq('offer_type', 'buy_x_get_y')
-          .eq('is_active', true)
-          .or(`start_date.is.null,start_date.lte.${now}`)
-          .or(`end_date.is.null,end_date.gte.${now}`),
-      ]);
+      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] =
+        await Promise.all([
+          supabase
+            .from('categories')
+            .select('*, category_option_groups(*, category_options(*))')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .order('display_order'),
+          supabase
+            .from('menu_items')
+            .select('*')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('is_available', true)
+            .or('is_archived.is.null,is_archived.eq.false')
+            .order('display_order'),
+          supabase
+            .from('schedules')
+            .select('*, location:locations(*)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('is_active', true)
+            .order('day_of_week'),
+          supabase
+            .from('schedule_exceptions')
+            .select('*, location:locations(*)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .gte('date', todayStr)
+            .order('date'),
+          // Fetch active bundle offers (with offer_items for specific_items bundles)
+          supabase
+            .from('offers')
+            .select('*, offer_items(id, menu_item_id, quantity)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('offer_type', 'bundle')
+            .eq('is_active', true)
+            .or(`start_date.is.null,start_date.lte.${now}`)
+            .or(`end_date.is.null,end_date.gte.${now}`),
+          // Fetch active buy_x_get_y offers (category_choice type only)
+          supabase
+            .from('offers')
+            .select('*')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('offer_type', 'buy_x_get_y')
+            .eq('is_active', true)
+            .or(`start_date.is.null,start_date.lte.${now}`)
+            .or(`end_date.is.null,end_date.gte.${now}`),
+        ]);
 
       setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
       setMenuItems((menuRes.data as MenuItem[]) || []);
       setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
 
       // Separate bundles by type
-      const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & { offer_items?: BundleOfferItem[] })[];
+      const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & {
+        offer_items?: BundleOfferItem[];
+      })[];
 
       // Category choice bundles
       const categoryChoiceBundles = allBundles.filter(
@@ -212,19 +236,22 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
 
       // Specific items bundles
       const specificBundles = allBundles
-        .filter((b) => b.config?.type === 'specific_items' && b.offer_items && b.offer_items.length > 0)
+        .filter(
+          (b) => b.config?.type === 'specific_items' && b.offer_items && b.offer_items.length > 0
+        )
         .map((b) => ({
           ...b,
-          offer_items: b.offer_items!.filter(item => item.menu_item_id),
+          offer_items: b.offer_items!.filter((item) => item.menu_item_id),
         })) as SpecificItemsBundleOffer[];
       setSpecificItemsBundles(specificBundles);
 
       // Buy X Get Y offers (only category_choice type for modal selection)
       const buyXGetYData = (buyXGetYRes.data || []) as unknown as BuyXGetYOffer[];
       const categoryChoiceBuyXGetY = buyXGetYData.filter(
-        (o) => o.config?.type === 'category_choice' &&
-               o.config?.trigger_category_ids?.length &&
-               o.config?.reward_category_ids?.length
+        (o) =>
+          o.config?.type === 'category_choice' &&
+          o.config?.trigger_category_ids?.length &&
+          o.config?.reward_category_ids?.length
       );
       setBuyXGetYOffers(categoryChoiceBuyXGetY);
 
@@ -246,52 +273,69 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     fetchData();
   }, [foodtruckId, setFoodtruck]);
 
-  const getCategoryOptions = useCallback((categoryId: string | null) => {
-    if (!categoryId) return null;
-    const category = categories.find((c) => c.id === categoryId);
-    if (!category?.category_option_groups) return null;
+  const getCategoryOptions = useCallback(
+    (categoryId: string | null) => {
+      if (!categoryId) return null;
+      const category = categories.find((c) => c.id === categoryId);
+      if (!category?.category_option_groups) return null;
 
-    const hasAvailableOptions = category.category_option_groups.some(
-      (g) => g.category_options?.some((o) => o.is_available)
-    );
-    return hasAvailableOptions ? category : null;
-  }, [categories]);
+      const hasAvailableOptions = category.category_option_groups.some((g) =>
+        g.category_options?.some((o) => o.is_available)
+      );
+      return hasAvailableOptions ? category : null;
+    },
+    [categories]
+  );
 
-  const getItemQuantity = useCallback((itemId: string) => {
-    // For items without options, get total quantity
-    const cartItems = items.filter((item) => item.menuItem.id === itemId);
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  }, [items]);
+  const getItemQuantity = useCallback(
+    (itemId: string) => {
+      // For items without options, get total quantity
+      const cartItems = items.filter((item) => item.menuItem.id === itemId);
+      return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    },
+    [items]
+  );
 
-  const handleAddItem = useCallback((item: MenuItem) => {
-    const categoryWithOptions = getCategoryOptions(item.category_id);
+  const handleAddItem = useCallback(
+    (item: MenuItem) => {
+      const categoryWithOptions = getCategoryOptions(item.category_id);
 
-    if (categoryWithOptions) {
-      setSelectedMenuItem(item);
-      setSelectedCategory(categoryWithOptions);
-      setShowOptionsModal(true);
-    } else {
-      addItem(item, 1);
-    }
-  }, [getCategoryOptions, addItem]);
+      if (categoryWithOptions) {
+        setSelectedMenuItem(item);
+        setSelectedCategory(categoryWithOptions);
+        setShowOptionsModal(true);
+      } else {
+        addItem(item, 1);
+      }
+    },
+    [getCategoryOptions, addItem]
+  );
 
-  const handleOptionsConfirm = useCallback((selectedOptions: SelectedOption[], quantity: number, notes?: string) => {
-    if (selectedMenuItem) {
-      addItem(selectedMenuItem, quantity, notes, selectedOptions);
-      setShowOptionsModal(false);
-      setSelectedMenuItem(null);
-      setSelectedCategory(null);
-    }
-  }, [selectedMenuItem, addItem]);
+  const handleOptionsConfirm = useCallback(
+    (selectedOptions: SelectedOption[], quantity: number, notes?: string) => {
+      if (selectedMenuItem) {
+        addItem(selectedMenuItem, quantity, notes, selectedOptions);
+        setShowOptionsModal(false);
+        setSelectedMenuItem(null);
+        setSelectedCategory(null);
+      }
+    },
+    [selectedMenuItem, addItem]
+  );
 
-  const handleUpdateQuantity = useCallback((itemId: string, delta: number) => {
-    // For simple items without options, find by menuItem.id
-    const cartItem = items.find((item) => item.menuItem.id === itemId && !item.selectedOptions?.length);
-    if (cartItem) {
-      const cartKey = getCartKey(itemId, cartItem.selectedOptions);
-      updateQuantity(cartKey, cartItem.quantity + delta);
-    }
-  }, [items, getCartKey, updateQuantity]);
+  const handleUpdateQuantity = useCallback(
+    (itemId: string, delta: number) => {
+      // For simple items without options, find by menuItem.id
+      const cartItem = items.find(
+        (item) => item.menuItem.id === itemId && !item.selectedOptions?.length
+      );
+      if (cartItem) {
+        const cartKey = getCartKey(itemId, cartItem.selectedOptions);
+        updateQuantity(cartKey, cartItem.quantity + delta);
+      }
+    },
+    [items, getCartKey, updateQuantity]
+  );
 
   const closeOptionsModal = useCallback(() => {
     setShowOptionsModal(false);
@@ -318,16 +362,18 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       }
       // If exception opens the day with custom hours/location
       if (todayException.location && todayException.start_time && todayException.end_time) {
-        return [{
-          id: 'exception-today',
-          foodtruck_id: foodtruck?.id || '',
-          location_id: todayException.location.id,
-          day_of_week: today,
-          start_time: todayException.start_time,
-          end_time: todayException.end_time,
-          is_active: true,
-          location: todayException.location,
-        } as ScheduleWithLocation];
+        return [
+          {
+            id: 'exception-today',
+            foodtruck_id: foodtruck?.id || '',
+            location_id: todayException.location.id,
+            day_of_week: today,
+            start_time: todayException.start_time,
+            end_time: todayException.end_time,
+            is_active: true,
+            location: todayException.location,
+          } as ScheduleWithLocation,
+        ];
       }
       // Exception with is_closed: false but no full details
       // Use regular schedules if available, otherwise create a placeholder
@@ -337,16 +383,26 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
       // No regular schedules - create a placeholder to show as "open"
       // This happens when opening on a normally closed day without specifying location
       if (todayException.start_time && todayException.end_time) {
-        return [{
-          id: 'exception-today-no-location',
-          foodtruck_id: foodtruck?.id || '',
-          location_id: '',
-          day_of_week: today,
-          start_time: todayException.start_time,
-          end_time: todayException.end_time,
-          is_active: true,
-          location: { id: '', foodtruck_id: foodtruck?.id || '', name: '', address: '', latitude: null, longitude: null, created_at: null },
-        } as ScheduleWithLocation];
+        return [
+          {
+            id: 'exception-today-no-location',
+            foodtruck_id: foodtruck?.id || '',
+            location_id: '',
+            day_of_week: today,
+            start_time: todayException.start_time,
+            end_time: todayException.end_time,
+            is_active: true,
+            location: {
+              id: '',
+              foodtruck_id: foodtruck?.id || '',
+              name: '',
+              address: '',
+              latitude: null,
+              longitude: null,
+              created_at: null,
+            },
+          } as ScheduleWithLocation,
+        ];
       }
     }
 

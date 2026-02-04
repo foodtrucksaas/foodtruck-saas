@@ -23,6 +23,7 @@ vi.mock('../../utils/imageCompression', () => ({
 const mockFoodtruck = {
   id: 'ft-1',
   name: 'Test Foodtruck',
+  slug: 'test-foodtruck',
   description: 'A test foodtruck',
   cuisine_types: ['burger', 'frites'],
   phone: '0612345678',
@@ -96,10 +97,10 @@ describe('useSettings', () => {
       expect(result.current.editLoading).toBe(false);
     });
 
-    it('should generate client link', () => {
+    it('should generate client link with subdomain format', () => {
       const { result } = renderHook(() => useSettings());
 
-      expect(result.current.clientLink).toContain('ft-1');
+      expect(result.current.clientLink).toBe('https://test-foodtruck.onmange.app');
     });
   });
 
@@ -260,8 +261,6 @@ describe('useSettings', () => {
     });
 
     it('should not save empty name', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useSettings());
 
       act(() => {
@@ -274,9 +273,7 @@ describe('useSettings', () => {
       });
 
       expect(mockUpdateFoodtruck).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('name is required'));
-
-      consoleSpy.mockRestore();
+      expect(result.current.editError).toBe('Le nom est requis');
     });
 
     it('should not save empty cuisine_types', async () => {
@@ -294,6 +291,7 @@ describe('useSettings', () => {
       });
 
       expect(mockUpdateFoodtruck).not.toHaveBeenCalled();
+      // This still uses console.error for cuisine_types validation
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('cuisine type is required'));
 
       consoleSpy.mockRestore();
@@ -475,7 +473,10 @@ describe('useSettings', () => {
         await result.current.saveField('name');
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Error updating settings'), expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error updating settings'),
+        expect.any(Error)
+      );
       expect(result.current.editLoading).toBe(false);
 
       consoleSpy.mockRestore();
@@ -500,7 +501,8 @@ describe('useSettings', () => {
         result.current.copyClientLink();
       });
 
-      expect(mockWriteText).toHaveBeenCalledWith(expect.stringContaining('ft-1'));
+      // Should use slug in subdomain format
+      expect(mockWriteText).toHaveBeenCalledWith('https://test-foodtruck.onmange.app');
     });
   });
 
@@ -516,7 +518,9 @@ describe('useSettings', () => {
 
       expect(mockUploadImage).toHaveBeenCalledWith(file);
       expect(mockDeleteImage).toHaveBeenCalledWith('https://example.com/logo.png');
-      expect(mockUpdateFoodtruck).toHaveBeenCalledWith({ logo_url: 'https://example.com/new-image.png' });
+      expect(mockUpdateFoodtruck).toHaveBeenCalledWith({
+        logo_url: 'https://example.com/new-image.png',
+      });
     });
 
     it('should remove logo', async () => {
@@ -541,7 +545,9 @@ describe('useSettings', () => {
 
       expect(mockUploadImage).toHaveBeenCalledWith(file);
       expect(mockDeleteImage).toHaveBeenCalledWith('https://example.com/cover.png');
-      expect(mockUpdateFoodtruck).toHaveBeenCalledWith({ cover_image_url: 'https://example.com/new-image.png' });
+      expect(mockUpdateFoodtruck).toHaveBeenCalledWith({
+        cover_image_url: 'https://example.com/new-image.png',
+      });
     });
 
     it('should remove cover', async () => {

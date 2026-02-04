@@ -45,12 +45,14 @@ export default function Settings() {
     editForm,
     editingField,
     editLoading,
+    editError,
     startEditing,
     cancelEditing,
     saveField,
     toggleCuisineType,
     updateEditForm,
     copyClientLink,
+    clearEditError,
     // Image uploads
     logoUploading,
     coverUploading,
@@ -151,10 +153,81 @@ export default function Settings() {
         }}
         className="card p-4 sm:p-6 scroll-mt-36"
       >
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Lien client</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">URL de commande</h2>
         <p className="text-gray-600 mb-4">
           Partagez ce lien avec vos clients pour qu'ils puissent consulter votre menu et commander.
         </p>
+
+        {/* Editable Slug */}
+        <div className="mb-4">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
+            Votre adresse personnalisée
+          </label>
+          {editingField === 'slug' ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2">
+                <span className="text-gray-500 text-sm">https://</span>
+                <input
+                  type="text"
+                  value={editForm.slug}
+                  onChange={(e) =>
+                    updateEditForm('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                  }
+                  className="flex-1 bg-transparent border-none focus:outline-none text-sm font-medium"
+                  placeholder="mon-foodtruck"
+                  autoFocus
+                />
+                <span className="text-gray-500 text-sm">.onmange.app</span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Utilisez uniquement des lettres minuscules, chiffres et tirets. Minimum 3
+                caractères.
+              </p>
+              {editError && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{editError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => saveField('slug')}
+                  disabled={editLoading}
+                  className="btn-primary text-sm py-2"
+                >
+                  {editLoading ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelEditing();
+                    clearEditError();
+                  }}
+                  className="btn-secondary text-sm py-2"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-1 bg-gray-50 rounded-lg p-3">
+                <span className="text-gray-500 text-sm">https://</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {foodtruck?.slug || '...'}
+                </span>
+                <span className="text-gray-500 text-sm">.onmange.app</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => startEditing('slug')}
+                className="btn-secondary text-sm py-2.5 px-4"
+              >
+                Modifier
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Copy Link */}
         <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"

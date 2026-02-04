@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { getSubdomain } from './lib/subdomain';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -10,10 +11,29 @@ const OrderStatus = lazy(() => import('./pages/OrderStatus'));
 const OrderHistory = lazy(() => import('./pages/OrderHistory'));
 const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
 
+// Wrapper components to handle subdomain routing
+function SubdomainFoodtruckPage() {
+  const subdomain = getSubdomain();
+  if (!subdomain) return null;
+
+  // Pass the slug directly to FoodtruckPage
+  return <FoodtruckPage slug={subdomain} />;
+}
+
+function SubdomainCheckout() {
+  const subdomain = getSubdomain();
+  // Checkout uses foodtruckId from cart context, which is set by FoodtruckPage
+  return <Checkout slug={subdomain || undefined} />;
+}
+
 // Loading fallback component
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50" role="status" aria-label="Chargement en cours">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-50"
+      role="status"
+      aria-label="Chargement en cours"
+    >
       <Loader2 className="w-8 h-8 text-primary-500 animate-spin" aria-hidden="true" />
       <span className="sr-only">Chargement de la page</span>
     </div>
@@ -33,6 +53,28 @@ function SkipLink() {
 }
 
 export default function App() {
+  const subdomain = getSubdomain();
+
+  // If subdomain detected, render directly the foodtruck page
+  // The subdomain (slug) will be used as the foodtruckId
+  if (subdomain) {
+    return (
+      <>
+        <SkipLink />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<SubdomainFoodtruckPage />} />
+            <Route path="/checkout" element={<SubdomainCheckout />} />
+            <Route path="/order/:orderId" element={<OrderStatus />} />
+            <Route path="/orders" element={<OrderHistory />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
+          </Routes>
+        </Suspense>
+      </>
+    );
+  }
+
+  // Otherwise, use classic routing with /:foodtruckId
   return (
     <>
       <SkipLink />

@@ -6,6 +6,7 @@ import { compressLogo, compressCover } from '../../utils/imageCompression';
 
 export type EditingField =
   | 'name'
+  | 'slug'
   | 'cuisine_types'
   | 'is_mobile'
   | 'description'
@@ -28,6 +29,7 @@ export type EditingField =
 
 export interface EditFormState {
   name: string;
+  slug: string;
   description: string;
   cuisine_types: string[];
   phone: string;
@@ -55,20 +57,30 @@ export function useSettings() {
   const [editingField, setEditingField] = useState<EditingField>(null);
 
   // Image upload hooks with specific compression
-  const { uploading: logoUploading, uploadImage: uploadLogoImage, deleteImage: deleteLogoImage } = useImageUpload({
+  const {
+    uploading: logoUploading,
+    uploadImage: uploadLogoImage,
+    deleteImage: deleteLogoImage,
+  } = useImageUpload({
     bucket: 'foodtruck-images',
     folder: user?.id || 'unknown',
     compress: compressLogo, // 512x512 max, WebP
   });
 
-  const { uploading: coverUploading, uploadImage: uploadCoverImage, deleteImage: deleteCoverImage } = useImageUpload({
+  const {
+    uploading: coverUploading,
+    uploadImage: uploadCoverImage,
+    deleteImage: deleteCoverImage,
+  } = useImageUpload({
     bucket: 'foodtruck-images',
     folder: user?.id || 'unknown',
     compress: compressCover, // 1920x640 max, WebP
   });
   const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditFormState>({
     name: '',
+    slug: '',
     description: '',
     cuisine_types: [],
     phone: '',
@@ -90,121 +102,159 @@ export function useSettings() {
     promo_codes_stackable: true,
   });
 
-  const startEditing = useCallback((field: EditingField) => {
-    if (!foodtruck) return;
-    setEditForm({
-      name: foodtruck.name,
-      description: foodtruck.description || '',
-      cuisine_types: foodtruck.cuisine_types || [],
-      phone: foodtruck.phone || '',
-      email: foodtruck.email || '',
-      is_mobile: foodtruck.is_mobile || false,
-      show_menu_photos: foodtruck.show_menu_photos ?? true,
-      auto_accept_orders: foodtruck.auto_accept_orders || false,
-      max_orders_per_slot: foodtruck.max_orders_per_slot || null,
-      order_slot_interval: foodtruck.order_slot_interval ?? 15,
-      show_order_popup: foodtruck.show_order_popup ?? true,
-      use_ready_status: foodtruck.use_ready_status || false,
-      allow_advance_orders: foodtruck.allow_advance_orders ?? true,
-      advance_order_days: foodtruck.advance_order_days ?? 7,
-      allow_asap_orders: foodtruck.allow_asap_orders ?? false,
-      min_preparation_time: foodtruck.min_preparation_time ?? 15,
-      send_confirmation_email: foodtruck.send_confirmation_email ?? true,
-      send_reminder_email: foodtruck.send_reminder_email ?? false,
-      offers_stackable: foodtruck.offers_stackable ?? false,
-      promo_codes_stackable: foodtruck.promo_codes_stackable ?? true,
-    });
-    setEditingField(field);
-  }, [foodtruck]);
+  const startEditing = useCallback(
+    (field: EditingField) => {
+      if (!foodtruck) return;
+      setEditForm({
+        name: foodtruck.name,
+        slug: foodtruck.slug || '',
+        description: foodtruck.description || '',
+        cuisine_types: foodtruck.cuisine_types || [],
+        phone: foodtruck.phone || '',
+        email: foodtruck.email || '',
+        is_mobile: foodtruck.is_mobile || false,
+        show_menu_photos: foodtruck.show_menu_photos ?? true,
+        auto_accept_orders: foodtruck.auto_accept_orders || false,
+        max_orders_per_slot: foodtruck.max_orders_per_slot || null,
+        order_slot_interval: foodtruck.order_slot_interval ?? 15,
+        show_order_popup: foodtruck.show_order_popup ?? true,
+        use_ready_status: foodtruck.use_ready_status || false,
+        allow_advance_orders: foodtruck.allow_advance_orders ?? true,
+        advance_order_days: foodtruck.advance_order_days ?? 7,
+        allow_asap_orders: foodtruck.allow_asap_orders ?? false,
+        min_preparation_time: foodtruck.min_preparation_time ?? 15,
+        send_confirmation_email: foodtruck.send_confirmation_email ?? true,
+        send_reminder_email: foodtruck.send_reminder_email ?? false,
+        offers_stackable: foodtruck.offers_stackable ?? false,
+        promo_codes_stackable: foodtruck.promo_codes_stackable ?? true,
+      });
+      setEditingField(field);
+    },
+    [foodtruck]
+  );
 
   const cancelEditing = useCallback(() => {
     setEditingField(null);
   }, []);
 
-  const saveField = useCallback(async (field: EditingField) => {
-    if (!field) return;
-    setEditLoading(true);
-    try {
-      let updateData: Record<string, unknown> = {};
-      switch (field) {
-        case 'name':
-          if (!editForm.name.trim()) {
-            console.error('Validation error: name is required');
-            setEditLoading(false);
-            return;
+  const saveField = useCallback(
+    async (field: EditingField) => {
+      if (!field) return;
+      setEditLoading(true);
+      setEditError(null);
+      try {
+        let updateData: Record<string, unknown> = {};
+        switch (field) {
+          case 'name':
+            if (!editForm.name.trim()) {
+              setEditError('Le nom est requis');
+              setEditLoading(false);
+              return;
+            }
+            updateData = { name: editForm.name };
+            break;
+          case 'slug': {
+            if (!editForm.slug.trim()) {
+              setEditError("L'URL est requise");
+              setEditLoading(false);
+              return;
+            }
+            // Validate slug format
+            const slugRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+            if (
+              !slugRegex.test(editForm.slug) ||
+              editForm.slug.length < 3 ||
+              editForm.slug.length > 50
+            ) {
+              setEditError(
+                'Format invalide. Utilisez uniquement des lettres minuscules, chiffres et tirets (3-50 caractères)'
+              );
+              setEditLoading(false);
+              return;
+            }
+            updateData = { slug: editForm.slug };
+            break;
           }
-          updateData = { name: editForm.name };
-          break;
-        case 'cuisine_types':
-          if (editForm.cuisine_types.length === 0) {
-            console.error('Validation error: at least one cuisine type is required');
-            setEditLoading(false);
-            return;
-          }
-          updateData = { cuisine_types: editForm.cuisine_types };
-          break;
-        case 'is_mobile':
-          updateData = { is_mobile: editForm.is_mobile };
-          break;
-        case 'description':
-          updateData = { description: editForm.description || null };
-          break;
-        case 'contact':
-          updateData = { phone: editForm.phone || null, email: editForm.email || null };
-          break;
-        case 'show_menu_photos':
-          updateData = { show_menu_photos: editForm.show_menu_photos };
-          break;
-        case 'auto_accept_orders':
-          updateData = { auto_accept_orders: editForm.auto_accept_orders };
-          break;
-        case 'show_order_popup':
-          updateData = { show_order_popup: editForm.show_order_popup };
-          break;
-        case 'use_ready_status':
-          updateData = { use_ready_status: editForm.use_ready_status };
-          break;
-        case 'order_slot_interval':
-          updateData = { order_slot_interval: editForm.order_slot_interval };
-          break;
-        case 'max_orders_per_slot':
-          updateData = { max_orders_per_slot: editForm.max_orders_per_slot };
-          break;
-        case 'allow_advance_orders':
-          updateData = {
-            allow_advance_orders: editForm.allow_advance_orders,
-            advance_order_days: editForm.allow_advance_orders ? editForm.advance_order_days : null,
-          };
-          break;
-        case 'advance_order_days':
-          updateData = { advance_order_days: editForm.advance_order_days };
-          break;
-        case 'allow_asap_orders':
-          updateData = { allow_asap_orders: editForm.allow_asap_orders };
-          break;
-        case 'min_preparation_time':
-          updateData = { min_preparation_time: editForm.min_preparation_time };
-          break;
-        case 'send_confirmation_email':
-          updateData = { send_confirmation_email: editForm.send_confirmation_email };
-          break;
-        case 'send_reminder_email':
-          updateData = { send_reminder_email: editForm.send_reminder_email };
-          break;
-        case 'offers_stackable':
-          updateData = { offers_stackable: editForm.offers_stackable };
-          break;
-        case 'promo_codes_stackable':
-          updateData = { promo_codes_stackable: editForm.promo_codes_stackable };
-          break;
+          case 'cuisine_types':
+            if (editForm.cuisine_types.length === 0) {
+              console.error('Validation error: at least one cuisine type is required');
+              setEditLoading(false);
+              return;
+            }
+            updateData = { cuisine_types: editForm.cuisine_types };
+            break;
+          case 'is_mobile':
+            updateData = { is_mobile: editForm.is_mobile };
+            break;
+          case 'description':
+            updateData = { description: editForm.description || null };
+            break;
+          case 'contact':
+            updateData = { phone: editForm.phone || null, email: editForm.email || null };
+            break;
+          case 'show_menu_photos':
+            updateData = { show_menu_photos: editForm.show_menu_photos };
+            break;
+          case 'auto_accept_orders':
+            updateData = { auto_accept_orders: editForm.auto_accept_orders };
+            break;
+          case 'show_order_popup':
+            updateData = { show_order_popup: editForm.show_order_popup };
+            break;
+          case 'use_ready_status':
+            updateData = { use_ready_status: editForm.use_ready_status };
+            break;
+          case 'order_slot_interval':
+            updateData = { order_slot_interval: editForm.order_slot_interval };
+            break;
+          case 'max_orders_per_slot':
+            updateData = { max_orders_per_slot: editForm.max_orders_per_slot };
+            break;
+          case 'allow_advance_orders':
+            updateData = {
+              allow_advance_orders: editForm.allow_advance_orders,
+              advance_order_days: editForm.allow_advance_orders
+                ? editForm.advance_order_days
+                : null,
+            };
+            break;
+          case 'advance_order_days':
+            updateData = { advance_order_days: editForm.advance_order_days };
+            break;
+          case 'allow_asap_orders':
+            updateData = { allow_asap_orders: editForm.allow_asap_orders };
+            break;
+          case 'min_preparation_time':
+            updateData = { min_preparation_time: editForm.min_preparation_time };
+            break;
+          case 'send_confirmation_email':
+            updateData = { send_confirmation_email: editForm.send_confirmation_email };
+            break;
+          case 'send_reminder_email':
+            updateData = { send_reminder_email: editForm.send_reminder_email };
+            break;
+          case 'offers_stackable':
+            updateData = { offers_stackable: editForm.offers_stackable };
+            break;
+          case 'promo_codes_stackable':
+            updateData = { promo_codes_stackable: editForm.promo_codes_stackable };
+            break;
+        }
+        await updateFoodtruck(updateData);
+        setEditingField(null);
+      } catch (error: unknown) {
+        console.error('Error updating settings:', error);
+        // Handle specific error for duplicate slug
+        if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+          setEditError('Cette URL est déjà utilisée par un autre food truck');
+        } else {
+          setEditError('Une erreur est survenue lors de la sauvegarde');
+        }
       }
-      await updateFoodtruck(updateData);
-      setEditingField(null);
-    } catch (error) {
-      console.error('Error updating settings:', error);
-    }
-    setEditLoading(false);
-  }, [editForm, updateFoodtruck]);
+      setEditLoading(false);
+    },
+    [editForm, updateFoodtruck]
+  );
 
   const toggleCuisineType = useCallback((type: string) => {
     setEditForm((prev) => ({
@@ -215,31 +265,37 @@ export function useSettings() {
     }));
   }, []);
 
-  const updateEditForm = useCallback(<K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
-    setEditForm((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const updateEditForm = useCallback(
+    <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
+      setEditForm((prev) => ({ ...prev, [key]: value }));
+    },
+    []
+  );
 
   const copyClientLink = useCallback(() => {
-    if (!foodtruck) return;
-    const link = `${import.meta.env.VITE_APP_URL || 'https://votre-app.vercel.app'}/${foodtruck.id}`;
+    if (!foodtruck?.slug) return;
+    // Use subdomain format: slug.onmange.app
+    const link = `https://${foodtruck.slug}.onmange.app`;
     navigator.clipboard.writeText(link);
   }, [foodtruck]);
 
-  const clientLink = foodtruck
-    ? `${import.meta.env.VITE_APP_URL || 'https://votre-app.vercel.app'}/${foodtruck.id}`
-    : '';
+  // Use subdomain format for the client link
+  const clientLink = foodtruck?.slug ? `https://${foodtruck.slug}.onmange.app` : '';
 
   // Image upload handlers
-  const uploadLogo = useCallback(async (file: File) => {
-    const url = await uploadLogoImage(file);
-    if (url) {
-      // Delete old logo if exists
-      if (foodtruck?.logo_url) {
-        await deleteLogoImage(foodtruck.logo_url);
+  const uploadLogo = useCallback(
+    async (file: File) => {
+      const url = await uploadLogoImage(file);
+      if (url) {
+        // Delete old logo if exists
+        if (foodtruck?.logo_url) {
+          await deleteLogoImage(foodtruck.logo_url);
+        }
+        await updateFoodtruck({ logo_url: url });
       }
-      await updateFoodtruck({ logo_url: url });
-    }
-  }, [uploadLogoImage, deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
+    },
+    [uploadLogoImage, deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]
+  );
 
   const removeLogo = useCallback(async () => {
     if (foodtruck?.logo_url) {
@@ -248,16 +304,19 @@ export function useSettings() {
     }
   }, [deleteLogoImage, foodtruck?.logo_url, updateFoodtruck]);
 
-  const uploadCover = useCallback(async (file: File) => {
-    const url = await uploadCoverImage(file);
-    if (url) {
-      // Delete old cover if exists
-      if (foodtruck?.cover_image_url) {
-        await deleteCoverImage(foodtruck.cover_image_url);
+  const uploadCover = useCallback(
+    async (file: File) => {
+      const url = await uploadCoverImage(file);
+      if (url) {
+        // Delete old cover if exists
+        if (foodtruck?.cover_image_url) {
+          await deleteCoverImage(foodtruck.cover_image_url);
+        }
+        await updateFoodtruck({ cover_image_url: url });
       }
-      await updateFoodtruck({ cover_image_url: url });
-    }
-  }, [uploadCoverImage, deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
+    },
+    [uploadCoverImage, deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]
+  );
 
   const removeCover = useCallback(async () => {
     if (foodtruck?.cover_image_url) {
@@ -266,6 +325,10 @@ export function useSettings() {
     }
   }, [deleteCoverImage, foodtruck?.cover_image_url, updateFoodtruck]);
 
+  const clearEditError = useCallback(() => {
+    setEditError(null);
+  }, []);
+
   return {
     // Data
     foodtruck,
@@ -273,6 +336,7 @@ export function useSettings() {
     editForm,
     editingField,
     editLoading,
+    editError,
 
     // Actions
     startEditing,
@@ -281,6 +345,7 @@ export function useSettings() {
     toggleCuisineType,
     updateEditForm,
     copyClientLink,
+    clearEditError,
 
     // Image uploads
     logoUploading,

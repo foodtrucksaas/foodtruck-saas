@@ -29,8 +29,14 @@ import { useFoodtruck, type BundleOffer } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
 
-export default function FoodtruckPage() {
-  const { foodtruckId } = useParams<{ foodtruckId: string }>();
+interface FoodtruckPageProps {
+  slug?: string; // Optional slug from subdomain
+}
+
+export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
+  const { foodtruckId: paramId } = useParams<{ foodtruckId: string }>();
+  // Use slug prop if provided (subdomain), otherwise use URL param
+  const foodtruckId = slug || paramId;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});

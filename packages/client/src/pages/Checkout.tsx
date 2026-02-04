@@ -19,10 +19,27 @@ import {
 // Components
 import { DatePickerModal, OrderSummaryCard } from '../components/checkout';
 
-export default function Checkout() {
-  const { foodtruckId } = useParams<{ foodtruckId: string }>();
+interface CheckoutProps {
+  slug?: string; // Optional slug from subdomain routing
+}
+
+export default function Checkout({ slug }: CheckoutProps) {
+  const { foodtruckId: paramId } = useParams<{ foodtruckId: string }>();
   const navigate = useNavigate();
-  const { items, updateQuantity, removeItem, clearCart, total, getCartKey } = useCart();
+  const {
+    items,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    total,
+    getCartKey,
+    foodtruckId: cartFoodtruckId,
+  } = useCart();
+
+  // Use cart's foodtruckId (always the real UUID) for API calls
+  // For URL display, use param or slug
+  const foodtruckId = cartFoodtruckId || paramId;
+  const urlIdentifier = slug || paramId;
 
   // Form state
   const [form, setForm] = useState({
@@ -332,7 +349,7 @@ export default function Checkout() {
         </div>
         <p className="text-gray-500 mb-4">Votre panier est vide</p>
         <Link
-          to={`/${foodtruckId}`}
+          to={slug ? '/' : `/${urlIdentifier}`}
           className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Voir le menu

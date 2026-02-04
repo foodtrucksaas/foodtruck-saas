@@ -15,7 +15,7 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react';
-import { DEFAULT_CATEGORIES } from '@foodtruck/shared';
+import { DEFAULT_CATEGORIES, generateSlug } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
@@ -73,6 +73,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const canContinue = () => {
@@ -149,12 +150,28 @@ export default function Onboarding() {
     setLoading(true);
 
     try {
-      // 1. Create the foodtruck
+      // 1. Generate slug and check uniqueness
+      const baseSlug = generateSlug(name.trim());
+
+      // Check if slug already exists
+      const { data: existingSlug } = await supabase
+        .from('foodtrucks')
+        .select('id')
+        .eq('slug', baseSlug)
+        .single();
+
+      // Add timestamp suffix if slug exists
+      const finalSlug = existingSlug
+        ? `${baseSlug}-${Date.now().toString(36).slice(-4)}`
+        : baseSlug;
+
+      // 2. Create the foodtruck with slug
       const { data: foodtruck, error: foodtruckError } = await supabase
         .from('foodtrucks')
         .insert({
           user_id: user.id,
           name: name.trim(),
+          slug: finalSlug,
           description: description.trim() || null,
           email: user.email,
         })
@@ -239,8 +256,9 @@ export default function Onboarding() {
         }
       }
 
-      // Save id for final step
+      // Save id and slug for final step
       setCreatedId(foodtruck.id);
+      setCreatedSlug(foodtruck.slug);
 
       // Move to final step
       setStep(5);
@@ -253,16 +271,16 @@ export default function Onboarding() {
   };
 
   const handleCopyLink = async () => {
-    if (!createdId) return;
-    const url = `${window.location.origin.replace('dashboard.', '')}/${createdId}`;
+    if (!createdSlug) return;
+    // Use subdomain format: slug.onmange.app
+    const url = `https://${createdSlug}.onmange.app`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const foodtruckUrl = createdId
-    ? `${window.location.origin.replace('dashboard.', '')}/${createdId}`
-    : '';
+  // Use subdomain format for the URL
+  const foodtruckUrl = createdSlug ? `https://${createdSlug}.onmange.app` : '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex flex-col">

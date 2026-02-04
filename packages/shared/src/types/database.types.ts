@@ -744,6 +744,7 @@ export type Database = {
           show_order_popup: boolean;
           show_promo_section: boolean | null;
           siret: string | null;
+          slug: string;
           stripe_account_id: string | null;
           stripe_onboarding_complete: boolean | null;
           theme: string | null;
@@ -788,6 +789,7 @@ export type Database = {
           show_order_popup?: boolean;
           show_promo_section?: boolean | null;
           siret?: string | null;
+          slug: string;
           stripe_account_id?: string | null;
           stripe_onboarding_complete?: boolean | null;
           theme?: string | null;
@@ -832,6 +834,7 @@ export type Database = {
           show_order_popup?: boolean;
           show_promo_section?: boolean | null;
           siret?: string | null;
+          slug?: string;
           stripe_account_id?: string | null;
           stripe_onboarding_complete?: boolean | null;
           theme?: string | null;

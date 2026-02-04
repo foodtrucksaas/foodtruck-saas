@@ -55,6 +55,7 @@ describe('useFoodtruck', () => {
     id: 'ft-1',
     user_id: 'user-1',
     name: 'Test Foodtruck',
+    slug: 'test-foodtruck',
     description: 'A test foodtruck',
     cuisine_types: ['burger'],
     is_mobile: true,
@@ -97,7 +98,15 @@ describe('useFoodtruck', () => {
   };
 
   const mockLocations: Location[] = [
-    { id: 'loc-1', foodtruck_id: 'ft-1', name: 'Marche Central', address: '1 Place du Marche', latitude: 48.8566, longitude: 2.3522, created_at: '2024-01-01' },
+    {
+      id: 'loc-1',
+      foodtruck_id: 'ft-1',
+      name: 'Marche Central',
+      address: '1 Place du Marche',
+      latitude: 48.8566,
+      longitude: 2.3522,
+      created_at: '2024-01-01',
+    },
   ];
 
   const mockCategories: CategoryWithOptions[] = [
@@ -117,8 +126,26 @@ describe('useFoodtruck', () => {
           display_order: 0,
           created_at: '2024-01-01',
           category_options: [
-            { id: 'opt-1', option_group_id: 'group-1', name: 'Normal', price_modifier: 0, is_available: true, is_default: true, display_order: 0, created_at: '2024-01-01' },
-            { id: 'opt-2', option_group_id: 'group-1', name: 'XL', price_modifier: 200, is_available: true, is_default: false, display_order: 1, created_at: '2024-01-01' },
+            {
+              id: 'opt-1',
+              option_group_id: 'group-1',
+              name: 'Normal',
+              price_modifier: 0,
+              is_available: true,
+              is_default: true,
+              display_order: 0,
+              created_at: '2024-01-01',
+            },
+            {
+              id: 'opt-2',
+              option_group_id: 'group-1',
+              name: 'XL',
+              price_modifier: 200,
+              is_available: true,
+              is_default: false,
+              display_order: 1,
+              created_at: '2024-01-01',
+            },
           ],
         },
       ],
@@ -521,7 +548,14 @@ describe('useFoodtruck', () => {
       });
 
       const selectedOptions = [
-        { optionId: 'opt-1', name: 'Normal', optionGroupId: 'group-1', groupName: 'Taille', priceModifier: 0, isSizeOption: true },
+        {
+          optionId: 'opt-1',
+          name: 'Normal',
+          optionGroupId: 'group-1',
+          groupName: 'Taille',
+          priceModifier: 0,
+          isSizeOption: true,
+        },
       ];
 
       act(() => {
