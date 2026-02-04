@@ -14,10 +14,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
   timeout: 60000,
   expect: {
     timeout: 10000,
@@ -38,7 +35,7 @@ export default defineConfig({
       testDir: './e2e/client',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:5173',
+        baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',
       },
     },
     // Client PWA - Mobile Safari (iPhone)
@@ -69,22 +66,25 @@ export default defineConfig({
       },
     },
   ],
-  webServer: [
-    {
-      command: 'pnpm dev:client',
-      url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    },
-    {
-      command: 'pnpm dev:dashboard',
-      url: 'http://localhost:5174',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    },
-  ],
+  // Only start dev servers if not running against a remote URL
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : [
+        {
+          command: 'pnpm dev:client',
+          url: 'http://localhost:5173',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+          stdout: 'pipe',
+          stderr: 'pipe',
+        },
+        {
+          command: 'pnpm dev:dashboard',
+          url: 'http://localhost:5174',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+          stdout: 'pipe',
+          stderr: 'pipe',
+        },
+      ],
 });
