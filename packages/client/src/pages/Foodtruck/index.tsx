@@ -225,6 +225,21 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
         >
           <ArrowLeft className="w-5 h-5 text-anthracite" aria-hidden="true" />
         </button>
+
+        {/* Open/Closed badge */}
+        <div className="absolute top-3 right-3">
+          {todaySchedules.length > 0 ? (
+            <div className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="text-xs font-semibold">Ouvert</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-gray-800 text-white px-3 py-1.5 rounded-full shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-xs font-semibold">Fermé</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Info Card - Only show full card if there's a cover image */}
@@ -618,12 +633,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                   }}
                   className="scroll-mt-[120px]"
                 >
-                  <div className="flex items-center gap-2 mb-4 mt-2">
-                    <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
-                    <span className="text-xs text-gray-300 font-medium">
-                      {groupedItems[category.id].length}
-                    </span>
-                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
                   <div className="grid gap-3 stagger-children">
                     {groupedItems[category.id].map((item) => (
                       <MenuItemCard
