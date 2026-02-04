@@ -93,7 +93,7 @@ export default function Menu() {
           className="btn-secondary"
         >
           <FolderOpen className="w-5 h-5 mr-2" />
-          Catégories
+          Gérer les catégories
           {showCategoryManager ? (
             <ChevronDown className="w-4 h-4 ml-1" />
           ) : (
@@ -109,7 +109,7 @@ export default function Menu() {
           className="btn-secondary flex-1"
         >
           <FolderOpen className="w-5 h-5 mr-2" />
-          Catégories
+          Gérer les catégories
         </button>
       </div>
 
@@ -165,51 +165,66 @@ export default function Menu() {
 
       {/* Menu Items */}
       <div className="space-y-4 sm:space-y-6">
-        {categories.map((category) => (
-          <div key={category.id}>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">{category.name}</h2>
-              <button
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, category_id: category.id }));
-                  setShowForm(true);
-                }}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
-                title="Ajouter un plat"
-                aria-label="Ajouter un plat"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <button
-                onClick={() => openOptionsWizard(category)}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98]"
-              >
-                <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                Options
-              </button>
+        {categories.map((category) => {
+          const items = groupedItems[category.id] || [];
+          const unavailableCount = items.filter((item) => !item.is_available).length;
+
+          return (
+            <div key={category.id}>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 bg-gray-50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                  {category.name}
+                </h2>
+                <span className="text-xs text-gray-400 font-medium">
+                  {items.length} {items.length > 1 ? 'plats' : 'plat'}
+                  {unavailableCount > 0 && (
+                    <span className="text-amber-600 ml-1">· {unavailableCount} indispo</span>
+                  )}
+                </span>
+                <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+                  <button
+                    onClick={() => openOptionsWizard(category)}
+                    className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-[0.98]"
+                  >
+                    <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    Options
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, category_id: category.id }));
+                      setShowForm(true);
+                    }}
+                    className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95 shadow-sm"
+                    title="Ajouter un plat"
+                    aria-label="Ajouter un plat"
+                  >
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                </div>
+              </div>
+              {groupedItems[category.id]?.length > 0 ? (
+                <SortableMenuItemList
+                  items={groupedItems[category.id]}
+                  isReorderMode={true}
+                  onEdit={handleEdit}
+                  onToggle={toggleAvailability}
+                  onDelete={deleteItem}
+                  onReorder={reorderCategoryItems}
+                />
+              ) : (
+                <button
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, category_id: category.id }));
+                    setShowForm(true);
+                  }}
+                  className="text-primary-500 hover:text-primary-600 text-xs sm:text-sm font-medium min-h-[44px] px-2 active:opacity-70"
+                >
+                  + Ajouter un item
+                </button>
+              )}
             </div>
-            {groupedItems[category.id]?.length > 0 ? (
-              <SortableMenuItemList
-                items={groupedItems[category.id]}
-                isReorderMode={true}
-                onEdit={handleEdit}
-                onToggle={toggleAvailability}
-                onDelete={deleteItem}
-                onReorder={reorderCategoryItems}
-              />
-            ) : (
-              <button
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, category_id: category.id }));
-                  setShowForm(true);
-                }}
-                className="text-primary-500 hover:text-primary-600 text-xs sm:text-sm font-medium min-h-[44px] px-2 active:opacity-70"
-              >
-                + Ajouter un item
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
 
         {/* Add new category button */}
         <button
