@@ -61,7 +61,7 @@ function LayoutContent({ children }: LayoutProps) {
   const [showQuickOrder, setShowQuickOrder] = useState(false);
   const location = useLocation();
   const { signOut } = useAuth();
-  const { foodtruck } = useFoodtruck();
+  useFoodtruck(); // Keep context active
   const {
     pendingPopupOrders,
     pendingCount,
@@ -184,16 +184,7 @@ function LayoutContent({ children }: LayoutProps) {
           </button>
         </div>
 
-        <div className="p-4">
-          <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 mb-4 border border-gray-100">
-            <p className="text-sm font-semibold text-gray-900 truncate">
-              {foodtruck?.name || 'Mon Food Truck'}
-            </p>
-            <p className="text-xs text-gray-500 truncate mt-0.5">
-              {foodtruck?.cuisine_types?.join(', ') || ''}
-            </p>
-          </div>
-
+        <div className="p-4 pb-20">
           <nav className="space-y-1" aria-label="Menu principal">
             {navigation.map((item, index) => {
               if (item.type === 'separator') {
