@@ -48,7 +48,7 @@ export default function Home() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un food truck..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full pl-12 pr-4 py-3 min-h-[48px] rounded-xl bg-white text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
             />
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function Home() {
           <h2 className="text-lg font-semibold text-gray-900">Food Trucks</h2>
           <Link
             to="/orders"
-            className="flex items-center gap-1 text-sm text-primary-600 font-medium"
+            className="flex items-center gap-1 px-2 py-2 min-h-[44px] text-sm text-primary-600 font-medium hover:bg-primary-50 rounded-lg transition-colors active:scale-95"
           >
             <History className="w-4 h-4" />
             Mes commandes

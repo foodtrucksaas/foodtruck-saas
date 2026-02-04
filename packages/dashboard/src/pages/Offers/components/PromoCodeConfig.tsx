@@ -25,7 +25,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
             <button
               type="button"
               onClick={() => updateForm({ promoCodeDiscountType: 'percentage' })}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
+              className={`px-4 py-2 min-h-[44px] text-sm font-medium rounded-l-lg border active:scale-95 ${
                 form.promoCodeDiscountType === 'percentage'
                   ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
@@ -36,7 +36,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
             <button
               type="button"
               onClick={() => updateForm({ promoCodeDiscountType: 'fixed' })}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg border-t border-r border-b ${
+              className={`px-4 py-2 min-h-[44px] text-sm font-medium rounded-r-lg border-t border-r border-b active:scale-95 ${
                 form.promoCodeDiscountType === 'fixed'
                   ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
@@ -53,7 +53,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
             value={form.promoCodeDiscountValue}
             onChange={(e) => updateForm({ promoCodeDiscountValue: e.target.value })}
             onWheel={(e) => e.currentTarget.blur()}
-            className="input w-24 h-10 text-center font-medium"
+            className="input w-24 min-h-[44px] text-center font-medium"
             placeholder={form.promoCodeDiscountType === 'percentage' ? '10' : '5'}
           />
         </div>
@@ -74,7 +74,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
               value={form.promoCodeMinOrderAmount}
               onChange={(e) => updateForm({ promoCodeMinOrderAmount: e.target.value })}
               onWheel={(e) => e.currentTarget.blur()}
-              className="input h-10 pr-8 w-full"
+              className="input min-h-[44px] pr-8 w-full"
               placeholder="Aucun"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
@@ -92,7 +92,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
               value={form.promoCodeMaxDiscount}
               onChange={(e) => updateForm({ promoCodeMaxDiscount: e.target.value })}
               onWheel={(e) => e.currentTarget.blur()}
-              className="input h-10 pr-8 w-full"
+              className="input min-h-[44px] pr-8 w-full"
               placeholder="Aucune"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">

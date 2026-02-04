@@ -262,7 +262,8 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Réduire la quantité"
                   >
                     <Minus className="w-3.5 h-3.5" strokeWidth={2} />
                   </button>
@@ -272,7 +273,8 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Augmenter la quantité"
                   >
                     <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                   </button>
@@ -311,7 +313,8 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onRemoveItem(cartKey)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                  aria-label="Supprimer"
                 >
                   <X className="w-4 h-4" strokeWidth={2.5} />
                 </button>
@@ -376,7 +379,8 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  aria-label="Réduire la quantité"
                 >
                   <Minus className="w-3.5 h-3.5" strokeWidth={2} />
                 </button>
@@ -386,7 +390,8 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  aria-label="Augmenter la quantité"
                 >
                   <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                 </button>
@@ -407,7 +412,8 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => onRemoveItem(cartKey)}
-                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                aria-label="Supprimer"
               >
                 <X className="w-4 h-4" strokeWidth={2.5} />
               </button>
@@ -544,7 +550,8 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={onRemovePromo}
-                    className="p-1 hover:bg-emerald-100 rounded-full transition-colors"
+                    aria-label="Retirer le code promo"
+                    className="w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center hover:bg-emerald-100 rounded-full transition-colors"
                   >
                     <X className="w-3.5 h-3.5 text-emerald-600" />
                   </button>
@@ -564,7 +571,7 @@ export function OrderSummaryCard({
                   type="button"
                   onClick={onValidatePromoCode}
                   disabled={promoLoading || !promoCode}
-                  className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium disabled:opacity-50 transition-all duration-150 active:scale-95"
+                  className="px-4 py-2 min-h-[44px] rounded-lg bg-gray-900 text-white text-sm font-medium disabled:opacity-50 transition-all duration-150 active:scale-95"
                 >
                   {promoLoading ? <Loader2 className="w-4 h-4 animate-spinner" /> : 'OK'}
                 </button>
@@ -574,7 +581,8 @@ export function OrderSummaryCard({
                     setShowPromoInput(false);
                     onPromoCodeChange?.('');
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors active:scale-95"
+                  aria-label="Annuler"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors active:scale-95"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -583,7 +591,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => setShowPromoInput(true)}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] active:scale-95"
               >
                 <Tag className="w-4 h-4" />
                 <span>Ajouter un code promo</span>
@@ -597,14 +605,14 @@ export function OrderSummaryCard({
         <div className="flex justify-between items-end pt-3 mt-3 border-t border-gray-200">
           <div>
             <p className="text-sm font-semibold text-gray-900">Montant estimé</p>
-            <p className="text-[10px] text-gray-400">à régler sur place</p>
+            <p className="text-xs text-gray-400">à régler sur place</p>
           </div>
           <div className="text-right">
             <p className="text-xl font-bold text-gray-900 tabular-nums">
               {formatPrice(finalTotal)}
             </p>
             {hasDiscounts && (
-              <p className="text-[10px] text-emerald-600 font-medium">
+              <p className="text-xs text-emerald-600 font-medium">
                 {formatPrice(totalSavings)} économisés
               </p>
             )}

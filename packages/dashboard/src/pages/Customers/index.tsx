@@ -140,7 +140,7 @@ export default function Customers() {
                   <button
                     key={seg.key}
                     onClick={() => setFilterSegment(seg.key as FilterSegment)}
-                    className={`px-3 py-2 min-h-[40px] rounded-xl text-sm font-medium transition-all active:scale-95 ${filterSegment === seg.key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
+                    className={`px-3 py-2 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-95 ${filterSegment === seg.key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}
                   >
                     {seg.label}
                   </button>
@@ -197,7 +197,7 @@ export default function Customers() {
                     {customer.email && (
                       <a
                         href={`mailto:${customer.email}`}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
+                        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
                         aria-label="Envoyer un email"
                       >
                         <Mail className="w-4 h-4" />
@@ -206,7 +206,7 @@ export default function Customers() {
                     {customer.phone && (
                       <a
                         href={`tel:${customer.phone}`}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
+                        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors active:scale-95"
                         aria-label="Appeler"
                       >
                         <Phone className="w-4 h-4" />
@@ -326,7 +326,7 @@ export default function Customers() {
                           {customer.email && (
                             <a
                               href={`mailto:${customer.email}`}
-                              className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
                               aria-label="Envoyer un email"
                             >
                               <Mail className="w-4 h-4" />
@@ -335,7 +335,7 @@ export default function Customers() {
                           {customer.phone && (
                             <a
                               href={`tel:${customer.phone}`}
-                              className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
                               aria-label="Appeler"
                             >
                               <Phone className="w-4 h-4" />

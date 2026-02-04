@@ -45,7 +45,8 @@ export function DatePickerModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Fermer"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -66,24 +67,36 @@ export function DatePickerModal({
                   onSelectDate(date);
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                className={`w-full flex items-center justify-between p-4 min-h-[72px] rounded-xl border-2 transition-all ${
                   isSelected
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-100 hover:border-gray-200 bg-white'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center ${
-                    isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 text-anthracite'
-                  }`}>
-                    <span className="text-[10px] font-medium uppercase leading-none">
-                      {isToday ? 'Auj' : date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)}
+                  <div
+                    className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center ${
+                      isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 text-anthracite'
+                    }`}
+                  >
+                    <span className="text-xs font-medium uppercase leading-none">
+                      {isToday
+                        ? 'Auj'
+                        : date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)}
                     </span>
                     <span className="text-lg font-bold leading-none">{date.getDate()}</span>
                   </div>
                   <div className="text-left">
-                    <p className={`font-medium ${isSelected ? 'text-primary-700' : 'text-anthracite'}`}>
-                      {isToday ? "Aujourd'hui" : date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    <p
+                      className={`font-medium ${isSelected ? 'text-primary-700' : 'text-anthracite'}`}
+                    >
+                      {isToday
+                        ? "Aujourd'hui"
+                        : date.toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                          })}
                     </p>
                     <p className="text-xs text-gray-500">
                       {locationNames.length === 1
@@ -92,9 +105,7 @@ export function DatePickerModal({
                     </p>
                   </div>
                 </div>
-                {isSelected && (
-                  <Check className="w-5 h-5 text-primary-500" />
-                )}
+                {isSelected && <Check className="w-5 h-5 text-primary-500" />}
               </button>
             );
           })}

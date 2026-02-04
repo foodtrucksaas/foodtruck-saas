@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import {
-  CheckCircle,
-  Clock,
-  XCircle,
-  ArrowLeft,
-  MapPin,
-} from 'lucide-react';
+import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin } from 'lucide-react';
 import { formatPrice, formatDateTime, formatOrderId } from '@foodtruck/shared';
 import type { OrderWithItems } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -26,13 +20,15 @@ export default function OrderStatus() {
 
       const { data } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             *,
             menu_item:menu_items (*)
           )
-        `)
+        `
+        )
         .eq('id', orderId)
         .single();
 
@@ -54,9 +50,7 @@ export default function OrderStatus() {
           filter: `id=eq.${orderId}`,
         },
         (payload) => {
-          setOrder((prev) =>
-            prev ? { ...prev, ...payload.new } : null
-          );
+          setOrder((prev) => (prev ? { ...prev, ...payload.new } : null));
         }
       )
       .subscribe();
@@ -68,8 +62,15 @@ export default function OrderStatus() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Chargement en cours">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" aria-hidden="true" />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        role="status"
+        aria-label="Chargement en cours"
+      >
+        <div
+          className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"
+          aria-hidden="true"
+        />
         <span className="sr-only">Chargement de la commande</span>
       </div>
     );
@@ -79,7 +80,10 @@ export default function OrderStatus() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-4">
         <p className="text-gray-500 mb-4">Commande non trouvee</p>
-        <Link to="/" className="btn-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+        <Link
+          to="/"
+          className="btn-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+        >
           Retour a l'accueil
         </Link>
       </main>
@@ -95,7 +99,11 @@ export default function OrderStatus() {
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-4 py-2">
         <div className="flex items-center gap-3">
-          <Link to="/" className="w-11 h-11 flex items-center justify-center -ml-2 hover:bg-gray-100 rounded-full transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="Retour a l'accueil">
+          <Link
+            to="/"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2 hover:bg-gray-100 rounded-full transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            aria-label="Retour a l'accueil"
+          >
             <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           </Link>
           <h1 className="text-lg font-semibold">Commande {formatOrderId(order.id)}</h1>
@@ -105,7 +113,11 @@ export default function OrderStatus() {
       <div className="px-4 py-6 space-y-6 animate-fade-in-up">
         {/* Success/Cancelled Banner */}
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-bounce-in" role="status" aria-live="polite">
+          <div
+            className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-bounce-in"
+            role="status"
+            aria-live="polite"
+          >
             <CheckCircle className="w-6 h-6 text-green-500" aria-hidden="true" />
             <div>
               <p className="font-medium text-green-800">Paiement reussi !</p>
@@ -115,7 +127,11 @@ export default function OrderStatus() {
         )}
 
         {cancelled && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 animate-fade-in-up" role="alert" aria-live="assertive">
+          <div
+            className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 animate-fade-in-up"
+            role="alert"
+            aria-live="assertive"
+          >
             <XCircle className="w-6 h-6 text-red-500" aria-hidden="true" />
             <div>
               <p className="font-medium text-red-800">Paiement annule</p>
@@ -125,43 +141,68 @@ export default function OrderStatus() {
         )}
 
         {/* Status Card */}
-        <section className="card p-6 transition-all duration-300" aria-labelledby="order-status-heading">
+        <section
+          className="card p-6 transition-all duration-300"
+          aria-labelledby="order-status-heading"
+        >
           {isCancelled ? (
             <div className="text-center">
               <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" aria-hidden="true" />
-              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">Commande annulee</h2>
+              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
+                Commande annulee
+              </h2>
             </div>
           ) : isPending ? (
             <div className="text-center">
-              <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-status-pulse" aria-hidden="true" />
-              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">En attente de validation</h2>
+              <Clock
+                className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-status-pulse"
+                aria-hidden="true"
+              />
+              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
+                En attente de validation
+              </h2>
               <p className="text-gray-500 mt-2">
                 Le food truck va confirmer votre commande. Vous recevrez un email de confirmation.
               </p>
             </div>
           ) : isConfirmed ? (
             <div className="text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in" aria-hidden="true" />
-              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">Commande confirmee !</h2>
+              <CheckCircle
+                className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in"
+                aria-hidden="true"
+              />
+              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
+                Commande confirmee !
+              </h2>
               <p className="text-gray-500 mt-2">
                 Rendez-vous au food truck a{' '}
                 <span className="font-semibold text-gray-900">
-                  {new Date(order.pickup_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                {' '}pour recuperer votre commande.
+                  {new Date(order.pickup_time).toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>{' '}
+                pour recuperer votre commande.
               </p>
             </div>
           ) : (
             <div className="text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in" aria-hidden="true" />
-              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">Commande traitee</h2>
+              <CheckCircle
+                className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in"
+                aria-hidden="true"
+              />
+              <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
+                Commande traitee
+              </h2>
             </div>
           )}
         </section>
 
         {/* Order Details */}
         <section className="card p-4" aria-labelledby="order-details-heading">
-          <h2 id="order-details-heading" className="font-semibold text-gray-900 mb-3">Details de la commande</h2>
+          <h2 id="order-details-heading" className="font-semibold text-gray-900 mb-3">
+            Details de la commande
+          </h2>
           <ul className="space-y-3" aria-label="Articles commandes">
             {order.order_items.map((item) => (
               <li key={item.id} className="flex justify-between">
@@ -180,7 +221,9 @@ export default function OrderStatus() {
 
         {/* Pickup Info */}
         <section className="card p-4" aria-labelledby="pickup-info-heading">
-          <h2 id="pickup-info-heading" className="font-semibold text-gray-900 mb-3">Retrait</h2>
+          <h2 id="pickup-info-heading" className="font-semibold text-gray-900 mb-3">
+            Retrait
+          </h2>
           <div className="space-y-2 text-gray-600">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary-500" aria-hidden="true" />

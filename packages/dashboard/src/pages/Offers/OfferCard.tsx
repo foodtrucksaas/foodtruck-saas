@@ -125,7 +125,7 @@ export function OfferCard({
             <button
               {...dragHandleProps.attributes}
               {...dragHandleProps.listeners}
-              className="flex items-center justify-center w-8 h-8 -ml-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+              className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
               aria-label="Glisser pour réorganiser"
             >
               <GripVertical className="w-5 h-5" />
@@ -208,6 +208,7 @@ export function OfferCard({
             onClick={() => onEdit(offer)}
             className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-info-600 hover:bg-info-50 transition-all active:scale-95"
             title="Modifier"
+            aria-label="Modifier l'offre"
           >
             <Pencil className="w-4 h-4" />
           </button>
@@ -215,6 +216,7 @@ export function OfferCard({
             onClick={() => onDelete(offer.id)}
             className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-error-600 hover:bg-error-50 transition-all active:scale-95"
             title="Supprimer"
+            aria-label="Supprimer l'offre"
           >
             <Trash2 className="w-4 h-4" />
           </button>

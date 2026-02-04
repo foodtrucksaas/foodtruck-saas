@@ -140,7 +140,7 @@ export function MenuItemForm({
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     {sizeGroup.name} et prix *
                   </label>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mb-2">
+                  <p className="text-xs text-gray-500 mb-2">
                     Cliquez sur une option pour la désactiver pour ce plat
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -151,7 +151,7 @@ export function MenuItemForm({
                           <button
                             type="button"
                             onClick={() => toggleOptionDisabled(opt.id)}
-                            className={`text-[11px] sm:text-xs mb-1 block w-full text-left px-2 py-1.5 sm:py-1 rounded transition-colors min-h-[32px] ${
+                            className={`text-xs mb-1 block w-full text-left px-2 py-2 rounded transition-colors min-h-[44px] active:scale-95 ${
                               isDisabled
                                 ? 'bg-gray-100 text-gray-400 line-through'
                                 : 'bg-green-100 text-green-700'
@@ -206,7 +206,7 @@ export function MenuItemForm({
                   className="min-h-[44px]"
                 />
                 <div className="mt-2">
-                  <p className="text-[10px] sm:text-xs text-gray-500 mb-1">
+                  <p className="text-xs text-gray-500 mb-1">
                     {sizeGroup.name} désactivées (cliquez pour réactiver) :
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -215,7 +215,7 @@ export function MenuItemForm({
                         key={opt.id}
                         type="button"
                         onClick={() => toggleOptionDisabled(opt.id)}
-                        className="text-[11px] sm:text-xs px-2 py-1.5 sm:py-1 bg-gray-100 text-gray-400 line-through rounded hover:bg-gray-200 min-h-[32px]"
+                        className="text-xs px-2 py-2 bg-gray-100 text-gray-400 line-through rounded hover:bg-gray-200 min-h-[44px] active:scale-95"
                       >
                         {opt.name}
                       </button>
@@ -246,7 +246,7 @@ export function MenuItemForm({
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               {group.name}
             </label>
-            <p className="text-[10px] sm:text-xs text-gray-500 mb-2">
+            <p className="text-xs text-gray-500 mb-2">
               Cliquez sur le prix pour personnaliser selon la taille
             </p>
             <div className="space-y-2 max-h-[200px] sm:max-h-[250px] overflow-y-auto">
@@ -290,7 +290,7 @@ export function MenuItemForm({
                       <button
                         type="button"
                         onClick={() => toggleOptionDisabled(opt.id)}
-                        className={`text-xs sm:text-sm font-medium min-h-[36px] text-left ${isDisabled ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                        className={`text-xs sm:text-sm font-medium min-h-[44px] text-left ${isDisabled ? 'text-gray-400 line-through' : 'text-gray-700'}`}
                       >
                         {opt.name} {isDisabled ? '✗' : '✓'}
                       </button>
@@ -303,7 +303,7 @@ export function MenuItemForm({
                             {getDisplayPrice()}
                           </span>
                           <span
-                            className={`text-[10px] sm:text-xs px-1.5 py-1 sm:py-0.5 rounded cursor-pointer min-h-[28px] flex items-center ${
+                            className={`text-xs px-2 py-1.5 rounded cursor-pointer min-h-[44px] flex items-center active:scale-95 ${
                               hasVariablePricing
                                 ? 'bg-blue-100 text-blue-700'
                                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -329,9 +329,7 @@ export function MenuItemForm({
                     {!isDisabled && hasVariablePricing && sizeOptions.length > 0 && (
                       <div className="px-2 pb-2 pt-1 border-t border-gray-100">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
-                          <span className="text-[10px] sm:text-xs text-gray-500">
-                            Prix par taille :
-                          </span>
+                          <span className="text-xs text-gray-500">Prix par taille :</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -343,7 +341,7 @@ export function MenuItemForm({
                               });
                               onFormDataChange({ ...formData, option_prices: newPrices });
                             }}
-                            className="text-[10px] sm:text-xs text-gray-400 hover:text-gray-600"
+                            className="text-xs text-gray-400 hover:text-gray-600 min-h-[44px] px-2 active:opacity-70"
                           >
                             Revenir au prix unique
                           </button>
@@ -355,7 +353,7 @@ export function MenuItemForm({
                               const key = `${opt.id}:${size.id}`;
                               return (
                                 <div key={size.id} className="text-center">
-                                  <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+                                  <span className="text-xs text-gray-500 block mb-0.5">
                                     {size.name}
                                   </span>
                                   <div className="relative">
@@ -372,7 +370,7 @@ export function MenuItemForm({
                                           },
                                         })
                                       }
-                                      className="text-xs pr-5 min-h-[40px]"
+                                      className="text-xs pr-5 min-h-[44px]"
                                     />
                                     <span className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
                                       €
@@ -389,7 +387,7 @@ export function MenuItemForm({
                     {!isDisabled && !hasVariablePricing && (
                       <div className="px-2 pb-2 pt-1 border-t border-gray-100">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] sm:text-xs text-gray-500">Prix :</span>
+                          <span className="text-xs text-gray-500">Prix :</span>
                           <div className="relative w-20">
                             <Input
                               type="number"
@@ -404,7 +402,7 @@ export function MenuItemForm({
                                   },
                                 })
                               }
-                              className="text-xs pr-5 min-h-[40px]"
+                              className="text-xs pr-5 min-h-[44px]"
                             />
                             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
                               €
@@ -416,7 +414,7 @@ export function MenuItemForm({
                               onClick={() =>
                                 setVariablePricingEnabled((prev) => ({ ...prev, [opt.id]: true }))
                               }
-                              className="text-[10px] sm:text-xs text-blue-600 hover:text-blue-700 ml-auto"
+                              className="text-xs text-blue-600 hover:text-blue-700 ml-auto min-h-[44px] px-2 active:scale-95"
                             >
                               Prix par taille
                             </button>
@@ -437,7 +435,7 @@ export function MenuItemForm({
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               {group.name}
             </label>
-            <p className="text-[10px] sm:text-xs text-gray-500 mb-2">
+            <p className="text-xs text-gray-500 mb-2">
               Cliquez sur le prix pour personnaliser selon la taille
             </p>
             <div className="space-y-2 max-h-[200px] sm:max-h-[250px] overflow-y-auto">
@@ -481,7 +479,7 @@ export function MenuItemForm({
                       <button
                         type="button"
                         onClick={() => toggleOptionDisabled(supp.id)}
-                        className={`text-xs sm:text-sm font-medium min-h-[36px] text-left ${isDisabled ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                        className={`text-xs sm:text-sm font-medium min-h-[44px] text-left ${isDisabled ? 'text-gray-400 line-through' : 'text-gray-700'}`}
                       >
                         {supp.name} {isDisabled ? '✗' : '✓'}
                       </button>
@@ -495,7 +493,7 @@ export function MenuItemForm({
                           </span>
                           {sizeOptions.length > 0 && (
                             <span
-                              className={`text-[10px] sm:text-xs px-1.5 py-1 sm:py-0.5 rounded cursor-pointer min-h-[28px] flex items-center ${
+                              className={`text-xs px-1.5 py-1 sm:py-0.5 rounded cursor-pointer min-h-[28px] flex items-center ${
                                 hasVariablePricing
                                   ? 'bg-green-100 text-green-700'
                                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -525,9 +523,7 @@ export function MenuItemForm({
                     {!isDisabled && hasVariablePricing && sizeOptions.length > 0 && (
                       <div className="px-2 pb-2 pt-1 border-t border-gray-100">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
-                          <span className="text-[10px] sm:text-xs text-gray-500">
-                            Prix par taille :
-                          </span>
+                          <span className="text-xs text-gray-500">Prix par taille :</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -538,7 +534,7 @@ export function MenuItemForm({
                               });
                               onFormDataChange({ ...formData, option_prices: newPrices });
                             }}
-                            className="text-[10px] sm:text-xs text-gray-400 hover:text-gray-600"
+                            className="text-xs text-gray-400 hover:text-gray-600 min-h-[44px] px-2 active:opacity-70"
                           >
                             Revenir au prix unique
                           </button>
@@ -550,7 +546,7 @@ export function MenuItemForm({
                               const key = `${supp.id}:${size.id}`;
                               return (
                                 <div key={size.id} className="text-center">
-                                  <span className="text-[10px] sm:text-xs text-gray-500 block mb-0.5">
+                                  <span className="text-xs text-gray-500 block mb-0.5">
                                     {size.name}
                                   </span>
                                   <div className="relative">
@@ -568,7 +564,7 @@ export function MenuItemForm({
                                           },
                                         })
                                       }
-                                      className="text-xs pr-5 min-h-[40px]"
+                                      className="text-xs pr-5 min-h-[44px]"
                                     />
                                     <span className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
                                       €
@@ -585,7 +581,7 @@ export function MenuItemForm({
                     {!isDisabled && !hasVariablePricing && (
                       <div className="px-2 pb-2 pt-1 border-t border-gray-100">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] sm:text-xs text-gray-500">Prix :</span>
+                          <span className="text-xs text-gray-500">Prix :</span>
                           <div className="relative w-20">
                             <Input
                               type="number"
@@ -601,7 +597,7 @@ export function MenuItemForm({
                                   },
                                 })
                               }
-                              className="text-xs pr-5 min-h-[40px]"
+                              className="text-xs pr-5 min-h-[44px]"
                             />
                             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
                               €
@@ -613,7 +609,7 @@ export function MenuItemForm({
                               onClick={() =>
                                 setVariablePricingEnabled((prev) => ({ ...prev, [supp.id]: true }))
                               }
-                              className="text-[10px] sm:text-xs text-green-600 hover:text-green-700 ml-auto"
+                              className="text-xs text-green-600 hover:text-green-700 ml-auto min-h-[44px] px-2 active:scale-95"
                             >
                               Prix par taille
                             </button>
@@ -637,7 +633,7 @@ export function MenuItemForm({
             {ALLERGENS.map((allergen) => (
               <label
                 key={allergen}
-                className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm cursor-pointer transition-colors min-h-[32px] flex items-center ${
+                className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm cursor-pointer transition-colors min-h-[44px] flex items-center ${
                   formData.allergens.includes(allergen)
                     ? 'bg-primary-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

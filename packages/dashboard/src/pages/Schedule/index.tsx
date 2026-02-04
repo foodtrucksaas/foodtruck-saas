@@ -76,8 +76,7 @@ export default function SchedulePage() {
             }`}
           >
             <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline">Calendrier</span>
-            <span className="sm:hidden">Cal.</span>
+            Calendrier
           </button>
           <button
             onClick={() => setActiveTab('recurring')}
@@ -88,8 +87,7 @@ export default function SchedulePage() {
             }`}
           >
             <Clock className="w-4 h-4" />
-            <span className="hidden sm:inline">Horaires recurrents</span>
-            <span className="sm:hidden">Horaires</span>
+            Horaires
           </button>
           <button
             onClick={() => setActiveTab('locations')}
@@ -100,8 +98,7 @@ export default function SchedulePage() {
             }`}
           >
             <MapPin className="w-4 h-4" />
-            <span className="hidden sm:inline">Emplacements</span>
-            <span className="sm:hidden">Lieux</span>
+            Lieux
           </button>
         </div>
       </div>

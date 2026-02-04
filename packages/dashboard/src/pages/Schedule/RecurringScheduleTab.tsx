@@ -65,6 +65,7 @@ export function RecurringScheduleTab({
               type="button"
               onClick={onResetForm}
               className="w-10 h-10 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+              aria-label="Fermer le formulaire"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

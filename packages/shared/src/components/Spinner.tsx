@@ -12,6 +12,8 @@ const sizeClasses = {
 export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
   return (
     <div
+      role="status"
+      aria-label="Chargement en cours"
       className={`
         animate-spin rounded-full
         border-primary-500 border-t-transparent
@@ -37,17 +39,11 @@ export function Loading({ message, fullScreen = false }: LoadingProps) {
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        {content}
-      </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">{content}</div>
     );
   }
 
-  return (
-    <div className="flex items-center justify-center py-12">
-      {content}
-    </div>
-  );
+  return <div className="flex items-center justify-center py-12">{content}</div>;
 }
 
 export default Spinner;

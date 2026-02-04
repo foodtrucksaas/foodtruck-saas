@@ -57,6 +57,7 @@ export default function QuickOrderModal({ isOpen, onClose, onOrderCreated }: Qui
         <button
           onClick={onClose}
           className="hidden md:flex absolute top-4 right-4 z-10 min-w-[44px] min-h-[44px] w-11 h-11 items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          aria-label="Fermer"
         >
           <X className="w-5 h-5 text-gray-600" />
         </button>

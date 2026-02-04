@@ -65,16 +65,14 @@ const MenuItemCard = memo(function MenuItemCard({
 
           {/* Description */}
           {item.description && (
-            <p className="text-[13px] text-gray-500 line-clamp-2 mt-0.5 leading-snug">
+            <p className="text-sm text-gray-500 line-clamp-2 mt-1 leading-snug">
               {item.description}
             </p>
           )}
 
           {/* Allergens */}
           {item.allergens && item.allergens.length > 0 && (
-            <p className="text-[11px] text-gray-400 mt-1">
-              Allergènes : {item.allergens.join(', ')}
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Allergènes : {item.allergens.join(', ')}</p>
           )}
         </div>
 

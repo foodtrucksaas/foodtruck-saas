@@ -56,9 +56,7 @@ export default function Unsubscribe() {
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Lien invalide</h1>
-          <p className="text-gray-600 mb-6">
-            Ce lien de désabonnement n'est pas valide.
-          </p>
+          <p className="text-gray-600 mb-6">Ce lien de désabonnement n'est pas valide.</p>
           <Link to="/" className="btn-primary">
             Retour à l'accueil
           </Link>
@@ -70,15 +68,13 @@ export default function Unsubscribe() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 text-center">
           {status === 'confirm' && (
             <>
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <MailX className="w-8 h-8 text-gray-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Se désabonner
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Se désabonner</h1>
               <p className="text-gray-600 mb-2">
                 Vous allez vous désabonner des communications pour :
               </p>
@@ -91,13 +87,13 @@ export default function Unsubscribe() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleUnsubscribe}
-                  className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+                  className="w-full py-3 min-h-[48px] bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
                 >
                   Confirmer le désabonnement
                 </button>
                 <Link
                   to="/"
-                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors inline-block"
+                  className="w-full py-3 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors inline-flex items-center justify-center active:scale-[0.98]"
                 >
                   Annuler
                 </Link>
@@ -108,9 +104,7 @@ export default function Unsubscribe() {
           {status === 'loading' && (
             <>
               <Loader2 className="w-16 h-16 text-primary-500 mx-auto mb-6 animate-spin" />
-              <h1 className="text-xl font-bold text-gray-900 mb-2">
-                Désabonnement en cours...
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Désabonnement en cours...</h1>
             </>
           )}
 
@@ -119,15 +113,14 @@ export default function Unsubscribe() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Désabonnement confirmé
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Désabonnement confirmé</h1>
               <p className="text-gray-600 mb-6">
-                Vous avez été désabonné avec succès. Vous ne recevrez plus de communications promotionnelles.
+                Vous avez été désabonné avec succès. Vous ne recevrez plus de communications
+                promotionnelles.
               </p>
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
               >
                 <Home className="w-5 h-5" />
                 Retour à l'accueil
@@ -140,22 +133,20 @@ export default function Unsubscribe() {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Une erreur est survenue
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Une erreur est survenue</h1>
               <p className="text-gray-600 mb-6">
-                {error || "Impossible de traiter votre demande. Veuillez réessayer."}
+                {error || 'Impossible de traiter votre demande. Veuillez réessayer.'}
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => setStatus('confirm')}
-                  className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors"
+                  className="w-full py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
                 >
                   Réessayer
                 </button>
                 <Link
                   to="/"
-                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors inline-block"
+                  className="w-full py-3 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors inline-flex items-center justify-center active:scale-[0.98]"
                 >
                   Retour à l'accueil
                 </Link>

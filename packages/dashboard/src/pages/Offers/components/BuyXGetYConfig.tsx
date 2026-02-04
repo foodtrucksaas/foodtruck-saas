@@ -44,7 +44,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
             value={form.triggerQuantity}
             onChange={(e) => updateForm({ triggerQuantity: e.target.value })}
             onWheel={(e) => e.currentTarget.blur()}
-            className="input w-20 h-10 text-center font-medium"
+            className="input w-20 min-h-[44px] text-center font-medium"
           />
         </div>
         <span className="text-gray-500 mt-6">=</span>
@@ -56,7 +56,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
             value={form.rewardQuantity}
             onChange={(e) => updateForm({ rewardQuantity: e.target.value })}
             onWheel={(e) => e.currentTarget.blur()}
-            className="input w-20 h-10 text-center font-medium"
+            className="input w-20 min-h-[44px] text-center font-medium"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
             <button
               type="button"
               onClick={() => setShowTriggerDetails(!showTriggerDetails)}
-              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 min-h-[44px] active:scale-95"
             >
               {triggerEligibleCount}/{triggerItems.length} articles
               {showTriggerDetails ? (
@@ -179,7 +179,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
             <button
               type="button"
               onClick={() => setShowRewardDetails(!showRewardDetails)}
-              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 min-h-[44px] active:scale-95"
             >
               {rewardEligibleCount}/{rewardItems.length} articles
               {showRewardDetails ? (

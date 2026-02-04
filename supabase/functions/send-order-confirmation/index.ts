@@ -30,7 +30,8 @@ serve(async (req) => {
     // Fetch order with items and options
     const { data: order, error } = await supabase
       .from('orders')
-      .select(`
+      .select(
+        `
         *,
         foodtruck:foodtrucks (name, phone),
         order_items (
@@ -40,7 +41,8 @@ serve(async (req) => {
           menu_item:menu_items (name),
           order_item_options (option_name, option_group_name, price_modifier)
         )
-      `)
+      `
+      )
       .eq('id', order_id)
       .single();
 
@@ -207,11 +209,15 @@ serve(async (req) => {
             ${orderNotesHtml}
 
             <!-- Contact -->
-            ${order.foodtruck.phone ? `
+            ${
+              order.foodtruck.phone
+                ? `
               <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
                 Une question ? Contactez-nous au <a href="tel:${order.foodtruck.phone}" style="color:#f97316;text-decoration:none;font-weight:500">${order.foodtruck.phone}</a>
               </p>
-            ` : ''}
+            `
+                : ''
+            }
 
             <p style="font-size:16px;color:#374151;margin:30px 0 0;text-align:center">
               À bientôt !
@@ -227,12 +233,14 @@ serve(async (req) => {
       </html>`;
 
     const resendKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendKey) return successResponse({ success: true, message: 'Email skipped (no API key)' });
+    if (!resendKey)
+      return successResponse({ success: true, message: 'Email skipped (no API key)' });
 
     // Sending confirmation email for order
 
+    const resendDomain = Deno.env.get('RESEND_DOMAIN') || 'resend.dev';
     const emailPayload = {
-      from: `${order.foodtruck.name} <commandes@resend.dev>`,
+      from: `${order.foodtruck.name} <commandes@${resendDomain}>`,
       to: [order.customer_email],
       subject: `Commande confirmée - ${order.foodtruck.name}`,
       html,
@@ -244,8 +252,6 @@ serve(async (req) => {
       body: JSON.stringify(emailPayload),
     });
 
-    const resBody = await res.text();
-
     if (!res.ok) {
       console.error('Email API error:', res.status);
       // Don't fail the request, just log the error - return generic message
@@ -253,7 +259,7 @@ serve(async (req) => {
     }
 
     return successResponse({ success: true });
-  } catch (error) {
+  } catch {
     console.error('Email service error');
     return errorResponse('Une erreur est survenue', 500);
   }

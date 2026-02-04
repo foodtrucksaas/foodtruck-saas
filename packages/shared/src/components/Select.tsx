@@ -24,24 +24,23 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const hintId = `${selectId}-hint`;
 
     // Build aria-describedby string
-    const describedBy = [
-      error ? errorId : null,
-      hint && !error ? hintId : null,
-    ].filter(Boolean).join(' ') || undefined;
+    const describedBy =
+      [error ? errorId : null, hint && !error ? hintId : null].filter(Boolean).join(' ') ||
+      undefined;
 
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={selectId}
-            className="block text-sm font-semibold text-gray-600 mb-1.5"
-          >
+          <label htmlFor={selectId} className="block text-sm font-semibold text-gray-600 mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" aria-hidden="true">
+            <div
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            >
               {leftIcon}
             </div>
           )}
@@ -57,11 +56,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               transition-colors duration-200
               ${leftIcon ? 'pl-10' : ''}
               pr-10
-              ${error
-                ? 'border-red-300 focus:ring-red-500'
-                : 'border-gray-200 focus:ring-primary-500'
+              ${
+                error
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-200 focus:ring-primary-500'
               }
-              ${props.disabled ? 'bg-gray-50 cursor-not-allowed' : ''}
+              ${props.disabled ? 'bg-gray-50 cursor-not-allowed opacity-50' : ''}
               ${className}
             `}
             {...props}
@@ -72,19 +72,26 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             )}
             {options.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-              >
+              <option key={option.value} value={option.value} disabled={option.disabled}>
                 {option.label}
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" aria-hidden="true" />
+          <ChevronDown
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+            aria-hidden="true"
+          />
         </div>
-        {error && <p id={errorId} className="mt-1.5 text-sm text-red-500" role="alert">{error}</p>}
-        {hint && !error && <p id={hintId} className="mt-1.5 text-sm text-gray-500">{hint}</p>}
+        {error && (
+          <p id={errorId} className="mt-1.5 text-sm text-red-500" role="alert">
+            {error}
+          </p>
+        )}
+        {hint && !error && (
+          <p id={hintId} className="mt-1.5 text-sm text-gray-500">
+            {hint}
+          </p>
+        )}
       </div>
     );
   }

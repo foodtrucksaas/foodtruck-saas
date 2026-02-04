@@ -49,7 +49,8 @@ function NumberInput({
         type="button"
         onClick={decrease}
         disabled={value <= min}
-        className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
+        aria-label="Diminuer la valeur"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
       >
         <Minus className="w-5 h-5" />
       </button>
@@ -79,7 +80,8 @@ function NumberInput({
         type="button"
         onClick={increase}
         disabled={max !== undefined && value >= max}
-        className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
+        aria-label="Augmenter la valeur"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
       >
         <Plus className="w-5 h-5" />
       </button>
@@ -116,7 +118,8 @@ function EuroInput({
         type="button"
         onClick={decrease}
         disabled={value <= min}
-        className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
+        aria-label="Diminuer le montant"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
       >
         <Minus className="w-5 h-5" />
       </button>
@@ -139,7 +142,8 @@ function EuroInput({
       <button
         type="button"
         onClick={increase}
-        className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95 transition-all"
+        aria-label="Augmenter le montant"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95 transition-all"
       >
         <Plus className="w-5 h-5" />
       </button>
@@ -390,7 +394,7 @@ export default function Loyalty() {
           <p className="text-sm text-gray-500">Clients inscrits au programme de fidélité</p>
         </div>
         {customers.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-4 sm:p-6 md:p-8 text-center text-gray-500">
             <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p>Aucun client inscrit au programme</p>
           </div>

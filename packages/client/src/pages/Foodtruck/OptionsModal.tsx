@@ -51,7 +51,11 @@ export default function OptionsModal({
   // Get the price for an option, considering item-specific prices
   // - Size group (first required): absolute price
   // - Other required groups (Base, Cuisson) and supplements: modifier with optional per-size pricing
-  const getOptionPrice = (group: CategoryOptionGroupWithOptions, optionId: string, sizeId?: string | null): number => {
+  const getOptionPrice = (
+    group: CategoryOptionGroupWithOptions,
+    optionId: string,
+    sizeId?: string | null
+  ): number => {
     if (isTheSizeGroup(group)) {
       // For size options: use item-specific price if available
       const itemPrice = optionPrices[optionId];
@@ -177,7 +181,11 @@ export default function OptionsModal({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-bold text-anthracite">{menuItem.name}</h2>
-          <button onClick={onClose} className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95">
+          <button
+            onClick={onClose}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+            aria-label="Fermer"
+          >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -185,7 +193,9 @@ export default function OptionsModal({
         {/* Option Groups */}
         <div className="p-4 space-y-6">
           {optionGroups
-            .filter((g) => g.category_options?.some((o) => o.is_available && !disabledOptions.includes(o.id)))
+            .filter((g) =>
+              g.category_options?.some((o) => o.is_available && !disabledOptions.includes(o.id))
+            )
             .sort((a, b) => {
               // Obligatoires (is_required) en premier
               if (a.is_required !== b.is_required) {
@@ -198,11 +208,13 @@ export default function OptionsModal({
               <div key={group.id}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-anthracite">{group.name}</span>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                    group.is_multiple
-                      ? 'bg-success-50 text-success-600'
-                      : 'bg-primary-50 text-primary-600'
-                  }`}>
+                  <span
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      group.is_multiple
+                        ? 'bg-success-50 text-success-600'
+                        : 'bg-primary-50 text-primary-600'
+                    }`}
+                  >
                     {group.is_multiple ? 'Optionnel' : 'Obligatoire'}
                   </span>
                 </div>
@@ -216,23 +228,35 @@ export default function OptionsModal({
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => handleOptionToggle(group.id, option.id, group.is_multiple ?? false)}
+                          onClick={() =>
+                            handleOptionToggle(group.id, option.id, group.is_multiple ?? false)
+                          }
                           className={`w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
                             isSelected
                               ? 'border-primary-500 bg-primary-50 shadow-sm'
                               : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
                           }`}
                         >
-                          <span className={`font-medium ${isSelected ? 'text-primary-600' : 'text-anthracite'}`}>
+                          <span
+                            className={`font-medium ${isSelected ? 'text-primary-600' : 'text-anthracite'}`}
+                          >
                             {option.name}
                           </span>
-                          <span className={`text-sm font-semibold ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}>
-                            {isTheSizeGroup(group) ? (
-                              formatPrice(getOptionPrice(group, option.id))
-                            ) : (() => {
-                              const modifierPrice = getOptionPrice(group, option.id, getSelectedSizeId());
-                              return modifierPrice > 0 ? `+${formatPrice(modifierPrice)}` : 'Gratuit';
-                            })()}
+                          <span
+                            className={`text-sm font-semibold ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
+                          >
+                            {isTheSizeGroup(group)
+                              ? formatPrice(getOptionPrice(group, option.id))
+                              : (() => {
+                                  const modifierPrice = getOptionPrice(
+                                    group,
+                                    option.id,
+                                    getSelectedSizeId()
+                                  );
+                                  return modifierPrice > 0
+                                    ? `+${formatPrice(modifierPrice)}`
+                                    : 'Gratuit';
+                                })()}
                           </span>
                         </button>
                       );

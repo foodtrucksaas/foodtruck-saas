@@ -170,7 +170,7 @@ export default function Orders() {
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <button
                 onClick={goToPreviousDay}
-                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
+                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[44px] min-h-[44px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
                 aria-label="Jour precedent"
                 type="button"
               >
@@ -182,7 +182,7 @@ export default function Orders() {
                   aria-expanded={showDatePicker}
                   aria-haspopup="dialog"
                   type="button"
-                  className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${
+                  className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[44px] rounded-xl border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${
                     isToday
                       ? 'bg-white border-gray-200 hover:border-gray-300'
                       : isFuture
@@ -200,7 +200,7 @@ export default function Orders() {
                     {formatDate(selectedDate)}
                   </span>
                   {isToday && (
-                    <span className="text-[10px] sm:text-xs bg-primary-500 text-white px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 font-medium hidden sm:inline">
+                    <span className="text-xs bg-primary-500 text-white px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 font-medium hidden sm:inline">
                       Aujourd'hui
                     </span>
                   )}
@@ -231,7 +231,7 @@ export default function Orders() {
               </div>
               <button
                 onClick={goToNextDay}
-                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
+                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[44px] min-h-[44px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
                 aria-label="Jour suivant"
                 type="button"
               >
@@ -249,7 +249,7 @@ export default function Orders() {
               >
                 <button
                   onClick={() => handleViewModeChange('timeline')}
-                  className={`p-2 sm:p-2.5 min-w-[36px] min-h-[36px] sm:min-w-[42px] sm:min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'timeline' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                  className={`p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-w-[44px] sm:min-h-[44px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'timeline' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                   aria-label="Vue planning"
                   aria-pressed={viewMode === 'timeline'}
                   type="button"
@@ -258,7 +258,7 @@ export default function Orders() {
                 </button>
                 <button
                   onClick={() => handleViewModeChange('list')}
-                  className={`p-2 sm:p-2.5 min-w-[36px] min-h-[36px] sm:min-w-[42px] sm:min-h-[42px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'list' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                  className={`p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-w-[44px] sm:min-h-[44px] rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${viewMode === 'list' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                   aria-label="Vue liste"
                   aria-pressed={viewMode === 'list'}
                   type="button"
@@ -268,7 +268,7 @@ export default function Orders() {
               </div>
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`p-2 sm:p-2.5 min-w-[40px] min-h-[40px] sm:min-h-[44px] rounded-xl flex items-center justify-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                className={`p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-h-[44px] rounded-xl flex items-center justify-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                 aria-pressed={soundEnabled}
                 aria-label={soundEnabled ? 'Desactiver le son' : 'Activer le son'}
                 type="button"
@@ -296,7 +296,7 @@ export default function Orders() {
               </span>
               <button
                 onClick={goToToday}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-1.5 min-h-[40px] sm:min-h-[36px] bg-white/95 rounded-lg text-sm font-semibold transition-all hover:bg-white hover:shadow-sm active:scale-95 text-gray-800"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-1.5 min-h-[44px] bg-white/95 rounded-lg text-sm font-semibold transition-all hover:bg-white hover:shadow-sm active:scale-95 text-gray-800"
               >
                 Retour à aujourd'hui
               </button>
@@ -313,7 +313,7 @@ export default function Orders() {
               onClick={() => toggleFilter('pending')}
               type="button"
               aria-pressed={activeFilters.includes('pending')}
-              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('pending')
                   ? 'bg-warning-50 text-warning-600 border-2 border-warning-500 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -328,7 +328,7 @@ export default function Orders() {
                 <span className="sm:hidden">Attente</span>
                 {pending > 0 && (
                   <span
-                    className="bg-warning-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
+                    className="bg-warning-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${pending} commandes`}
                   >
                     {pending}
@@ -340,7 +340,7 @@ export default function Orders() {
               onClick={() => toggleFilter('confirmed')}
               type="button"
               aria-pressed={activeFilters.includes('confirmed')}
-              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('confirmed')
                   ? 'bg-info-50 text-info-600 border-2 border-info-500 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -355,7 +355,7 @@ export default function Orders() {
                 <span className="sm:hidden">OK</span>
                 {confirmed > 0 && (
                   <span
-                    className="bg-info-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
+                    className="bg-info-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${confirmed} commandes`}
                   >
                     {confirmed}
@@ -368,7 +368,7 @@ export default function Orders() {
                 onClick={() => toggleFilter('ready')}
                 type="button"
                 aria-pressed={activeFilters.includes('ready')}
-                className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   activeFilters.includes('ready')
                     ? 'bg-success-50 text-success-600 border-2 border-success-500 shadow-sm'
                     : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -383,7 +383,7 @@ export default function Orders() {
                   <span className="sm:hidden">Pret</span>
                   {ready > 0 && (
                     <span
-                      className="bg-success-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
+                      className="bg-success-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                       aria-label={`${ready} commandes`}
                     >
                       {ready}
@@ -396,7 +396,7 @@ export default function Orders() {
               onClick={() => toggleFilter('picked_up')}
               type="button"
               aria-pressed={activeFilters.includes('picked_up')}
-              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`flex-1 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[44px] rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 activeFilters.includes('picked_up')
                   ? 'bg-gray-100 text-gray-700 border-2 border-gray-400 shadow-sm'
                   : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -411,7 +411,7 @@ export default function Orders() {
                 <span className="sm:hidden">Fait</span>
                 {pickedUp > 0 && (
                   <span
-                    className="bg-gray-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
+                    className="bg-gray-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
                     aria-label={`${pickedUp} commandes`}
                   >
                     {pickedUp}

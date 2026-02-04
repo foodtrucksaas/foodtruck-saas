@@ -544,7 +544,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="Nom *"
                 required
                 aria-required="true"
@@ -560,7 +560,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="Email *"
                 required
                 aria-required="true"
@@ -576,7 +576,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="Téléphone (optionnel)"
                 autoComplete="tel"
               />
@@ -653,14 +653,14 @@ export default function Checkout({ slug }: CheckoutProps) {
         </div>
 
         {/* Privacy */}
-        <p className="text-[10px] text-gray-400 text-center mt-4 px-8">
+        <p className="text-xs text-gray-400 text-center mt-4 px-8">
           En confirmant, vous acceptez que vos informations soient conservées pour le suivi de vos
           commandes.
         </p>
       </form>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
         <button
           type="submit"
           form="checkout-form"

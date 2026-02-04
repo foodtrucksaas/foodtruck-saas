@@ -37,7 +37,7 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
             <button
               type="button"
               onClick={() => updateForm({ thresholdDiscountType: 'percentage' })}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
+              className={`px-4 py-2 min-h-[44px] text-sm font-medium rounded-l-lg border active:scale-95 ${
                 form.thresholdDiscountType === 'percentage'
                   ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
@@ -48,7 +48,7 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
             <button
               type="button"
               onClick={() => updateForm({ thresholdDiscountType: 'fixed' })}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg border-t border-r border-b ${
+              className={`px-4 py-2 min-h-[44px] text-sm font-medium rounded-r-lg border-t border-r border-b active:scale-95 ${
                 form.thresholdDiscountType === 'fixed'
                   ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
@@ -65,7 +65,7 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
             value={form.thresholdDiscountValue}
             onChange={(e) => updateForm({ thresholdDiscountValue: e.target.value })}
             onWheel={(e) => e.currentTarget.blur()}
-            className="input w-24 h-10 text-center font-medium"
+            className="input w-24 min-h-[44px] text-center font-medium"
             placeholder={form.thresholdDiscountType === 'percentage' ? '10' : '5'}
           />
         </div>

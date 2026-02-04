@@ -56,6 +56,7 @@ export function LocationsTab({
               type="button"
               onClick={onResetForm}
               className="w-10 h-10 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+              aria-label="Fermer le formulaire"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
@@ -146,7 +147,7 @@ export function LocationsTab({
                   {hasLongAddress && (
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : location.id)}
-                      className="sm:hidden w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center text-gray-400 active:scale-95"
+                      className="sm:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 active:scale-95"
                       aria-label={isExpanded ? 'Reduire' : "Voir l'adresse complete"}
                     >
                       {isExpanded ? (

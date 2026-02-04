@@ -62,7 +62,11 @@ export function TimeSlotPicker({
   // Calculate days until selected date
   const getDaysUntil = () => {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const selectedStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const selectedStart = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
     const diffTime = selectedStart.getTime() - todayStart.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -70,7 +74,10 @@ export function TimeSlotPicker({
   const daysUntil = getDaysUntil();
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+    <div
+      className="bg-white rounded-2xl border border-gray-100 p-5"
+      style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+    >
       {/* Date Picker - Compact display */}
       {availableDates.length > 0 ? (
         <>
@@ -85,32 +92,42 @@ export function TimeSlotPicker({
                   Retrait dans {daysUntil} jour{daysUntil > 1 ? 's' : ''}
                 </p>
                 <p className="text-xs text-amber-700 capitalize">
-                  {selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  {selectedDate.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
                 </p>
               </div>
             </div>
           )}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isToday ? 'bg-green-50' : 'bg-primary-50'}`}>
-                <Calendar className={`w-5 h-5 ${isToday ? 'text-green-500' : 'text-primary-500'}`} />
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${isToday ? 'bg-green-50' : 'bg-primary-50'}`}
+              >
+                <Calendar
+                  className={`w-5 h-5 ${isToday ? 'text-green-500' : 'text-primary-500'}`}
+                />
               </div>
               <div>
                 <p className="text-sm font-semibold text-anthracite capitalize">
                   {isToday
                     ? "Aujourd'hui"
-                    : selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    : selectedDate.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                      })}
                 </p>
-                {locationName && (
-                  <p className="text-xs text-gray-500">{locationName}</p>
-                )}
+                {locationName && <p className="text-xs text-gray-500">{locationName}</p>}
               </div>
             </div>
             {availableDates.length > 1 && (
               <button
                 type="button"
                 onClick={onOpenDatePicker}
-                className="text-sm text-primary-500 font-medium hover:text-primary-600"
+                className="text-sm text-primary-500 font-medium hover:text-primary-600 min-h-[44px] px-2 active:scale-95"
               >
                 Autre jour ?
               </button>
@@ -139,25 +156,27 @@ export function TimeSlotPicker({
                 : 'border-gray-200 bg-white hover:border-primary-300'
             }`}
           >
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
-            }`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
+              }`}
+            >
               <Zap className={`w-5 h-5 ${isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
             </div>
             <div className="text-left flex-1">
-              <p className={`font-semibold ${isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}>
+              <p
+                className={`font-semibold ${isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}
+              >
                 Au plus vite
               </p>
-              <p className="text-xs text-gray-500">
-                Votre commande sera préparée dès que possible
-              </p>
+              <p className="text-xs text-gray-500">Votre commande sera préparée dès que possible</p>
             </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
-            }`}>
-              {isAsapSelected && (
-                <div className="w-2 h-2 rounded-full bg-white" />
-              )}
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
+              }`}
+            >
+              {isAsapSelected && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>
           </button>
 
@@ -170,25 +189,27 @@ export function TimeSlotPicker({
                 : 'border-gray-200 bg-white hover:border-primary-300'
             }`}
           >
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              !isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
-            }`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                !isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
+              }`}
+            >
               <Clock className={`w-5 h-5 ${!isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
             </div>
             <div className="text-left flex-1">
-              <p className={`font-semibold ${!isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}>
+              <p
+                className={`font-semibold ${!isAsapSelected ? 'text-primary-700' : 'text-anthracite'}`}
+              >
                 Choisir un créneau
               </p>
-              <p className="text-xs text-gray-500">
-                Sélectionnez votre heure de retrait
-              </p>
+              <p className="text-xs text-gray-500">Sélectionnez votre heure de retrait</p>
             </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              !isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
-            }`}>
-              {!isAsapSelected && (
-                <div className="w-2 h-2 rounded-full bg-white" />
-              )}
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                !isAsapSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
+              }`}
+            >
+              {!isAsapSelected && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>
           </button>
         </div>
@@ -205,7 +226,7 @@ export function TimeSlotPicker({
             <select
               value={selectedSlotValue}
               onChange={(e) => onSlotChange(e.target.value)}
-              className="input w-full"
+              className="input w-full min-h-[44px]"
             >
               {slots.map((slot) => {
                 const showLocation = schedules.length > 1;
@@ -215,15 +236,21 @@ export function TimeSlotPicker({
                     value={`${slot.time}|${slot.scheduleId}`}
                     disabled={!slot.available}
                   >
-                    {formatTime(slot.time)}{showLocation ? ` - ${slot.locationName}` : ''}{!slot.available ? ' (complet)' : ''}
+                    {formatTime(slot.time)}
+                    {showLocation ? ` - ${slot.locationName}` : ''}
+                    {!slot.available ? ' (complet)' : ''}
                   </option>
                 );
               })}
             </select>
           ) : notOpenYet ? (
             <div className="bg-warning-50 border border-warning-100 rounded-xl p-4 text-warning-600 text-sm">
-              <p className="font-semibold">Les commandes ouvrent à {formatTime(notOpenYet.openTime)}</p>
-              <p className="mt-1 text-warning-500">Revenez à partir de cette heure pour commander.</p>
+              <p className="font-semibold">
+                Les commandes ouvrent à {formatTime(notOpenYet.openTime)}
+              </p>
+              <p className="mt-1 text-warning-500">
+                Revenez à partir de cette heure pour commander.
+              </p>
             </div>
           ) : (
             <p className="text-gray-500">Aucun créneau disponible pour cette date</p>

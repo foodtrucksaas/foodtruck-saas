@@ -130,7 +130,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   <select
                     value={choice.categoryIds[0] || ''}
                     onChange={(e) => updateChoiceCategory(index, e.target.value)}
-                    className="input h-10 flex-1 text-sm"
+                    className="input min-h-[44px] flex-1 text-sm"
                   >
                     {categories.map((cat) => {
                       const isUsedElsewhere = form.bundleCategories.some(
@@ -146,7 +146,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   <button
                     type="button"
                     onClick={() => setExpandedChoice(isExpanded ? null : index)}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2 py-1.5 min-h-[44px] text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
                   >
                     <span>{isExpanded ? 'Masquer' : 'Articles'}</span>
                     {isExpanded ? (
@@ -158,7 +158,8 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   <button
                     type="button"
                     onClick={() => removeChoice(index)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg active:scale-95"
+                    aria-label="Supprimer cet element"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

@@ -197,10 +197,17 @@ export default function PendingOrdersModal({
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`min-h-[28px] min-w-[28px] h-3 rounded-full transition-all flex items-center justify-center ${
-                    idx === safeIndex ? 'bg-warning-500 w-8' : 'bg-gray-300 hover:bg-gray-400 w-3'
+                  className={`min-h-[44px] min-w-[44px] rounded-full transition-all flex items-center justify-center ${
+                    idx === safeIndex ? 'bg-warning-500' : 'bg-transparent hover:bg-gray-100'
                   }`}
-                />
+                  aria-label={`Commande ${idx + 1}`}
+                >
+                  <span
+                    className={`h-3 rounded-full transition-all ${
+                      idx === safeIndex ? 'bg-warning-500 w-8' : 'bg-gray-300 w-3'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
 

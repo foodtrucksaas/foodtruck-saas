@@ -1,5 +1,14 @@
 import { useState, Suspense, lazy } from 'react';
-import { MapPin, Navigation, Copy, Check, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
+import {
+  MapPin,
+  Navigation,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Loader2,
+} from 'lucide-react';
 import { formatAddress, formatTime } from '@foodtruck/shared';
 
 // Lazy load the Map component - it includes heavy leaflet library
@@ -83,7 +92,9 @@ export default function LocationCard({
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden ${className}`}>
+    <div
+      className={`bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden ${className}`}
+    >
       {/* Header with location name and city */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-start gap-3">
@@ -92,9 +103,7 @@ export default function LocationCard({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900">{location.name}</h3>
-            {cityName && (
-              <p className="text-sm text-gray-500">{cityName}</p>
-            )}
+            {cityName && <p className="text-sm text-gray-500">{cityName}</p>}
             {showHours && location.start_time && location.end_time && (
               <p className="text-sm text-primary-600 font-medium mt-0.5">
                 {formatTime(location.start_time)} - {formatTime(location.end_time)}
@@ -108,7 +117,7 @@ export default function LocationCard({
           <div className="mt-3">
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 min-h-[44px] px-2 -mx-2 rounded-lg active:bg-gray-100"
             >
               {expanded ? (
                 <>
@@ -128,7 +137,7 @@ export default function LocationCard({
                 <p className="text-sm text-gray-700 leading-relaxed">{fullAddress}</p>
                 <button
                   onClick={copyAddress}
-                  className="flex items-center gap-1.5 mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                  className="flex items-center gap-1.5 mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium min-h-[44px] px-2 -mx-2 rounded-lg active:bg-primary-50"
                 >
                   {copied ? (
                     <>
@@ -167,9 +176,10 @@ export default function LocationCard({
           {/* Overlay button to open in maps */}
           <button
             onClick={openInMaps}
-            className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Ouvrir dans Google Maps"
           >
-            <ExternalLink className="w-4 h-4 text-gray-600" />
+            <ExternalLink className="w-5 h-5 text-gray-600" />
           </button>
         </div>
       )}
@@ -179,7 +189,7 @@ export default function LocationCard({
         <div className="p-4 bg-gray-50/50">
           <button
             onClick={openNavigation}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
           >
             <Navigation className="w-5 h-5" />
             Itinéraire

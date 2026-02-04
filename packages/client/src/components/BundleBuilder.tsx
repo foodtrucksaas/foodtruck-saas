@@ -207,7 +207,8 @@ export default function BundleBuilder({
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Fermer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -223,7 +224,7 @@ export default function BundleBuilder({
                 <button
                   key={index}
                   onClick={() => setCurrentStep(index)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                  className={`flex-1 py-3 px-3 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
                     isCurrent
                       ? 'bg-primary-500 text-white'
                       : isComplete
@@ -261,7 +262,7 @@ export default function BundleBuilder({
                 newSelections[currentStep] = null;
                 setSelections(newSelections);
               }}
-              className="text-xs text-gray-500 hover:text-gray-700"
+              className="px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-gray-700 active:scale-95"
             >
               Changer
             </button>
@@ -407,18 +408,20 @@ export default function BundleBuilder({
 
           {/* Quantity and Add button */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
                 disabled={quantity <= 1}
+                aria-label="Réduire la quantité"
               >
                 <Minus className="w-4 h-4" />
               </button>
               <span className="w-8 text-center font-medium">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+                aria-label="Augmenter la quantité"
               >
                 <Plus className="w-4 h-4" />
               </button>

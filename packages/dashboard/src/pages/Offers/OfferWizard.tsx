@@ -70,7 +70,7 @@ export function OfferWizard({
               {step > 1 && !editingOffer && (
                 <button
                   onClick={() => onStepChange(step - 1)}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
                   aria-label="Retour"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -87,7 +87,7 @@ export function OfferWizard({
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
               aria-label="Fermer"
             >
               <X className="w-5 h-5" />
@@ -138,7 +138,7 @@ export function OfferWizard({
                 ))}
               </div>
               {/* Progress bar mobile */}
-              <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary-500 transition-all duration-300"
                   style={{ width: `${(step / totalSteps) * 100}%` }}

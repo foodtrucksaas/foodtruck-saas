@@ -174,14 +174,15 @@ export default function Menu() {
                   setFormData((prev) => ({ ...prev, category_id: category.id }));
                   setShowForm(true);
                 }}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95"
                 title="Ajouter un plat"
+                aria-label="Ajouter un plat"
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={() => openOptionsWizard(category)}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] text-[11px] sm:text-xs text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98]"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98]"
               >
                 <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 Options
@@ -247,7 +248,7 @@ export default function Menu() {
             <Trash2 className="w-4 h-4" />
             <span className="text-xs sm:text-sm font-medium">Articles supprimés</span>
             {archivedItems.length > 0 && (
-              <span className="text-[10px] sm:text-xs bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-0.5 rounded-full">
                 {archivedItems.length}
               </span>
             )}
@@ -279,7 +280,7 @@ export default function Menu() {
                       </div>
                       <button
                         onClick={() => restoreItem(item)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] text-xs sm:text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-xs sm:text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98] w-full sm:w-auto"
                       >
                         <RotateCcw className="w-4 h-4" />
                         Restaurer

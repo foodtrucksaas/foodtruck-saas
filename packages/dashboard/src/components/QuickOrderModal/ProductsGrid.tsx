@@ -30,7 +30,7 @@ export function ProductsGrid({
       >
         <button
           onClick={() => onSelectCategory(null)}
-          className={`min-h-[40px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
+          className={`min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
             selectedCategory === null
               ? 'bg-primary-500 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -42,7 +42,7 @@ export function ProductsGrid({
           <button
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className={`min-h-[40px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
+            className={`min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors active:scale-95 ${
               selectedCategory === cat.id
                 ? 'bg-primary-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

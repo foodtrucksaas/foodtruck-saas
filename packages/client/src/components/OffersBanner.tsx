@@ -8,7 +8,7 @@ interface OffersBannerProps {
 
 export default function OffersBanner({ offers }: OffersBannerProps) {
   // Filter out promo_code offers - they need to be entered by the customer
-  const visibleOffers = offers.filter(o => o.offer_type !== 'promo_code');
+  const visibleOffers = offers.filter((o) => o.offer_type !== 'promo_code');
 
   if (visibleOffers.length === 0) return null;
 
@@ -26,17 +26,16 @@ export default function OffersBanner({ offers }: OffersBannerProps) {
     <div className="space-y-2">
       {visibleOffers.map((offer) => {
         const isApplicable = offer.is_applicable;
-        const progress = offer.progress_required > 0
-          ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
-          : 0;
+        const progress =
+          offer.progress_required > 0
+            ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
+            : 0;
 
         return (
           <div
             key={offer.offer_id}
             className={`rounded-xl p-3 border ${
-              isApplicable
-                ? 'bg-green-50 border-green-200'
-                : 'bg-gray-50 border-gray-200'
+              isApplicable ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
             }`}
           >
             <div className="flex items-start justify-between gap-2">
@@ -47,17 +46,11 @@ export default function OffersBanner({ offers }: OffersBannerProps) {
                   <Gift className="w-5 h-5 mt-0.5 text-gray-400" />
                 )}
                 <div>
-                  <p
-                    className={`font-medium ${
-                      isApplicable ? 'text-green-800' : 'text-gray-600'
-                    }`}
-                  >
+                  <p className={`font-medium ${isApplicable ? 'text-green-800' : 'text-gray-600'}`}>
                     {offer.offer_name}
                   </p>
                   {offer.description && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {offer.description}
-                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
                   )}
                 </div>
               </div>
@@ -73,7 +66,7 @@ export default function OffersBanner({ offers }: OffersBannerProps) {
             </div>
             {!isApplicable && offer.progress_required > 0 && offer.progress_current > 0 && (
               <div className="mt-2">
-                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-amber-400 transition-all"
                     style={{ width: `${progress}%` }}

@@ -55,17 +55,17 @@ export function CalendarView({
       </div>
 
       {/* Legend - scrollable on mobile */}
-      <div className="flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4 text-[10px] sm:text-xs">
+      <div className="flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4 text-xs">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-primary-100 border border-primary-300" />
+          <div className="w-3 h-3 rounded bg-primary-500/25 border border-primary-400" />
           <span className="text-gray-600">Ouvert</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-info-100 border border-info-300" />
+          <div className="w-3 h-3 rounded bg-info-500/25 border border-info-400" />
           <span className="text-gray-600">Modifie</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-error-100 border border-error-300" />
+          <div className="w-3 h-3 rounded bg-error-500/25 border border-error-400" />
           <span className="text-gray-600">Ferme</span>
         </div>
       </div>
@@ -89,14 +89,14 @@ export function CalendarView({
           let borderColor = 'border-gray-100';
 
           if (effective.type === 'closed') {
-            bgColor = 'bg-error-50 hover:bg-error-100';
-            borderColor = 'border-error-200';
+            bgColor = 'bg-error-500/15 hover:bg-error-500/25';
+            borderColor = 'border-error-400';
           } else if (effective.type === 'override') {
-            bgColor = 'bg-info-50 hover:bg-info-100';
-            borderColor = 'border-info-200';
+            bgColor = 'bg-info-500/15 hover:bg-info-500/25';
+            borderColor = 'border-info-400';
           } else if (effective.type === 'normal') {
-            bgColor = 'bg-primary-50 hover:bg-primary-100';
-            borderColor = 'border-primary-200';
+            bgColor = 'bg-primary-500/15 hover:bg-primary-500/25';
+            borderColor = 'border-primary-400';
           }
 
           if (!day.isCurrentMonth) {
@@ -126,24 +126,22 @@ export function CalendarView({
               {day.isCurrentMonth && (
                 <div className="mt-0.5 sm:mt-1 space-y-0.5">
                   {effective.type === 'closed' && (
-                    <div className="text-[8px] sm:text-[10px] text-error-600 font-medium flex items-center gap-0.5">
+                    <div className="text-xs text-error-600 font-medium flex items-center gap-0.5">
                       <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span className="hidden sm:inline">Ferme</span>
                     </div>
                   )}
                   {effective.type === 'override' && effective.location && (
-                    <div className="text-[8px] sm:text-[10px] text-info-600 truncate">
-                      {effective.location.name}
-                    </div>
+                    <div className="text-xs text-info-600 truncate">{effective.location.name}</div>
                   )}
                   {effective.type === 'normal' &&
                     effective.schedules.slice(0, 1).map((s, i) => (
-                      <div key={i} className="text-[8px] sm:text-[10px] text-primary-600 truncate">
+                      <div key={i} className="text-xs text-primary-600 truncate">
                         {s.location.name}
                       </div>
                     ))}
                   {effective.type === 'normal' && effective.schedules.length > 1 && (
-                    <div className="text-[8px] sm:text-[10px] text-primary-500">
+                    <div className="text-xs text-primary-500">
                       +{effective.schedules.length - 1}
                     </div>
                   )}
@@ -154,7 +152,7 @@ export function CalendarView({
         })}
       </div>
 
-      <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">
+      <p className="text-xs text-gray-500 mt-3 sm:mt-4">
         Cliquez sur un jour pour modifier le planning.
       </p>
     </section>

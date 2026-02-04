@@ -57,7 +57,7 @@ export function CampaignModal({
             </h2>
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
               aria-label="Fermer"
             >
               <X className="w-5 h-5" />

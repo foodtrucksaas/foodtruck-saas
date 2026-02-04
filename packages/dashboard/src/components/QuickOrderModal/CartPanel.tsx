@@ -33,6 +33,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
             <button
               onClick={() => onUpdateQuantity(item.uniqueId, -1)}
               className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
+              aria-label="Diminuer la quantité"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -40,6 +41,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
             <button
               onClick={() => onUpdateQuantity(item.uniqueId, 1)}
               className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
+              aria-label="Augmenter la quantité"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -47,6 +49,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
           <button
             onClick={() => onRemove(item.uniqueId)}
             className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+            aria-label="Supprimer l'article"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -81,6 +84,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
           <button
             onClick={() => onUpdateQuantity(item.uniqueId, -1)}
             className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all"
+            aria-label="Diminuer la quantité"
           >
             <Minus className="w-3 h-3" />
           </button>
@@ -88,6 +92,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
           <button
             onClick={() => onUpdateQuantity(item.uniqueId, 1)}
             className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all"
+            aria-label="Augmenter la quantité"
           >
             <Plus className="w-3 h-3" />
           </button>
@@ -95,6 +100,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove, variant = 'desktop' }: 
         <button
           onClick={() => onRemove(item.uniqueId)}
           className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          aria-label="Supprimer l'article"
         >
           <Trash2 className="w-4 h-4" />
         </button>

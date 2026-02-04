@@ -50,7 +50,7 @@ export function LoyaltyCard({
   // Can redeem - show checkbox
   if (loyaltyInfo.can_redeem) {
     return (
-      <label className="flex items-center gap-3 cursor-pointer group">
+      <label className="flex items-center gap-3 cursor-pointer group min-h-[44px]">
         <div className="relative">
           <input
             type="checkbox"
@@ -60,23 +60,25 @@ export function LoyaltyCard({
           />
           <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center">
             {useLoyaltyReward && (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             )}
           </div>
         </div>
         <div className="flex-1">
-          <span className="text-sm font-medium text-gray-900">
-            Utiliser ma récompense
-          </span>
+          <span className="text-sm font-medium text-gray-900">Utiliser ma récompense</span>
           <span className="text-sm font-semibold text-emerald-600 ml-1">
             −{formatPrice(loyaltyInfo.max_discount)}
           </span>
           {loyaltyInfo.redeemable_count > 1 && (
-            <span className="text-xs text-gray-400 ml-1">
-              ({loyaltyInfo.redeemable_count}×)
-            </span>
+            <span className="text-xs text-gray-400 ml-1">({loyaltyInfo.redeemable_count}×)</span>
           )}
         </div>
       </label>
@@ -90,21 +92,17 @@ export function LoyaltyCard({
         <span className="text-xs text-gray-500">Fidélité</span>
         <span className="text-xs text-gray-400">
           {currentPoints}/{threshold} pts
-          {pointsToEarn > 0 && (
-            <span className="text-emerald-500 ml-1">+{pointsToEarn}</span>
-          )}
+          {pointsToEarn > 0 && <span className="text-emerald-500 ml-1">+{pointsToEarn}</span>}
         </span>
       </div>
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
       {willReachReward ? (
-        <p className="text-xs text-emerald-600">
-          Récompense débloquée à la prochaine commande !
-        </p>
+        <p className="text-xs text-emerald-600">Récompense débloquée à la prochaine commande !</p>
       ) : (
         <p className="text-xs text-gray-400">
           Encore {threshold - futurePoints} pts → {formatPrice(loyaltyInfo.loyalty_reward)} offerts

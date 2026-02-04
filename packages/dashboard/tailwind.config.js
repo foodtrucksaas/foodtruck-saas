@@ -4,19 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Palette Orange Pêche (#FF8C42)
+        // Palette Coral (#F97066)
         primary: {
-          50: '#FFF7ED',   // Background très léger
-          100: '#FFEDD5',
-          200: '#FED7AA',
-          300: '#FDBA74',
-          400: '#FF8C42',  // Version claire
-          500: '#FF8C42',  // Couleur principale (boutons)
-          600: '#EA7D3B',  // Hover
-          700: '#C2410C',
-          800: '#9A3412',
-          900: '#7C2D12',
-          950: '#431407',
+          50: '#FFF5F4',   // Background très léger
+          100: '#FFE4E1',
+          200: '#FFCCC7',
+          300: '#FFA69E',
+          400: '#FF8075',
+          500: '#F97066',  // Couleur principale (boutons)
+          600: '#E65A50',  // Hover
+          700: '#C44038',
+          800: '#A33530',
+          900: '#862D2B',
+          950: '#491413',
         },
         // Neutres personnalisés
         anthracite: '#2D2D2D',

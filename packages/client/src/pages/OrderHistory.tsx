@@ -51,7 +51,11 @@ export default function OrderHistory() {
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link to="/" className="p-2 -ml-2">
+          <Link
+            to="/"
+            className="p-2 -ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Retour"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-lg font-semibold">Mes commandes</h1>
@@ -68,9 +72,13 @@ export default function OrderHistory() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="vous@exemple.com"
-              className="input flex-1"
+              className="input flex-1 min-h-[44px]"
             />
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="btn-primary min-w-[44px] min-h-[44px]"
+              aria-label="Rechercher"
+            >
               <Search className="w-5 h-5" />
             </button>
           </div>
@@ -100,15 +108,16 @@ export default function OrderHistory() {
                       <span className="font-mono font-bold text-gray-900">
                         {formatOrderId(order.id)}
                       </span>
-                      {order.status && ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES] && (
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium bg-${
-                            ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color
-                          }-100 text-${ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color}-700`}
-                        >
-                          {ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].label}
-                        </span>
-                      )}
+                      {order.status &&
+                        ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES] && (
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium bg-${
+                              ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color
+                            }-100 text-${ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color}-700`}
+                          >
+                            {ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].label}
+                          </span>
+                        )}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Clock className="w-4 h-4" />

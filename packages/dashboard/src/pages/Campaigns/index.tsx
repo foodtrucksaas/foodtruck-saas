@@ -51,7 +51,7 @@ export default function Campaigns() {
 
       {/* Campaigns List */}
       {campaigns.length === 0 ? (
-        <div className="card p-8 sm:p-12 text-center">
+        <div className="card p-6 sm:p-8 md:p-12 text-center">
           <Send className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
           <p className="text-gray-500">Aucune campagne</p>
           <p className="text-sm text-gray-400 mt-1">

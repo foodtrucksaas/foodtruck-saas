@@ -45,7 +45,8 @@ serve(async (req) => {
     // - customer_email is not 'surplace@local'
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select(`
+      .select(
+        `
         id,
         customer_name,
         customer_email,
@@ -57,7 +58,8 @@ serve(async (req) => {
           phone,
           send_reminder_email
         )
-      `)
+      `
+      )
       .eq('status', 'confirmed')
       .is('reminder_sent_at', null)
       .neq('customer_email', 'surplace@local')
@@ -76,14 +78,18 @@ serve(async (req) => {
 
     // Filter orders where created_at was more than 2 hours before pickup_time
     const twoHoursInMs = 2 * 60 * 60 * 1000;
-    const ordersToRemind = orders.filter((order: any) => {
+    const ordersToRemind = orders.filter((order: { pickup_time: string; created_at: string }) => {
       const pickupTime = new Date(order.pickup_time).getTime();
       const createdAt = new Date(order.created_at).getTime();
-      return (pickupTime - createdAt) > twoHoursInMs;
+      return pickupTime - createdAt > twoHoursInMs;
     }) as unknown as OrderForReminder[];
 
     if (ordersToRemind.length === 0) {
-      return successResponse({ success: true, sent: 0, message: 'No orders qualify for reminder (all ordered < 2h before pickup)' });
+      return successResponse({
+        success: true,
+        sent: 0,
+        message: 'No orders qualify for reminder (all ordered < 2h before pickup)',
+      });
     }
 
     const resendKey = Deno.env.get('RESEND_API_KEY');
@@ -138,11 +144,15 @@ serve(async (req) => {
                   N'oubliez pas de venir récupérer votre commande !
                 </p>
 
-                ${order.foodtruck.phone ? `
+                ${
+                  order.foodtruck.phone
+                    ? `
                   <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
                     Une question ? Contactez-nous au <a href="tel:${order.foodtruck.phone}" style="color:#3b82f6;text-decoration:none;font-weight:500">${order.foodtruck.phone}</a>
                   </p>
-                ` : ''}
+                `
+                    : ''
+                }
 
                 <p style="font-size:16px;color:#374151;margin:30px 0 0;text-align:center">
                   À tout de suite !
@@ -157,11 +167,12 @@ serve(async (req) => {
           </body>
           </html>`;
 
+        const resendDomain = Deno.env.get('RESEND_DOMAIN') || 'resend.dev';
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: `${order.foodtruck.name} <commandes@resend.dev>`,
+            from: `${order.foodtruck.name} <commandes@${resendDomain}>`,
             to: [order.customer_email],
             subject: `Rappel - Votre commande est bientôt prête !`,
             html,

@@ -221,7 +221,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
           onClick={navigateBack}
           type="button"
           aria-label="Retour"
-          className="absolute top-3 left-3 w-11 h-11 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          className="absolute top-3 left-3 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           <ArrowLeft className="w-5 h-5 text-anthracite" aria-hidden="true" />
         </button>
@@ -421,7 +421,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                           .getElementById(`category-${category.id}`)
                           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }}
-                      className={`flex-shrink-0 px-4 py-2.5 min-h-[40px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                      className={`flex-shrink-0 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-full transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                         isActive
                           ? 'bg-gray-900 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -575,7 +575,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             )}
                           </div>
                           {!isApplicable && hasProgress && (
-                            <div className="mt-2 h-1.5 bg-primary-100 rounded-full overflow-hidden">
+                            <div className="mt-2 h-2 bg-primary-100 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all"
                                 style={{ width: `${progress}%` }}
@@ -591,7 +591,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
             {/* Daily Specials */}
             {dailySpecials.length > 0 && (
-              <div>
+              <div className="scroll-mt-[120px]">
                 <div className="flex items-center gap-2 mb-4">
                   <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                   <h2 className="text-lg font-bold text-gray-900">Menu du jour</h2>
@@ -621,6 +621,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                   ref={(el) => {
                     categoryRefs.current[category.id] = el;
                   }}
+                  className="scroll-mt-[120px]"
                 >
                   <div className="flex items-center gap-2 mb-4 mt-2">
                     <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
@@ -877,7 +878,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
       {/* Cart Bar */}
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
+        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
             to={`/${foodtruckId}/checkout`}
             className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"

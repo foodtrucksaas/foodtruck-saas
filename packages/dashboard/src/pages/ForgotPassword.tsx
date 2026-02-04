@@ -98,7 +98,7 @@ export default function ForgotPassword() {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 min-h-[44px] px-2 active:scale-95 transition-transform"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Retour à la connexion

@@ -303,7 +303,7 @@ export default function Onboarding() {
             {STEPS.map((s) => (
               <div
                 key={s.id}
-                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
                   s.id <= step ? 'bg-primary-500' : 'bg-gray-200'
                 }`}
               />
@@ -410,7 +410,8 @@ export default function Onboarding() {
                         <button
                           type="button"
                           onClick={() => handleRemoveMenuItem(index)}
-                          className="p-1 text-gray-400 hover:text-error-600 transition-colors"
+                          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-error-600 transition-colors active:scale-95"
+                          aria-label="Supprimer le plat"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -427,14 +428,14 @@ export default function Onboarding() {
                       type="text"
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      className="input"
+                      className="input min-h-[44px]"
                       placeholder="Nom du plat"
                     />
                     <input
                       type="number"
                       value={newItemPrice}
                       onChange={(e) => setNewItemPrice(e.target.value)}
-                      className="input"
+                      className="input min-h-[44px]"
                       placeholder="Prix (€)"
                       min="0"
                       step="0.5"
@@ -442,7 +443,7 @@ export default function Onboarding() {
                     <select
                       value={newItemCategory}
                       onChange={(e) => setNewItemCategory(e.target.value)}
-                      className="input"
+                      className="input min-h-[44px]"
                     >
                       {DEFAULT_CATEGORIES.map((cat) => (
                         <option key={cat.name} value={cat.name}>
@@ -455,7 +456,7 @@ export default function Onboarding() {
                     type="button"
                     onClick={handleAddMenuItem}
                     disabled={!newItemName.trim() || !newItemPrice.trim()}
-                    className="btn-secondary flex items-center gap-2 mt-3"
+                    className="btn-secondary flex items-center gap-2 mt-3 min-h-[44px]"
                   >
                     <Plus className="w-4 h-4" />
                     Ajouter
@@ -543,7 +544,7 @@ export default function Onboarding() {
                         key={day.id}
                         type="button"
                         onClick={() => toggleDay(day.id)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        className={`px-4 py-2.5 min-h-[44px] rounded-lg font-medium transition-all ${
                           scheduleDays.includes(day.id)
                             ? 'bg-primary-500 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -720,7 +721,7 @@ export default function Onboarding() {
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-gray-600 hover:text-gray-900 transition-colors rounded-lg"
             >
               <ArrowLeft className="w-4 h-4" />
               Retour

@@ -54,7 +54,7 @@ export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between py-2 text-sm text-gray-500 hover:text-gray-700"
+        className="w-full flex items-center justify-between py-2 min-h-[44px] text-sm text-gray-500 hover:text-gray-700 active:scale-[0.98]"
       >
         <span className="flex items-center gap-2">
           <Settings2 className="w-4 h-4" />
@@ -102,7 +102,7 @@ export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
                 type="time"
                 value={form.timeStart}
                 onChange={(e) => updateForm({ timeStart: e.target.value })}
-                className="input h-10 w-28"
+                className="input min-h-[44px] w-28"
                 placeholder="12:00"
               />
               <span className="text-gray-400">à</span>
@@ -110,14 +110,14 @@ export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
                 type="time"
                 value={form.timeEnd}
                 onChange={(e) => updateForm({ timeEnd: e.target.value })}
-                className="input h-10 w-28"
+                className="input min-h-[44px] w-28"
                 placeholder="15:00"
               />
               {(form.timeStart || form.timeEnd) && (
                 <button
                   type="button"
                   onClick={() => updateForm({ timeStart: '', timeEnd: '' })}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="text-xs text-gray-400 hover:text-gray-600 min-h-[44px] px-2 active:scale-95"
                 >
                   Effacer
                 </button>

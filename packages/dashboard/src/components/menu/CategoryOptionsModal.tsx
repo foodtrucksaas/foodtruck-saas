@@ -116,6 +116,7 @@ export function CategoryOptionsModal({
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg hover:bg-gray-100 flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Fermer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -144,7 +145,7 @@ export function CategoryOptionsModal({
                   <p className="text-xs sm:text-sm text-gray-500">
                     Aucune option pour cette catégorie.
                   </p>
-                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     Ajoutez des tailles, suppléments, cuissons, etc.
                   </p>
                 </div>
@@ -158,7 +159,7 @@ export function CategoryOptionsModal({
                             {group.name}
                           </span>
                           <span
-                            className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
+                            className={`text-xs px-2 py-0.5 rounded-full ${
                               group.is_multiple
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-blue-100 text-blue-700'
@@ -167,23 +168,23 @@ export function CategoryOptionsModal({
                             {group.is_multiple ? 'Supplément' : 'Option'}
                           </span>
                           {group.is_required && !group.is_multiple && (
-                            <span className="text-[10px] sm:text-xs text-orange-600">
-                              (obligatoire)
-                            </span>
+                            <span className="text-xs text-orange-600">(obligatoire)</span>
                           )}
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             type="button"
                             onClick={() => openEditGroupForm(group, idx)}
-                            className="p-2 rounded hover:bg-gray-200 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                            className="p-2 rounded hover:bg-gray-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                            aria-label="Modifier le groupe"
                           >
                             <Edit2 className="w-4 h-4 text-gray-500" />
                           </button>
                           <button
                             type="button"
                             onClick={() => deleteGroup(idx)}
-                            className="p-2 rounded hover:bg-red-50 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                            className="p-2 rounded hover:bg-red-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                            aria-label="Supprimer le groupe"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </button>
@@ -193,7 +194,7 @@ export function CategoryOptionsModal({
                         {group.options.map((opt, optIdx) => (
                           <span
                             key={optIdx}
-                            className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 rounded bg-gray-100 text-gray-600"
+                            className="text-xs px-1.5 sm:px-2 py-1 rounded bg-gray-100 text-gray-600"
                           >
                             {opt.name}
                             {parseFloat(opt.price_modifier) !== 0 && (
@@ -311,6 +312,7 @@ function OptionGroupForm({
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Fermer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -346,10 +348,8 @@ function OptionGroupForm({
                   <span className="font-medium text-gray-900 block text-sm sm:text-base">
                     Option
                   </span>
-                  <span className="text-[10px] sm:text-xs text-gray-500">Taille, cuisson...</span>
-                  <span className="text-[10px] sm:text-xs text-gray-400 block mt-1">
-                    1 choix obligatoire
-                  </span>
+                  <span className="text-xs text-gray-500">Taille, cuisson...</span>
+                  <span className="text-xs text-gray-400 block mt-1">1 choix obligatoire</span>
                 </button>
                 <button
                   type="button"
@@ -365,8 +365,8 @@ function OptionGroupForm({
                   <span className="font-medium text-gray-900 block text-sm sm:text-base">
                     Supplément
                   </span>
-                  <span className="text-[10px] sm:text-xs text-gray-500">Sauce, ingrédient...</span>
-                  <span className="text-[10px] sm:text-xs text-gray-400 block mt-1">
+                  <span className="text-xs text-gray-500">Sauce, ingrédient...</span>
+                  <span className="text-xs text-gray-400 block mt-1">
                     Plusieurs choix optionnels
                   </span>
                 </button>
@@ -377,15 +377,13 @@ function OptionGroupForm({
                   <p className="text-gray-600">
                     <span className="font-medium text-gray-700">Prix = prix total du produit</span>
                     <br />
-                    <span className="text-[10px] sm:text-xs">
-                      Ex: Pizza S = 10€, M = 12€, L = 14€
-                    </span>
+                    <span className="text-xs">Ex: Pizza S = 10€, M = 12€, L = 14€</span>
                   </p>
                 ) : (
                   <p className="text-gray-600">
                     <span className="font-medium text-gray-700">Prix = supplément à ajouter</span>
                     <br />
-                    <span className="text-[10px] sm:text-xs">Ex: Fromage +1€, Sauce +0.50€</span>
+                    <span className="text-xs">Ex: Fromage +1€, Sauce +0.50€</span>
                   </p>
                 )}
               </div>
@@ -437,7 +435,8 @@ function OptionGroupForm({
                       <button
                         type="button"
                         onClick={() => removeOption(optIdx)}
-                        className="p-2 rounded hover:bg-red-50 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                        className="p-2 rounded hover:bg-red-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        aria-label="Supprimer l'option"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </button>

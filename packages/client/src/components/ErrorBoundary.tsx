@@ -34,8 +34,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     console.error('Component stack:', errorInfo.componentStack);
 
     // If Sentry is available, report the error
-    if (typeof window !== 'undefined' && (window as unknown as { Sentry?: { captureException: (e: Error, c?: unknown) => void } }).Sentry) {
-      (window as unknown as { Sentry: { captureException: (e: Error, c?: unknown) => void } }).Sentry.captureException(error, {
+    if (
+      typeof window !== 'undefined' &&
+      (window as unknown as { Sentry?: { captureException: (e: Error, c?: unknown) => void } })
+        .Sentry
+    ) {
+      (
+        window as unknown as { Sentry: { captureException: (e: Error, c?: unknown) => void } }
+      ).Sentry.captureException(error, {
         extra: { componentStack: errorInfo.componentStack },
       });
     }
@@ -73,7 +79,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reessayer
@@ -81,7 +87,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
               <button
                 onClick={this.handleGoHome}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
                 <Home className="w-4 h-4" />
                 Retour a l'accueil
@@ -95,7 +101,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   Details techniques (dev)
                 </summary>
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-red-600 overflow-auto max-h-48">
-                  <p className="font-semibold mb-1">{this.state.error.name}: {this.state.error.message}</p>
+                  <p className="font-semibold mb-1">
+                    {this.state.error.name}: {this.state.error.message}
+                  </p>
                   {this.state.errorInfo && (
                     <pre className="whitespace-pre-wrap text-gray-500">
                       {this.state.errorInfo.componentStack}

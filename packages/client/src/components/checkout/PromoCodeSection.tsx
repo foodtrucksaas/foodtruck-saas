@@ -22,7 +22,10 @@ export function PromoCodeSection({
   onRemove,
 }: PromoCodeSectionProps) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+    <div
+      className="bg-white rounded-2xl border border-gray-100 p-5"
+      style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+    >
       <h2 className="font-bold text-anthracite mb-4 flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-info-50 flex items-center justify-center">
           <Ticket className="w-5 h-5 text-info-500" />
@@ -48,7 +51,8 @@ export function PromoCodeSection({
           <button
             type="button"
             onClick={onRemove}
-            className="p-2 hover:bg-success-100 rounded-lg transition-colors"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-success-100 rounded-lg transition-colors"
+            aria-label="Supprimer le code promo"
           >
             <X className="w-5 h-5 text-success-600" />
           </button>
@@ -62,25 +66,19 @@ export function PromoCodeSection({
                 value={promoCode}
                 onChange={(e) => onPromoCodeChange(e.target.value)}
                 placeholder="Entrez votre code"
-                className="input w-full uppercase"
+                className="input w-full uppercase min-h-[44px]"
               />
             </div>
             <button
               type="button"
               onClick={onValidate}
               disabled={!promoCode.trim() || promoLoading}
-              className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-anthracite rounded-xl font-semibold disabled:opacity-50 transition-colors"
+              className="px-5 py-2.5 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-anthracite rounded-xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center"
             >
-              {promoLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Appliquer'
-              )}
+              {promoLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Appliquer'}
             </button>
           </div>
-          {promoError && (
-            <p className="text-sm text-error-500 mt-2">{promoError}</p>
-          )}
+          {promoError && <p className="text-sm text-error-500 mt-2">{promoError}</p>}
         </div>
       )}
     </div>

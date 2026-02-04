@@ -47,16 +47,14 @@ export default function Offline() {
             <WifiOff className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Mode hors ligne</h1>
-          <p className="text-primary-100">
-            Vous semblez etre deconnecte d'Internet
-          </p>
+          <p className="text-primary-100">Vous semblez etre deconnecte d'Internet</p>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
         {/* Connection Status Card */}
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4 sm:p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
               <WifiOff className="w-6 h-6 text-amber-500" />
@@ -81,7 +79,7 @@ export default function Offline() {
 
         {/* Cached Foodtruck Info */}
         {cachedFoodtruck && (
-          <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 mb-6">
+          <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4 sm:p-6 mb-6">
             <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
               Dernier food truck visite
             </h3>
@@ -127,7 +125,7 @@ export default function Offline() {
         )}
 
         {/* Tips */}
-        <div className="bg-gray-50 rounded-2xl p-6">
+        <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
           <h3 className="font-semibold text-gray-900 mb-4">En attendant...</h3>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -136,7 +134,9 @@ export default function Offline() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-700">Verifiez votre emplacement</p>
-                <p className="text-xs text-gray-500">Assurez-vous d'etre dans une zone avec reseau</p>
+                <p className="text-xs text-gray-500">
+                  Assurez-vous d'etre dans une zone avec reseau
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3">

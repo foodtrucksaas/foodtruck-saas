@@ -149,7 +149,7 @@ export function DesktopCheckoutStep(props: CheckoutFormProps) {
         <div className="max-w-lg mx-auto">
           <button
             onClick={props.onBack}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
+            className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1 min-h-[44px] active:scale-95 transition-transform"
           >
             ← Retour aux produits
           </button>

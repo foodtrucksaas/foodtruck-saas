@@ -132,14 +132,16 @@ export function Modal({
         {(title || showCloseButton) && (
           <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
             {title && (
-              <h2 id={generatedTitleId} className="text-lg font-bold text-gray-900">{title}</h2>
+              <h2 id={generatedTitleId} className="text-lg font-bold text-gray-900">
+                {title}
+              </h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
                 type="button"
                 aria-label="Fermer la fenetre"
-                className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95"
               >
                 <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
               </button>
@@ -148,15 +150,11 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain min-h-0">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain min-h-0">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-gray-50">
-            {footer}
-          </div>
+          <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-gray-50">{footer}</div>
         )}
       </div>
     </div>

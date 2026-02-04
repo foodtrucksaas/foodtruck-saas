@@ -24,15 +24,15 @@ const ERROR_MESSAGES: Record<ApiErrorType, { title: string; description: string 
   },
   not_found: {
     title: 'Page non trouvee',
-    description: 'La ressource demandee n\'existe pas ou a ete supprimee.',
+    description: "La ressource demandee n'existe pas ou a ete supprimee.",
   },
   timeout: {
-    title: 'Delai d\'attente depasse',
+    title: "Delai d'attente depasse",
     description: 'La requete a pris trop de temps. Veuillez reessayer.',
   },
   unauthorized: {
     title: 'Acces non autorise',
-    description: 'Vous n\'avez pas les droits necessaires pour acceder a cette ressource.',
+    description: "Vous n'avez pas les droits necessaires pour acceder a cette ressource.",
   },
   validation: {
     title: 'Donnees invalides',
@@ -40,11 +40,11 @@ const ERROR_MESSAGES: Record<ApiErrorType, { title: string; description: string 
   },
   slot_unavailable: {
     title: 'Creneau indisponible',
-    description: 'Ce creneau de retrait n\'est plus disponible. Veuillez en choisir un autre.',
+    description: "Ce creneau de retrait n'est plus disponible. Veuillez en choisir un autre.",
   },
   unknown: {
     title: 'Une erreur est survenue',
-    description: 'Une erreur inattendue s\'est produite. Veuillez reessayer.',
+    description: "Une erreur inattendue s'est produite. Veuillez reessayer.",
   },
 };
 
@@ -130,7 +130,9 @@ export function ApiError({
 
   if (compact) {
     return (
-      <div className={`flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl ${className}`}>
+      <div
+        className={`flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl ${className}`}
+      >
         <Icon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-red-800">{displayTitle}</p>
@@ -140,7 +142,7 @@ export function ApiError({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="flex-shrink-0 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors"
+            className="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors active:scale-95"
             aria-label={retryLabel}
           >
             <RefreshCw className="w-4 h-4" />
@@ -164,7 +166,7 @@ export function ApiError({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
         >
           <RefreshCw className="w-4 h-4" />
           {retryLabel}
@@ -209,11 +211,16 @@ export function ErrorToast({ message, onDismiss, className = '' }: ErrorToastPro
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="p-1 hover:bg-red-500 rounded-lg transition-colors"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-500 rounded-lg transition-colors active:scale-95"
             aria-label="Fermer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}

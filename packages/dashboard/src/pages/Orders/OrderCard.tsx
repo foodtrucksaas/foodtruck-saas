@@ -69,7 +69,7 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
           {order.customer_name}
         </span>
         <span
-          className={`inline-flex items-center gap-1 text-[10px] sm:text-xs ${status.bg} ${status.text} px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0`}
+          className={`inline-flex items-center gap-1 text-xs ${status.bg} ${status.text} px-2 sm:px-2.5 py-1 rounded-full font-medium flex-shrink-0`}
         >
           {status.label}
         </span>

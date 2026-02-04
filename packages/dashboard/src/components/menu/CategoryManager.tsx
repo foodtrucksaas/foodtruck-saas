@@ -61,7 +61,7 @@ function SortableCategoryItem({
         <button
           {...attributes}
           {...listeners}
-          className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+          className="flex items-center justify-center w-10 h-10 min-w-[44px] min-h-[44px] text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
           aria-label="Glisser pour réorganiser"
         >
           <GripVertical className="w-5 h-5" />
@@ -77,12 +77,14 @@ function SortableCategoryItem({
         <button
           onClick={() => onEdit(category)}
           className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
+          aria-label="Modifier la catégorie"
         >
           <Edit2 className="w-5 h-5 text-gray-500" />
         </button>
         <button
           onClick={() => onDelete(category)}
           className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+          aria-label="Supprimer la catégorie"
         >
           <Trash2 className="w-5 h-5 text-red-500" />
         </button>

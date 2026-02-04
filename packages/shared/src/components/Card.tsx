@@ -8,7 +8,8 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const variantClasses = {
   default: 'bg-white rounded-2xl border border-gray-100 shadow-card',
-  hover: 'bg-white rounded-2xl border border-gray-100 shadow-card hover:shadow-card-hover transition-shadow',
+  hover:
+    'bg-white rounded-2xl border border-gray-100 shadow-card hover:shadow-card-hover transition-shadow',
   outlined: 'bg-white rounded-2xl border-2 border-gray-200',
 };
 
@@ -52,7 +53,7 @@ export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-4">
       <div>
-        <h3 className="font-bold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
         {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
       </div>
       {action && <div>{action}</div>}

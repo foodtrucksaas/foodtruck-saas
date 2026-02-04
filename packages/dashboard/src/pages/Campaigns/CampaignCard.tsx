@@ -159,7 +159,7 @@ function StatItem({
         {icon}
         <span className="font-semibold text-sm">{value}</span>
       </div>
-      <span className="text-[10px] uppercase tracking-wide opacity-75">{label}</span>
+      <span className="text-xs uppercase tracking-wide opacity-75">{label}</span>
     </div>
   );
 }

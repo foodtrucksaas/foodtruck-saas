@@ -36,7 +36,7 @@ export function MenuItemCard({
           <button
             {...dragHandleProps.attributes}
             {...dragHandleProps.listeners}
-            className="flex items-center justify-center w-8 h-8 -ml-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+            className="flex items-center justify-center w-10 h-10 min-w-[44px] min-h-[44px] -ml-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
             aria-label="Glisser pour réorganiser"
           >
             <GripVertical className="w-5 h-5" />
@@ -60,7 +60,7 @@ export function MenuItemCard({
                 </p>
               )}
               {(item.allergens ?? []).length > 0 && (
-                <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1 truncate">
+                <p className="text-xs text-gray-400 mt-0.5 sm:mt-1 truncate">
                   Allergènes: {(item.allergens ?? []).join(', ')}
                 </p>
               )}
@@ -97,12 +97,14 @@ export function MenuItemCard({
             <button
               onClick={() => onEdit(item)}
               className="min-w-[44px] min-h-[44px] w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-all duration-150 active:scale-90"
+              aria-label="Modifier"
             >
               <Edit2 className="w-4 h-4 text-gray-500" />
             </button>
             <button
               onClick={() => onDelete(item)}
               className="min-w-[44px] min-h-[44px] w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-50 transition-all duration-150 active:scale-90"
+              aria-label="Supprimer"
             >
               <Trash2 className="w-4 h-4 text-red-500" />
             </button>

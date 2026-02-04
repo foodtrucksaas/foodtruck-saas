@@ -202,7 +202,7 @@ function LayoutContent({ children }: LayoutProps) {
                     key={`sep-${item.label}`}
                     className={`px-3 pt-4 pb-1 ${index > 0 ? 'mt-2' : ''}`}
                   >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                       {item.label}
                     </span>
                   </div>
@@ -256,7 +256,7 @@ function LayoutContent({ children }: LayoutProps) {
         >
           <button
             onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 transition-transform"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 transition-transform"
             aria-label="Ouvrir le menu de navigation"
             aria-expanded={sidebarOpen}
           >
@@ -266,7 +266,7 @@ function LayoutContent({ children }: LayoutProps) {
             {/* Pending orders - bell with badge */}
             <button
               onClick={showAllPendingOrders}
-              className={`relative w-10 h-10 rounded-xl shadow-sm flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 ${
+              className={`relative w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl shadow-sm flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 ${
                 pendingCount > 0
                   ? 'bg-warning-400 hover:bg-warning-500'
                   : 'bg-white hover:bg-gray-50'
@@ -279,7 +279,7 @@ function LayoutContent({ children }: LayoutProps) {
               />
               {pendingCount > 0 && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
                   aria-hidden="true"
                 >
                   {pendingCount}
@@ -289,7 +289,7 @@ function LayoutContent({ children }: LayoutProps) {
             {/* New order button */}
             <button
               onClick={() => setShowQuickOrder(true)}
-              className="w-10 h-10 rounded-xl bg-white shadow-sm hover:bg-gray-50 flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white shadow-sm hover:bg-gray-50 flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95"
               aria-label="Nouvelle commande"
             >
               <Plus className="w-5 h-5 text-primary-500" aria-hidden="true" />

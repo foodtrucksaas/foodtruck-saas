@@ -125,7 +125,7 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
               type="text"
               readOnly
               value={clientLink}
-              className="flex-1 bg-transparent text-sm text-gray-600 outline-none truncate min-h-[36px]"
+              className="flex-1 bg-transparent text-sm text-gray-600 outline-none truncate min-h-[44px]"
             />
             <button
               onClick={copyLink}

@@ -9,16 +9,18 @@
   }
 
   body {
-    background-color: #FAFAFA;
-    color: #2D2D2D;
+    background-color: #fafafa;
+    color: #2d2d2d;
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-    transition: all 0.15s ease-out, transform 0.1s ease-out;
+    @apply inline-flex items-center justify-center px-6 py-3 min-h-[48px] rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    transition:
+      all 0.15s ease-out,
+      transform 0.1s ease-out;
   }
   .btn:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -40,7 +42,7 @@
 
   .btn-secondary {
     @apply btn text-white hover:bg-gray-800 focus:ring-gray-500;
-    background-color: #2D2D2D;
+    background-color: #2d2d2d;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
   .btn-secondary:hover:not(:disabled) {
@@ -56,8 +58,11 @@
 
   .input {
     @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder:text-gray-400;
-    color: #2D2D2D;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    color: #2d2d2d;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
   }
   .input:focus {
     box-shadow: 0 0 0 4px var(--color-primary-500, rgba(249, 112, 102, 0.15));
@@ -91,32 +96,32 @@
 
   .badge-success {
     @apply badge;
-    background-color: #ECFDF5;
+    background-color: #ecfdf5;
     color: #059669;
   }
 
   .badge-warning {
     @apply badge;
-    background-color: #FFFBEB;
-    color: #D97706;
+    background-color: #fffbeb;
+    color: #d97706;
   }
 
   .badge-error {
     @apply badge;
-    background-color: #FEF2F2;
-    color: #DC2626;
+    background-color: #fef2f2;
+    color: #dc2626;
   }
 
   .badge-info {
     @apply badge;
-    background-color: #EFF6FF;
-    color: #2563EB;
+    background-color: #eff6ff;
+    color: #2563eb;
   }
 
   .badge-primary {
     @apply badge;
-    background-color: #FFF7ED;
-    color: #E55A2B;
+    background-color: #fff7ed;
+    color: #e55a2b;
   }
 
   /* Animated card with hover effects */
@@ -153,12 +158,7 @@
 
   /* Shimmer effect for skeletons */
   .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      #f0f0f0 25%,
-      #e8e8e8 50%,
-      #f0f0f0 75%
-    );
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -167,16 +167,36 @@
   .stagger-children > * {
     @apply opacity-0 animate-stagger-in;
   }
-  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-  .stagger-children > *:nth-child(2) { animation-delay: 40ms; }
-  .stagger-children > *:nth-child(3) { animation-delay: 80ms; }
-  .stagger-children > *:nth-child(4) { animation-delay: 120ms; }
-  .stagger-children > *:nth-child(5) { animation-delay: 160ms; }
-  .stagger-children > *:nth-child(6) { animation-delay: 200ms; }
-  .stagger-children > *:nth-child(7) { animation-delay: 240ms; }
-  .stagger-children > *:nth-child(8) { animation-delay: 280ms; }
-  .stagger-children > *:nth-child(9) { animation-delay: 320ms; }
-  .stagger-children > *:nth-child(10) { animation-delay: 360ms; }
+  .stagger-children > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger-children > *:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .stagger-children > *:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .stagger-children > *:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .stagger-children > *:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .stagger-children > *:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .stagger-children > *:nth-child(7) {
+    animation-delay: 240ms;
+  }
+  .stagger-children > *:nth-child(8) {
+    animation-delay: 280ms;
+  }
+  .stagger-children > *:nth-child(9) {
+    animation-delay: 320ms;
+  }
+  .stagger-children > *:nth-child(10) {
+    animation-delay: 360ms;
+  }
 
   /* Modal/sheet backdrop */
   .modal-backdrop {
