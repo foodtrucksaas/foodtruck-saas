@@ -159,41 +159,34 @@ function LayoutContent({ children }: LayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-smooth-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-gray-900 transform transition-transform duration-300 ease-smooth-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Navigation principale"
       >
-        <div className="flex items-center justify-between h-14 lg:h-16 px-4 border-b border-gray-100">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div
-              className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/25"
-              aria-hidden="true"
-            >
-              <UtensilsCrossed className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-gray-900">FoodTruck</span>
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden min-w-[44px] min-h-[44px] p-2 rounded-md hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            aria-label="Fermer le menu"
-          >
-            <X className="w-5 h-5" aria-hidden="true" />
-          </button>
-        </div>
+        {/* Close button - mobile only */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="lg:hidden absolute top-3 right-3 min-w-[44px] min-h-[44px] p-2 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors"
+          style={{ marginTop: 'env(safe-area-inset-top)' }}
+          aria-label="Fermer le menu"
+        >
+          <X className="w-5 h-5" aria-hidden="true" />
+        </button>
 
-        <div className="p-4 pb-20">
+        {/* Navigation */}
+        <div className="h-full overflow-y-auto pt-16 lg:pt-6 pb-24 px-3">
           <nav className="space-y-1" aria-label="Menu principal">
             {navigation.map((item, index) => {
               if (item.type === 'separator') {
+                if (!item.label) return null; // Skip empty separators
                 return (
                   <div
                     key={`sep-${item.label}`}
-                    className={`px-3 pt-4 pb-1 ${index > 0 ? 'mt-2' : ''}`}
+                    className={`px-3 pt-6 pb-2 ${index > 0 ? 'mt-2' : ''}`}
                   >
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">
                       {item.label}
                     </span>
                   </div>
@@ -207,13 +200,18 @@ function LayoutContent({ children }: LayoutProps) {
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  className={`group flex items-center gap-3 px-3 py-3 min-h-[48px] rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     isActive
-                      ? 'bg-primary-50 text-primary-600 shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-50 hover:translate-x-0.5 active:scale-[0.98]'
+                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white active:scale-[0.98]'
                   }`}
                 >
-                  <item.icon className="w-5 h-5" aria-hidden="true" />
+                  <item.icon
+                    className={`w-5 h-5 transition-colors ${
+                      isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'
+                    }`}
+                    aria-hidden="true"
+                  />
                   {item.name}
                 </Link>
               );
@@ -221,13 +219,14 @@ function LayoutContent({ children }: LayoutProps) {
           </nav>
         </div>
 
+        {/* Logout button */}
         <div
-          className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+          className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
         >
           <button
             onClick={signOut}
-            className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] w-full rounded-xl text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="flex items-center gap-3 px-3 py-3 min-h-[48px] w-full rounded-xl text-sm font-medium text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <LogOut className="w-5 h-5" aria-hidden="true" />
             Déconnexion
