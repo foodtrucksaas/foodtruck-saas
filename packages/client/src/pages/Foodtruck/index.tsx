@@ -357,7 +357,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
       {/* Tabs - underline style, scrollable */}
       <nav
-        className="sticky top-0 z-20 bg-[#FAFAFA]/95 backdrop-blur-sm border-b border-gray-100"
+        className="bg-[#FAFAFA] border-b border-gray-100 mx-4 mt-3"
         aria-label="Navigation du contenu"
       >
         <div className="flex overflow-x-auto no-scrollbar" role="tablist">
@@ -399,7 +399,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' &&
         categories.filter((c) => groupedItems[c.id]?.length > 0).length > 1 && (
-          <div className="sticky top-[48px] z-10 bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
+          <div className="sticky top-0 z-10 bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
             <nav
               className="flex gap-2 overflow-x-auto no-scrollbar"
               aria-label="Categories du menu"
