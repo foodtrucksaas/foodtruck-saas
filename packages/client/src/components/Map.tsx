@@ -1,6 +1,5 @@
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect } from 'react';
 
 // Custom modern marker with brand color
 const customIcon = L.divIcon({
@@ -30,15 +29,6 @@ const customIcon = L.divIcon({
   iconAnchor: [18, 36],
 });
 
-// Component to hide zoom controls
-function HideControls() {
-  const map = useMap();
-  useEffect(() => {
-    map.zoomControl.remove();
-  }, [map]);
-  return null;
-}
-
 interface MapProps {
   latitude: number | null;
   longitude: number | null;
@@ -66,7 +56,6 @@ export default function Map({ latitude, longitude }: MapProps) {
         attributionControl={false}
         style={{ height: '100%', width: '100%' }}
       >
-        <HideControls />
         <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
         <Marker position={[latitude, longitude]} icon={customIcon} />
       </MapContainer>
