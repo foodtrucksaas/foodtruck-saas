@@ -22,6 +22,7 @@ const Offers = lazy(() => import('./pages/Offers'));
 const Loyalty = lazy(() => import('./pages/Loyalty'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
+const OnboardingAssistant = lazy(() => import('./pages/OnboardingAssistant'));
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -68,134 +69,147 @@ export default function App() {
     <ErrorBoundary>
       <Suspense fallback={<Loading />}>
         <Routes>
-        <Route
-          path="/login"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={<ResetPassword />}
-      />
-      <Route
-        path="/onboarding"
-        element={
-          user ? (
-            foodtruckLoading ? (
-              <Loading />
-            ) : foodtruck ? (
-              <Navigate to="/" replace />
-            ) : (
-              <Onboarding />
-            )
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/menu"
-        element={
-          <PrivateRoute>
-            <Menu />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/orders"
-        element={
-          <PrivateRoute>
-            <Orders />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/schedule"
-        element={
-          <PrivateRoute>
-            <Schedule />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <PrivateRoute>
-            <Analytics />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/customers"
-        element={
-          <PrivateRoute>
-            <Customers />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/campaigns"
-        element={
-          <PrivateRoute>
-            <Campaigns />
-          </PrivateRoute>
-        }
-      />
-      {/* Legacy routes redirect to /offers */}
-      <Route path="/promo-codes" element={<Navigate to="/offers" replace />} />
-      <Route path="/deals" element={<Navigate to="/offers" replace />} />
-      <Route
-        path="/offers"
-        element={
-          <PrivateRoute>
-            <Offers />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/loyalty"
-        element={
-          <PrivateRoute>
-            <Loyalty />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <Settings />
-          </PrivateRoute>
-        }
-      />
-        <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            }
+          />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/onboarding"
+            element={
+              user ? (
+                foodtruckLoading ? (
+                  <Loading />
+                ) : foodtruck ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <Onboarding />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/onboarding-assistant"
+            element={
+              user ? (
+                foodtruckLoading ? (
+                  <Loading />
+                ) : !foodtruck ? (
+                  <Navigate to="/onboarding" replace />
+                ) : (
+                  <OnboardingAssistant />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/menu"
+            element={
+              <PrivateRoute>
+                <Menu />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <PrivateRoute>
+                <Orders />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/schedule"
+            element={
+              <PrivateRoute>
+                <Schedule />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <PrivateRoute>
+                <Analytics />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/customers"
+            element={
+              <PrivateRoute>
+                <Customers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/campaigns"
+            element={
+              <PrivateRoute>
+                <Campaigns />
+              </PrivateRoute>
+            }
+          />
+          {/* Legacy routes redirect to /offers */}
+          <Route path="/promo-codes" element={<Navigate to="/offers" replace />} />
+          <Route path="/deals" element={<Navigate to="/offers" replace />} />
+          <Route
+            path="/offers"
+            element={
+              <PrivateRoute>
+                <Offers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/loyalty"
+            element={
+              <PrivateRoute>
+                <Loyalty />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

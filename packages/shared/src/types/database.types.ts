@@ -735,8 +735,11 @@ export type Database = {
           max_orders_per_slot: number | null;
           min_preparation_time: number | null;
           name: string;
+          onboarding_completed_at: string | null;
+          onboarding_step: number | null;
           order_slot_interval: number | null;
           payment_methods: string[] | null;
+          pickup_slot_interval: number | null;
           phone: string | null;
           send_confirmation_email: boolean | null;
           send_reminder_email: boolean | null;
@@ -779,8 +782,11 @@ export type Database = {
           min_preparation_time?: number | null;
           name: string;
           offers_stackable?: boolean | null;
+          onboarding_completed_at?: string | null;
+          onboarding_step?: number | null;
           order_slot_interval?: number | null;
           payment_methods?: string[] | null;
+          pickup_slot_interval?: number | null;
           phone?: string | null;
           promo_codes_stackable?: boolean | null;
           send_confirmation_email?: boolean | null;
@@ -824,9 +830,12 @@ export type Database = {
           min_preparation_time?: number | null;
           name?: string;
           offers_stackable?: boolean | null;
+          onboarding_completed_at?: string | null;
+          onboarding_step?: number | null;
           order_slot_interval?: number | null;
           payment_methods?: string[] | null;
           phone?: string | null;
+          pickup_slot_interval?: number | null;
           promo_codes_stackable?: boolean | null;
           send_confirmation_email?: boolean | null;
           send_reminder_email?: boolean | null;
