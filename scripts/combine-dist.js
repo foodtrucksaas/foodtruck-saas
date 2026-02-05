@@ -72,6 +72,13 @@ const config = {
       has: [{ type: "host", value: "pro\\.onmange\\.app" }],
       continue: true
     },
+    // Client subdomains (*.onmange.app except pro/www) - rewrite to /client path
+    {
+      src: "/(.*)",
+      dest: "/client/$1",
+      has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }],
+      continue: true
+    },
     // Handle filesystem (static files) first
     { handle: "filesystem" },
     // Dashboard SPA fallback for pro.onmange.app
@@ -80,11 +87,11 @@ const config = {
       dest: "/dashboard/index.html",
       has: [{ type: "host", value: "pro\\.onmange\\.app" }]
     },
-    // Client subdomain routing - serve client app for foodtruck slugs
+    // Client subdomain SPA fallback for foodtruck slugs
     {
       src: "/(.*)",
       dest: "/client/index.html",
-      has: [{ type: "host", value: "(?<slug>[^.]+)\\.onmange\\.app" }]
+      has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }]
     },
     // Client SPA fallback for paths that don't match static files
     {
