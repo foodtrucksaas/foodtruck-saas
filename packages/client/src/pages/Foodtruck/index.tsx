@@ -159,9 +159,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   if (!foodtruck) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-gray-500 mb-4">Food truck non trouve</p>
+        <p className="text-gray-500 mb-4">Food truck non trouvé</p>
         <Link to="/" className="btn-primary">
-          Retour a l'accueil
+          Retour à l'accueil
         </Link>
       </div>
     );

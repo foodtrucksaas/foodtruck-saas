@@ -61,7 +61,7 @@ export function LocationsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div>
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">Emplacements</h2>
-          <p className="text-xs sm:text-sm text-gray-500">Vos differents points de vente</p>
+          <p className="text-xs sm:text-sm text-gray-500">Vos différents points de vente</p>
         </div>
         <button
           onClick={onShowForm}
@@ -117,12 +117,12 @@ export function LocationsTab({
             {hasValidCoordinates ? (
               <div className="flex items-center gap-2 mt-2 text-xs text-success-600">
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>Position detectee - itineraire disponible</span>
+                <span>Position détectée - itinéraire disponible</span>
               </div>
             ) : (
               form.address && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Selectionnez une suggestion pour activer l'itineraire
+                  Sélectionnez une suggestion pour activer l'itinéraire
                 </p>
               )
             )}
@@ -165,7 +165,7 @@ export function LocationsTab({
                     {hasCoords && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Navigation className="w-3 h-3 text-success-500" />
-                        <span className="text-xs text-success-600">Itineraire disponible</span>
+                        <span className="text-xs text-success-600">Itinéraire disponible</span>
                       </div>
                     )}
                   </div>
@@ -207,7 +207,7 @@ export function LocationsTab({
                     {hasCoords && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Navigation className="w-3 h-3 text-success-500" />
-                        <span className="text-xs text-success-600">Itineraire disponible</span>
+                        <span className="text-xs text-success-600">Itinéraire disponible</span>
                       </div>
                     )}
                   </div>

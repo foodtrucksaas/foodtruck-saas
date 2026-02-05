@@ -16,35 +16,35 @@ export type ApiErrorType =
 const ERROR_MESSAGES: Record<ApiErrorType, { title: string; description: string }> = {
   network: {
     title: 'Connexion impossible',
-    description: 'Verifiez votre connexion internet et reessayez.',
+    description: 'Vérifiez votre connexion internet et réessayez.',
   },
   server: {
     title: 'Erreur serveur',
-    description: 'Nos serveurs rencontrent un probleme. Veuillez reessayer dans quelques instants.',
+    description: 'Nos serveurs rencontrent un problème. Veuillez réessayer dans quelques instants.',
   },
   not_found: {
-    title: 'Page non trouvee',
-    description: "La ressource demandee n'existe pas ou a ete supprimee.",
+    title: 'Page non trouvée',
+    description: "La ressource demandée n'existe pas ou a été supprimée.",
   },
   timeout: {
-    title: "Delai d'attente depasse",
-    description: 'La requete a pris trop de temps. Veuillez reessayer.',
+    title: "Délai d'attente dépassé",
+    description: 'La requête a pris trop de temps. Veuillez réessayer.',
   },
   unauthorized: {
-    title: 'Acces non autorise',
-    description: "Vous n'avez pas les droits necessaires pour acceder a cette ressource.",
+    title: 'Accès non autorisé',
+    description: "Vous n'avez pas les droits nécessaires pour accéder à cette ressource.",
   },
   validation: {
-    title: 'Donnees invalides',
-    description: 'Veuillez verifier les informations saisies.',
+    title: 'Données invalides',
+    description: 'Veuillez vérifier les informations saisies.',
   },
   slot_unavailable: {
-    title: 'Creneau indisponible',
-    description: "Ce creneau de retrait n'est plus disponible. Veuillez en choisir un autre.",
+    title: 'Créneau indisponible',
+    description: "Ce créneau de retrait n'est plus disponible. Veuillez en choisir un autre.",
   },
   unknown: {
     title: 'Une erreur est survenue',
-    description: "Une erreur inattendue s'est produite. Veuillez reessayer.",
+    description: "Une erreur inattendue s'est produite. Veuillez réessayer.",
   },
 };
 
@@ -118,7 +118,7 @@ export function ApiError({
   title,
   message,
   onRetry,
-  retryLabel = 'Reessayer',
+  retryLabel = 'Réessayer',
   compact = false,
   className = '',
   children,

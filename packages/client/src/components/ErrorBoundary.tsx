@@ -69,11 +69,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
 
             <h1 className="text-xl font-bold text-gray-900 mb-2">
-              Oups, quelque chose s'est mal passe
+              Oups, quelque chose s'est mal passé
             </h1>
 
             <p className="text-gray-500 mb-6">
-              Une erreur inattendue s'est produite. Nous nous excusons pour la gene occasionnee.
+              Une erreur inattendue s'est produite. Nous nous excusons pour la gêne occasionnée.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -82,7 +82,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
                 <RefreshCw className="w-4 h-4" />
-                Reessayer
+                Réessayer
               </button>
 
               <button
@@ -90,7 +90,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
                 <Home className="w-4 h-4" />
-                Retour a l'accueil
+                Retour à l'accueil
               </button>
             </div>
 
@@ -98,7 +98,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {import.meta.env.DEV && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">
-                  Details techniques (dev)
+                  Détails techniques (dev)
                 </summary>
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-red-600 overflow-auto max-h-48">
                   <p className="font-semibold mb-1">

@@ -36,7 +36,7 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
 
       // Ensure at least one method is selected
       if (newMethods.length === 0) {
-        setError('Selectionnez au moins un moyen de paiement');
+        setError('Sélectionnez au moins un moyen de paiement');
         setTimeout(() => setError(null), 3000);
         setLoading(false);
         return;
