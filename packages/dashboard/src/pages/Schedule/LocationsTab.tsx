@@ -1,15 +1,5 @@
 import { useState } from 'react';
-import {
-  Plus,
-  Trash2,
-  MapPin,
-  Pencil,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Navigation,
-  CheckCircle,
-} from 'lucide-react';
+import { Plus, Trash2, MapPin, Pencil, X, Navigation, CheckCircle } from 'lucide-react';
 import type { Location } from '@foodtruck/shared';
 import type { LocationFormState } from './useSchedule';
 import {
@@ -161,18 +151,14 @@ export function LocationsTab({
 
           return (
             <div key={location.id} className="card p-3 sm:p-4">
-              <div className="flex items-start sm:items-center justify-between gap-2">
-                <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+              {/* Desktop layout */}
+              <div className="hidden sm:flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 text-sm sm:text-base">
-                      {location.name}
-                    </p>
+                    <p className="font-medium text-gray-900 text-base">{location.name}</p>
                     {location.address && (
-                      <p
-                        className={`text-xs sm:text-sm text-gray-500 ${isExpanded ? '' : 'truncate'}`}
-                        title={location.address}
-                      >
+                      <p className="text-sm text-gray-500 truncate" title={location.address}>
                         {location.address}
                       </p>
                     )}
@@ -183,20 +169,6 @@ export function LocationsTab({
                       </div>
                     )}
                   </div>
-                  {/* Mobile: expand button for long addresses */}
-                  {location.address && location.address.length > 35 && (
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : location.id)}
-                      className="sm:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 active:scale-95"
-                      aria-label={isExpanded ? 'Reduire' : "Voir l'adresse complete"}
-                    >
-                      {isExpanded ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
@@ -212,6 +184,48 @@ export function LocationsTab({
                     aria-label="Supprimer"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile layout */}
+              <div className="sm:hidden">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 text-sm">{location.name}</p>
+                    {location.address && (
+                      <button
+                        onClick={() => setExpandedId(isExpanded ? null : location.id)}
+                        className="text-left w-full"
+                      >
+                        <p className={`text-xs text-gray-500 ${isExpanded ? '' : 'line-clamp-1'}`}>
+                          {location.address}
+                        </p>
+                      </button>
+                    )}
+                    {hasCoords && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Navigation className="w-3 h-3 text-success-500" />
+                        <span className="text-xs text-success-600">Itineraire disponible</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-1 mt-2 -mr-1">
+                  <button
+                    onClick={() => onEdit(location)}
+                    className="h-9 px-3 flex items-center gap-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 text-xs"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => onDelete(location.id)}
+                    className="h-9 px-3 flex items-center gap-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors active:scale-95 text-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Supprimer
                   </button>
                 </div>
               </div>
