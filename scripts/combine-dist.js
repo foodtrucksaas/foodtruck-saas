@@ -65,9 +65,22 @@ const config = {
       },
       continue: true
     },
+    // Dashboard subdomain (pro.onmange.app) - rewrite to /dashboard path
+    {
+      src: "/(.*)",
+      dest: "/dashboard/$1",
+      has: [{ type: "host", value: "pro\\.onmange\\.app" }],
+      continue: true
+    },
     // Handle filesystem (static files) first
     { handle: "filesystem" },
-    // Subdomain routing - serve client app for foodtruck slugs
+    // Dashboard SPA fallback for pro.onmange.app
+    {
+      src: "/(.*)",
+      dest: "/dashboard/index.html",
+      has: [{ type: "host", value: "pro\\.onmange\\.app" }]
+    },
+    // Client subdomain routing - serve client app for foodtruck slugs
     {
       src: "/(.*)",
       dest: "/client/index.html",
