@@ -72,9 +72,9 @@ const config = {
       has: [{ type: "host", value: "pro\\.onmange\\.app" }],
       continue: true
     },
-    // Client subdomains (*.onmange.app except pro/www) - rewrite to /client path
+    // Client subdomains - rewrite NON-client paths to /client (avoid double /client/client)
     {
-      src: "/(.*)",
+      src: "/(?!client/)(.+)",
       dest: "/client/$1",
       has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }],
       continue: true
