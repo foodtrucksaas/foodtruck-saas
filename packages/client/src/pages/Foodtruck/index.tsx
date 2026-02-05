@@ -84,9 +84,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   // Get cart items for offer detection
   const { items, addBundleItem } = useCart();
 
-  // Detect applicable offers in real-time
+  // Detect applicable offers in real-time (use foodtruck.id UUID, not slug)
   const { applicableOffers, appliedOffers, bestOffer, totalOfferDiscount } = useOffers(
-    foodtruckId,
+    foodtruck?.id,
     items,
     total
   );
@@ -97,7 +97,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   // useBundleDetection is only for UI hints, not for discount calculation
   // get_optimized_offers already handles bundle discounts
   const { bestBundle: _bestBundle, totalBundleSavings: _totalBundleSavings } = useBundleDetection(
-    foodtruckId,
+    foodtruck?.id,
     items
   );
   void _bestBundle;

@@ -1,16 +1,43 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useEffect } from 'react';
 
-// Fix for default marker icon
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+// Custom modern marker with brand color
+const customIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `
+    <div style="
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        transform: rotate(45deg);
+      "></div>
+    </div>
+  `,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
 });
+
+// Component to hide zoom controls
+function HideControls() {
+  const map = useMap();
+  useEffect(() => {
+    map.zoomControl.remove();
+  }, [map]);
+  return null;
+}
 
 interface MapProps {
   latitude: number | null;
@@ -18,29 +45,31 @@ interface MapProps {
   name: string;
 }
 
-export default function Map({ latitude, longitude, name }: MapProps) {
+export default function Map({ latitude, longitude }: MapProps) {
   if (!latitude || !longitude) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-100">
-        <p className="text-gray-500">Position non disponible</p>
+      <div className="h-full flex items-center justify-center bg-gray-50 rounded-xl">
+        <p className="text-gray-400 text-sm">Position non disponible</p>
       </div>
     );
   }
 
   return (
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={15}
-      scrollWheelZoom={false}
-      style={{ height: '100%', width: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[latitude, longitude]} icon={icon}>
-        <Popup>{name}</Popup>
-      </Marker>
-    </MapContainer>
+    <div className="h-full w-full rounded-xl overflow-hidden shadow-sm">
+      <MapContainer
+        center={[latitude, longitude]}
+        zoom={15}
+        scrollWheelZoom={false}
+        dragging={false}
+        doubleClickZoom={false}
+        zoomControl={false}
+        attributionControl={false}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <HideControls />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+        <Marker position={[latitude, longitude]} icon={customIcon} />
+      </MapContainer>
+    </div>
   );
 }
