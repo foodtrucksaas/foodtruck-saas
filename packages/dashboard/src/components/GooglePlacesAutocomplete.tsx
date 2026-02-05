@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Loader2, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export interface PlaceResult {
   placeId: string;
@@ -27,50 +28,9 @@ interface Prediction {
   };
 }
 
-// Track if script is loading
-let scriptLoadingPromise: Promise<void> | null = null;
-
-function loadGoogleMapsScript(): Promise<void> {
-  if (scriptLoadingPromise) {
-    return scriptLoadingPromise;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((window as any).google?.maps?.places) {
-    return Promise.resolve();
-  }
-
-  scriptLoadingPromise = new Promise((resolve, reject) => {
-    // Check if script already exists
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve());
-      existingScript.addEventListener('error', () =>
-        reject(new Error('Failed to load Google Maps'))
-      );
-      return;
-    }
-
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      reject(new Error('Google Maps API key not configured'));
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).initGooglePlaces = () => {
-      resolve();
-    };
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlaces`;
-    script.async = true;
-    script.defer = true;
-    script.onerror = () => reject(new Error('Failed to load Google Maps'));
-    document.head.appendChild(script);
-  });
-
-  return scriptLoadingPromise;
+// Generate a unique session token for billing optimization
+function generateSessionToken(): string {
+  return crypto.randomUUID();
 }
 
 export function GooglePlacesAutocomplete({
@@ -85,40 +45,12 @@ export function GooglePlacesAutocomplete({
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [isApiReady, setIsApiReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const autocompleteServiceRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const placesServiceRef = useRef<any>(null);
-  const placesServiceDivRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Load Google Maps script
-  useEffect(() => {
-    loadGoogleMapsScript()
-      .then(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const google = (window as any).google;
-        if (google?.maps?.places) {
-          autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
-          // Create a hidden div for PlacesService
-          if (!placesServiceDivRef.current) {
-            placesServiceDivRef.current = document.createElement('div');
-          }
-          placesServiceRef.current = new google.maps.places.PlacesService(
-            placesServiceDivRef.current
-          );
-          setIsApiReady(true);
-        }
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-      });
-  }, []);
+  const sessionTokenRef = useRef<string>(generateSessionToken());
 
   // Handle clicks outside to close dropdown
   useEffect(() => {
@@ -132,33 +64,42 @@ export function GooglePlacesAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch predictions
-  const fetchPredictions = useCallback((input: string) => {
-    if (!autocompleteServiceRef.current || input.length < 3) {
+  // Fetch predictions via Edge Function
+  const fetchPredictions = useCallback(async (input: string) => {
+    if (input.length < 3) {
       setPredictions([]);
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const google = (window as any).google;
-
     setIsLoading(true);
-    autocompleteServiceRef.current.getPlacePredictions(
-      {
-        input,
-        componentRestrictions: { country: 'fr' },
-        types: ['establishment', 'geocode'],
-      },
-      (results: Prediction[] | null, status: string) => {
-        setIsLoading(false);
-        if (status === google?.maps?.places?.PlacesServiceStatus?.OK && results) {
-          setPredictions(results);
-          setIsOpen(true);
-        } else {
-          setPredictions([]);
-        }
+    setError(null);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('google-places', {
+        body: {
+          action: 'autocomplete',
+          input,
+          sessionToken: sessionTokenRef.current,
+        },
+      });
+
+      if (fnError) {
+        throw fnError;
       }
-    );
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      setPredictions(data?.predictions || []);
+      setIsOpen(true);
+    } catch (err) {
+      console.error('Autocomplete error:', err);
+      setError('Erreur de recherche');
+      setPredictions([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   // Debounced input handler
@@ -170,7 +111,7 @@ export function GooglePlacesAutocomplete({
       clearTimeout(debounceRef.current);
     }
 
-    if (newValue.length >= 3 && isApiReady) {
+    if (newValue.length >= 3) {
       debounceRef.current = setTimeout(() => {
         fetchPredictions(newValue);
       }, 300);
@@ -181,35 +122,47 @@ export function GooglePlacesAutocomplete({
   };
 
   // Handle place selection
-  const handleSelectPlace = (prediction: Prediction) => {
-    if (!placesServiceRef.current) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const google = (window as any).google;
-
+  const handleSelectPlace = async (prediction: Prediction) => {
     setIsLoading(true);
-    placesServiceRef.current.getDetails(
-      {
-        placeId: prediction.place_id,
-        fields: ['geometry', 'formatted_address'],
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (place: any, status: string) => {
-        setIsLoading(false);
-        if (status === google?.maps?.places?.PlacesServiceStatus?.OK && place?.geometry?.location) {
-          const result: PlaceResult = {
-            placeId: prediction.place_id,
-            address: place.formatted_address || prediction.description,
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng(),
-          };
-          onChange(result.address);
-          onPlaceSelect(result);
-        }
-        setIsOpen(false);
-        setPredictions([]);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('google-places', {
+        body: {
+          action: 'details',
+          placeId: prediction.place_id,
+          sessionToken: sessionTokenRef.current,
+        },
+      });
+
+      if (fnError) {
+        throw fnError;
       }
-    );
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const result: PlaceResult = {
+        placeId: data.placeId,
+        address: data.address || prediction.description,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      };
+
+      onChange(result.address);
+      onPlaceSelect(result);
+
+      // Generate new session token for next search
+      sessionTokenRef.current = generateSessionToken();
+    } catch (err) {
+      console.error('Place details error:', err);
+      // Fallback: use prediction description without coordinates
+      onChange(prediction.description);
+    } finally {
+      setIsLoading(false);
+      setIsOpen(false);
+      setPredictions([]);
+    }
   };
 
   // Handle clear
@@ -217,25 +170,10 @@ export function GooglePlacesAutocomplete({
     onChange('');
     setPredictions([]);
     setIsOpen(false);
+    setError(null);
     onClear?.();
     inputRef.current?.focus();
   };
-
-  if (error) {
-    return (
-      <div className={className}>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="input min-h-[44px] w-full"
-          disabled={disabled}
-        />
-        <p className="text-xs text-amber-600 mt-1">Mode manuel (Google Places non disponible)</p>
-      </div>
-    );
-  }
 
   return (
     <div ref={containerRef} className="relative">
@@ -249,7 +187,7 @@ export function GooglePlacesAutocomplete({
           onFocus={() => predictions.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           className={`input min-h-[44px] pl-10 pr-10 ${className}`}
-          disabled={disabled || !isApiReady}
+          disabled={disabled}
           autoComplete="off"
         />
         {isLoading && (
@@ -266,6 +204,8 @@ export function GooglePlacesAutocomplete({
           </button>
         )}
       </div>
+
+      {error && <p className="text-xs text-amber-600 mt-1">{error}</p>}
 
       {isOpen && predictions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
