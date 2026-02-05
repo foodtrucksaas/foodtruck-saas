@@ -1,7 +1,21 @@
 import { useState } from 'react';
-import { Plus, Trash2, MapPin, Pencil, X, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  MapPin,
+  Pencil,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Navigation,
+  CheckCircle,
+} from 'lucide-react';
 import type { Location } from '@foodtruck/shared';
 import type { LocationFormState } from './useSchedule';
+import {
+  GooglePlacesAutocomplete,
+  type PlaceResult,
+} from '../../components/GooglePlacesAutocomplete';
 
 interface LocationsTabProps {
   locations: Location[];
@@ -29,6 +43,28 @@ export function LocationsTab({
   onDelete,
 }: LocationsTabProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handlePlaceSelect = (place: PlaceResult) => {
+    onFormChange({
+      ...form,
+      address: place.address,
+      latitude: place.latitude.toString(),
+      longitude: place.longitude.toString(),
+      google_place_id: place.placeId,
+    });
+  };
+
+  const handleClearAddress = () => {
+    onFormChange({
+      ...form,
+      address: '',
+      latitude: '',
+      longitude: '',
+      google_place_id: '',
+    });
+  };
+
+  const hasValidCoordinates = form.latitude && form.longitude;
 
   return (
     <section>
@@ -61,50 +97,48 @@ export function LocationsTab({
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
+
+          {/* Nom simplifié */}
           <div>
-            <label className="label text-xs sm:text-sm">Nom du lieu *</label>
+            <label className="label text-xs sm:text-sm">Nom pour les clients *</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => onFormChange({ ...form, name: e.target.value })}
               className="input min-h-[44px]"
-              placeholder="Marche de Belleville, Place du Village..."
+              placeholder="Ex: Marche des Halles, Place du Village..."
               required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Ce nom sera affiche aux clients (simple et reconnaissable)
+            </p>
           </div>
+
+          {/* Adresse avec Google Places */}
           <div>
-            <label className="label text-xs sm:text-sm">Adresse complete (optionnel)</label>
-            <input
-              type="text"
+            <label className="label text-xs sm:text-sm">Adresse complete (pour l'itineraire)</label>
+            <GooglePlacesAutocomplete
               value={form.address}
-              onChange={(e) => onFormChange({ ...form, address: e.target.value })}
-              className="input min-h-[44px]"
-              placeholder="1 Place du Marche, 75001 Paris"
+              onChange={(value) => onFormChange({ ...form, address: value })}
+              onPlaceSelect={handlePlaceSelect}
+              onClear={handleClearAddress}
+              placeholder="Rechercher une adresse..."
             />
+            {hasValidCoordinates ? (
+              <div className="flex items-center gap-2 mt-2 text-xs text-success-600">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>Position detectee - itineraire disponible</span>
+              </div>
+            ) : (
+              form.address && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Selectionnez une suggestion pour activer l'itineraire
+                </p>
+              )
+            )}
           </div>
-          <div>
-            <label className="label text-xs sm:text-sm">Coordonnees GPS (optionnel)</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-              <input
-                type="number"
-                step="any"
-                value={form.latitude}
-                onChange={(e) => onFormChange({ ...form, latitude: e.target.value })}
-                onWheel={(e) => e.currentTarget.blur()}
-                className="input min-h-[44px]"
-                placeholder="Latitude (48.8566)"
-              />
-              <input
-                type="number"
-                step="any"
-                value={form.longitude}
-                onChange={(e) => onFormChange({ ...form, longitude: e.target.value })}
-                onWheel={(e) => e.currentTarget.blur()}
-                className="input min-h-[44px]"
-                placeholder="Longitude (2.3522)"
-              />
-            </div>
-          </div>
+
+          {/* Actions */}
           <div className="flex flex-col-reverse sm:flex-row gap-2">
             <button
               type="button"
@@ -123,7 +157,7 @@ export function LocationsTab({
       <div className="grid gap-2 sm:gap-3">
         {locations.map((location) => {
           const isExpanded = expandedId === location.id;
-          const hasLongAddress = location.address && location.address.length > 35;
+          const hasCoords = location.latitude && location.longitude;
 
           return (
             <div key={location.id} className="card p-3 sm:p-4">
@@ -142,9 +176,15 @@ export function LocationsTab({
                         {location.address}
                       </p>
                     )}
+                    {hasCoords && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Navigation className="w-3 h-3 text-success-500" />
+                        <span className="text-xs text-success-600">Itineraire disponible</span>
+                      </div>
+                    )}
                   </div>
                   {/* Mobile: expand button for long addresses */}
-                  {hasLongAddress && (
+                  {location.address && location.address.length > 35 && (
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : location.id)}
                       className="sm:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 active:scale-95"
@@ -175,17 +215,17 @@ export function LocationsTab({
                   </button>
                 </div>
               </div>
-              {/* GPS coordinates on mobile when expanded */}
-              {isExpanded && (location.latitude || location.longitude) && (
-                <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400 sm:hidden">
-                  GPS: {location.latitude}, {location.longitude}
-                </div>
-              )}
             </div>
           );
         })}
         {locations.length === 0 && (
-          <p className="text-gray-500 text-xs sm:text-sm">Aucun emplacement configure</p>
+          <div className="text-center py-8">
+            <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 text-sm">Aucun emplacement configure</p>
+            <p className="text-gray-400 text-xs mt-1">
+              Ajoutez vos points de vente pour creer votre planning
+            </p>
+          </div>
         )}
       </div>
     </section>

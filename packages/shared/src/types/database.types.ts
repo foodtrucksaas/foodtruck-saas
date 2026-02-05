@@ -851,6 +851,7 @@ export type Database = {
           address: string | null;
           created_at: string | null;
           foodtruck_id: string;
+          google_place_id: string | null;
           id: string;
           latitude: number | null;
           longitude: number | null;
@@ -860,6 +861,7 @@ export type Database = {
           address?: string | null;
           created_at?: string | null;
           foodtruck_id: string;
+          google_place_id?: string | null;
           id?: string;
           latitude?: number | null;
           longitude?: number | null;
@@ -869,6 +871,7 @@ export type Database = {
           address?: string | null;
           created_at?: string | null;
           foodtruck_id?: string;
+          google_place_id?: string | null;
           id?: string;
           latitude?: number | null;
           longitude?: number | null;

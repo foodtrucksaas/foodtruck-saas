@@ -836,26 +836,34 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
               </div>
             )}
 
-            {/* Map - only show if coordinates are available */}
-            {todaySchedule &&
-              todaySchedule.location.latitude &&
-              todaySchedule.location.longitude && (
-                <div>
-                  <h2 className="font-bold text-anthracite mb-3">Position du jour</h2>
-                  <LocationCard
-                    location={{
-                      name: todaySchedule.location.name,
-                      address: todaySchedule.location.address,
-                      latitude: todaySchedule.location.latitude,
-                      longitude: todaySchedule.location.longitude,
-                      start_time: todaySchedule.start_time,
-                      end_time: todaySchedule.end_time,
-                    }}
-                    showMap={true}
-                    showHours={true}
-                  />
+            {/* Map - show all today's locations with coordinates */}
+            {todaySchedules.filter((s) => s.location?.latitude && s.location?.longitude).length >
+              0 && (
+              <div>
+                <h2 className="font-bold text-anthracite mb-3">
+                  {todaySchedules.length > 1 ? "Nos emplacements aujourd'hui" : 'Position du jour'}
+                </h2>
+                <div className="space-y-4">
+                  {todaySchedules
+                    .filter((s) => s.location?.latitude && s.location?.longitude)
+                    .map((sched) => (
+                      <LocationCard
+                        key={sched.id}
+                        location={{
+                          name: sched.location.name,
+                          address: sched.location.address,
+                          latitude: sched.location.latitude,
+                          longitude: sched.location.longitude,
+                          start_time: sched.start_time,
+                          end_time: sched.end_time,
+                        }}
+                        showMap={true}
+                        showHours={true}
+                      />
+                    ))}
                 </div>
-              )}
+              </div>
+            )}
           </div>
         )}
       </div>

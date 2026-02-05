@@ -32,6 +32,7 @@ export interface LocationFormState {
   address: string;
   latitude: string;
   longitude: string;
+  google_place_id: string;
 }
 
 export interface DayModalFormState {
@@ -75,6 +76,7 @@ export function useSchedule() {
     address: '',
     latitude: '',
     longitude: '',
+    google_place_id: '',
   });
 
   const [dayModalForm, setDayModalForm] = useState<DayModalFormState>({
@@ -96,15 +98,15 @@ export function useSchedule() {
         .eq('is_active', true)
         .order('day_of_week')
         .order('start_time'),
-      supabase
-        .from('locations')
-        .select('*')
-        .eq('foodtruck_id', foodtruck.id),
+      supabase.from('locations').select('*').eq('foodtruck_id', foodtruck.id),
       supabase
         .from('schedule_exceptions')
         .select('*, location:locations(*)')
         .eq('foodtruck_id', foodtruck.id)
-        .gte('date', formatLocalDate(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)))
+        .gte(
+          'date',
+          formatLocalDate(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1))
+        )
         .order('date'),
     ]);
 
@@ -119,20 +121,23 @@ export function useSchedule() {
   }, [fetchData]);
 
   // Calendar helpers
-  const createCalendarDay = useCallback((date: Date, isCurrentMonth: boolean, today: Date): CalendarDay => {
-    const dayOfWeek = date.getDay();
-    const dateStr = formatLocalDate(date);
-    const daySchedules = schedules.filter(s => s.day_of_week === dayOfWeek);
-    const exception = exceptions.find(e => e.date === dateStr) || null;
+  const createCalendarDay = useCallback(
+    (date: Date, isCurrentMonth: boolean, today: Date): CalendarDay => {
+      const dayOfWeek = date.getDay();
+      const dateStr = formatLocalDate(date);
+      const daySchedules = schedules.filter((s) => s.day_of_week === dayOfWeek);
+      const exception = exceptions.find((e) => e.date === dateStr) || null;
 
-    return {
-      date,
-      isCurrentMonth,
-      isToday: date.getTime() === today.getTime(),
-      schedules: daySchedules,
-      exception,
-    };
-  }, [schedules, exceptions]);
+      return {
+        date,
+        isCurrentMonth,
+        isToday: date.getTime() === today.getTime(),
+        schedules: daySchedules,
+        exception,
+      };
+    },
+    [schedules, exceptions]
+  );
 
   const generateCalendarDays = useCallback((): CalendarDay[] => {
     const year = currentMonth.getFullYear();
@@ -183,38 +188,41 @@ export function useSchedule() {
   }, []);
 
   // Day modal
-  const openDayModal = useCallback((day: CalendarDay) => {
-    setSelectedDay(day);
-    const effective = getEffectiveScheduleForDay(day);
+  const openDayModal = useCallback(
+    (day: CalendarDay) => {
+      setSelectedDay(day);
+      const effective = getEffectiveScheduleForDay(day);
 
-    if (effective.type === 'closed') {
-      setDayModalForm({
-        mode: 'closed',
-        location_id: '',
-        start_time: '11:00',
-        end_time: '14:00',
-        reason: day.exception?.reason || '',
-      });
-    } else if (effective.type === 'override') {
-      setDayModalForm({
-        mode: 'override',
-        location_id: day.exception?.location_id || '',
-        start_time: day.exception?.start_time || '11:00',
-        end_time: day.exception?.end_time || '14:00',
-        reason: day.exception?.reason || '',
-      });
-    } else {
-      const firstSchedule = day.schedules[0];
-      setDayModalForm({
-        mode: 'normal',
-        location_id: firstSchedule?.location_id || locations[0]?.id || '',
-        start_time: firstSchedule?.start_time || '11:00',
-        end_time: firstSchedule?.end_time || '14:00',
-        reason: '',
-      });
-    }
-    setShowDayModal(true);
-  }, [getEffectiveScheduleForDay, locations]);
+      if (effective.type === 'closed') {
+        setDayModalForm({
+          mode: 'closed',
+          location_id: '',
+          start_time: '11:00',
+          end_time: '14:00',
+          reason: day.exception?.reason || '',
+        });
+      } else if (effective.type === 'override') {
+        setDayModalForm({
+          mode: 'override',
+          location_id: day.exception?.location_id || '',
+          start_time: day.exception?.start_time || '11:00',
+          end_time: day.exception?.end_time || '14:00',
+          reason: day.exception?.reason || '',
+        });
+      } else {
+        const firstSchedule = day.schedules[0];
+        setDayModalForm({
+          mode: 'normal',
+          location_id: firstSchedule?.location_id || locations[0]?.id || '',
+          start_time: firstSchedule?.start_time || '11:00',
+          end_time: firstSchedule?.end_time || '14:00',
+          reason: '',
+        });
+      }
+      setShowDayModal(true);
+    },
+    [getEffectiveScheduleForDay, locations]
+  );
 
   const saveDayException = useCallback(async () => {
     if (!foodtruck || !selectedDay) return;
@@ -271,7 +279,7 @@ export function useSchedule() {
 
   // Location functions
   const resetLocationForm = useCallback(() => {
-    setLocationForm({ name: '', address: '', latitude: '', longitude: '' });
+    setLocationForm({ name: '', address: '', latitude: '', longitude: '', google_place_id: '' });
     setEditingLocationId(null);
     setShowLocationForm(false);
   }, []);
@@ -282,54 +290,64 @@ export function useSchedule() {
       address: location.address || '',
       latitude: location.latitude?.toString() || '',
       longitude: location.longitude?.toString() || '',
+      google_place_id: location.google_place_id || '',
     });
     setEditingLocationId(location.id);
     setShowLocationForm(true);
   }, []);
 
-  const handleLocationSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!foodtruck) return;
+  const handleLocationSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!foodtruck) return;
 
-    const lat = locationForm.latitude ? parseFloat(locationForm.latitude) : null;
-    const lng = locationForm.longitude ? parseFloat(locationForm.longitude) : null;
+      const lat = locationForm.latitude ? parseFloat(locationForm.latitude) : null;
+      const lng = locationForm.longitude ? parseFloat(locationForm.longitude) : null;
 
-    if ((lat && !lng) || (!lat && lng)) {
-      console.error('Latitude et longitude doivent etre fournies ensemble');
-      return;
-    }
-
-    const data = {
-      name: locationForm.name,
-      address: locationForm.address || null,
-      latitude: lat,
-      longitude: lng,
-    };
-
-    if (editingLocationId) {
-      const { error } = await supabase.from('locations').update(data).eq('id', editingLocationId);
-      if (error) {
-        console.error('Erreur lors de la modification de l\'emplacement', error);
-      } else {
-        resetLocationForm();
-        fetchData();
+      if ((lat && !lng) || (!lat && lng)) {
+        console.error('Latitude et longitude doivent etre fournies ensemble');
+        return;
       }
-    } else {
-      const { error } = await supabase.from('locations').insert({ ...data, foodtruck_id: foodtruck.id });
-      if (error) {
-        console.error('Erreur lors de la creation de l\'emplacement', error);
-      } else {
-        resetLocationForm();
-        fetchData();
-      }
-    }
-  }, [foodtruck, locationForm, editingLocationId, resetLocationForm, fetchData]);
 
-  const deleteLocation = useCallback(async (id: string) => {
-    if (!confirm('Supprimer cet emplacement ?')) return;
-    await supabase.from('locations').delete().eq('id', id);
-    fetchData();
-  }, [fetchData]);
+      const data = {
+        name: locationForm.name,
+        address: locationForm.address || null,
+        latitude: lat,
+        longitude: lng,
+        google_place_id: locationForm.google_place_id || null,
+      };
+
+      if (editingLocationId) {
+        const { error } = await supabase.from('locations').update(data).eq('id', editingLocationId);
+        if (error) {
+          console.error("Erreur lors de la modification de l'emplacement", error);
+        } else {
+          resetLocationForm();
+          fetchData();
+        }
+      } else {
+        const { error } = await supabase
+          .from('locations')
+          .insert({ ...data, foodtruck_id: foodtruck.id });
+        if (error) {
+          console.error("Erreur lors de la creation de l'emplacement", error);
+        } else {
+          resetLocationForm();
+          fetchData();
+        }
+      }
+    },
+    [foodtruck, locationForm, editingLocationId, resetLocationForm, fetchData]
+  );
+
+  const deleteLocation = useCallback(
+    async (id: string) => {
+      if (!confirm('Supprimer cet emplacement ?')) return;
+      await supabase.from('locations').delete().eq('id', id);
+      fetchData();
+    },
+    [fetchData]
+  );
 
   // Schedule functions
   const resetScheduleForm = useCallback(() => {
@@ -349,41 +367,49 @@ export function useSchedule() {
     setShowScheduleForm(true);
   }, []);
 
-  const handleScheduleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!foodtruck) return;
+  const handleScheduleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!foodtruck) return;
 
-    const data = {
-      day_of_week: scheduleForm.day_of_week,
-      location_id: scheduleForm.location_id,
-      start_time: scheduleForm.start_time,
-      end_time: scheduleForm.end_time,
-    };
+      const data = {
+        day_of_week: scheduleForm.day_of_week,
+        location_id: scheduleForm.location_id,
+        start_time: scheduleForm.start_time,
+        end_time: scheduleForm.end_time,
+      };
 
-    if (editingScheduleId) {
-      const { error } = await supabase.from('schedules').update(data).eq('id', editingScheduleId);
-      if (error) {
-        console.error('Erreur lors de la modification de l\'horaire', error);
+      if (editingScheduleId) {
+        const { error } = await supabase.from('schedules').update(data).eq('id', editingScheduleId);
+        if (error) {
+          console.error("Erreur lors de la modification de l'horaire", error);
+        } else {
+          resetScheduleForm();
+          fetchData();
+        }
       } else {
-        resetScheduleForm();
-        fetchData();
+        const { error } = await supabase
+          .from('schedules')
+          .insert({ ...data, foodtruck_id: foodtruck.id });
+        if (error) {
+          console.error("Erreur lors de la creation de l'horaire", error);
+        } else {
+          resetScheduleForm();
+          fetchData();
+        }
       }
-    } else {
-      const { error } = await supabase.from('schedules').insert({ ...data, foodtruck_id: foodtruck.id });
-      if (error) {
-        console.error('Erreur lors de la creation de l\'horaire', error);
-      } else {
-        resetScheduleForm();
-        fetchData();
-      }
-    }
-  }, [foodtruck, scheduleForm, editingScheduleId, resetScheduleForm, fetchData]);
+    },
+    [foodtruck, scheduleForm, editingScheduleId, resetScheduleForm, fetchData]
+  );
 
-  const deleteSchedule = useCallback(async (id: string) => {
-    if (!confirm('Supprimer cet horaire ?')) return;
-    await supabase.from('schedules').delete().eq('id', id);
-    fetchData();
-  }, [fetchData]);
+  const deleteSchedule = useCallback(
+    async (id: string) => {
+      if (!confirm('Supprimer cet horaire ?')) return;
+      await supabase.from('schedules').delete().eq('id', id);
+      fetchData();
+    },
+    [fetchData]
+  );
 
   // Month navigation
   const goToPreviousMonth = useCallback(() => {
