@@ -21,10 +21,10 @@ serve(async (req) => {
     // Verify authentication - caller must be authenticated
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Missing or invalid authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Missing or invalid authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const payload: PushPayload = await req.json();
@@ -44,13 +44,16 @@ serve(async (req) => {
 
     // Verify the caller owns this foodtruck
     const supabaseAnon = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Invalid authentication token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Check ownership
@@ -62,7 +65,9 @@ serve(async (req) => {
 
     if (ftError || !foodtruck || foodtruck.user_id !== user.id) {
       return new Response(
-        JSON.stringify({ error: 'You do not have permission to send notifications for this foodtruck' }),
+        JSON.stringify({
+          error: 'You do not have permission to send notifications for this foodtruck',
+        }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -76,15 +81,18 @@ serve(async (req) => {
 
     console.log('Tokens found:', tokens?.length || 0);
     if (tokens && tokens.length > 0) {
-      console.log('Token platforms:', tokens.map(t => t.platform));
+      console.log(
+        'Token platforms:',
+        tokens.map((t) => t.platform)
+      );
     }
 
     if (tokensError) {
       console.error('Error fetching tokens:', tokensError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch device tokens' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Failed to fetch device tokens' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     if (!tokens || tokens.length === 0) {
@@ -102,9 +110,14 @@ serve(async (req) => {
     };
 
     // Send to iOS devices via APNs
-    const iosTokens = tokens.filter(t => t.platform === 'ios');
+    const iosTokens = tokens.filter((t) => t.platform === 'ios');
     if (iosTokens.length > 0) {
-      const apnsResults = await sendApnsNotifications(iosTokens.map(t => t.token), title, body, data);
+      const apnsResults = await sendApnsNotifications(
+        iosTokens.map((t) => t.token),
+        title,
+        body,
+        data
+      );
       results.sent += apnsResults.sent;
       results.failed += apnsResults.failed;
       results.errors.push(...apnsResults.errors);
@@ -116,17 +129,16 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: `Sent ${results.sent} notifications, ${results.failed} failed`,
-        results
+        results,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
 
@@ -146,23 +158,24 @@ async function sendApnsNotifications(
 
   // Use production APNs server
   const apnsProduction = Deno.env.get('APNS_PRODUCTION');
-  const apnsHost = apnsProduction === 'true'
-    ? 'api.push.apple.com'
-    : 'api.sandbox.push.apple.com';
+  const apnsHost = apnsProduction === 'true' ? 'api.push.apple.com' : 'api.sandbox.push.apple.com';
 
-  console.log('=== APNs CONFIG ===');
-  console.log('APNS_KEY_ID:', apnsKeyId ? `${apnsKeyId.substring(0, 4)}...` : 'MISSING');
-  console.log('APNS_TEAM_ID:', apnsTeamId ? `${apnsTeamId.substring(0, 4)}...` : 'MISSING');
-  console.log('APNS_KEY_BASE64:', apnsKeyBase64 ? `${apnsKeyBase64.substring(0, 20)}...` : 'MISSING');
-  console.log('APNS_PRODUCTION:', apnsProduction);
-  console.log('Using APNs host:', apnsHost);
-
+  // Validate APNs configuration FIRST before trying to log
   if (!apnsKeyId || !apnsTeamId || !apnsKeyBase64) {
-    console.error('APNs configuration missing!');
+    console.error(
+      'APNs configuration missing! APNS_KEY_ID, APNS_TEAM_ID, and APNS_KEY_BASE64 are required.'
+    );
     results.errors.push('APNs configuration missing');
     results.failed = tokens.length;
     return results;
   }
+
+  console.log('=== APNs CONFIG ===');
+  console.log('APNS_KEY_ID:', `${apnsKeyId.substring(0, 4)}...`);
+  console.log('APNS_TEAM_ID:', `${apnsTeamId.substring(0, 4)}...`);
+  console.log('APNS_KEY_BASE64:', `${apnsKeyBase64.substring(0, 20)}...`);
+  console.log('APNS_PRODUCTION:', apnsProduction);
+  console.log('Using APNs host:', apnsHost);
 
   try {
     // Decode the base64-encoded private key
@@ -178,7 +191,7 @@ async function sendApnsNotifications(
         const response = await fetch(`https://${apnsHost}/3/device/${token}`, {
           method: 'POST',
           headers: {
-            'Authorization': `bearer ${jwt}`,
+            Authorization: `bearer ${jwt}`,
             'apns-topic': bundleId,
             'apns-push-type': 'alert',
             'apns-priority': '10',
@@ -205,7 +218,9 @@ async function sendApnsNotifications(
           const errorText = await response.text();
           console.error('APNs ERROR:', response.status, errorText);
           results.failed++;
-          results.errors.push(`Token ${token.substring(0, 10)}...: ${response.status} - ${errorText}`);
+          results.errors.push(
+            `Token ${token.substring(0, 10)}...: ${response.status} - ${errorText}`
+          );
         }
       } catch (error) {
         console.error('Fetch error:', error.message);
@@ -221,7 +236,11 @@ async function sendApnsNotifications(
   return results;
 }
 
-async function createApnsJwt(privateKeyPem: string, keyId: string, teamId: string): Promise<string> {
+async function createApnsJwt(
+  privateKeyPem: string,
+  keyId: string,
+  teamId: string
+): Promise<string> {
   // Import the private key
   const privateKey = await jose.importPKCS8(privateKeyPem, 'ES256');
 

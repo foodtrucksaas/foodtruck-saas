@@ -195,6 +195,7 @@ export function useOnboardingAssistant() {
   );
 
   // Save menu (categories, option groups, items) to database
+  // Uses upsert logic to prevent duplicates on retry
   const saveMenu = useCallback(async () => {
     if (!foodtruck || state.categories.length === 0) return;
 
@@ -213,6 +214,17 @@ export function useOnboardingAssistant() {
 
       if (existingCat) {
         categoryId = existingCat.id;
+
+        // Delete existing option groups and their options for this category
+        // This ensures clean slate on retry
+        await supabase.from('category_option_groups').delete().eq('category_id', categoryId);
+
+        // Delete existing menu items for this category
+        await supabase
+          .from('menu_items')
+          .delete()
+          .eq('category_id', categoryId)
+          .eq('foodtruck_id', foodtruck.id);
       } else {
         const { data: newCat, error } = await supabase
           .from('categories')
@@ -229,7 +241,8 @@ export function useOnboardingAssistant() {
       }
 
       // Save option groups (category-level)
-      for (const og of cat.optionGroups) {
+      for (let ogIndex = 0; ogIndex < cat.optionGroups.length; ogIndex++) {
+        const og = cat.optionGroups[ogIndex];
         const { data: newOg, error: ogError } = await supabase
           .from('category_option_groups')
           .insert({
@@ -237,7 +250,7 @@ export function useOnboardingAssistant() {
             name: og.name,
             is_required: og.type === 'size',
             is_multiple: og.type === 'supplement',
-            display_order: 0,
+            display_order: ogIndex,
           })
           .select('id')
           .single();

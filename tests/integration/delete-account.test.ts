@@ -165,35 +165,39 @@ describe('delete-account Edge Function', () => {
   // Test 3: Erreur sans token d'authentification
   describe('Without authentication', () => {
     it('should return 401 without auth token', async () => {
-      const response = await fetch(
-        `${process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON_KEY!,
+        },
+      });
 
       expect(response.status).toBe(401);
       const data = await response.json();
+      // The function returns 'Non autorisé' when no Authorization header is provided
       expect(data.error).toBe('Non autorisé');
     });
 
     it('should return 401 with invalid token', async () => {
-      const response = await fetch(
-        `${process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer invalid-token-12345',
-          },
-        }
-      );
+      const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON_KEY!,
+          Authorization: 'Bearer invalid-token-12345',
+        },
+      });
 
       expect(response.status).toBe(401);
       const data = await response.json();
+      // The function returns 'Utilisateur non trouvé' when JWT is invalid
       expect(data.error).toBe('Utilisateur non trouvé');
     });
   });

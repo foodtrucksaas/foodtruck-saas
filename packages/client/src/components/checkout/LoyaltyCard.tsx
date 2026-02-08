@@ -35,7 +35,11 @@ export function LoyaltyCard({
   }
 
   const currentPoints = loyaltyInfo.loyalty_points || 0;
-  const threshold = loyaltyInfo.loyalty_threshold || 50;
+  // Ensure threshold is never 0 to prevent division by zero
+  const threshold =
+    loyaltyInfo.loyalty_threshold && loyaltyInfo.loyalty_threshold > 0
+      ? loyaltyInfo.loyalty_threshold
+      : 50;
   const pointsPerEuro = loyaltyInfo.loyalty_points_per_euro || 1;
   const orderTotalAfterDiscount = Math.max(0, orderTotal - promoDiscount - loyaltyDiscount);
   const pointsToEarn = Math.floor((orderTotalAfterDiscount / 100) * pointsPerEuro);

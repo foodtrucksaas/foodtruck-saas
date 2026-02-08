@@ -310,13 +310,7 @@ export function AccountSection() {
             type="text"
             id="delete-confirm-input"
             value={deleteConfirmText}
-            onChange={(e) => setDeleteConfirmText(e.target.value)}
-            onBlur={(e) => {
-              // Prevent focus loss by refocusing immediately if still in modal
-              if (deleteConfirmText.length > 0 && deleteConfirmText !== 'SUPPRIMER') {
-                setTimeout(() => e.target.focus(), 0);
-              }
-            }}
+            onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
             placeholder="SUPPRIMER"
             className="input min-h-[44px] mb-4"
             autoComplete="off"

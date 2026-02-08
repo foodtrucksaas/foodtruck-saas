@@ -23,9 +23,16 @@ function OnboardingAssistantContent() {
 
   // Save all data when reaching step 6 (complete)
   useEffect(() => {
-    if (state.currentStep === 6) {
-      saveAllData();
-    }
+    const save = async () => {
+      if (state.currentStep === 6) {
+        const success = await saveAllData();
+        if (!success) {
+          // If save failed, log the error (UI shows it via StepComplete)
+          console.error('Failed to save onboarding data');
+        }
+      }
+    };
+    save();
   }, [state.currentStep, saveAllData]);
 
   // Update progress in database when step changes

@@ -3,6 +3,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 import { handleCors, getCorsHeaders } from '../_shared/cors.ts';
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 interface Recipient {
   customer_id: string;
   email: string;
@@ -22,19 +35,19 @@ serve(async (req) => {
     // SECURITY: Verify authentication
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const { campaign_id } = await req.json();
 
     if (!campaign_id) {
-      return new Response(
-        JSON.stringify({ error: 'Paramètre manquant' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Paramètre manquant' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Initialize Supabase admin client
@@ -44,13 +57,16 @@ serve(async (req) => {
 
     // Verify the authenticated user
     const supabaseAnon = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
-    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAnon.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Invalid authentication token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Initialize Resend
@@ -70,23 +86,25 @@ serve(async (req) => {
       .single();
 
     if (campaignError || !campaign) {
-      return new Response(
-        JSON.stringify({ error: 'Campagne non trouvée' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Campagne non trouvée' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // SECURITY: Verify the user owns this campaign's foodtruck
     if (campaign.foodtruck?.user_id !== user.id) {
       return new Response(
-        JSON.stringify({ error: 'Vous n\'avez pas la permission d\'envoyer cette campagne' }),
+        JSON.stringify({ error: "Vous n'avez pas la permission d'envoyer cette campagne" }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Fetch recipients
-    const { data: recipients, error: recipientsError } = await supabase
-      .rpc('get_campaign_recipients', { p_campaign_id: campaign_id });
+    const { data: recipients, error: recipientsError } = await supabase.rpc(
+      'get_campaign_recipients',
+      { p_campaign_id: campaign_id }
+    );
 
     if (recipientsError) {
       console.error('Recipients fetch error');
@@ -99,10 +117,10 @@ serve(async (req) => {
     const recipientsList = recipients as Recipient[];
 
     if (recipientsList.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Aucun destinataire trouvé' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Aucun destinataire trouvé' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     let sentCount = 0;
@@ -127,7 +145,7 @@ serve(async (req) => {
       };
 
       // Create send record
-      const { data: sendRecord } = await supabase
+      const { data: sendRecord, error: sendRecordError } = await supabase
         .from('campaign_sends')
         .insert({
           campaign_id: campaign.id,
@@ -138,14 +156,30 @@ serve(async (req) => {
         .select()
         .single();
 
+      // Skip this recipient if we couldn't create a send record
+      if (sendRecordError || !sendRecord) {
+        console.error('Failed to create send record for recipient:', recipient.customer_id);
+        errorCount++;
+        continue;
+      }
+
       // Send email
-      if ((campaign.channel === 'email' || campaign.channel === 'both') && recipient.email_opt_in && resend) {
+      if (
+        (campaign.channel === 'email' || campaign.channel === 'both') &&
+        recipient.email_opt_in &&
+        resend
+      ) {
         try {
           const emailBody = replaceVariables(campaign.email_body || '');
           const emailSubject = replaceVariables(campaign.email_subject || '');
 
+          const safeFoodtruckName = escapeHtml(campaign.foodtruck?.name) || 'FoodTruck';
+          // Sanitize the from name: remove newlines, angle brackets, and other dangerous chars for email headers
+          const safeFromName = (campaign.foodtruck?.name || 'FoodTruck')
+            .replace(/[\r\n<>"]/g, '')
+            .substring(0, 100);
           const { data: emailResult, error: emailError } = await resend.emails.send({
-            from: `${campaign.foodtruck?.name || 'FoodTruck'} <noreply@${Deno.env.get('RESEND_DOMAIN') || 'resend.dev'}>`,
+            from: `${safeFromName} <noreply@${Deno.env.get('RESEND_DOMAIN') || 'resend.dev'}>`,
             to: recipient.email,
             subject: emailSubject,
             html: `
@@ -157,16 +191,16 @@ serve(async (req) => {
                 </head>
                 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                   <div style="background: linear-gradient(135deg, #ed7b20 0%, #f19744 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 24px;">${campaign.foodtruck?.name || 'FoodTruck'}</h1>
+                    <h1 style="color: white; margin: 0; font-size: 24px;">${safeFoodtruckName}</h1>
                   </div>
                   <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-                    <p style="white-space: pre-line;">${emailBody}</p>
+                    <p style="white-space: pre-line;">${escapeHtml(emailBody)}</p>
                     <div style="margin-top: 30px; text-align: center;">
                       <a href="${variables.link}" style="display: inline-block; background: #ed7b20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600;">Commander maintenant</a>
                     </div>
                   </div>
                   <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
-                    <p>Vous recevez cet email car vous avez accepté les communications de ${campaign.foodtruck?.name}.</p>
+                    <p>Vous recevez cet email car vous avez accepté les communications de ${safeFoodtruckName}.</p>
                     <p><a href="${Deno.env.get('CLIENT_URL') || 'https://yourapp.com'}/unsubscribe?email=${encodeURIComponent(recipient.email)}&foodtruck=${campaign.foodtruck_id}" style="color: #9ca3af;">Se désinscrire</a></p>
                   </div>
                 </body>
@@ -210,7 +244,12 @@ serve(async (req) => {
       }
 
       // Send SMS
-      if ((campaign.channel === 'sms' || campaign.channel === 'both') && recipient.sms_opt_in && recipient.phone && twilioAccountSid) {
+      if (
+        (campaign.channel === 'sms' || campaign.channel === 'both') &&
+        recipient.sms_opt_in &&
+        recipient.phone &&
+        twilioAccountSid
+      ) {
         try {
           const smsBody = replaceVariables(campaign.sms_body || '');
 
@@ -225,7 +264,7 @@ serve(async (req) => {
           const response = await fetch(twilioUrl, {
             method: 'POST',
             headers: {
-              'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
+              Authorization: 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
@@ -299,11 +338,11 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
+  } catch {
     console.error('Campaign send error');
-    return new Response(
-      JSON.stringify({ error: 'Une erreur est survenue' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: 'Une erreur est survenue' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

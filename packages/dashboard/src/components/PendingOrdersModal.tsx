@@ -164,7 +164,10 @@ export default function PendingOrdersModal({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal - fullscreen on mobile with scroll */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+      <div
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
+        style={{ maxHeight: 'calc(90vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))' }}
+      >
         {/* Header */}
         <div className="bg-warning-500 text-white px-4 sm:px-5 py-4 relative flex-shrink-0">
           {/* Close button - larger touch target */}
@@ -192,7 +195,11 @@ export default function PendingOrdersModal({
             </button>
 
             {/* Dots indicator */}
-            <div className="flex items-center gap-2 flex-wrap justify-center">
+            <div
+              className="flex items-center gap-2 flex-wrap justify-center"
+              role="tablist"
+              aria-label="Navigation des commandes"
+            >
               {orders.map((_, idx) => (
                 <button
                   key={idx}
@@ -200,12 +207,15 @@ export default function PendingOrdersModal({
                   className={`min-h-[44px] min-w-[44px] rounded-full transition-all flex items-center justify-center ${
                     idx === safeIndex ? 'bg-warning-500' : 'bg-transparent hover:bg-gray-100'
                   }`}
-                  aria-label={`Commande ${idx + 1}`}
+                  role="tab"
+                  aria-selected={idx === safeIndex}
+                  aria-label={`Commande ${idx + 1}${idx === safeIndex ? ' (actuelle)' : ''}`}
                 >
                   <span
                     className={`h-3 rounded-full transition-all ${
                       idx === safeIndex ? 'bg-warning-500 w-8' : 'bg-gray-300 w-3'
                     }`}
+                    aria-hidden="true"
                   />
                 </button>
               ))}

@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // Tests d'intégration sont plus lents
-    testTimeout: 30000,
-    hookTimeout: 30000,
+    // Tests d'intégration sont plus lents (vraies requêtes réseau)
+    testTimeout: 60000,
+    hookTimeout: 60000,
 
     // Exécuter les tests séquentiellement (pas en parallèle)
     // car ils partagent la même base de données
@@ -12,18 +12,13 @@ export default defineConfig({
       concurrent: false,
     },
 
-    // Fichiers de test
-    include: ['**/*.test.ts'],
+    // Fichiers de test d'intégration uniquement
+    include: ['tests/integration/**/*.test.ts'],
 
-    // Ne pas utiliser jsdom, on n'en a pas besoin
+    // Ne pas utiliser jsdom, on n'en a pas besoin pour les tests d'intégration
     environment: 'node',
 
-    // Variables d'environnement
-    env: {
-      // Les variables seront chargées depuis .env.local ou .env
-    },
-
-    // Charger les variables d'environnement
-    setupFiles: ['dotenv/config'],
+    // Désactiver les globals pour éviter les conflits
+    globals: false,
   },
 });

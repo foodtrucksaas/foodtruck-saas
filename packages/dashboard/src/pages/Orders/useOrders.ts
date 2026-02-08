@@ -51,39 +51,46 @@ export function useOrders() {
 
   // Fetch orders for the selected date
   const fetchOrders = useCallback(async () => {
-    if (!foodtruck) return;
+    if (!foodtruck) {
+      setLoading(false);
+      return;
+    }
     const dateStr = formatLocalDate(selectedDate);
     const nextDay = new Date(selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
     const nextDayStr = formatLocalDate(nextDay);
 
-    // Optimized select: only fetch needed fields for the orders list view
-    const { data, error } = await supabase
-      .from('orders')
-      .select(
+    try {
+      // Optimized select: only fetch needed fields for the orders list view
+      const { data, error } = await supabase
+        .from('orders')
+        .select(
+          `
+          id, status, pickup_time, total_amount, discount_amount, notes,
+          customer_email, customer_name, customer_phone, created_at,
+          cancellation_reason, cancelled_by,
+          order_items (
+            id, quantity, unit_price, notes,
+            menu_item:menu_items (id, name, price),
+            order_item_options (id, option_name, option_group_name, price_modifier)
+          )
         `
-        id, status, pickup_time, total_amount, discount_amount, notes,
-        customer_email, customer_name, customer_phone, created_at,
-        cancellation_reason, cancelled_by,
-        order_items (
-          id, quantity, unit_price, notes,
-          menu_item:menu_items (id, name, price),
-          order_item_options (id, option_name, option_group_name, price_modifier)
         )
-      `
-      )
-      .eq('foodtruck_id', foodtruck.id)
-      .gte('pickup_time', `${dateStr}T00:00:00`)
-      .lt('pickup_time', `${nextDayStr}T00:00:00`)
-      .order('pickup_time', { ascending: true });
+        .eq('foodtruck_id', foodtruck.id)
+        .gte('pickup_time', `${dateStr}T00:00:00`)
+        .lt('pickup_time', `${nextDayStr}T00:00:00`)
+        .order('pickup_time', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching orders:', error);
-      return;
+      if (error) {
+        console.error('Error fetching orders:', error);
+      } else if (data) {
+        setOrders(data as unknown as OrderWithItemsAndOptions[]);
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+    } finally {
+      setLoading(false);
     }
-
-    if (data) setOrders(data as unknown as OrderWithItemsAndOptions[]);
-    setLoading(false);
   }, [foodtruck, selectedDate]);
 
   // Initial fetch

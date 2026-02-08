@@ -7,7 +7,12 @@
  * IMPORTANT: Ne jamais exécuter en production !
  */
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+// Charger les variables d'environnement depuis .env.local à la racine
+dotenv.config({ path: path.resolve(__dirname, '../../.env.local') });
 
 // Charger les variables d'environnement
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -311,6 +316,7 @@ export async function callEdgeFunction(
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
+        apikey: SUPABASE_ANON_KEY!, // Required by Supabase Edge Functions
       },
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -319,7 +325,9 @@ export async function callEdgeFunction(
 
     return {
       data,
-      error: response.ok ? null : new Error(data?.error || `HTTP ${response.status}`),
+      error: response.ok
+        ? null
+        : new Error(data?.error || data?.message || `HTTP ${response.status}`),
       status: response.status,
     };
   } catch (error) {

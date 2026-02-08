@@ -49,10 +49,10 @@ export function Step2Schedule() {
     if (state.selectedDays.length === 0) return;
     dispatch({ type: 'SET_CURRENT_DAY_INDEX', index: 0 });
     // Initialize with first location if available
-    if (state.locations.length > 0) {
+    if (state.locations.length > 0 && state.locations[0].id) {
       setCurrentDayConfig((prev) => ({
         ...prev,
-        location_id: state.locations[0].id || state.locations[0].name,
+        location_id: state.locations[0].id!,
       }));
     }
     setSubStep('configure-days');

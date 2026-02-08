@@ -115,6 +115,17 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
   // Track active category based on scroll position
   useEffect(() => {
+    // Get current refs to observe - capture in variable for cleanup
+    const currentRefs = categoryRefs.current;
+    const elementsToObserve = Object.values(currentRefs).filter(
+      (element): element is HTMLDivElement => element !== null
+    );
+
+    // Don't create observer if there are no elements to observe
+    if (elementsToObserve.length === 0) {
+      return;
+    }
+
     const observerCallback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -131,11 +142,21 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       threshold: 0,
     });
 
-    Object.values(categoryRefs.current).forEach((element) => {
-      if (element) observer.observe(element);
+    // Observe all valid elements
+    elementsToObserve.forEach((element) => {
+      observer.observe(element);
     });
 
-    return () => observer.disconnect();
+    // Cleanup: disconnect observer and unobserve all elements
+    return () => {
+      elementsToObserve.forEach((element) => {
+        // Check element still exists before unobserving
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+      observer.disconnect();
+    };
   }, [categories, groupedItems]);
 
   // Set first category as active by default

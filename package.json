@@ -24,8 +24,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:prod": "E2E_BASE_URL=https://onmange.app/client playwright test --project=client",
-    "test:integration": "node scripts/check-integration-env.js && vitest run --config tests/integration/vitest.config.ts",
-    "test:integration:watch": "node scripts/check-integration-env.js && vitest --config tests/integration/vitest.config.ts",
+    "test:integration": "node scripts/check-integration-env.js && vitest run -c tests/integration/vitest.config.ts tests/integration/",
+    "test:integration:watch": "node scripts/check-integration-env.js && vitest -c tests/integration/vitest.config.ts tests/integration/",
     "test:integration:check": "node scripts/check-integration-env.js",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -40,6 +40,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {

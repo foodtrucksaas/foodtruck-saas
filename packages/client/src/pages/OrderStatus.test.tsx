@@ -1,8 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
-// Mock Supabase completely to avoid async issues
+// Simple mock that always returns null data
+// More complex integration tests should be done with a real supabase test instance
+const mockChannel = vi.hoisted(() => ({
+  on: vi.fn().mockReturnThis(),
+  subscribe: vi.fn().mockReturnThis(),
+  unsubscribe: vi.fn().mockResolvedValue('ok'),
+}));
+
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: () => ({
@@ -12,11 +19,7 @@ vi.mock('../lib/supabase', () => ({
         }),
       }),
     }),
-    channel: () => ({
-      on: () => ({
-        subscribe: () => ({}),
-      }),
-    }),
+    channel: () => mockChannel,
     removeChannel: vi.fn(),
   },
 }));
@@ -43,13 +46,27 @@ const renderWithRouter = (orderId: string, searchParams = '') => {
 };
 
 describe('OrderStatus', () => {
-  it('should show loading spinner initially', () => {
-    renderWithRouter('order-123');
-    expect(screen.getByRole('status', { name: /chargement/i })).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should have accessible loading state', () => {
+  it('should show order not found when data is null', async () => {
     renderWithRouter('order-123');
-    expect(screen.getByText('Chargement de la commande')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Commande non trouvee')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('link', { name: /retour/i })).toBeInTheDocument();
+  });
+
+  it('should have a link back to home', async () => {
+    renderWithRouter('order-123');
+
+    await waitFor(() => {
+      expect(screen.getByText('Commande non trouvee')).toBeInTheDocument();
+    });
+
+    const link = screen.getByRole('link', { name: /retour/i });
+    expect(link).toHaveAttribute('href', '/');
   });
 });

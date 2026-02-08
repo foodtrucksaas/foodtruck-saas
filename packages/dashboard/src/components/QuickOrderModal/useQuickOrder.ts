@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { MenuItem, Category, SelectedOption, OptionGroup, Option } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
@@ -23,6 +23,27 @@ export type Step = 'products' | 'options' | 'checkout';
 
 export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreated: () => void) {
   const { foodtruck } = useFoodtruck();
+
+  // Ref to track mounted state for async operations
+  const isMountedRef = useRef(true);
+
+  // Refs to store latest callback values to avoid stale closures
+  const onCloseRef = useRef(onClose);
+  const onOrderCreatedRef = useRef(onOrderCreated);
+
+  // Keep refs updated with latest callback values
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    onOrderCreatedRef.current = onOrderCreated;
+  }, [onClose, onOrderCreated]);
+
+  // Track mounted state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithOptions[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -37,11 +58,17 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showMobileCart, setShowMobileCart] = useState(false);
-  const [slotAvailability, setSlotAvailability] = useState<Record<string, { available: boolean; orderCount: number }>>({});
+  const [slotAvailability, setSlotAvailability] = useState<
+    Record<string, { available: boolean; orderCount: number }>
+  >({});
 
   // Fetch menu data and slot availability
   useEffect(() => {
     if (!isOpen || !foodtruck) return;
+
+    // Create AbortController for cleanup
+    const abortController = new AbortController();
+    let isCancelled = false;
 
     async function fetchData() {
       setLoading(true);
@@ -50,45 +77,66 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
       const slotInterval = foodtruck!.order_slot_interval ?? 15;
       const maxOrdersPerSlot = foodtruck!.max_orders_per_slot ?? 999;
 
-      const [categoriesRes, itemsRes, slotsRes] = await Promise.all([
-        supabase
-          .from('categories')
-          .select('*')
-          .eq('foodtruck_id', foodtruck!.id)
-          .order('sort_order'),
-        supabase
-          .from('menu_items')
-          .select('*, option_groups (*, options (*))')
-          .eq('foodtruck_id', foodtruck!.id)
-          .eq('is_available', true)
-          .order('name'),
-        supabase.rpc('get_available_slots', {
-          p_foodtruck_id: foodtruck!.id,
-          p_date: todayDate,
-          p_interval_minutes: slotInterval,
-          p_max_orders_per_slot: maxOrdersPerSlot,
-        }),
-      ]);
+      try {
+        const [categoriesRes, itemsRes, slotsRes] = await Promise.all([
+          supabase
+            .from('categories')
+            .select('*')
+            .eq('foodtruck_id', foodtruck!.id)
+            .order('sort_order')
+            .abortSignal(abortController.signal),
+          supabase
+            .from('menu_items')
+            .select('*, option_groups (*, options (*))')
+            .eq('foodtruck_id', foodtruck!.id)
+            .eq('is_available', true)
+            .order('name')
+            .abortSignal(abortController.signal),
+          supabase.rpc('get_available_slots', {
+            p_foodtruck_id: foodtruck!.id,
+            p_date: todayDate,
+            p_interval_minutes: slotInterval,
+            p_max_orders_per_slot: maxOrdersPerSlot,
+          }),
+        ]);
 
-      if (categoriesRes.data) setCategories(categoriesRes.data);
-      if (itemsRes.data) setMenuItems(itemsRes.data as unknown as MenuItemWithOptions[]);
+        // Check if cancelled or unmounted before updating state
+        if (isCancelled || !isMountedRef.current) return;
 
-      if (slotsRes.data) {
-        const availabilityMap: Record<string, { available: boolean; orderCount: number }> = {};
-        for (const slot of slotsRes.data) {
-          const timeStr = slot.slot_time.substring(0, 5);
-          availabilityMap[timeStr] = {
-            available: slot.available,
-            orderCount: slot.order_count,
-          };
+        if (categoriesRes.data) setCategories(categoriesRes.data);
+        if (itemsRes.data) setMenuItems(itemsRes.data as unknown as MenuItemWithOptions[]);
+
+        if (slotsRes.data) {
+          const availabilityMap: Record<string, { available: boolean; orderCount: number }> = {};
+          for (const slot of slotsRes.data) {
+            const timeStr = slot.slot_time.substring(0, 5);
+            availabilityMap[timeStr] = {
+              available: slot.available,
+              orderCount: slot.order_count,
+            };
+          }
+          setSlotAvailability(availabilityMap);
         }
-        setSlotAvailability(availabilityMap);
-      }
 
-      setLoading(false);
+        setLoading(false);
+      } catch (error) {
+        // Ignore abort errors, log others
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error fetching menu data:', error);
+          if (isMountedRef.current && !isCancelled) {
+            setLoading(false);
+          }
+        }
+      }
     }
 
     fetchData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isCancelled = true;
+      abortController.abort();
+    };
   }, [isOpen, foodtruck]);
 
   // Reset when modal opens
@@ -118,8 +166,7 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
       const query = searchQuery.toLowerCase();
       items = items.filter(
         (item) =>
-          item.name.toLowerCase().includes(query) ||
-          item.description?.toLowerCase().includes(query)
+          item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query)
       );
     }
     return items;
@@ -158,15 +205,18 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
   }, []);
 
   // Handle item click
-  const handleItemClick = useCallback((item: MenuItemWithOptions) => {
-    if (item.option_groups && item.option_groups.length > 0) {
-      setPendingItem(item);
-      setPendingOptions({});
-      setStep('options');
-    } else {
-      addToCart(item, []);
-    }
-  }, [addToCart]);
+  const handleItemClick = useCallback(
+    (item: MenuItemWithOptions) => {
+      if (item.option_groups && item.option_groups.length > 0) {
+        setPendingItem(item);
+        setPendingOptions({});
+        setStep('options');
+      } else {
+        addToCart(item, []);
+      }
+    },
+    [addToCart]
+  );
 
   // Toggle option
   const toggleOption = useCallback((groupId: string, optionId: string, isMultiple: boolean) => {
@@ -290,6 +340,9 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
 
     setIsSubmitting(true);
 
+    // Create AbortController for potential cleanup
+    const abortController = new AbortController();
+
     try {
       const orderData = {
         foodtruck_id: foodtruck.id,
@@ -320,6 +373,7 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify(orderData),
+          signal: abortController.signal,
         }
       );
 
@@ -329,14 +383,24 @@ export function useQuickOrder(isOpen: boolean, onClose: () => void, onOrderCreat
         throw new Error(result.error || 'Erreur lors de la création');
       }
 
-      onOrderCreated();
-      onClose();
+      // Check if still mounted before calling callbacks and updating state
+      if (isMountedRef.current) {
+        // Use refs to avoid stale closure issues with callbacks
+        onOrderCreatedRef.current();
+        onCloseRef.current();
+      }
     } catch (error) {
-      console.error('Error creating quick order:', error instanceof Error ? error.message : error);
+      // Ignore abort errors
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error creating quick order:', error.message);
+      }
     } finally {
-      setIsSubmitting(false);
+      // Only update state if still mounted
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
-  }, [foodtruck, cart, customerName, notes, getPickupTimeString, onOrderCreated, onClose]);
+  }, [foodtruck, cart, customerName, notes, getPickupTimeString]);
 
   return {
     // Data

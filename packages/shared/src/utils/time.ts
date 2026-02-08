@@ -62,14 +62,28 @@ export function getNextAvailableSlot(
   intervalMinutes: number = 15,
   bufferMinutes: number = 30
 ): string | null {
+  // Validate inputs
+  if (!startTime || !endTime) return null;
+
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes() + bufferMinutes;
 
-  const [startHour, startMin] = startTime.split(':').map(Number);
-  const [endHour, endMin] = endTime.split(':').map(Number);
+  const startParts = startTime.split(':').map(Number);
+  const endParts = endTime.split(':').map(Number);
+
+  // Validate parsed values
+  if (startParts.length < 2 || endParts.length < 2) return null;
+  const [startHour, startMin] = startParts;
+  const [endHour, endMin] = endParts;
+
+  // Check for NaN values
+  if (isNaN(startHour) || isNaN(startMin) || isNaN(endHour) || isNaN(endMin)) return null;
 
   const startMinutes = startHour * 60 + startMin;
   const endMinutes = endHour * 60 + endMin;
+
+  // Validate time range: start must be before end
+  if (startMinutes >= endMinutes) return null;
 
   let slotMinutes = Math.max(currentMinutes, startMinutes);
   slotMinutes = Math.ceil(slotMinutes / intervalMinutes) * intervalMinutes;

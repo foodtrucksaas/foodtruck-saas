@@ -4,6 +4,19 @@ import { createSupabaseAdmin } from '../_shared/supabase.ts';
 import { successResponse, errorResponse } from '../_shared/responses.ts';
 
 /**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
  * This function is called periodically (via cron) to send reminder emails
  * for orders that:
  * - Have pickup_time within the next 30-35 minutes
@@ -102,6 +115,22 @@ serve(async (req) => {
 
     for (const order of ordersToRemind) {
       try {
+        // RACE CONDITION FIX: Atomically claim this order before sending
+        // Use UPDATE with WHERE to ensure only one process handles each order
+        const { data: claimedOrder, error: claimError } = await supabase
+          .from('orders')
+          .update({ reminder_sent_at: new Date().toISOString() })
+          .eq('id', order.id)
+          .is('reminder_sent_at', null) // Only claim if not already claimed
+          .select('id')
+          .single();
+
+        // If claim failed (another process got it first), skip this order
+        if (claimError || !claimedOrder) {
+          console.log(`Order ${order.id} already claimed by another process, skipping`);
+          continue;
+        }
+
         // Format pickup time
         const pickupDate = new Date(order.pickup_time);
         const pickupTimeStr = pickupDate.toLocaleTimeString('fr-FR', {
@@ -128,10 +157,10 @@ serve(async (req) => {
               <!-- Content -->
               <div style="background:#ffffff;padding:30px;border-radius:0 0 12px 12px;box-shadow:0 4px 6px rgba(0,0,0,0.05)">
                 <p style="font-size:16px;color:#374151;margin:0 0 20px">
-                  Bonjour <strong>${order.customer_name}</strong>,
+                  Bonjour <strong>${escapeHtml(order.customer_name)}</strong>,
                 </p>
                 <p style="font-size:16px;color:#374151;margin:0 0 20px">
-                  Pour rappel, votre commande chez <strong style="color:#3b82f6">${order.foodtruck.name}</strong> sera disponible à :
+                  Pour rappel, votre commande chez <strong style="color:#3b82f6">${escapeHtml(order.foodtruck.name)}</strong> sera disponible à :
                 </p>
 
                 <!-- Pickup time highlight -->
@@ -148,7 +177,7 @@ serve(async (req) => {
                   order.foodtruck.phone
                     ? `
                   <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
-                    Une question ? Contactez-nous au <a href="tel:${order.foodtruck.phone}" style="color:#3b82f6;text-decoration:none;font-weight:500">${order.foodtruck.phone}</a>
+                    Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#3b82f6;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
                   </p>
                 `
                     : ''
@@ -161,7 +190,7 @@ serve(async (req) => {
 
               <!-- Footer -->
               <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">
-                <p style="margin:0">Cet email a été envoyé par ${order.foodtruck.name}</p>
+                <p style="margin:0">Cet email a été envoyé par ${escapeHtml(order.foodtruck.name)}</p>
               </div>
             </div>
           </body>
@@ -180,13 +209,11 @@ serve(async (req) => {
         });
 
         if (res.ok) {
-          // Mark reminder as sent
-          await supabase
-            .from('orders')
-            .update({ reminder_sent_at: new Date().toISOString() })
-            .eq('id', order.id);
+          // Already marked as sent before sending (see below)
           sentCount++;
         } else {
+          // Reset reminder_sent_at to allow retry
+          await supabase.from('orders').update({ reminder_sent_at: null }).eq('id', order.id);
           const errorText = await res.text();
           console.error(`Failed to send reminder for order ${order.id}:`, errorText);
           errors.push(`Order ${order.id}: ${errorText}`);

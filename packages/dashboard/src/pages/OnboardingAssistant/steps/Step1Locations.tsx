@@ -29,7 +29,12 @@ export function Step1Locations() {
     setSaving(true);
     // Simulate brief save animation
     setTimeout(() => {
-      dispatch({ type: 'ADD_LOCATION', location: { ...state.currentLocation } });
+      // Generate a temporary ID for the location
+      const locationWithId = {
+        ...state.currentLocation,
+        id: crypto.randomUUID(),
+      };
+      dispatch({ type: 'ADD_LOCATION', location: locationWithId });
       setSaving(false);
     }, 300);
   };

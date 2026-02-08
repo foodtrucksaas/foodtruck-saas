@@ -29,9 +29,30 @@ import {
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // 10 orders per minute per IP
+const RATE_LIMIT_MAX_ENTRIES = 10000; // Maximum number of entries to prevent memory leak
 
 function checkRateLimit(identifier: string): boolean {
   const now = Date.now();
+
+  // Prevent memory leak: if map is too large, clear old entries immediately
+  if (rateLimitMap.size >= RATE_LIMIT_MAX_ENTRIES) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now > value.resetAt) {
+        rateLimitMap.delete(key);
+      }
+    }
+    // If still too large after cleanup, clear oldest half
+    if (rateLimitMap.size >= RATE_LIMIT_MAX_ENTRIES) {
+      const entriesToDelete = Math.floor(rateLimitMap.size / 2);
+      let deleted = 0;
+      for (const key of rateLimitMap.keys()) {
+        if (deleted >= entriesToDelete) break;
+        rateLimitMap.delete(key);
+        deleted++;
+      }
+    }
+  }
+
   const entry = rateLimitMap.get(identifier);
 
   if (!entry || now > entry.resetAt) {
@@ -83,9 +104,10 @@ serve(async (req) => {
 
   try {
     // Rate limiting based on IP or forwarded IP
-    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-                     req.headers.get('x-real-ip') ||
-                     'unknown';
+    const clientIP =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      'unknown';
 
     if (!checkRateLimit(clientIP)) {
       logger.warn('Rate limit exceeded', { clientIP });
@@ -116,11 +138,18 @@ serve(async (req) => {
 
     // Skip slot check only if force_slot is allowed or it's an ASAP order
     if (!forceSlotAllowed && !isAsapOrder) {
-      const slotError = await checkSlotAvailability(body.foodtruck_id, body.pickup_time, foodtruck.max_orders_per_slot);
+      const slotError = await checkSlotAvailability(
+        body.foodtruck_id,
+        body.pickup_time,
+        foodtruck.max_orders_per_slot
+      );
       if (slotError) return slotError;
     }
 
-    const { menuItems, error: menuError } = await getMenuItems(body.foodtruck_id, body.items.map((i: any) => i.menu_item_id));
+    const { menuItems, error: menuError } = await getMenuItems(
+      body.foodtruck_id,
+      body.items.map((i: any) => i.menu_item_id)
+    );
     if (menuError) return menuError;
 
     // === SERVER-SIDE VALIDATIONS ===
@@ -143,7 +172,12 @@ serve(async (req) => {
     if (pricesError) return pricesError;
 
     // Calculate order server-side
-    const { total, orderItems, itemOptions, error: calcError } = calculateOrder(body.items, menuItems);
+    const {
+      total,
+      orderItems,
+      itemOptions,
+      error: calcError,
+    } = calculateOrder(body.items, menuItems);
     if (calcError) return calcError;
 
     // 4. Validate promo code if used
@@ -168,22 +202,19 @@ serve(async (req) => {
     if (dealError) return dealError;
 
     // 4c. Validate applied offers (new multi-offer system)
-    const { totalDiscount: appliedOffersDiscount, error: appliedOffersError } = await validateAppliedOffers(
-      body.foodtruck_id,
-      body.applied_offers,
-      body.items
-    );
+    const { totalDiscount: appliedOffersDiscount, error: appliedOffersError } =
+      await validateAppliedOffers(body.foodtruck_id, body.applied_offers, body.items);
     if (appliedOffersError) return appliedOffersError;
 
     // 5. Validate total matches server calculation
     // Get loyalty discount if applicable
-    const loyaltyDiscount = body.use_loyalty_reward && body.loyalty_reward_count
-      ? (foodtruck.loyalty_reward || 0) * body.loyalty_reward_count
-      : 0;
+    const loyaltyDiscount =
+      body.use_loyalty_reward && body.loyalty_reward_count
+        ? (foodtruck.loyalty_reward || 0) * body.loyalty_reward_count
+        : 0;
     const dealDiscount = body.deal_discount || 0;
 
-    // Calculate expected total after all discounts (include applied offers)
-    const expectedTotal = Math.max(0, total - discountAmount - dealDiscount - loyaltyDiscount - appliedOffersDiscount);
+    // Note: Expected total calculation is done in validateOrderTotal if body.expected_total is provided
 
     // If client sent a total, validate it
     if (body.expected_total !== undefined) {
@@ -200,8 +231,14 @@ serve(async (req) => {
     }
 
     // Auto-accept if auto_accept_orders is true OR if it's a manual order from dashboard (force_slot with service key)
-    const status = (foodtruck.auto_accept_orders || forceSlotAllowed) ? 'confirmed' : 'pending';
-    const { order, error: orderError } = await createOrder(body, orderItems, total, status, itemOptions);
+    const status = foodtruck.auto_accept_orders || forceSlotAllowed ? 'confirmed' : 'pending';
+    const { order, error: orderError } = await createOrder(
+      body,
+      orderItems,
+      total,
+      status,
+      itemOptions
+    );
     if (orderError) return orderError;
 
     // Send confirmation email and credit loyalty for confirmed orders
@@ -212,7 +249,11 @@ serve(async (req) => {
       }
 
       // Credit loyalty points for confirmed orders (except manual dashboard orders)
-      if (foodtruck.loyalty_enabled && foodtruck.loyalty_points_per_euro > 0 && body.customer_email !== 'surplace@local') {
+      if (
+        foodtruck.loyalty_enabled &&
+        foodtruck.loyalty_points_per_euro > 0 &&
+        body.customer_email !== 'surplace@local'
+      ) {
         await creditLoyaltyPoints(
           body.foodtruck_id,
           order.id,
@@ -229,14 +270,16 @@ serve(async (req) => {
       const pickupTime = new Date(body.pickup_time).toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit',
-        timeZone: 'Europe/Paris'
+        timeZone: 'Europe/Paris',
       });
 
       // Build items list for notification
-      const itemsList = orderItems.map((item: any) => {
-        const menuItem = menuItems.find((m: any) => m.id === item.menu_item_id);
-        return item.quantity > 1 ? `${item.quantity}x ${menuItem?.name}` : menuItem?.name;
-      }).join(', ');
+      const itemsList = orderItems
+        .map((item: any) => {
+          const menuItem = menuItems.find((m: any) => m.id === item.menu_item_id);
+          return item.quantity > 1 ? `${item.quantity}x ${menuItem?.name}` : menuItem?.name;
+        })
+        .join(', ');
 
       const notifTitle = foodtruck.auto_accept_orders
         ? 'Nouvelle commande !'

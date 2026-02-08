@@ -57,14 +57,17 @@ export default function Checkout({ slug }: CheckoutProps) {
 
     // Otherwise, fetch the UUID from the slug
     const fetchFoodtruckId = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('foodtrucks')
         .select('id')
         .eq('slug', identifier)
         .single();
-      if (data) {
-        setResolvedFoodtruckId(data.id);
+
+      if (error || !data) {
+        setFormError('Food truck introuvable. Vérifiez le lien.');
+        return;
       }
+      setResolvedFoodtruckId(data.id);
     };
     fetchFoodtruckId();
   }, [cartFoodtruckId, paramId, slug]);
@@ -327,6 +330,10 @@ export default function Checkout({ slug }: CheckoutProps) {
     };
 
     try {
+      // Create abort controller with 30 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-order`,
         {
@@ -336,8 +343,24 @@ export default function Checkout({ slug }: CheckoutProps) {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify(orderData),
+          signal: controller.signal,
         }
       );
+
+      clearTimeout(timeoutId);
+
+      // Check response status first
+      if (!response.ok) {
+        // Try to parse error message from response
+        try {
+          const errorData = await response.json();
+          setFormError(errorData.error || `Erreur serveur (${response.status})`);
+        } catch {
+          setFormError(`Erreur serveur (${response.status}). Veuillez réessayer.`);
+        }
+        setSubmitting(false);
+        return;
+      }
 
       const data = await response.json();
 
@@ -347,8 +370,13 @@ export default function Checkout({ slug }: CheckoutProps) {
       } else {
         setFormError(data.error || 'Erreur lors de la création de la commande');
       }
-    } catch {
-      setFormError('Une erreur est survenue');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        setFormError('La requête a pris trop de temps. Veuillez réessayer.');
+      } else {
+        console.error('Order creation error:', error);
+        setFormError('Une erreur est survenue. Vérifiez votre connexion.');
+      }
     }
 
     setSubmitting(false);

@@ -3,6 +3,19 @@ import { handleCors } from '../_shared/cors.ts';
 import { createSupabaseAdmin } from '../_shared/supabase.ts';
 import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 interface OrderItem {
   quantity: number;
   unit_price: number;
@@ -102,7 +115,7 @@ serve(async (req) => {
                 opt.price_modifier !== 0
                   ? ` (${opt.price_modifier > 0 ? '+' : ''}${(opt.price_modifier / 100).toFixed(2)}€)`
                   : '';
-              return `${opt.option_name}${modifier}`;
+              return `${escapeHtml(opt.option_name)}${modifier}`;
             })
             .join(', ');
           optionsHtml = `<div style="font-size:13px;color:#6b7280;margin-top:2px;padding-left:20px">${optionsList}</div>`;
@@ -111,14 +124,14 @@ serve(async (req) => {
         // Add item notes if present
         let notesHtml = '';
         if (item.notes) {
-          notesHtml = `<div style="font-size:12px;color:#9ca3af;font-style:italic;margin-top:2px;padding-left:20px">Note : ${item.notes}</div>`;
+          notesHtml = `<div style="font-size:12px;color:#9ca3af;font-style:italic;margin-top:2px;padding-left:20px">Note : ${escapeHtml(item.notes)}</div>`;
         }
 
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
               <div>
-                <strong>${item.quantity}x</strong> ${item.menu_item.name}
+                <strong>${item.quantity}x</strong> ${escapeHtml(item.menu_item.name)}
               </div>
               <div style="font-weight:500;white-space:nowrap">${itemTotal.toFixed(2)}€</div>
             </div>
@@ -136,7 +149,7 @@ serve(async (req) => {
       locationHtml = `
         <div style="background:#dbeafe;padding:15px;border-radius:8px;margin:20px 0">
           <strong style="color:#1e40af">Lieu de retrait :</strong><br>
-          <span style="color:#1e3a8a">${location.name}${location.address ? ` - ${location.address}` : ''}</span>
+          <span style="color:#1e3a8a">${escapeHtml(location.name)}${location.address ? ` - ${escapeHtml(location.address)}` : ''}</span>
         </div>`;
     }
 
@@ -146,7 +159,7 @@ serve(async (req) => {
       orderNotesHtml = `
         <div style="background:#fef9c3;padding:12px;border-radius:8px;margin-top:15px">
           <strong style="color:#854d0e">Note :</strong>
-          <span style="color:#713f12">${order.notes}</span>
+          <span style="color:#713f12">${escapeHtml(order.notes)}</span>
         </div>`;
     }
 
@@ -178,10 +191,10 @@ serve(async (req) => {
           <!-- Content -->
           <div style="background:#ffffff;padding:30px;border-radius:0 0 12px 12px;box-shadow:0 4px 6px rgba(0,0,0,0.05)">
             <p style="font-size:16px;color:#374151;margin:0 0 20px">
-              Bonjour <strong>${order.customer_name}</strong>,
+              Bonjour <strong>${escapeHtml(order.customer_name)}</strong>,
             </p>
             <p style="font-size:16px;color:#374151;margin:0 0 20px">
-              Votre commande chez <strong style="color:#f97316">${order.foodtruck.name}</strong> a été acceptée.
+              Votre commande chez <strong style="color:#f97316">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
             </p>
 
             <!-- Pickup time -->
@@ -213,7 +226,7 @@ serve(async (req) => {
               order.foodtruck.phone
                 ? `
               <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
-                Une question ? Contactez-nous au <a href="tel:${order.foodtruck.phone}" style="color:#f97316;text-decoration:none;font-weight:500">${order.foodtruck.phone}</a>
+                Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#f97316;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
               </p>
             `
                 : ''
@@ -226,7 +239,7 @@ serve(async (req) => {
 
           <!-- Footer -->
           <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">
-            <p style="margin:0">Cet email a été envoyé par ${order.foodtruck.name}</p>
+            <p style="margin:0">Cet email a été envoyé par ${escapeHtml(order.foodtruck.name)}</p>
           </div>
         </div>
       </body>

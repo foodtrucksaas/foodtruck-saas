@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, History } from 'lucide-react';
+import { Search, History, AlertCircle, RefreshCw } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -9,19 +9,33 @@ export default function Home() {
   const [foodtrucks, setFoodtrucks] = useState<Foodtruck[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchFoodtrucks() {
-      const { data } = await supabase
+  const fetchFoodtrucks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: fetchError } = await supabase
         .from('foodtrucks')
         .select('*')
         .eq('is_active', true)
         .order('name');
 
-      setFoodtrucks(data || []);
+      if (fetchError) {
+        console.error('Error fetching foodtrucks:', fetchError);
+        setError('Impossible de charger les food trucks. Veuillez réessayer.');
+      } else {
+        setFoodtrucks(data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching foodtrucks:', err);
+      setError('Impossible de charger les food trucks. Veuillez réessayer.');
+    } finally {
       setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchFoodtrucks();
   }, []);
 
@@ -80,6 +94,18 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
+            <p className="text-gray-700 mb-4">{error}</p>
+            <button
+              onClick={fetchFoodtrucks}
+              className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Réessayer
+            </button>
           </div>
         ) : filteredFoodtrucks.length === 0 ? (
           <div className="text-center py-12">

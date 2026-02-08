@@ -1,6 +1,7 @@
 import type { TypedSupabaseClient } from './client';
 import { handleResponse, handleOptionalResponse } from './client';
 import type { Order, OrderUpdate, OrderWithItemsAndOptions, OrderStatus } from '../types';
+import { formatLocalDate } from '../utils/time';
 
 export interface OrderFilters {
   status?: OrderStatus | OrderStatus[];
@@ -13,17 +14,22 @@ export interface OrderFilters {
 export function createOrdersApi(supabase: TypedSupabaseClient) {
   return {
     // Get orders for a foodtruck with filters
-    async getByFoodtruck(foodtruckId: string, filters?: OrderFilters): Promise<OrderWithItemsAndOptions[]> {
+    async getByFoodtruck(
+      foodtruckId: string,
+      filters?: OrderFilters
+    ): Promise<OrderWithItemsAndOptions[]> {
       let query = supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             *,
             menu_item:menu_items (*),
             order_item_options (*)
           )
-        `)
+        `
+        )
         .eq('foodtruck_id', foodtruckId)
         .order('created_at', { ascending: false });
 
@@ -59,14 +65,16 @@ export function createOrdersApi(supabase: TypedSupabaseClient) {
     async getById(orderId: string): Promise<OrderWithItemsAndOptions | null> {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
+        .select(
+          `
           *,
           order_items (
             *,
             menu_item:menu_items (*),
             order_item_options (*)
           )
-        `)
+        `
+        )
         .eq('id', orderId)
         .maybeSingle();
 
@@ -123,11 +131,12 @@ export function createOrdersApi(supabase: TypedSupabaseClient) {
 
     // Get today's orders
     async getToday(foodtruckId: string): Promise<OrderWithItemsAndOptions[]> {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Use formatLocalDate to avoid timezone bugs with toISOString()
+      // toISOString() returns UTC which can shift dates in positive UTC offset zones
+      const todayStr = formatLocalDate(new Date());
 
       return this.getByFoodtruck(foodtruckId, {
-        fromDate: today.toISOString(),
+        fromDate: `${todayStr}T00:00:00`,
       });
     },
 

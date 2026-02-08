@@ -7,6 +7,7 @@ import {
   isValidDate,
   sanitizeHtml,
   validateOrderItems,
+  isValidUUID,
 } from './validators';
 
 describe('validators', () => {
@@ -22,7 +23,18 @@ describe('validators', () => {
       expect(isValidEmail('invalid@')).toBe(false);
       expect(isValidEmail('@domain.com')).toBe(false);
       expect(isValidEmail('user@domain')).toBe(false);
+      expect(isValidEmail('user@domain.c')).toBe(false); // TLD too short
       expect(isValidEmail('')).toBe(false);
+    });
+
+    it('should handle null/undefined', () => {
+      expect(isValidEmail(null)).toBe(false);
+      expect(isValidEmail(undefined)).toBe(false);
+    });
+
+    it('should trim whitespace', () => {
+      expect(isValidEmail('  test@example.com  ')).toBe(true);
+      expect(isValidEmail('   ')).toBe(false);
     });
   });
 
@@ -39,19 +51,31 @@ describe('validators', () => {
       expect(isValidPhone('abcdefghij')).toBe(false);
       expect(isValidPhone('')).toBe(false);
     });
+
+    it('should handle null/undefined', () => {
+      expect(isValidPhone(null)).toBe(false);
+      expect(isValidPhone(undefined)).toBe(false);
+    });
   });
 
   describe('isValidPrice', () => {
-    it('should validate positive integers', () => {
+    it('should validate non-negative integers', () => {
+      expect(isValidPrice(0)).toBe(true); // Free items allowed
       expect(isValidPrice(100)).toBe(true);
       expect(isValidPrice(1)).toBe(true);
       expect(isValidPrice(99999)).toBe(true);
     });
 
     it('should reject invalid prices', () => {
-      expect(isValidPrice(0)).toBe(false);
+      expect(isValidPrice(-1)).toBe(false);
       expect(isValidPrice(-100)).toBe(false);
       expect(isValidPrice(10.5)).toBe(false);
+      expect(isValidPrice(NaN)).toBe(false);
+    });
+
+    it('should handle null/undefined', () => {
+      expect(isValidPrice(null)).toBe(false);
+      expect(isValidPrice(undefined)).toBe(false);
     });
   });
 
@@ -70,6 +94,11 @@ describe('validators', () => {
       expect(isValidTime('invalid')).toBe(false);
       expect(isValidTime('')).toBe(false);
     });
+
+    it('should handle null/undefined', () => {
+      expect(isValidTime(null)).toBe(false);
+      expect(isValidTime(undefined)).toBe(false);
+    });
   });
 
   describe('isValidDate', () => {
@@ -82,6 +111,29 @@ describe('validators', () => {
     it('should reject invalid dates', () => {
       expect(isValidDate('invalid')).toBe(false);
       expect(isValidDate('')).toBe(false);
+    });
+
+    it('should handle null/undefined', () => {
+      expect(isValidDate(null)).toBe(false);
+      expect(isValidDate(undefined)).toBe(false);
+    });
+  });
+
+  describe('isValidUUID', () => {
+    it('should validate correct UUIDs', () => {
+      expect(isValidUUID('123e4567-e89b-12d3-a456-426614174000')).toBe(true);
+      expect(isValidUUID('A123E567-E89B-12D3-A456-426614174000')).toBe(true);
+    });
+
+    it('should reject invalid UUIDs', () => {
+      expect(isValidUUID('not-a-uuid')).toBe(false);
+      expect(isValidUUID('123e4567-e89b-12d3-a456')).toBe(false);
+      expect(isValidUUID('')).toBe(false);
+    });
+
+    it('should handle null/undefined', () => {
+      expect(isValidUUID(null)).toBe(false);
+      expect(isValidUUID(undefined)).toBe(false);
     });
   });
 

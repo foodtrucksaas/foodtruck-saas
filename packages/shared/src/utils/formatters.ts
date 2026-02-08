@@ -1,34 +1,72 @@
 import { safeNumber } from './numbers';
 
+const VALID_CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'CAD'] as const;
+
+/**
+ * Format price in centimes to currency string
+ * @param price - Price in centimes (e.g., 1250 = 12.50€)
+ * @param currency - Currency code (defaults to EUR)
+ */
 export function formatPrice(price: number, currency: string = 'EUR'): string {
+  // Validate currency to avoid Intl.NumberFormat crash
+  const validCurrency = VALID_CURRENCIES.includes(currency as (typeof VALID_CURRENCIES)[number])
+    ? currency
+    : 'EUR';
+
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency,
+    currency: validCurrency,
   }).format(safeNumber(price) / 100);
 }
 
-export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOptions): string {
+/**
+ * Format date to French locale string
+ */
+export function formatDate(
+  date: string | Date | null | undefined,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'long',
     ...options,
   }).format(d);
 }
 
-export function formatTime(time: string): string {
-  const [hours, minutes] = time.split(':');
+/**
+ * Format time string HH:MM to HHhMM
+ * @param time - Time in HH:MM format
+ * @returns Formatted time string or empty string if invalid
+ */
+export function formatTime(time: string | null | undefined): string {
+  if (!time || typeof time !== 'string') return '';
+  const parts = time.split(':');
+  if (parts.length < 2) return time;
+  const [hours, minutes] = parts;
+  if (!hours || !minutes) return time;
   return `${hours}h${minutes}`;
 }
 
-export function formatDateTime(date: string | Date): string {
+/**
+ * Format date and time to French locale string
+ */
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(d);
 }
 
-export function formatPhoneNumber(phone: string): string {
+/**
+ * Format French phone number with spaces
+ */
+export function formatPhoneNumber(phone: string | null | undefined): string {
+  if (!phone || typeof phone !== 'string') return '';
   const cleaned = phone.replace(/\D/g, '');
   if (cleaned.length === 10) {
     return cleaned.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
@@ -36,7 +74,13 @@ export function formatPhoneNumber(phone: string): string {
   return phone;
 }
 
-export function formatOrderId(id: string): string {
+/**
+ * Format order ID to short display format
+ * @param id - UUID order ID
+ * @returns Formatted ID like #ABC12345
+ */
+export function formatOrderId(id: string | null | undefined): string {
+  if (!id || typeof id !== 'string') return '';
   return `#${id.slice(0, 8).toUpperCase()}`;
 }
 
@@ -68,7 +112,7 @@ export function extractCityFromAddress(address: string | null | undefined): stri
   }
 
   // Fallback: split by comma and get second-to-last part (usually city)
-  const parts = address.split(',').map(p => p.trim());
+  const parts = address.split(',').map((p) => p.trim());
   if (parts.length >= 2) {
     const potentialCity = parts[parts.length - 2];
     // Remove postal code if present at start

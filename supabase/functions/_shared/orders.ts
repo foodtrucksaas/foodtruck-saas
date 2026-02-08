@@ -57,11 +57,44 @@ interface OrderRequest {
   bundles_used?: { bundle_id: string; quantity: number }[];
 }
 
+// Validation patterns
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function validateOrderRequest(body: OrderRequest): Response | null {
   const { foodtruck_id, customer_email, customer_name, pickup_time, items } = body;
+
+  // Check required fields
   if (!foodtruck_id || !customer_email || !customer_name || !pickup_time || !items?.length) {
     return errorResponse('Missing required fields');
   }
+
+  // Validate UUID format
+  if (!UUID_REGEX.test(foodtruck_id)) {
+    return errorResponse('Invalid foodtruck_id format', 400);
+  }
+
+  // Validate email format (skip for manual dashboard orders)
+  if (customer_email !== 'surplace@local' && !EMAIL_REGEX.test(customer_email)) {
+    return errorResponse('Invalid email format', 400);
+  }
+
+  // Validate pickup_time is a valid ISO date
+  const pickupDate = new Date(pickup_time);
+  if (isNaN(pickupDate.getTime())) {
+    return errorResponse('Invalid pickup_time format', 400);
+  }
+
+  // Validate items have required fields
+  for (const item of items) {
+    if (!item.menu_item_id || !UUID_REGEX.test(item.menu_item_id)) {
+      return errorResponse('Invalid menu_item_id in items', 400);
+    }
+    if (typeof item.quantity !== 'number' || item.quantity < 1) {
+      return errorResponse('Invalid quantity in items', 400);
+    }
+  }
+
   return null;
 }
 
@@ -81,7 +114,11 @@ export async function getFoodtruck(foodtruckId: string, requireStripe = false) {
   return { foodtruck: data };
 }
 
-export async function checkSlotAvailability(foodtruckId: string, pickupTime: string, maxOrders: number | null) {
+export async function checkSlotAvailability(
+  foodtruckId: string,
+  pickupTime: string,
+  maxOrders: number | null
+) {
   if (!maxOrders) return null;
 
   const supabase = createSupabaseAdmin();
@@ -121,7 +158,7 @@ export function validateMenuItemsAvailability(
   requestedItemIds: string[],
   menuItems: any[]
 ): Response | null {
-  const menuItemMap = new Map(menuItems.map(m => [m.id, m]));
+  const menuItemMap = new Map(menuItems.map((m) => [m.id, m]));
 
   for (const itemId of requestedItemIds) {
     const menuItem = menuItemMap.get(itemId);
@@ -147,7 +184,7 @@ export function validatePickupTime(pickupTime: string): Response | null {
   const tolerance = 60 * 1000; // 1 minute in milliseconds
 
   if (pickupDate.getTime() < now.getTime() - tolerance) {
-    return errorResponse('L\'heure de retrait ne peut pas être dans le passé');
+    return errorResponse("L'heure de retrait ne peut pas être dans le passé");
   }
 
   return null;
@@ -159,7 +196,7 @@ export function validatePickupTime(pickupTime: string): Response | null {
  */
 export async function validatePrices(
   items: OrderRequest['items'],
-  menuItems: any[]
+  _menuItems: any[]
 ): Promise<Response | null> {
   const supabase = createSupabaseAdmin();
 
@@ -204,7 +241,9 @@ export async function validatePrices(
         const dbOption = optionsMap.get(selectedOpt.option_id);
 
         if (!dbOption) {
-          console.warn(`Option ${selectedOpt.option_id} (${selectedOpt.name}) not found, skipping validation`);
+          console.warn(
+            `Option ${selectedOpt.option_id} (${selectedOpt.name}) not found, skipping validation`
+          );
           continue;
         }
 
@@ -221,14 +260,15 @@ export async function validatePrices(
         // So we only validate that the price is reasonable (non-negative and not excessively high)
         // The total validation in validateOrderTotal will catch any calculation errors
         if (selectedOpt.price_modifier < 0) {
-          return errorResponse(
-            `Le prix de l'option "${dbOption.name}" est invalide.`
-          );
+          return errorResponse(`Le prix de l'option "${dbOption.name}" est invalide.`);
         }
 
         // Check if price is wildly different from expected (more than 10x the default, if default > 0)
         // This catches obvious tampering while allowing legitimate per-size pricing
-        if (dbOption.price_modifier > 0 && selectedOpt.price_modifier > dbOption.price_modifier * 10) {
+        if (
+          dbOption.price_modifier > 0 &&
+          selectedOpt.price_modifier > dbOption.price_modifier * 10
+        ) {
           return errorResponse(
             `Le prix de l'option "${dbOption.name}" est anormalement élevé. Veuillez rafraîchir la page.`
           );
@@ -271,13 +311,13 @@ export async function validatePromoCode(
 
   // Check if active
   if (!promoCode.is_active) {
-    return errorResponse('Ce code promo n\'est plus actif');
+    return errorResponse("Ce code promo n'est plus actif");
   }
 
   // Check validity dates
   const now = new Date();
   if (promoCode.valid_from && new Date(promoCode.valid_from) > now) {
-    return errorResponse('Ce code promo n\'est pas encore actif');
+    return errorResponse("Ce code promo n'est pas encore actif");
   }
   if (promoCode.valid_until && new Date(promoCode.valid_until) < now) {
     return errorResponse('Ce code promo a expiré');
@@ -291,7 +331,7 @@ export async function validatePromoCode(
 
   // Check max uses
   if (promoCode.max_uses !== null && promoCode.current_uses >= promoCode.max_uses) {
-    return errorResponse('Ce code promo a atteint sa limite d\'utilisation');
+    return errorResponse("Ce code promo a atteint sa limite d'utilisation");
   }
 
   // Check max uses per customer
@@ -326,7 +366,8 @@ export async function validatePromoCode(
 
   // Validate client discount matches server calculation (allow small tolerance for rounding)
   const discountDifference = Math.abs(expectedDiscount - clientDiscountAmount);
-  if (discountDifference > 1) { // 1 centime tolerance
+  if (discountDifference > 1) {
+    // 1 centime tolerance
     return errorResponse(
       `La réduction calculée (${(expectedDiscount / 100).toFixed(2)}€) ne correspond pas. Veuillez rafraîchir la page.`
     );
@@ -382,13 +423,13 @@ export async function validateDeal(
 
     // Validate offer is active
     if (!offer.is_active) {
-      return errorResponse('Cette offre n\'est plus active');
+      return errorResponse("Cette offre n'est plus active");
     }
 
     // For offers, we trust the client-side calculation from get_applicable_offers
     // The SQL function already validated the cart items
     // Just do a basic sanity check that the discount is reasonable
-    const menuMap = new Map(menuItems.map(m => [m.id, m]));
+    const menuMap = new Map(menuItems.map((m) => [m.id, m]));
     let cartTotal = 0;
     for (const item of items) {
       const menuItem = menuMap.get(item.menu_item_id);
@@ -412,11 +453,11 @@ export async function validateDeal(
 
   // Check if active
   if (!deal.is_active) {
-    return errorResponse('Cette formule n\'est plus active');
+    return errorResponse("Cette formule n'est plus active");
   }
 
   // Build cart items with category info for deal validation
-  const menuMap = new Map(menuItems.map(m => [m.id, m]));
+  const menuMap = new Map(menuItems.map((m) => [m.id, m]));
   let categoryCount = 0;
   let cartTotal = 0;
 
@@ -469,7 +510,8 @@ export async function validateDeal(
 
   // Validate client deal discount matches server calculation
   const discountDifference = Math.abs(expectedDiscount - dealDiscount);
-  if (discountDifference > 1) { // 1 centime tolerance
+  if (discountDifference > 1) {
+    // 1 centime tolerance
     return errorResponse(
       `La réduction de formule calculée (${(expectedDiscount / 100).toFixed(2)}€) ne correspond pas. Veuillez rafraîchir la page.`
     );
@@ -495,7 +537,7 @@ export async function validateAppliedOffers(
   const supabase = createSupabaseAdmin();
 
   // Collect all offer IDs
-  const offerIds = appliedOffers.map(o => o.offer_id);
+  const offerIds = appliedOffers.map((o) => o.offer_id);
 
   // Fetch all offers in one query
   const { data: offers, error: offersError } = await supabase
@@ -509,7 +551,7 @@ export async function validateAppliedOffers(
   }
 
   // Create offer map for quick lookup
-  const offerMap = new Map(offers.map(o => [o.id, o]));
+  const offerMap = new Map(offers.map((o) => [o.id, o]));
 
   // 1. Validate each offer is active
   for (const appliedOffer of appliedOffers) {
@@ -519,13 +561,19 @@ export async function validateAppliedOffers(
     }
 
     if (!offer.is_active) {
-      return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" n'est plus active`) };
+      return {
+        totalDiscount: 0,
+        error: errorResponse(`L'offre "${offer.name}" n'est plus active`),
+      };
     }
 
     // Check date validity
     const now = new Date();
     if (offer.start_date && new Date(offer.start_date) > now) {
-      return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" n'est pas encore active`) };
+      return {
+        totalDiscount: 0,
+        error: errorResponse(`L'offre "${offer.name}" n'est pas encore active`),
+      };
     }
     if (offer.end_date && new Date(offer.end_date) < now) {
       return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" a expiré`) };
@@ -543,15 +591,20 @@ export async function validateAppliedOffers(
   }
 
   // 3. Verify no item is consumed more than available in cart
-  const menuMap = new Map(menuItems.map(m => [m.id, m]));
+  const menuMap = new Map(menuItems.map((m) => [m.id, m]));
 
   for (const [itemId, consumedCount] of consumedItems) {
     // Find cart item
-    const cartItem = items.find(i => i.menu_item_id === itemId);
+    const cartItem = items.find((i) => i.menu_item_id === itemId);
     if (!cartItem) {
       const menuItem = menuMap.get(itemId);
       const itemName = menuItem?.name || itemId;
-      return { totalDiscount: 0, error: errorResponse(`L'article "${itemName}" est requis pour une offre mais n'est pas dans le panier`) };
+      return {
+        totalDiscount: 0,
+        error: errorResponse(
+          `L'article "${itemName}" est requis pour une offre mais n'est pas dans le panier`
+        ),
+      };
     }
 
     if (consumedCount > cartItem.quantity) {
@@ -559,7 +612,9 @@ export async function validateAppliedOffers(
       const itemName = menuItem?.name || 'Article';
       return {
         totalDiscount: 0,
-        error: errorResponse(`${itemName}: utilisé ${consumedCount} fois dans les offres mais seulement ${cartItem.quantity} dans le panier`)
+        error: errorResponse(
+          `${itemName}: utilisé ${consumedCount} fois dans les offres mais seulement ${cartItem.quantity} dans le panier`
+        ),
       };
     }
   }
@@ -589,7 +644,10 @@ export async function validateAppliedOffers(
 
   // Discount should never exceed cart total
   if (totalOffersDiscount > cartTotal) {
-    return { totalDiscount: 0, error: errorResponse('Le total des réductions ne peut pas dépasser le montant du panier') };
+    return {
+      totalDiscount: 0,
+      error: errorResponse('Le total des réductions ne peut pas dépasser le montant du panier'),
+    };
   }
 
   return { totalDiscount: totalOffersDiscount, error: null };
@@ -607,7 +665,7 @@ export function validateOrderTotal(
   loyaltyDiscount: number = 0,
   appliedOffersDiscount: number = 0 // NEW: discount from multiple applied offers
 ): { serverTotal: number; error: Response | null } {
-  const menuMap = new Map(menuItems.map(m => [m.id, m]));
+  const menuMap = new Map(menuItems.map((m) => [m.id, m]));
   let serverSubtotal = 0;
 
   for (const item of items) {
@@ -626,7 +684,7 @@ export function validateOrderTotal(
       // Add options price only if not free_options
       if (!item.bundle_free_options && item.selected_options && item.selected_options.length > 0) {
         const optionsTotal = item.selected_options
-          .filter(opt => !opt.is_size_option)
+          .filter((opt) => !opt.is_size_option)
           .reduce((sum, opt) => sum + opt.price_modifier, 0);
         unitPrice += optionsTotal;
       }
@@ -675,7 +733,7 @@ export function validateOrderTotal(
 }
 
 export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
-  const menuMap = new Map(menuItems.map(m => [m.id, m]));
+  const menuMap = new Map(menuItems.map((m) => [m.id, m]));
   let total = 0;
   const orderItems: any[] = [];
   const itemOptions: { itemIndex: number; options: SelectedOptionRequest[] }[] = [];
@@ -696,7 +754,7 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
       // Add options price only if not free_options
       if (!item.bundle_free_options && item.selected_options && item.selected_options.length > 0) {
         const optionsTotal = item.selected_options
-          .filter(opt => !opt.is_size_option) // Size options are not used in bundles this way
+          .filter((opt) => !opt.is_size_option) // Size options are not used in bundles this way
           .reduce((sum, opt) => sum + opt.price_modifier, 0);
         unitPriceCentimes += optionsTotal;
       }
@@ -707,20 +765,23 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
     } else if (item.selected_options && item.selected_options.length > 0) {
       // Regular item with options
       // Check if there's a size option (contains full price in centimes)
-      const sizeOption = item.selected_options.find(opt => opt.is_size_option);
+      const sizeOption = item.selected_options.find((opt) => opt.is_size_option);
 
       if (sizeOption) {
         // Size option contains the full price in centimes - use it as base
         unitPriceCentimes = sizeOption.price_modifier;
         // Add only non-size option modifiers (also in centimes)
         const supplementsTotal = item.selected_options
-          .filter(opt => !opt.is_size_option)
+          .filter((opt) => !opt.is_size_option)
           .reduce((sum, opt) => sum + opt.price_modifier, 0);
         unitPriceCentimes += supplementsTotal;
       } else {
         // No size option - base price is already in centimes + add modifiers
         unitPriceCentimes = menuItem.price;
-        const optionsTotal = item.selected_options.reduce((sum, opt) => sum + opt.price_modifier, 0);
+        const optionsTotal = item.selected_options.reduce(
+          (sum, opt) => sum + opt.price_modifier,
+          0
+        );
         unitPriceCentimes += optionsTotal;
       }
 
@@ -735,7 +796,7 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
       menu_item_id: item.menu_item_id,
       quantity: item.quantity,
       unit_price: unitPriceCentimes,
-      notes: item.bundle_name ? `[${item.bundle_name}]` : (item.notes || null),
+      notes: item.bundle_name ? `[${item.bundle_name}]` : item.notes || null,
     });
   }
 
@@ -815,7 +876,7 @@ export async function createOrder(
   // Insert order items
   const { data: insertedItems, error: itemsError } = await supabase
     .from('order_items')
-    .insert(orderItems.map(item => ({ ...item, order_id: order.id })))
+    .insert(orderItems.map((item) => ({ ...item, order_id: order.id })))
     .select();
 
   if (itemsError || !insertedItems) {
@@ -885,41 +946,42 @@ export async function createOrder(
   // Track applied offers if provided (new optimized combination system)
   if (data.applied_offers && data.applied_offers.length > 0) {
     for (const appliedOffer of data.applied_offers) {
+      // Skip offers with invalid times_applied to prevent division by zero
+      if (!appliedOffer.times_applied || appliedOffer.times_applied <= 0) {
+        console.warn(
+          `Skipping offer ${appliedOffer.offer_id}: invalid times_applied (${appliedOffer.times_applied})`
+        );
+        continue;
+      }
+
       try {
+        // Calculate per-application discount (safe division)
+        const discountPerApplication = Math.floor(
+          appliedOffer.discount_amount / appliedOffer.times_applied
+        );
+
         // Insert into offer_uses for each time applied
         for (let i = 0; i < appliedOffer.times_applied; i++) {
           await supabase.from('offer_uses').insert({
             offer_id: appliedOffer.offer_id,
             order_id: order.id,
             customer_email: data.customer_email,
-            discount_amount: Math.floor(appliedOffer.discount_amount / appliedOffer.times_applied),
+            discount_amount: discountPerApplication,
             free_item_name: appliedOffer.free_item_name || null,
           });
         }
 
-        // Update offer stats (increment current_uses and total_discount_given)
+        // Update offer stats atomically (increment current_uses and total_discount_given)
+        // Uses atomic UPDATE to prevent race conditions
         await supabase.rpc('increment_offer_uses', {
           p_offer_id: appliedOffer.offer_id,
           p_count: appliedOffer.times_applied,
+          p_discount_amount: appliedOffer.discount_amount,
         });
 
-        // Update total_discount_given
-        const { data: offer } = await supabase
-          .from('offers')
-          .select('total_discount_given')
-          .eq('id', appliedOffer.offer_id)
-          .single();
-
-        if (offer) {
-          await supabase
-            .from('offers')
-            .update({
-              total_discount_given: (offer.total_discount_given || 0) + appliedOffer.discount_amount,
-            })
-            .eq('id', appliedOffer.offer_id);
-        }
-
-        console.log(`Tracked offer usage: ${appliedOffer.offer_id} x${appliedOffer.times_applied}, discount: ${appliedOffer.discount_amount}`);
+        console.log(
+          `Tracked offer usage: ${appliedOffer.offer_id} x${appliedOffer.times_applied}, discount: ${appliedOffer.discount_amount}`
+        );
       } catch (e) {
         console.error('Failed to track applied offer:', e);
         // Don't fail the order for this, just log
@@ -945,7 +1007,9 @@ export async function createOrder(
           p_threshold: foodtruck.loyalty_threshold,
           p_count: rewardCount,
         });
-        console.log(`Redeemed ${rewardCount} loyalty reward(s) for customer ${data.loyalty_customer_id}`);
+        console.log(
+          `Redeemed ${rewardCount} loyalty reward(s) for customer ${data.loyalty_customer_id}`
+        );
       }
     } catch (e) {
       console.error('Failed to redeem loyalty reward:', e);
@@ -965,10 +1029,11 @@ export async function createOrder(
           discount_amount: 0, // Bundles don't have a "discount" per se, they have a fixed price
         });
 
-        // Update offer stats (increment current_uses)
+        // Update offer stats atomically (increment current_uses)
         await supabase.rpc('increment_offer_uses', {
           p_offer_id: bundle.bundle_id,
           p_count: bundle.quantity,
+          p_discount_amount: 0, // Bundles use fixed price, not discount
         });
 
         console.log(`Tracked bundle usage: ${bundle.bundle_id} x${bundle.quantity}`);
@@ -1014,12 +1079,14 @@ export async function creditLoyaltyPoints(
 
     // Wait 500ms before retry
     if (attempt < 2) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 
   if (!customer) {
-    console.log(`Customer not found for email ${email}, foodtruck ${foodtruckId} - skipping loyalty points`);
+    console.log(
+      `Customer not found for email ${email}, foodtruck ${foodtruckId} - skipping loyalty points`
+    );
     return;
   }
 
@@ -1040,7 +1107,9 @@ export async function creditLoyaltyPoints(
     if (result.error) {
       console.error('Failed to credit loyalty points:', result.error);
     } else {
-      console.log(`Credited loyalty points for order ${orderId}, amount ${orderAmount}, rate ${loyaltyPointsPerEuro}, points earned: ${result.data}`);
+      console.log(
+        `Credited loyalty points for order ${orderId}, amount ${orderAmount}, rate ${loyaltyPointsPerEuro}, points earned: ${result.data}`
+      );
     }
   } catch (e) {
     console.error('Failed to credit loyalty points:', e);
@@ -1078,13 +1147,13 @@ export async function sendPushNotification(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${key}`
+          Authorization: `Bearer ${key}`,
         },
         body: JSON.stringify({
           foodtruck_id: foodtruckId,
           title,
           body,
-          data
+          data,
         }),
       });
       const result = await response.json();

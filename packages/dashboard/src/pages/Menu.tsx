@@ -194,11 +194,11 @@ export default function Menu() {
                       setFormData((prev) => ({ ...prev, category_id: category.id }));
                       setShowForm(true);
                     }}
-                    className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95 shadow-sm"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95 shadow-sm"
                     title="Ajouter un plat"
                     aria-label="Ajouter un plat"
                   >
-                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
               </div>

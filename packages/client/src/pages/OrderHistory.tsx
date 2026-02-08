@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Clock, Package, Search } from 'lucide-react';
+import { ArrowLeft, Clock, Package, Search, AlertCircle } from 'lucide-react';
 import { formatPrice, formatDateTime, formatOrderId, ORDER_STATUSES } from '@foodtruck/shared';
 import type { Order } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -10,6 +10,15 @@ export default function OrderHistory() {
   const [searchEmail, setSearchEmail] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('foodtruck-email');
@@ -24,15 +33,38 @@ export default function OrderHistory() {
       if (!searchEmail) return;
 
       setLoading(true);
-      const { data } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('customer_email', searchEmail)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      setError(null);
 
-      setOrders(data || []);
-      setLoading(false);
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('customer_email', searchEmail)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (!isMountedRef.current) return;
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        setOrders(data || []);
+      } catch (err) {
+        if (!isMountedRef.current) return;
+
+        console.error('Error fetching orders:', err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Une erreur est survenue lors du chargement des commandes'
+        );
+        setOrders([]);
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+      }
     }
 
     fetchOrders();
@@ -88,6 +120,22 @@ export default function OrderHistory() {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
+          </div>
+        ) : error ? (
+          <div className="card p-4 bg-red-50 border-red-200">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-700 font-medium">Erreur de chargement</p>
+                <p className="text-red-600 text-sm mt-1">{error}</p>
+                <button
+                  onClick={() => setSearchEmail(email)}
+                  className="btn-secondary mt-3 text-sm"
+                >
+                  Réessayer
+                </button>
+              </div>
+            </div>
           </div>
         ) : searchEmail && orders.length === 0 ? (
           <div className="text-center py-12">

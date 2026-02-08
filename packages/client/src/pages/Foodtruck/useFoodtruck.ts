@@ -138,136 +138,145 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     async function fetchData() {
       if (!foodtruckId) return;
 
-      // Fetch foodtruck data - try by ID first, then by slug
-      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        foodtruckId
-      );
+      try {
+        // Fetch foodtruck data - try by ID first, then by slug
+        // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          foodtruckId
+        );
 
-      let foodtruckRes;
-      if (isUUID) {
-        foodtruckRes = await supabase.from('foodtrucks').select('*').eq('id', foodtruckId).single();
-      } else {
-        // Try to find by slug
-        foodtruckRes = await supabase
-          .from('foodtrucks')
-          .select('*')
-          .eq('slug', foodtruckId)
-          .single();
-      }
+        let foodtruckRes;
+        if (isUUID) {
+          foodtruckRes = await supabase
+            .from('foodtrucks')
+            .select('*')
+            .eq('id', foodtruckId)
+            .single();
+        } else {
+          // Try to find by slug
+          foodtruckRes = await supabase
+            .from('foodtrucks')
+            .select('*')
+            .eq('slug', foodtruckId)
+            .single();
+        }
 
-      const foodtruckData = foodtruckRes.data as Foodtruck | null;
-      if (!foodtruckData) {
+        const foodtruckData = foodtruckRes.data as Foodtruck | null;
+        if (!foodtruckData) {
+          setLoading(false);
+          return;
+        }
+
+        setFoodtruckData(foodtruckData);
+        setFoodtruck(foodtruckData.id);
+        // Apply the foodtruck's color theme
+        applyTheme(foodtruckData.theme);
+
+        // Use the actual foodtruck ID for all subsequent queries (not the slug)
+        const actualFoodtruckId = foodtruckData.id;
+
+        // Fetch other data in parallel
+        const todayStr = formatLocalDate(new Date());
+        const now = new Date().toISOString();
+        const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] =
+          await Promise.all([
+            supabase
+              .from('categories')
+              .select('*, category_option_groups(*, category_options(*))')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .order('display_order'),
+            supabase
+              .from('menu_items')
+              .select('*')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .eq('is_available', true)
+              .or('is_archived.is.null,is_archived.eq.false')
+              .order('display_order'),
+            supabase
+              .from('schedules')
+              .select('*, location:locations(*)')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .eq('is_active', true)
+              .order('day_of_week'),
+            supabase
+              .from('schedule_exceptions')
+              .select('*, location:locations(*)')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .gte('date', todayStr)
+              .order('date'),
+            // Fetch active bundle offers (with offer_items for specific_items bundles)
+            supabase
+              .from('offers')
+              .select('*, offer_items(id, menu_item_id, quantity)')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .eq('offer_type', 'bundle')
+              .eq('is_active', true)
+              .or(`start_date.is.null,start_date.lte.${now}`)
+              .or(`end_date.is.null,end_date.gte.${now}`),
+            // Fetch active buy_x_get_y offers (category_choice type only)
+            supabase
+              .from('offers')
+              .select('*')
+              .eq('foodtruck_id', actualFoodtruckId)
+              .eq('offer_type', 'buy_x_get_y')
+              .eq('is_active', true)
+              .or(`start_date.is.null,start_date.lte.${now}`)
+              .or(`end_date.is.null,end_date.gte.${now}`),
+          ]);
+
+        setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
+        setMenuItems((menuRes.data as MenuItem[]) || []);
+        setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
+
+        // Separate bundles by type
+        const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & {
+          offer_items?: BundleOfferItem[];
+        })[];
+
+        // Category choice bundles
+        const categoryChoiceBundles = allBundles.filter(
+          (b) => b.config?.type === 'category_choice' && b.config?.bundle_categories?.length
+        );
+        setBundles(categoryChoiceBundles);
+
+        // Specific items bundles
+        const specificBundles = allBundles
+          .filter(
+            (b) => b.config?.type === 'specific_items' && b.offer_items && b.offer_items.length > 0
+          )
+          .map((b) => ({
+            ...b,
+            offer_items: b.offer_items!.filter((item) => item.menu_item_id),
+          })) as SpecificItemsBundleOffer[];
+        setSpecificItemsBundles(specificBundles);
+
+        // Buy X Get Y offers (only category_choice type for modal selection)
+        const buyXGetYData = (buyXGetYRes.data || []) as unknown as BuyXGetYOffer[];
+        const categoryChoiceBuyXGetY = buyXGetYData.filter(
+          (o) =>
+            o.config?.type === 'category_choice' &&
+            o.config?.trigger_category_ids?.length &&
+            o.config?.reward_category_ids?.length
+        );
+        setBuyXGetYOffers(categoryChoiceBuyXGetY);
+
+        // Find today's exception from the list
+        const exceptions = exceptionRes.data || [];
+        const todayExc = exceptions.find((e: { date: string }) => e.date === todayStr);
+        if (todayExc) {
+          setTodayException({
+            is_closed: todayExc.is_closed ?? false,
+            location: todayExc.location,
+            start_time: todayExc.start_time,
+            end_time: todayExc.end_time,
+          });
+        }
+
         setLoading(false);
-        return;
+      } catch (error) {
+        console.error('Error fetching foodtruck data:', error);
+        setLoading(false);
       }
-
-      setFoodtruckData(foodtruckData);
-      setFoodtruck(foodtruckData.id);
-      // Apply the foodtruck's color theme
-      applyTheme(foodtruckData.theme);
-
-      // Use the actual foodtruck ID for all subsequent queries (not the slug)
-      const actualFoodtruckId = foodtruckData.id;
-
-      // Fetch other data in parallel
-      const todayStr = formatLocalDate(new Date());
-      const now = new Date().toISOString();
-      const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] =
-        await Promise.all([
-          supabase
-            .from('categories')
-            .select('*, category_option_groups(*, category_options(*))')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .order('display_order'),
-          supabase
-            .from('menu_items')
-            .select('*')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .eq('is_available', true)
-            .or('is_archived.is.null,is_archived.eq.false')
-            .order('display_order'),
-          supabase
-            .from('schedules')
-            .select('*, location:locations(*)')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .eq('is_active', true)
-            .order('day_of_week'),
-          supabase
-            .from('schedule_exceptions')
-            .select('*, location:locations(*)')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .gte('date', todayStr)
-            .order('date'),
-          // Fetch active bundle offers (with offer_items for specific_items bundles)
-          supabase
-            .from('offers')
-            .select('*, offer_items(id, menu_item_id, quantity)')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .eq('offer_type', 'bundle')
-            .eq('is_active', true)
-            .or(`start_date.is.null,start_date.lte.${now}`)
-            .or(`end_date.is.null,end_date.gte.${now}`),
-          // Fetch active buy_x_get_y offers (category_choice type only)
-          supabase
-            .from('offers')
-            .select('*')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .eq('offer_type', 'buy_x_get_y')
-            .eq('is_active', true)
-            .or(`start_date.is.null,start_date.lte.${now}`)
-            .or(`end_date.is.null,end_date.gte.${now}`),
-        ]);
-
-      setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
-      setMenuItems((menuRes.data as MenuItem[]) || []);
-      setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
-
-      // Separate bundles by type
-      const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & {
-        offer_items?: BundleOfferItem[];
-      })[];
-
-      // Category choice bundles
-      const categoryChoiceBundles = allBundles.filter(
-        (b) => b.config?.type === 'category_choice' && b.config?.bundle_categories?.length
-      );
-      setBundles(categoryChoiceBundles);
-
-      // Specific items bundles
-      const specificBundles = allBundles
-        .filter(
-          (b) => b.config?.type === 'specific_items' && b.offer_items && b.offer_items.length > 0
-        )
-        .map((b) => ({
-          ...b,
-          offer_items: b.offer_items!.filter((item) => item.menu_item_id),
-        })) as SpecificItemsBundleOffer[];
-      setSpecificItemsBundles(specificBundles);
-
-      // Buy X Get Y offers (only category_choice type for modal selection)
-      const buyXGetYData = (buyXGetYRes.data || []) as unknown as BuyXGetYOffer[];
-      const categoryChoiceBuyXGetY = buyXGetYData.filter(
-        (o) =>
-          o.config?.type === 'category_choice' &&
-          o.config?.trigger_category_ids?.length &&
-          o.config?.reward_category_ids?.length
-      );
-      setBuyXGetYOffers(categoryChoiceBuyXGetY);
-
-      // Find today's exception from the list
-      const exceptions = exceptionRes.data || [];
-      const todayExc = exceptions.find((e: { date: string }) => e.date === todayStr);
-      if (todayExc) {
-        setTodayException({
-          is_closed: todayExc.is_closed ?? false,
-          location: todayExc.location,
-          start_time: todayExc.start_time,
-          end_time: todayExc.end_time,
-        });
-      }
-
-      setLoading(false);
     }
 
     fetchData();

@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  ReactNode,
+} from 'react';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -24,7 +32,10 @@ function getAudioContext(): AudioContext | null {
 
   try {
     if (!sharedAudioContext) {
-      sharedAudioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      sharedAudioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
     }
     if (sharedAudioContext.state === 'suspended') {
       sharedAudioContext.resume().catch(() => {});
@@ -42,7 +53,10 @@ export function unlockAudio() {
   try {
     audioUnlocked = true;
     if (!sharedAudioContext) {
-      sharedAudioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      sharedAudioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
     }
     if (sharedAudioContext.state === 'suspended') {
       sharedAudioContext.resume().catch(() => {});
@@ -113,7 +127,9 @@ const OrderNotificationContext = createContext<OrderNotificationContextType | nu
 
 export function OrderNotificationProvider({ children }: { children: ReactNode }) {
   const { foodtruck } = useFoodtruck();
-  const [pendingPopupOrders, setPendingPopupOrders] = useState<OrderWithItemsAndOptions[]>(() => pendingPopupsStore);
+  const [pendingPopupOrders, setPendingPopupOrders] = useState<OrderWithItemsAndOptions[]>(
+    () => pendingPopupsStore
+  );
   const [pendingCount, setPendingCount] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -123,97 +139,141 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   const soundEnabledRef = useRef(soundEnabled);
   const pendingPopupOrdersRef = useRef(pendingPopupOrders);
 
-  // Keep refs in sync
-  useEffect(() => { foodtruckRef.current = foodtruck; }, [foodtruck]);
-  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
-  useEffect(() => { pendingPopupOrdersRef.current = pendingPopupOrders; }, [pendingPopupOrders]);
+  // isMounted ref to prevent setState on unmounted component
+  const isMountedRef = useRef(true);
 
-  // Helper to update both store and state
-  const updatePendingPopups = useCallback((updater: (prev: OrderWithItemsAndOptions[]) => OrderWithItemsAndOptions[]) => {
-    setPendingPopupOrders(prev => {
-      const updated = updater(prev);
-      pendingPopupsStore = updated;
-      return updated;
-    });
+  // Track pending timeouts for cleanup
+  const pendingTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  // Keep refs in sync
+  useEffect(() => {
+    foodtruckRef.current = foodtruck;
+  }, [foodtruck]);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+  useEffect(() => {
+    pendingPopupOrdersRef.current = pendingPopupOrders;
+  }, [pendingPopupOrders]);
+
+  // Set isMounted on mount and cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    // Capture the ref value for cleanup
+    const timeoutsSet = pendingTimeoutsRef.current;
+    return () => {
+      isMountedRef.current = false;
+      // Clear all pending timeouts on unmount
+      timeoutsSet.forEach((timeoutId) => clearTimeout(timeoutId));
+      timeoutsSet.clear();
+    };
   }, []);
 
+  // Helper to update both store and state (with isMounted check)
+  const updatePendingPopups = useCallback(
+    (updater: (prev: OrderWithItemsAndOptions[]) => OrderWithItemsAndOptions[]) => {
+      if (!isMountedRef.current) return;
+      setPendingPopupOrders((prev) => {
+        const updated = updater(prev);
+        pendingPopupsStore = updated;
+        return updated;
+      });
+    },
+    []
+  );
+
   const refreshOrders = useCallback(() => {
-    setRefreshTrigger(t => t + 1);
+    setRefreshTrigger((t) => t + 1);
   }, []);
 
   // Fetch all pending orders with full details
-  const fetchPendingOrders = useCallback(async (foodtruckId: string): Promise<OrderWithItemsAndOptions[]> => {
-    const today = formatLocalDate(new Date());
+  const fetchPendingOrders = useCallback(
+    async (foodtruckId: string): Promise<OrderWithItemsAndOptions[]> => {
+      const today = formatLocalDate(new Date());
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-      .eq('foodtruck_id', foodtruckId)
-      .eq('status', 'pending')
-      .neq('customer_email', 'surplace@local')
-      .gte('pickup_time', `${today}T00:00:00`)
-      .order('pickup_time', { ascending: true });
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+        .eq('foodtruck_id', foodtruckId)
+        .eq('status', 'pending')
+        .neq('customer_email', 'surplace@local')
+        .gte('pickup_time', `${today}T00:00:00`)
+        .order('pickup_time', { ascending: true });
 
-    if (error) {
-      console.error('[OrderNotification] Error fetching orders:', error);
-      return [];
-    }
+      if (error) {
+        console.error('[OrderNotification] Error fetching orders:', error);
+        return [];
+      }
 
-    return (data || []) as unknown as OrderWithItemsAndOptions[];
-  }, []);
+      return (data || []) as unknown as OrderWithItemsAndOptions[];
+    },
+    []
+  );
 
   // Show popup for new orders - THE CORE FUNCTION
-  const showPopupForOrders = useCallback((orders: OrderWithItemsAndOptions[], playSound: boolean) => {
-    const ft = foodtruckRef.current;
-    if (!ft?.show_order_popup) {
-      // Popup disabled - sound only
-      return;
-    }
+  const showPopupForOrders = useCallback(
+    (orders: OrderWithItemsAndOptions[], playSound: boolean) => {
+      const ft = foodtruckRef.current;
+      if (!ft?.show_order_popup) {
+        // Popup disabled - sound only
+        return;
+      }
 
-    if (orders.length === 0) return;
+      if (orders.length === 0) return;
 
-    // Don't play sound if popup is already open (e.g., user switching tabs)
-    const popupAlreadyOpen = pendingPopupOrdersRef.current.length > 0;
+      // Don't play sound if popup is already open (e.g., user switching tabs)
+      const popupAlreadyOpen = pendingPopupOrdersRef.current.length > 0;
 
-    if (playSound && soundEnabledRef.current && !popupAlreadyOpen) {
-      playNotificationSound();
-    }
+      if (playSound && soundEnabledRef.current && !popupAlreadyOpen) {
+        playNotificationSound();
+      }
 
-    // Always show ALL pending orders in popup (newest first for stack)
-    updatePendingPopups(() => [...orders].reverse());
-  }, [updatePendingPopups]);
+      // Always show ALL pending orders in popup (newest first for stack)
+      updatePendingPopups(() => [...orders].reverse());
+    },
+    [updatePendingPopups]
+  );
 
   // Check for new orders - called by polling and realtime
-  const checkForNewOrders = useCallback(async (_isInitialCheck = false) => {
-    const ft = foodtruckRef.current;
-    if (!ft?.id) return;
+  const checkForNewOrders = useCallback(
+    async (_isInitialCheck = false) => {
+      const ft = foodtruckRef.current;
+      if (!ft?.id || !isMountedRef.current) return;
 
-    const pendingOrders = await fetchPendingOrders(ft.id);
-    setPendingCount(pendingOrders.length);
+      const pendingOrders = await fetchPendingOrders(ft.id);
 
-    // Find genuinely new orders
-    const newOrders = pendingOrders.filter(order => !knownOrderIdsSet.has(order.id));
-    const isFirstLoad = knownOrderIdsSet.size === 0;
+      // Check if still mounted after async operation
+      if (!isMountedRef.current) return;
 
-    // Mark all as known
-    pendingOrders.forEach(order => knownOrderIdsSet.add(order.id));
+      setPendingCount(pendingOrders.length);
 
-    // NEW ORDERS DETECTED
-    if (newOrders.length > 0 && !isFirstLoad) {
-      showPopupForOrders(pendingOrders, true);
-    }
+      // Find genuinely new orders
+      const newOrders = pendingOrders.filter((order) => !knownOrderIdsSet.has(order.id));
+      const isFirstLoad = knownOrderIdsSet.size === 0;
 
-    // INITIAL LOAD - show pending orders after small delay (so user knows it's from before)
-    if (isFirstLoad && pendingOrders.length > 0 && ft.show_order_popup && !hasShownInitialPopup) {
-      hasShownInitialPopup = true;
-      // Small delay so it doesn't feel like a bug
-      setTimeout(() => {
-        if (pendingOrders.length > 0) {
-          showPopupForOrders(pendingOrders, true);
-        }
-      }, 1000);
-    }
-  }, [fetchPendingOrders, showPopupForOrders]);
+      // Mark all as known
+      pendingOrders.forEach((order) => knownOrderIdsSet.add(order.id));
+
+      // NEW ORDERS DETECTED
+      if (newOrders.length > 0 && !isFirstLoad) {
+        showPopupForOrders(pendingOrders, true);
+      }
+
+      // INITIAL LOAD - show pending orders after small delay (so user knows it's from before)
+      if (isFirstLoad && pendingOrders.length > 0 && ft.show_order_popup && !hasShownInitialPopup) {
+        hasShownInitialPopup = true;
+        // Small delay so it doesn't feel like a bug - track timeout for cleanup
+        const timeoutId = setTimeout(() => {
+          pendingTimeoutsRef.current.delete(timeoutId);
+          if (isMountedRef.current && pendingOrders.length > 0) {
+            showPopupForOrders(pendingOrders, true);
+          }
+        }, 1000);
+        pendingTimeoutsRef.current.add(timeoutId);
+      }
+    },
+    [fetchPendingOrders, showPopupForOrders]
+  );
 
   // Reset known orders when foodtruck changes
   useEffect(() => {
@@ -230,6 +290,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     if (!foodtruck?.id) return;
 
     const foodtruckId = foodtruck.id;
+    let isCleaningUp = false;
 
     const channel = supabase
       .channel(`orders-${foodtruckId}`)
@@ -242,6 +303,9 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
           filter: `foodtruck_id=eq.${foodtruckId}`,
         },
         (payload) => {
+          // Guard against callbacks during cleanup
+          if (isCleaningUp || !isMountedRef.current) return;
+
           const newOrder = payload.new;
 
           // Skip manual dashboard orders
@@ -260,14 +324,41 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
           filter: `foodtruck_id=eq.${foodtruckId}`,
         },
         () => {
+          // Guard against callbacks during cleanup
+          if (isCleaningUp || !isMountedRef.current) return;
+
           // Refresh to update counts and popup state
           checkForNewOrders();
         }
       )
-      .subscribe();
+      .subscribe((status, error) => {
+        // Handle subscription errors gracefully
+        if (error) {
+          console.error('[OrderNotification] Realtime subscription error:', error);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[OrderNotification] Channel error, subscription may not be active');
+        }
+        if (status === 'TIMED_OUT') {
+          console.warn('[OrderNotification] Subscription timed out, relying on polling');
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      // Set cleanup flag to prevent callbacks during unsubscribe
+      isCleaningUp = true;
+
+      // Unsubscribe and remove channel
+      channel
+        .unsubscribe()
+        .then(() => {
+          supabase.removeChannel(channel);
+        })
+        .catch((error) => {
+          console.error('[OrderNotification] Error during channel cleanup:', error);
+          // Still try to remove channel even if unsubscribe fails
+          supabase.removeChannel(channel);
+        });
     };
   }, [foodtruck?.id, checkForNewOrders]);
 
@@ -327,57 +418,73 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   }, [foodtruck?.id, checkForNewOrders]);
 
   // Accept order
-  const acceptOrder = useCallback(async (id: string, pickupTime?: string) => {
-    const updateData: { status: 'confirmed'; pickup_time?: string } = { status: 'confirmed' };
-    if (pickupTime) {
-      updateData.pickup_time = pickupTime;
-    }
-    const { error } = await supabase.from('orders').update(updateData).eq('id', id);
+  const acceptOrder = useCallback(
+    async (id: string, pickupTime?: string) => {
+      const updateData: { status: 'confirmed'; pickup_time?: string } = { status: 'confirmed' };
+      if (pickupTime) {
+        updateData.pickup_time = pickupTime;
+      }
+      const { error } = await supabase.from('orders').update(updateData).eq('id', id);
 
-    if (error) {
-      console.error('[OrderNotification] Error accepting order:', error);
-      return;
-    }
+      if (error) {
+        console.error('[OrderNotification] Error accepting order:', error);
+        return;
+      }
 
-    // Send confirmation email if enabled (non-blocking)
-    if (foodtruckRef.current?.send_confirmation_email !== false) {
-      fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-order-confirmation`,
-        {
+      // Check if still mounted after async operation
+      if (!isMountedRef.current) return;
+
+      // Send confirmation email if enabled (non-blocking)
+      if (foodtruckRef.current?.send_confirmation_email !== false) {
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-order-confirmation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({ order_id: id }),
-        }
-      ).catch(console.error);
-    }
+        }).catch(console.error);
+      }
 
-    // Update state
-    setPendingCount(prev => Math.max(0, prev - 1));
-    updatePendingPopups(prev => prev.filter(o => o.id !== id));
-  }, [updatePendingPopups]);
+      // Update state (updatePendingPopups already has isMounted check)
+      setPendingCount((prev) => Math.max(0, prev - 1));
+      updatePendingPopups((prev) => prev.filter((o) => o.id !== id));
+    },
+    [updatePendingPopups]
+  );
 
   // Cancel order
-  const cancelOrder = useCallback(async (id: string, reason?: string) => {
-    const { error } = await supabase.from('orders').update({
-      status: 'cancelled',
-      cancellation_reason: reason || 'Refusée par le commerçant'
-    }).eq('id', id);
+  const cancelOrder = useCallback(
+    async (id: string, reason?: string) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'cancelled',
+          cancellation_reason: reason || 'Refusée par le commerçant',
+        })
+        .eq('id', id);
 
-    if (error) {
-      console.error('[OrderNotification] Error cancelling order:', error);
-      return;
-    }
-    setPendingCount(prev => Math.max(0, prev - 1));
-    updatePendingPopups(prev => prev.filter(o => o.id !== id));
-  }, [updatePendingPopups]);
+      if (error) {
+        console.error('[OrderNotification] Error cancelling order:', error);
+        return;
+      }
+
+      // Check if still mounted after async operation
+      if (!isMountedRef.current) return;
+
+      setPendingCount((prev) => Math.max(0, prev - 1));
+      updatePendingPopups((prev) => prev.filter((o) => o.id !== id));
+    },
+    [updatePendingPopups]
+  );
 
   // Dismiss popup without action
-  const dismissPopup = useCallback((id: string) => {
-    updatePendingPopups(prev => prev.filter(o => o.id !== id));
-  }, [updatePendingPopups]);
+  const dismissPopup = useCallback(
+    (id: string) => {
+      updatePendingPopups((prev) => prev.filter((o) => o.id !== id));
+    },
+    [updatePendingPopups]
+  );
 
   // Show all pending orders (bell button)
   const showAllPendingOrders = useCallback(async () => {
@@ -386,36 +493,48 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
     const pendingOrders = await fetchPendingOrders(ft.id);
 
+    // Check if still mounted after async operation
+    if (!isMountedRef.current) return;
+
     if (pendingOrders.length > 0) {
       updatePendingPopups(() => [...pendingOrders].reverse());
     }
   }, [fetchPendingOrders, updatePendingPopups]);
 
   // Show specific order by ID (from push notification)
-  const showOrderById = useCallback(async (orderId: string) => {
-    const ft = foodtruckRef.current;
-    if (!ft?.id) return;
+  const showOrderById = useCallback(
+    async (orderId: string) => {
+      const ft = foodtruckRef.current;
+      if (!ft?.id) return;
 
-    // Fetch the specific order
-    const { data: order } = await supabase
-      .from('orders')
-      .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
-      .eq('id', orderId)
-      .single();
+      // Fetch the specific order
+      const { data: order } = await supabase
+        .from('orders')
+        .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+        .eq('id', orderId)
+        .single();
 
-    if (!order) return;
+      // Check if still mounted after async operation
+      if (!isMountedRef.current) return;
 
-    // Fetch all other pending orders
-    const pendingOrders = await fetchPendingOrders(ft.id);
+      if (!order) return;
 
-    // Put the clicked order first
-    const allOrders = [
-      order as unknown as OrderWithItemsAndOptions,
-      ...pendingOrders.filter(o => o.id !== orderId)
-    ];
+      // Fetch all other pending orders
+      const pendingOrders = await fetchPendingOrders(ft.id);
 
-    updatePendingPopups(() => allOrders);
-  }, [fetchPendingOrders, updatePendingPopups]);
+      // Check if still mounted after second async operation
+      if (!isMountedRef.current) return;
+
+      // Put the clicked order first
+      const allOrders = [
+        order as unknown as OrderWithItemsAndOptions,
+        ...pendingOrders.filter((o) => o.id !== orderId),
+      ];
+
+      updatePendingPopups(() => allOrders);
+    },
+    [fetchPendingOrders, updatePendingPopups]
+  );
 
   return (
     <OrderNotificationContext.Provider

@@ -15,30 +15,48 @@ export default function OrderStatus() {
   const cancelled = searchParams.get('cancelled');
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchOrder() {
-      if (!orderId) return;
+      if (!orderId) {
+        setLoading(false);
+        return;
+      }
 
-      const { data } = await supabase
-        .from('orders')
-        .select(
-          `
-          *,
-          order_items (
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select(
+            `
             *,
-            menu_item:menu_items (*)
+            order_items (
+              *,
+              menu_item:menu_items (*)
+            )
+          `
           )
-        `
-        )
-        .eq('id', orderId)
-        .single();
+          .eq('id', orderId)
+          .single();
 
-      setOrder(data as OrderWithItems);
-      setLoading(false);
+        if (isMounted) {
+          if (error) {
+            console.error('Error fetching order:', error);
+          } else {
+            setOrder(data as OrderWithItems);
+          }
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching order:', err);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
 
     fetchOrder();
 
-    // Subscribe to realtime updates
+    // Subscribe to realtime updates with error handling
     const channel = supabase
       .channel(`order-${orderId}`)
       .on(
@@ -50,12 +68,20 @@ export default function OrderStatus() {
           filter: `id=eq.${orderId}`,
         },
         (payload) => {
-          setOrder((prev) => (prev ? { ...prev, ...payload.new } : null));
+          if (isMounted) {
+            setOrder((prev) => (prev ? { ...prev, ...payload.new } : null));
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime subscription error for order:', orderId);
+        }
+      });
 
     return () => {
+      isMounted = false;
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [orderId]);
@@ -231,7 +257,7 @@ export default function OrderStatus() {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary-500" aria-hidden="true" />
-              <span>{order.customer_name}</span>
+              <span>Client : {order.customer_name}</span>
             </div>
           </div>
           <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3" role="note">
