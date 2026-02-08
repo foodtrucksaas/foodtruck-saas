@@ -10,10 +10,15 @@ import './index.css';
 // Initialize error tracking
 initSentry();
 
+// On pro.onmange.app subdomain, no basename needed (Vercel handles rewrite)
+// On other domains (e.g., localhost, onmange.app/dashboard), use /dashboard basename
+const isProSubdomain = window.location.hostname === 'pro.onmange.app';
+const basename = isProSubdomain ? '/' : '/dashboard';
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter
-      basename="/dashboard"
+      basename={basename}
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
       <AuthProvider>

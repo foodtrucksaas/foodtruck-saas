@@ -66,8 +66,9 @@ const config = {
       continue: true
     },
     // Dashboard subdomain (pro.onmange.app) - rewrite to /dashboard path
+    // Only rewrite paths that DON'T already start with /dashboard/ to avoid double-prefixing
     {
-      src: "/(.*)",
+      src: "/(?!dashboard/)(.*)$",
       dest: "/dashboard/$1",
       has: [{ type: "host", value: "pro\\.onmange\\.app" }],
       continue: true

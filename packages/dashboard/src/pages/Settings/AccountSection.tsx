@@ -91,20 +91,29 @@ export function AccountSection() {
       }
 
       // Call Edge Function to delete account and all associated data
-      const { error: deleteAccountError } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data, error: deleteAccountError } = await supabase.functions.invoke(
+        'delete-account',
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
       if (deleteAccountError) {
-        throw deleteAccountError;
+        console.error('Delete account error:', deleteAccountError);
+        throw new Error(deleteAccountError.message || 'Erreur de suppression');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       await signOut();
     } catch (err) {
       console.error('Delete account error:', err);
-      setDeleteError('Erreur lors de la suppression du compte. Veuillez réessayer.');
+      const message = err instanceof Error ? err.message : 'Erreur inconnue';
+      setDeleteError(`Erreur: ${message}`);
     }
     setDeleting(false);
   };
@@ -299,10 +308,21 @@ export function AccountSection() {
           </p>
           <input
             type="text"
+            id="delete-confirm-input"
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
+            onBlur={(e) => {
+              // Prevent focus loss by refocusing immediately if still in modal
+              if (deleteConfirmText.length > 0 && deleteConfirmText !== 'SUPPRIMER') {
+                setTimeout(() => e.target.focus(), 0);
+              }
+            }}
             placeholder="SUPPRIMER"
             className="input min-h-[44px] mb-4"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            spellCheck={false}
           />
 
           {deleteError && <ErrorAlert className="mb-4">{deleteError}</ErrorAlert>}
