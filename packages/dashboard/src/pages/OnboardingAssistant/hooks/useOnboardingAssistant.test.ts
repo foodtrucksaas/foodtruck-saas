@@ -158,8 +158,8 @@ describe('useOnboardingAssistant', () => {
         }),
       }));
 
-      mockFrom.mockImplementation((_table: string) => {
-        if (table === 'foodtrucks') {
+      mockFrom.mockImplementation((tableName: string) => {
+        if (tableName === 'foodtrucks') {
           return {
             update: (data: Record<string, unknown>) => {
               capturedUpdateData = data;

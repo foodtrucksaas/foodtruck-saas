@@ -78,16 +78,33 @@ export function AccountSection() {
     setDeleting(true);
     setDeleteError('');
     try {
+      // Verify session is still valid before attempting deletion
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        setDeleteError('Votre session a expiré. Veuillez vous reconnecter et réessayer.');
+        setDeleting(false);
+        return;
+      }
+
       // Call Edge Function to delete account and all associated data
-      const { error: deleteAccountError } = await supabase.functions.invoke('delete-account');
+      const { error: deleteAccountError } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
       if (deleteAccountError) {
         throw deleteAccountError;
       }
 
       await signOut();
-    } catch {
-      setDeleteError('Erreur lors de la suppression du compte');
+    } catch (err) {
+      console.error('Delete account error:', err);
+      setDeleteError('Erreur lors de la suppression du compte. Veuillez réessayer.');
     }
     setDeleting(false);
   };
