@@ -24,6 +24,7 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:prod": "E2E_BASE_URL=https://onmange.app/client playwright test --project=client",
+    "verify:deployment": "bash scripts/verify-deployment.sh",
     "test:integration": "node scripts/check-integration-env.js && vitest run -c tests/integration/vitest.config.ts tests/integration/",
     "test:integration:watch": "node scripts/check-integration-env.js && vitest -c tests/integration/vitest.config.ts tests/integration/",
     "test:integration:check": "node scripts/check-integration-env.js",
