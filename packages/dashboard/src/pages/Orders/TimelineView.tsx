@@ -60,11 +60,11 @@ function getStatusColors(status: string) {
       };
     case 'cancelled':
       return {
-        bg: 'bg-error-50',
-        border: 'border-error-500',
-        dot: 'bg-error-500',
-        text: 'text-error-600',
-        ring: 'ring-error-100',
+        bg: 'bg-gray-50',
+        border: 'border-gray-300',
+        dot: 'bg-gray-400',
+        text: 'text-gray-600',
+        ring: 'ring-gray-100',
       };
     case 'no_show':
       return {
@@ -260,6 +260,11 @@ export function TimelineView({
                               >
                                 {order.customer_name}
                               </span>
+                              {status === 'cancelled' && (
+                                <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                                  Refusée
+                                </span>
+                              )}
                             </div>
                             <span
                               className={`font-bold text-sm flex-shrink-0 ${isDone ? 'text-gray-500' : 'text-gray-900'}`}

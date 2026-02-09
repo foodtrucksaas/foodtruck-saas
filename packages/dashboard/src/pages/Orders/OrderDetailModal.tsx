@@ -144,7 +144,7 @@ export function OrderDetailModal({
                     : isReady
                       ? 'bg-success-100 text-success-600'
                       : order.status === 'cancelled'
-                        ? 'bg-error-100 text-error-600'
+                        ? 'bg-gray-100 text-gray-600'
                         : order.status === 'no_show'
                           ? 'bg-gray-100 text-gray-700'
                           : 'bg-gray-100 text-gray-600'
@@ -157,7 +157,7 @@ export function OrderDetailModal({
                   : isReady
                     ? 'Prête'
                     : order.status === 'cancelled'
-                      ? 'Annulée'
+                      ? 'Refusée'
                       : order.status === 'no_show'
                         ? 'Non récupérée'
                         : 'Retirée'}

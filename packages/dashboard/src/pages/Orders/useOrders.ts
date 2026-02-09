@@ -278,9 +278,8 @@ export function useOrders() {
     ? orders.filter((o) => o.status === 'confirmed').length
     : orders.filter((o) => o.status === 'confirmed' || o.status === 'ready').length;
   const ready = orders.filter((o) => o.status === 'ready').length;
-  const pickedUp = orders.filter(
-    (o) => o.status === 'picked_up' || o.status === 'cancelled' || o.status === 'no_show'
-  ).length;
+  const pickedUp = orders.filter((o) => o.status === 'picked_up' || o.status === 'no_show').length;
+  const cancelled = orders.filter((o) => o.status === 'cancelled').length;
 
   // Date navigation
   const goToPreviousDay = useCallback(() => {
@@ -317,6 +316,7 @@ export function useOrders() {
     confirmed,
     ready,
     pickedUp,
+    cancelled,
     useReadyStatus,
 
     // Date navigation

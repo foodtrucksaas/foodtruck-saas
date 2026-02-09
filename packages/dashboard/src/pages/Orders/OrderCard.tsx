@@ -21,7 +21,7 @@ export const OrderCard = memo(function OrderCard({ order, onClick }: OrderCardPr
     if (isReady) return { bg: 'bg-success-100', text: 'text-success-600', label: 'Prête' };
     if (isPickedUp) return { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Retirée' };
     if (order.status === 'cancelled')
-      return { bg: 'bg-error-100', text: 'text-error-600', label: 'Annulée' };
+      return { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Refusée' };
     if (order.status === 'no_show')
       return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Non récupérée' };
     return { bg: 'bg-gray-100', text: 'text-gray-500', label: order.status };
