@@ -449,6 +449,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
       // Update state (updatePendingPopups already has isMounted check)
       setPendingCount((prev) => Math.max(0, prev - 1));
       updatePendingPopups((prev) => prev.filter((o) => o.id !== id));
+      setRefreshTrigger((t) => t + 1);
     },
     [updatePendingPopups]
   );
@@ -474,6 +475,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
       setPendingCount((prev) => Math.max(0, prev - 1));
       updatePendingPopups((prev) => prev.filter((o) => o.id !== id));
+      setRefreshTrigger((t) => t + 1);
     },
     [updatePendingPopups]
   );
