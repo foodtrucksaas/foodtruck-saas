@@ -260,9 +260,9 @@ export function TimelineView({
                               >
                                 {order.customer_name}
                               </span>
-                              {status === 'cancelled' && (
+                              {(status === 'cancelled' || status === 'no_show') && (
                                 <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
-                                  Refusée
+                                  {status === 'cancelled' ? 'Refusée' : 'Non récupérée'}
                                 </span>
                               )}
                             </div>
