@@ -2,6 +2,10 @@
 -- FIX RACE CONDITIONS IN SQL FUNCTIONS
 -- ============================================
 
+-- Drop existing functions first to allow changing return types
+DROP FUNCTION IF EXISTS apply_promo_code(UUID, UUID, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS redeem_loyalty_reward(UUID, UUID, INTEGER, INTEGER);
+
 -- 1. Update increment_offer_uses to also handle total_discount_given atomically
 -- This prevents the read-modify-write race condition
 CREATE OR REPLACE FUNCTION increment_offer_uses(
