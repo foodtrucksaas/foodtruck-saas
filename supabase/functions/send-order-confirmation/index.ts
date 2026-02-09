@@ -129,12 +129,14 @@ serve(async (req) => {
 
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <div>
-                <strong>${item.quantity}x</strong> ${escapeHtml(item.menu_item.name)}
-              </div>
-              <div style="font-weight:500;white-space:nowrap">${itemTotal.toFixed(2)}€</div>
-            </div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+              <tr>
+                <td style="text-align:left">
+                  <strong>${item.quantity}x</strong> ${escapeHtml(item.menu_item.name)}
+                </td>
+                <td style="text-align:right;font-weight:500;white-space:nowrap">${itemTotal.toFixed(2)}€</td>
+              </tr>
+            </table>
             ${optionsHtml}
             ${notesHtml}
           </div>`;
@@ -167,10 +169,12 @@ serve(async (req) => {
     let discountHtml = '';
     if (order.discount_amount && order.discount_amount > 0) {
       discountHtml = `
-        <div style="display:flex;justify-content:space-between;color:#059669;margin-top:10px">
-          <span>Réduction</span>
-          <span>-${(order.discount_amount / 100).toFixed(2)}€</span>
-        </div>`;
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
+          <tr>
+            <td style="text-align:left;color:#059669">Réduction</td>
+            <td style="text-align:right;color:#059669">-${(order.discount_amount / 100).toFixed(2)}€</td>
+          </tr>
+        </table>`;
     }
 
     const html = `
@@ -210,10 +214,12 @@ serve(async (req) => {
               <h3 style="margin:0 0 15px;color:#111827;font-size:18px">Récapitulatif de votre commande</h3>
               ${items}
               ${discountHtml}
-              <div style="font-size:20px;font-weight:700;color:#f97316;margin-top:15px;padding-top:15px;border-top:2px solid #e5e7eb;display:flex;justify-content:space-between">
-                <span>Total</span>
-                <span>${total}€</span>
-              </div>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:15px;padding-top:15px;border-top:2px solid #e5e7eb">
+                <tr>
+                  <td style="font-size:20px;font-weight:700;color:#f97316;text-align:left">Total</td>
+                  <td style="font-size:20px;font-weight:700;color:#f97316;text-align:right">${total}€</td>
+                </tr>
+              </table>
               <p style="font-size:13px;color:#6b7280;margin:10px 0 0;text-align:center">
                 Montant à régler sur place
               </p>
