@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   ArrowLeft,
   MapPin,
@@ -169,6 +169,42 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
     }
   }, [categories, groupedItems, activeCategory]);
 
+  // Compute open/closed status for badge
+  const openStatus = useMemo(() => {
+    if (todaySchedules.length === 0) {
+      return { state: 'closed' as const, openTime: null };
+    }
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Check if currently within any schedule's hours
+    const isOpen = todaySchedules.some((sched) => {
+      const [startH, startM] = sched.start_time.split(':').map(Number);
+      const [endH, endM] = sched.end_time.split(':').map(Number);
+      return currentMinutes >= startH * 60 + startM && currentMinutes < endH * 60 + endM;
+    });
+
+    if (isOpen) {
+      return { state: 'open' as const, openTime: null };
+    }
+
+    // Find the next opening time today
+    const nextSchedule = todaySchedules
+      .filter((sched) => {
+        const [startH, startM] = sched.start_time.split(':').map(Number);
+        return startH * 60 + startM > currentMinutes;
+      })
+      .sort((a, b) => a.start_time.localeCompare(b.start_time))[0];
+
+    if (nextSchedule) {
+      return { state: 'opens_at' as const, openTime: nextSchedule.start_time.substring(0, 5) };
+    }
+
+    // All schedules have passed for today
+    return { state: 'closed' as const, openTime: null };
+  }, [todaySchedules]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -250,15 +286,22 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
         {/* Open/Closed badge */}
         <div className="absolute top-3 right-3">
-          {todaySchedules.length > 0 ? (
+          {openStatus.state === 'open' ? (
             <div className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span className="text-xs font-semibold">Ouvert</span>
             </div>
+          ) : openStatus.state === 'opens_at' ? (
+            <div className="flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-white" />
+              <span className="text-xs font-semibold">
+                Ouvre à {formatTime(openStatus.openTime!)}
+              </span>
+            </div>
           ) : (
             <div className="flex items-center gap-1.5 bg-gray-800 text-white px-3 py-1.5 rounded-full shadow-lg">
               <span className="w-2 h-2 rounded-full bg-red-400" />
-              <span className="text-xs font-semibold">Fermé</span>
+              <span className="text-xs font-semibold">Fermé aujourd'hui</span>
             </div>
           )}
         </div>
