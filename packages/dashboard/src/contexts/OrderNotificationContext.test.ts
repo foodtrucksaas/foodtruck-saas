@@ -66,16 +66,15 @@ vi.mock('../lib/supabase', () => ({
     })),
     channel: (name: string) => {
       mockChannel(name);
-      return {
-        on: vi.fn(() => ({
-          on: vi.fn(() => ({
-            subscribe: () => {
-              mockSubscribe();
-              return {};
-            },
-          })),
-        })),
+      const channelObj: any = {
+        on: vi.fn(() => channelObj),
+        subscribe: (...args: unknown[]) => {
+          mockSubscribe(...args);
+          return channelObj;
+        },
+        unsubscribe: vi.fn().mockResolvedValue('ok'),
       };
+      return channelObj;
     },
     removeChannel: vi.fn(),
   },

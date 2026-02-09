@@ -35,8 +35,20 @@ import { useQuickOrder, type MenuItemWithOptions } from './useQuickOrder';
 
 describe('useQuickOrder', () => {
   const mockCategories: Category[] = [
-    { id: 'cat-1', foodtruck_id: 'ft-1', name: 'Plats', display_order: 0, created_at: '2024-01-01' },
-    { id: 'cat-2', foodtruck_id: 'ft-1', name: 'Boissons', display_order: 1, created_at: '2024-01-01' },
+    {
+      id: 'cat-1',
+      foodtruck_id: 'ft-1',
+      name: 'Plats',
+      display_order: 0,
+      created_at: '2024-01-01',
+    },
+    {
+      id: 'cat-2',
+      foodtruck_id: 'ft-1',
+      name: 'Boissons',
+      display_order: 1,
+      created_at: '2024-01-01',
+    },
   ];
 
   const mockMenuItems: MenuItemWithOptions[] = [
@@ -86,8 +98,26 @@ describe('useQuickOrder', () => {
           display_order: 0,
           created_at: '2024-01-01',
           options: [
-            { id: 'opt-1', option_group_id: 'og-1', name: 'Saignant', price_modifier: 0, is_available: true, is_default: false, display_order: 0, created_at: '2024-01-01' },
-            { id: 'opt-2', option_group_id: 'og-1', name: 'À point', price_modifier: 0, is_available: true, is_default: true, display_order: 1, created_at: '2024-01-01' },
+            {
+              id: 'opt-1',
+              option_group_id: 'og-1',
+              name: 'Saignant',
+              price_modifier: 0,
+              is_available: true,
+              is_default: false,
+              display_order: 0,
+              created_at: '2024-01-01',
+            },
+            {
+              id: 'opt-2',
+              option_group_id: 'og-1',
+              name: 'À point',
+              price_modifier: 0,
+              is_available: true,
+              is_default: true,
+              display_order: 1,
+              created_at: '2024-01-01',
+            },
           ],
         },
         {
@@ -99,8 +129,26 @@ describe('useQuickOrder', () => {
           display_order: 1,
           created_at: '2024-01-01',
           options: [
-            { id: 'opt-3', option_group_id: 'og-2', name: 'Bacon', price_modifier: 200, is_available: true, is_default: false, display_order: 0, created_at: '2024-01-01' },
-            { id: 'opt-4', option_group_id: 'og-2', name: 'Fromage', price_modifier: 100, is_available: true, is_default: false, display_order: 1, created_at: '2024-01-01' },
+            {
+              id: 'opt-3',
+              option_group_id: 'og-2',
+              name: 'Bacon',
+              price_modifier: 200,
+              is_available: true,
+              is_default: false,
+              display_order: 0,
+              created_at: '2024-01-01',
+            },
+            {
+              id: 'opt-4',
+              option_group_id: 'og-2',
+              name: 'Fromage',
+              price_modifier: 100,
+              is_available: true,
+              is_default: false,
+              display_order: 1,
+              created_at: '2024-01-01',
+            },
           ],
         },
       ],
@@ -140,11 +188,15 @@ describe('useQuickOrder', () => {
 
     // Setup Supabase mocks
     mockFrom.mockImplementation((table: string) => {
+      const resolveWith = (data: unknown) => {
+        const result = Promise.resolve({ data, error: null });
+        return Object.assign(result, { abortSignal: () => result });
+      };
       if (table === 'categories') {
         return {
           select: () => ({
             eq: () => ({
-              order: () => Promise.resolve({ data: mockCategories, error: null }),
+              order: () => resolveWith(mockCategories),
             }),
           }),
         };
@@ -154,13 +206,13 @@ describe('useQuickOrder', () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                order: () => Promise.resolve({ data: mockMenuItems, error: null }),
+                order: () => resolveWith(mockMenuItems),
               }),
             }),
           }),
         };
       }
-      return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }) };
+      return { select: () => ({ eq: () => ({ order: () => resolveWith([]) }) }) };
     });
 
     mockRpc.mockResolvedValue({ data: mockSlots, error: null });
@@ -205,7 +257,10 @@ describe('useQuickOrder', () => {
       });
 
       expect(result.current.slotAvailability['12:00']).toEqual({ available: true, orderCount: 2 });
-      expect(result.current.slotAvailability['12:30']).toEqual({ available: false, orderCount: 10 });
+      expect(result.current.slotAvailability['12:30']).toEqual({
+        available: false,
+        orderCount: 10,
+      });
     });
 
     it('should reset state when modal opens', async () => {
@@ -255,7 +310,7 @@ describe('useQuickOrder', () => {
       });
 
       expect(result.current.filteredItems).toHaveLength(2);
-      expect(result.current.filteredItems.every(i => i.category_id === 'cat-1')).toBe(true);
+      expect(result.current.filteredItems.every((i) => i.category_id === 'cat-1')).toBe(true);
 
       // Filter by Boissons
       act(() => {
@@ -278,7 +333,9 @@ describe('useQuickOrder', () => {
       });
 
       expect(result.current.filteredItems).toHaveLength(2);
-      expect(result.current.filteredItems.every(i => i.name.toLowerCase().includes('burger'))).toBe(true);
+      expect(
+        result.current.filteredItems.every((i) => i.name.toLowerCase().includes('burger'))
+      ).toBe(true);
     });
 
     it('should combine category and search filters', async () => {
@@ -595,7 +652,7 @@ describe('useQuickOrder', () => {
       expect(result.current.availableTimeSlots.length).toBeGreaterThan(0);
 
       // Each slot should be in HH:MM format
-      result.current.availableTimeSlots.forEach(slot => {
+      result.current.availableTimeSlots.forEach((slot) => {
         expect(slot).toMatch(/^\d{2}:\d{2}$/);
       });
     });

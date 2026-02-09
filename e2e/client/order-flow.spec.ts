@@ -79,7 +79,15 @@ test.describe('Client Order Flow', () => {
     expect(hasReactContent).toBeTruthy();
   });
 
+  // Slug routing uses subdomains (slug.onmange.app), not path-based URLs
+  // This test only works against local dev or subdomain-based URLs
   test('should load foodtruck menu page by slug', async ({ page }) => {
+    // Skip in production: slug routing is subdomain-based, not path-based
+    if (process.env.E2E_BASE_URL) {
+      test.skip();
+      return;
+    }
+
     await page.goto(`/${TEST_FOODTRUCK_SLUG}`);
 
     await waitForMenuPage(page);
