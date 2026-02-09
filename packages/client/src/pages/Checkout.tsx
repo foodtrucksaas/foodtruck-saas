@@ -107,6 +107,7 @@ export default function Checkout({ slug }: CheckoutProps) {
     schedules,
     loading: slotsLoading,
     notOpenYet: _notOpenYet,
+    isCurrentlyOpen,
   } = useTimeSlots(foodtruckId, selectedDate, allSchedules, exceptions, settings);
   void _notOpenYet;
 
@@ -151,6 +152,13 @@ export default function Checkout({ slug }: CheckoutProps) {
       setSelectedDate(availableDates[0]);
     }
   }, [availableDates, loading]);
+
+  // Reset ASAP mode when foodtruck is not currently open
+  useEffect(() => {
+    if (!isCurrentlyOpen && form.isAsap) {
+      setForm((prev) => ({ ...prev, isAsap: false }));
+    }
+  }, [isCurrentlyOpen, form.isAsap]);
 
   // Auto-select first available slot
   useEffect(() => {
@@ -530,7 +538,7 @@ export default function Checkout({ slug }: CheckoutProps) {
               Retrait
             </label>
             <div className="mt-2 flex items-center gap-2">
-              {settings?.allowAsapOrders && (
+              {settings?.allowAsapOrders && isCurrentlyOpen && (
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, isAsap: !form.isAsap })}

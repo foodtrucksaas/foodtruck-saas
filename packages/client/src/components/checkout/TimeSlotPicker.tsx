@@ -17,6 +17,7 @@ interface TimeSlotPickerProps {
   allowAsapOrders?: boolean;
   isAsapSelected?: boolean;
   onAsapChange?: (isAsap: boolean) => void;
+  isCurrentlyOpen?: boolean;
 }
 
 export function TimeSlotPicker({
@@ -34,6 +35,7 @@ export function TimeSlotPicker({
   allowAsapOrders = false,
   isAsapSelected = false,
   onAsapChange,
+  isCurrentlyOpen = false,
 }: TimeSlotPickerProps) {
   const getLocationForSelectedDate = (): string | null => {
     const dateStr = formatLocalDate(selectedDate);
@@ -144,8 +146,8 @@ export function TimeSlotPicker({
         Heure de retrait
       </h3>
 
-      {/* ASAP Option */}
-      {allowAsapOrders && isToday && onAsapChange && (
+      {/* ASAP Option - only when foodtruck is currently open */}
+      {allowAsapOrders && isToday && isCurrentlyOpen && onAsapChange && (
         <div className="mb-3 space-y-2">
           <button
             type="button"

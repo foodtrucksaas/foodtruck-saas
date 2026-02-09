@@ -17,6 +17,7 @@ interface UseTimeSlotsResult {
   schedules: ScheduleWithLocation[];
   loading: boolean;
   notOpenYet: { openTime: string } | null;
+  isCurrentlyOpen: boolean;
 }
 
 export function useTimeSlots(
@@ -30,6 +31,7 @@ export function useTimeSlots(
   const [schedules, setSchedules] = useState<ScheduleWithLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [notOpenYet, setNotOpenYet] = useState<{ openTime: string } | null>(null);
+  const [isCurrentlyOpen, setIsCurrentlyOpen] = useState(false);
 
   useEffect(() => {
     async function generateSlotsForDate() {
@@ -57,17 +59,19 @@ export function useTimeSlots(
 
         // Override exception - create virtual schedule from exception data
         if (exception.location && exception.start_time && exception.end_time) {
-          daySchedules = [{
-            id: `exception-${dateStr}`,
-            foodtruck_id: foodtruckId,
-            day_of_week: dayOfWeek,
-            start_time: exception.start_time,
-            end_time: exception.end_time,
-            is_active: true,
-            location_id: exception.location_id || '',
-            location: exception.location,
-            created_at: new Date().toISOString(),
-          } as ScheduleWithLocation];
+          daySchedules = [
+            {
+              id: `exception-${dateStr}`,
+              foodtruck_id: foodtruckId,
+              day_of_week: dayOfWeek,
+              start_time: exception.start_time,
+              end_time: exception.end_time,
+              is_active: true,
+              location_id: exception.location_id || '',
+              location: exception.location,
+              created_at: new Date().toISOString(),
+            } as ScheduleWithLocation,
+          ];
         } else {
           daySchedules = allSchedules.filter((s) => s.day_of_week === dayOfWeek);
         }
@@ -87,6 +91,18 @@ export function useTimeSlots(
       const now = new Date();
       const isToday = selectedDate.toDateString() === now.toDateString();
       const currentMinutes = isToday ? now.getHours() * 60 + now.getMinutes() : 0;
+
+      // Check if foodtruck is currently open (current time within any schedule's hours)
+      if (isToday) {
+        const currentlyOpen = daySchedules.some((sched) => {
+          const [startH, startM] = sched.start_time.split(':').map(Number);
+          const [endH, endM] = sched.end_time.split(':').map(Number);
+          return currentMinutes >= startH * 60 + startM && currentMinutes < endH * 60 + endM;
+        });
+        setIsCurrentlyOpen(currentlyOpen);
+      } else {
+        setIsCurrentlyOpen(false);
+      }
 
       // Check if advance orders are allowed
       if (isToday && !settings.allowAdvanceOrders) {
@@ -171,5 +187,5 @@ export function useTimeSlots(
     generateSlotsForDate();
   }, [foodtruckId, settings, allSchedules, selectedDate, exceptions]);
 
-  return { slots, schedules, loading, notOpenYet };
+  return { slots, schedules, loading, notOpenYet, isCurrentlyOpen };
 }
