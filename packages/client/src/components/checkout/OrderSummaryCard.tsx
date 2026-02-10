@@ -140,7 +140,40 @@ export function OrderSummaryCard({
     });
   };
 
-  // Loyalty calculations
+  // Build a map of free items from buy_x_get_y offers
+  const freeItemsMap = useMemo(() => {
+    const map = new Map<string, { freeQty: number; offerName: string }>();
+    for (const offer of appliedOffers) {
+      if (offer.offer_type === 'buy_x_get_y' && offer.free_item_name && offer.discount_amount > 0) {
+        for (const consumed of offer.items_consumed) {
+          const cartItem = regularItems.find(
+            (item) =>
+              item.menuItem.id === consumed.menu_item_id &&
+              item.menuItem.name === offer.free_item_name
+          );
+          if (cartItem) {
+            const existing = map.get(consumed.menu_item_id);
+            if (existing) {
+              existing.freeQty += offer.times_applied;
+            } else {
+              map.set(consumed.menu_item_id, {
+                freeQty: offer.times_applied,
+                offerName: offer.offer_name,
+              });
+            }
+            break;
+          }
+        }
+      }
+    }
+    return map;
+  }, [appliedOffers, regularItems]);
+
+  // Visual subtotal: total minus all offer discounts (bundles + free items shown inline)
+  const offerTotalDiscount = appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0);
+  const visualSubtotal = total - offerTotalDiscount;
+
+  // Loyalty calculations - use finalTotal (actual amount to pay) for points
   const currentPoints = loyaltyInfo?.loyalty_points || 0;
   // Ensure threshold is never 0 to prevent division by zero
   const threshold =
@@ -148,8 +181,7 @@ export function OrderSummaryCard({
       ? loyaltyInfo.loyalty_threshold
       : 50;
   const pointsPerEuro = loyaltyInfo?.loyalty_points_per_euro || 1;
-  const orderTotalAfterDiscount = Math.max(0, total - promoDiscount - loyaltyDiscount);
-  const pointsToEarn = Math.floor((orderTotalAfterDiscount / 100) * pointsPerEuro);
+  const pointsToEarn = Math.floor((finalTotal / 100) * pointsPerEuro);
   const futurePoints = currentPoints + pointsToEarn;
   const willReachReward = futurePoints >= threshold && !loyaltyInfo?.can_redeem;
 
@@ -182,43 +214,52 @@ export function OrderSummaryCard({
 
           return (
             <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
-              {/* Bundle header */}
-              <button
-                type="button"
-                onClick={() => toggleBundleExpand(offer.offer_id)}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50/50 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                  <Package className="w-4 h-4 text-primary-600" />
+              {/* Bundle header - same layout as manual bundles */}
+              <div className="flex items-center gap-3 px-4 py-3">
+                {/* Quantity indicator - matching stepper position */}
+                <div className="flex items-center justify-center bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] px-3 flex-shrink-0">
+                  <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                    {offer.times_applied}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0 text-left">
+
+                {/* Bundle info */}
+                <button
+                  type="button"
+                  onClick={() => toggleBundleExpand(offer.offer_id)}
+                  className="flex-1 min-w-0 text-left"
+                >
                   <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
-                    {offer.times_applied > 1 && (
-                      <span className="text-xs px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded-full">
-                        ×{offer.times_applied}
-                      </span>
-                    )}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {bundleItems.map((bi) => bi.name).join(' + ')}
                   </p>
-                </div>
+                </button>
+
+                {/* Price and expand */}
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-primary-600 text-sm tabular-nums">
+                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
                     {formatPrice(discountedTotal * offer.times_applied)}
                   </p>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => toggleBundleExpand(offer.offer_id)}
+                    className="p-1"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                  </button>
                 </div>
-              </button>
+              </div>
 
               {/* Expanded bundle details */}
               {isExpanded && (
-                <div className="pl-14 pr-4 pb-3 space-y-1">
+                <div className="pl-[72px] pr-4 pb-3 space-y-1">
                   {bundleItems.map((bi, idx) => (
                     <p key={idx} className="text-xs text-gray-500 italic">
                       {bi.quantity > 1 && `${bi.quantity}× `}
@@ -365,7 +406,13 @@ export function OrderSummaryCard({
               (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
               0
             ) || 0;
-          const itemTotal = (basePrice + supplementsTotal) * displayQuantity;
+          const unitPrice = basePrice + supplementsTotal;
+
+          // Check if some quantity is free via buy_x_get_y
+          const freeInfo = freeItemsMap.get(item.menuItem.id);
+          const freeQty = freeInfo ? Math.min(freeInfo.freeQty, displayQuantity) : 0;
+          const paidQty = displayQuantity - freeQty;
+          const itemTotal = unitPrice * paidQty;
 
           // Only show non-default options
           const meaningfulOptions = item.selectedOptions?.filter(
@@ -405,12 +452,44 @@ export function OrderSummaryCard({
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 text-sm">{item.menuItem.name}</p>
                 {optionsText && <p className="text-xs text-gray-400 truncate">{optionsText}</p>}
+                {freeQty > 0 && (
+                  <p className="text-xs text-emerald-600 font-medium">{freeInfo!.offerName}</p>
+                )}
               </div>
 
               {/* Price */}
-              <p className="font-semibold text-gray-900 text-sm tabular-nums">
-                {formatPrice(itemTotal)}
-              </p>
+              <div className="text-right flex-shrink-0">
+                {freeQty > 0 && freeQty >= displayQuantity ? (
+                  /* All items are free */
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-gray-400 line-through tabular-nums">
+                      {formatPrice(unitPrice * displayQuantity)}
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                      Offert
+                    </span>
+                  </div>
+                ) : freeQty > 0 ? (
+                  /* Some items free, some paid */
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm tabular-nums">
+                      {formatPrice(itemTotal)}
+                    </p>
+                    <div className="flex items-center gap-1 justify-end">
+                      <span className="text-xs text-gray-400 line-through tabular-nums">
+                        {formatPrice(unitPrice * freeQty)}
+                      </span>
+                      <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded-full">
+                        Offert
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
+                    {formatPrice(itemTotal)}
+                  </p>
+                )}
+              </div>
 
               {/* Remove button - always visible on mobile, hover on desktop */}
               <button
@@ -431,12 +510,12 @@ export function OrderSummaryCard({
         {/* Subtotal */}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Sous-total</span>
-          <span className="text-gray-700 tabular-nums">{formatPrice(total)}</span>
+          <span className="text-gray-700 tabular-nums">{formatPrice(visualSubtotal)}</span>
         </div>
 
-        {/* Discounts (excluding bundles which are shown grouped above) */}
+        {/* Discounts (excluding bundles and buy_x_get_y shown inline) */}
         {appliedOffers
-          .filter((offer) => offer.offer_type !== 'bundle')
+          .filter((offer) => offer.offer_type !== 'bundle' && offer.offer_type !== 'buy_x_get_y')
           .map((offer) => (
             <div key={offer.offer_id} className="flex justify-between text-sm">
               <span className="text-emerald-600 truncate pr-2">
@@ -473,35 +552,43 @@ export function OrderSummaryCard({
           <div className="mt-3 pt-3 border-t border-gray-200">
             {/* Can redeem - checkbox */}
             {loyaltyInfo.can_redeem ? (
-              <label className="flex items-center justify-between cursor-pointer group">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={useLoyaltyReward}
-                      onChange={(e) => onToggleUseLoyaltyReward?.(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center">
-                      {useLoyaltyReward && (
-                        <svg
-                          className="w-3 h-3 text-white"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={3}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+              <div className="space-y-2">
+                <label className="flex items-center justify-between cursor-pointer group">
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={useLoyaltyReward}
+                        onChange={(e) => onToggleUseLoyaltyReward?.(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center">
+                        {useLoyaltyReward && (
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
+                    <span className="text-sm text-gray-700">Utiliser ma récompense</span>
                   </div>
-                  <span className="text-sm text-gray-700">Utiliser ma récompense</span>
-                </div>
-                <span className="text-sm font-semibold text-emerald-600">
-                  −{formatPrice(loyaltyInfo.max_discount)}
-                </span>
-              </label>
+                  <span className="text-sm font-semibold text-emerald-600">
+                    −{formatPrice(loyaltyInfo.max_discount)}
+                  </span>
+                </label>
+                {pointsToEarn > 0 && (
+                  <p className="text-xs text-gray-500 pl-7">
+                    Cette commande vous rapporte{' '}
+                    <span className="text-emerald-600 font-medium">+{pointsToEarn} pts</span>
+                  </p>
+                )}
+              </div>
             ) : (
               /* Progress display - minimal */
               <div className="space-y-2">
