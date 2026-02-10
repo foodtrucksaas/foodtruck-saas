@@ -203,7 +203,7 @@ serve(async (req) => {
 
     // 4c. Validate applied offers (new multi-offer system)
     const { totalDiscount: appliedOffersDiscount, error: appliedOffersError } =
-      await validateAppliedOffers(body.foodtruck_id, body.applied_offers, body.items);
+      await validateAppliedOffers(body.foodtruck_id, body.applied_offers, body.items, menuItems);
     if (appliedOffersError) return appliedOffersError;
 
     // 5. Validate total matches server calculation
