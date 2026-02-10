@@ -92,26 +92,37 @@ export default function BundleBuilder({
     return names.join(' / ') || `Choix ${index + 1}`;
   };
 
-  // Get size options for a category
-  const getSizeOptions = (categoryId: string | null) => {
-    if (!categoryId) return null;
+  // Get all required single-choice option groups for a category (size, base, etc.)
+  const getRequiredOptionGroups = (categoryId: string | null) => {
+    if (!categoryId) return [];
     const category = categories.find((c) => c.id === categoryId);
-    if (!category?.category_option_groups) return null;
+    if (!category?.category_option_groups) return [];
 
-    const sizeGroup = category.category_option_groups
-      .filter((g) => g.is_required && !g.is_multiple)
-      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0];
-
-    if (!sizeGroup?.category_options?.length) return null;
-    return {
-      group: sizeGroup,
-      options: sizeGroup.category_options.filter((o) => o.is_available !== false),
-    };
+    return category.category_option_groups
+      .filter((g) => g.is_required && !g.is_multiple && g.category_options?.length)
+      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+      .map((group) => ({
+        group,
+        options: (group.category_options || []).filter((o) => o.is_available !== false),
+      }));
   };
 
   // Current bundle category
   const currentBundleCat = bundleCategories[currentStep];
   const availableItems = currentBundleCat ? getItemsForCategory(currentBundleCat) : [];
+
+  // Track which item is being configured (partial selection within a step)
+  const [pendingItem, setPendingItem] = useState<{
+    item: MenuItem;
+    optionSelections: Record<string, { group: CategoryOptionGroup; option: CategoryOption }>;
+  } | null>(null);
+
+  // Reset pending item when step changes
+  const [prevStep, setPrevStep] = useState(currentStep);
+  if (prevStep !== currentStep) {
+    setPrevStep(currentStep);
+    setPendingItem(null);
+  }
 
   // Calculate total
   const supplementsTotal = useMemo(() => {
@@ -121,25 +132,24 @@ export default function BundleBuilder({
   const totalPrice = config.fixed_price + supplementsTotal;
   const allSelected = selections.every((s) => s !== null);
 
-  // Handle item selection
-  const handleSelectItem = (
+  // Finalize item selection with all options chosen
+  const finalizeSelection = (
     item: MenuItem,
-    sizeOption?: { group: CategoryOptionGroup; option: CategoryOption }
+    optionSelections: Record<string, { group: CategoryOptionGroup; option: CategoryOption }>
   ) => {
     const bundleCat = bundleCategories[currentStep];
-    const supplement = getSupplement(bundleCat, item.id, sizeOption?.option.id);
+    const entries = Object.values(optionSelections);
+    const sizeEntry = entries.find((e) => e.group.display_order === 0) || entries[0];
+    const supplement = getSupplement(bundleCat, item.id, sizeEntry?.option.id);
 
-    const selectedOptions: SelectedOption[] = [];
-    if (sizeOption) {
-      selectedOptions.push({
-        optionId: sizeOption.option.id,
-        optionGroupId: sizeOption.group.id,
-        name: sizeOption.option.name,
-        groupName: sizeOption.group.name,
-        priceModifier: sizeOption.option.price_modifier ?? 0,
-        isSizeOption: true,
-      });
-    }
+    const selectedOptions: SelectedOption[] = entries.map((e, idx) => ({
+      optionId: e.option.id,
+      optionGroupId: e.group.id,
+      name: e.option.name,
+      groupName: e.group.name,
+      priceModifier: e.option.price_modifier ?? 0,
+      isSizeOption: idx === 0, // First group is considered the size option
+    }));
 
     const newSelections = [...selections];
     newSelections[currentStep] = {
@@ -149,6 +159,46 @@ export default function BundleBuilder({
       supplement,
     };
     setSelections(newSelections);
+    setPendingItem(null);
+
+    // Auto-advance to next step
+    if (currentStep < bundleCategories.length - 1) {
+      setTimeout(() => setCurrentStep(currentStep + 1), 300);
+    }
+  };
+
+  // Handle option selection for an item
+  const handleSelectOption = (
+    item: MenuItem,
+    group: CategoryOptionGroup,
+    option: CategoryOption,
+    requiredGroups: { group: CategoryOptionGroup; options: CategoryOption[] }[]
+  ) => {
+    const current = pendingItem?.item.id === item.id ? pendingItem.optionSelections : {};
+    const updated = { ...current, [group.id]: { group, option } };
+
+    // Check if all required groups are now selected
+    if (Object.keys(updated).length >= requiredGroups.length) {
+      finalizeSelection(item, updated);
+    } else {
+      setPendingItem({ item, optionSelections: updated });
+    }
+  };
+
+  // Handle simple item selection (no option groups)
+  const handleSelectItem = (item: MenuItem) => {
+    const bundleCat = bundleCategories[currentStep];
+    const supplement = getSupplement(bundleCat, item.id);
+
+    const newSelections = [...selections];
+    newSelections[currentStep] = {
+      categoryIndex: currentStep,
+      menuItem: item,
+      selectedOptions: [],
+      supplement,
+    };
+    setSelections(newSelections);
+    setPendingItem(null);
 
     // Auto-advance to next step
     if (currentStep < bundleCategories.length - 1) {
@@ -277,70 +327,100 @@ export default function BundleBuilder({
           <div className="space-y-2">
             {availableItems.map((item) => {
               const supplement = getSupplement(currentBundleCat, item.id);
-              const sizeOptions = getSizeOptions(item.category_id);
+              const requiredGroups = getRequiredOptionGroups(item.category_id);
               const isSelected = selections[currentStep]?.menuItem.id === item.id;
+              const isPending = pendingItem?.item.id === item.id;
 
-              // If item has size options, show them
-              if (sizeOptions && sizeOptions.options.length > 0) {
+              // If item has required option groups, show them
+              if (requiredGroups.length > 0) {
                 return (
                   <div key={item.id} className="border rounded-xl overflow-hidden">
                     <div className="px-4 py-3 bg-gray-50 font-medium text-gray-900">
                       {item.name}
                     </div>
-                    <div className="divide-y">
-                      {sizeOptions.options.map((sizeOpt) => {
-                        if (isSizeExcluded(currentBundleCat, item.id, sizeOpt.id)) {
-                          return (
-                            <div
-                              key={sizeOpt.id}
-                              className="px-4 py-3 flex items-center justify-between opacity-50"
-                            >
-                              <span className="text-gray-400 line-through">{sizeOpt.name}</span>
-                              <span className="text-xs text-gray-400">Non disponible</span>
-                            </div>
-                          );
-                        }
+                    {requiredGroups.map(({ group, options: groupOptions }) => {
+                      const pendingSelection =
+                        pendingItem?.item.id === item.id
+                          ? pendingItem.optionSelections[group.id]
+                          : undefined;
+                      const finalSelection = isSelected
+                        ? selections[currentStep]?.selectedOptions?.find(
+                            (o) => o.optionGroupId === group.id
+                          )
+                        : undefined;
 
-                        const sizeSupplement = getSupplement(currentBundleCat, item.id, sizeOpt.id);
-                        const isThisSelected =
-                          isSelected &&
-                          selections[currentStep]?.selectedOptions?.some(
-                            (o) => o.optionId === sizeOpt.id
-                          );
-
-                        return (
-                          <button
-                            key={sizeOpt.id}
-                            onClick={() =>
-                              handleSelectItem(item, { group: sizeOptions.group, option: sizeOpt })
-                            }
-                            className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors ${
-                              isThisSelected ? 'bg-primary-50' : ''
-                            }`}
-                          >
-                            <span className={isThisSelected ? 'text-primary-700 font-medium' : ''}>
-                              {sizeOpt.name}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {sizeSupplement > 0 && (
-                                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
-                                  +{formatPrice(sizeSupplement)}
-                                </span>
-                              )}
-                              {isThisSelected && <Check className="w-5 h-5 text-primary-600" />}
-                              {!isThisSelected && (
-                                <ChevronRight className="w-5 h-5 text-gray-300" />
-                              )}
+                      return (
+                        <div key={group.id}>
+                          {requiredGroups.length > 1 && (
+                            <div className="px-4 py-1.5 bg-gray-50 border-t">
+                              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
+                                {group.name}
+                              </span>
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          )}
+                          <div className="divide-y">
+                            {groupOptions.map((opt) => {
+                              if (isSizeExcluded(currentBundleCat, item.id, opt.id)) {
+                                return (
+                                  <div
+                                    key={opt.id}
+                                    className="px-4 py-3 flex items-center justify-between opacity-50"
+                                  >
+                                    <span className="text-gray-400 line-through">{opt.name}</span>
+                                    <span className="text-xs text-gray-400">Non disponible</span>
+                                  </div>
+                                );
+                              }
+
+                              const optSupplement = getSupplement(
+                                currentBundleCat,
+                                item.id,
+                                opt.id
+                              );
+                              const isOptSelected =
+                                pendingSelection?.option.id === opt.id ||
+                                finalSelection?.optionId === opt.id;
+
+                              return (
+                                <button
+                                  key={opt.id}
+                                  onClick={() =>
+                                    handleSelectOption(item, group, opt, requiredGroups)
+                                  }
+                                  className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                                    isOptSelected ? 'bg-primary-50' : ''
+                                  }`}
+                                >
+                                  <span
+                                    className={isOptSelected ? 'text-primary-700 font-medium' : ''}
+                                  >
+                                    {opt.name}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {optSupplement > 0 && (
+                                      <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
+                                        +{formatPrice(optSupplement)}
+                                      </span>
+                                    )}
+                                    {isOptSelected && (
+                                      <Check className="w-5 h-5 text-primary-600" />
+                                    )}
+                                    {!isOptSelected && !isPending && !isSelected && (
+                                      <ChevronRight className="w-5 h-5 text-gray-300" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               }
 
-              // Simple item without size options
+              // Simple item without option groups
               return (
                 <button
                   key={item.id}
