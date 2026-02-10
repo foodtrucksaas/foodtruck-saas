@@ -113,7 +113,9 @@ export default function BundleBuilder({
       .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
       .map((group) => ({
         group,
-        options: (group.category_options || []).filter((o) => o.is_available !== false),
+        options: (group.category_options || [])
+          .filter((o) => o.is_available !== false)
+          .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)),
       }));
   };
 
@@ -126,7 +128,9 @@ export default function BundleBuilder({
       .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
       .map((group) => ({
         group,
-        options: (group.category_options || []).filter((o) => o.is_available !== false),
+        options: (group.category_options || [])
+          .filter((o) => o.is_available !== false)
+          .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)),
       }));
   };
 
