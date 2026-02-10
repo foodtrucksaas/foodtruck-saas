@@ -202,8 +202,11 @@ serve(async (req) => {
     if (dealError) return dealError;
 
     // 4c. Validate applied offers (new multi-offer system)
-    const { totalDiscount: appliedOffersDiscount, error: appliedOffersError } =
-      await validateAppliedOffers(body.foodtruck_id, body.applied_offers, body.items, menuItems);
+    const {
+      totalDiscount: appliedOffersDiscount,
+      error: appliedOffersError,
+      validatedOffers,
+    } = await validateAppliedOffers(body.foodtruck_id, body.applied_offers, body.items, menuItems);
     if (appliedOffersError) return appliedOffersError;
 
     // 5. Validate total matches server calculation
@@ -230,12 +233,100 @@ serve(async (req) => {
       if (totalError) return totalError;
     }
 
+    // Annotate auto-detected bundle items with [OfferName] notes and adjust pricing
+    // so they display correctly grouped on the dashboard (same as manual BundleBuilder bundles)
+    let adjustedTotal = total;
+    if (body.applied_offers && body.applied_offers.length > 0 && validatedOffers) {
+      for (const appliedOffer of body.applied_offers) {
+        const offer = validatedOffers.get(appliedOffer.offer_id);
+        if (!offer || offer.offer_type !== 'bundle') continue;
+
+        const offerName = offer.name;
+        const fixedPrice = offer.config?.fixed_price;
+        if (!fixedPrice || !appliedOffer.items_consumed?.length) continue;
+
+        // Check if all consumed items have the same quantity (common case)
+        const quantities = appliedOffer.items_consumed.map((c: { quantity: number }) => c.quantity);
+        const allSameQty = quantities.every((q: number) => q === quantities[0]);
+
+        // Track which orderItems we've annotated for this bundle
+        let firstAnnotated = true;
+        let originalPriceSum = 0;
+
+        for (const consumed of appliedOffer.items_consumed) {
+          // Find a matching orderItem that doesn't already have bundle notes
+          const idx = orderItems.findIndex(
+            (oi: any) =>
+              oi.menu_item_id === consumed.menu_item_id &&
+              (!oi.notes || !oi.notes.match(/^\[.+\]$/))
+          );
+          if (idx === -1) continue;
+
+          const orderItem = orderItems[idx];
+
+          if (orderItem.quantity > consumed.quantity) {
+            // Split: create a new item for the consumed portion
+            const newItem = {
+              ...orderItem,
+              quantity: consumed.quantity,
+              notes: `[${offerName}]`,
+            };
+            orderItem.quantity -= consumed.quantity;
+
+            // Duplicate options for the new item
+            const existingOpts = itemOptions.find((o: any) => o.itemIndex === idx);
+            orderItems.push(newItem);
+            if (existingOpts) {
+              itemOptions.push({
+                itemIndex: orderItems.length - 1,
+                options: existingOpts.options,
+              });
+            }
+
+            originalPriceSum += newItem.unit_price * newItem.quantity;
+
+            // Set pricing for the new (bundle) item
+            if (allSameQty && firstAnnotated) {
+              newItem.unit_price = fixedPrice;
+              firstAnnotated = false;
+            } else if (allSameQty) {
+              newItem.unit_price = 0;
+            }
+          } else {
+            // Full consumption: annotate in place
+            originalPriceSum += orderItem.unit_price * orderItem.quantity;
+            orderItem.notes = `[${offerName}]`;
+
+            if (allSameQty && firstAnnotated) {
+              orderItem.unit_price = fixedPrice;
+              firstAnnotated = false;
+            } else if (allSameQty) {
+              orderItem.unit_price = 0;
+            }
+          }
+        }
+
+        // Adjust total and discount when prices were modified
+        if (allSameQty) {
+          const newPriceSum = fixedPrice * quantities[0]; // fixed_price * qty (one per application)
+          const priceDiff = originalPriceSum - newPriceSum;
+          if (priceDiff > 0) {
+            adjustedTotal -= priceDiff;
+            body.discount_amount = (body.discount_amount || 0) - priceDiff;
+            appliedOffer.discount_amount = 0;
+          }
+        }
+        // For non-uniform quantities (rare edge case), items keep individual prices
+        // and the discount shows separately in the dashboard - still correct
+      }
+    }
+
     // Auto-accept if auto_accept_orders is true OR if it's a manual order from dashboard (force_slot with service key)
     const status = foodtruck.auto_accept_orders || forceSlotAllowed ? 'confirmed' : 'pending';
     const { order, error: orderError } = await createOrder(
       body,
       orderItems,
-      total,
+      adjustedTotal,
       status,
       itemOptions
     );

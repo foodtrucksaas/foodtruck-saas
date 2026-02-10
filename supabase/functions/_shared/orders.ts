@@ -528,7 +528,7 @@ export async function validateAppliedOffers(
   appliedOffers: AppliedOfferRequest[] | undefined,
   items: OrderRequest['items'],
   menuItems: any[]
-): Promise<{ totalDiscount: number; error: Response | null }> {
+): Promise<{ totalDiscount: number; error: Response | null; validatedOffers?: Map<string, any> }> {
   // No offers applied - nothing to validate
   if (!appliedOffers || appliedOffers.length === 0) {
     return { totalDiscount: 0, error: null };
@@ -650,7 +650,7 @@ export async function validateAppliedOffers(
     };
   }
 
-  return { totalDiscount: totalOffersDiscount, error: null };
+  return { totalDiscount: totalOffersDiscount, error: null, validatedOffers: offerMap };
 }
 
 /**

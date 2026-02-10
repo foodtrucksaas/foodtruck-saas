@@ -386,19 +386,21 @@ export default function PendingOrdersModal({
                   <span>Sous-total</span>
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-                {offerUses.map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between text-sm text-warning-600"
-                  >
-                    <span className="truncate pr-2">
-                      {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
-                        ? `${u.free_item_name} offert`
-                        : u.offer?.name || 'Offre'}
-                    </span>
-                    <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
-                  </div>
-                ))}
+                {offerUses
+                  .filter((u) => u.discount_amount > 0)
+                  .map((u) => (
+                    <div
+                      key={u.id}
+                      className="flex items-center justify-between text-sm text-warning-600"
+                    >
+                      <span className="truncate pr-2">
+                        {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+                          ? `${u.free_item_name} offert`
+                          : u.offer?.name || 'Offre'}
+                      </span>
+                      <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
+                    </div>
+                  ))}
                 {loyaltyDiscount > 0 && (
                   <div className="flex items-center justify-between text-sm text-warning-600">
                     <span>Fidélité</span>
