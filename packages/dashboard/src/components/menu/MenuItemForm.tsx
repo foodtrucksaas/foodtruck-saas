@@ -94,7 +94,7 @@ export function MenuItemForm({
       isOpen={isOpen}
       onClose={onClose}
       title={editingItem ? 'Modifier le plat' : 'Nouveau plat'}
-      size="xl"
+      size="lg"
       footer={footerButtons}
     >
       <form id="menu-item-form" onSubmit={onSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">

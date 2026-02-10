@@ -123,7 +123,7 @@ export function Modal({
         aria-label={!title ? ariaLabel : undefined}
         className={`
           relative bg-white rounded-t-2xl sm:rounded-2xl w-full
-          max-h-[90vh] shadow-xl flex flex-col
+          max-h-[90vh] shadow-xl flex flex-col overflow-hidden
           animate-in fade-in slide-in-from-bottom-4 duration-200
           ${sizeClasses[size]}
         `}
