@@ -302,27 +302,11 @@ export function OrderSummaryCard({
             <div key={cartKey} className="bg-primary-50/30">
               {/* Bundle header */}
               <div className="flex items-center gap-3 px-4 py-3 group">
-                {/* Quantity stepper */}
-                <div className="flex items-center bg-white rounded-lg transition-all duration-200 hover:bg-gray-50">
-                  <button
-                    type="button"
-                    onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                    aria-label="Réduire la quantité"
-                  >
-                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
-                  </button>
-                  <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
+                {/* Quantity indicator - matching auto-bundle style */}
+                <div className="flex items-center justify-center bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] px-3 flex-shrink-0">
+                  <span className="text-sm font-semibold text-gray-900 tabular-nums">
                     {item.quantity}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                    aria-label="Augmenter la quantité"
-                  >
-                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-                  </button>
                 </div>
 
                 {/* Bundle info */}
@@ -367,7 +351,7 @@ export function OrderSummaryCard({
 
               {/* Expanded bundle details */}
               {isExpanded && (
-                <div className="pl-[88px] pr-4 pb-3 space-y-1">
+                <div className="pl-[72px] pr-4 pb-3 space-y-1">
                   {bundleInfo.selections.map((sel, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <p className="text-xs text-gray-500 italic">
