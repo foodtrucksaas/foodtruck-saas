@@ -167,7 +167,7 @@ export default function NewOrderPopup({
                     <div className="flex justify-between items-start">
                       <span className="font-semibold text-gray-900 text-sm">
                         {bundleCount > 1 ? `${bundleCount}× ` : ''}
-                        {bundleName}
+                        {bundleName.replace(/#\d+$/, '')}
                       </span>
                       <span className="text-gray-700 font-medium text-sm">
                         {formatPrice(bundleTotal)}

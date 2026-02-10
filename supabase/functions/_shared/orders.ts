@@ -738,6 +738,9 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
   const orderItems: any[] = [];
   const itemOptions: { itemIndex: number; options: SelectedOptionRequest[] }[] = [];
 
+  // Track bundle instances: each time bundle_fixed_price > 0, it's the first item of a new instance
+  const bundleInstanceCounters = new Map<string, number>();
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const menuItem = menuMap.get(item.menu_item_id);
@@ -748,6 +751,17 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
 
     // Handle bundle items specially
     if (item.bundle_id !== undefined) {
+      // Detect new bundle instance (bundle_fixed_price > 0 = first selection of an instance)
+      if (item.bundle_name && item.bundle_fixed_price && item.bundle_fixed_price > 0) {
+        bundleInstanceCounters.set(
+          item.bundle_name,
+          (bundleInstanceCounters.get(item.bundle_name) || 0) + 1
+        );
+      } else if (item.bundle_name && !bundleInstanceCounters.has(item.bundle_name)) {
+        // First item of a free bundle (fixed_price=0)
+        bundleInstanceCounters.set(item.bundle_name, 1);
+      }
+
       // For bundle items: use bundle_fixed_price (only on first item) + bundle_supplement
       unitPriceCentimes = (item.bundle_fixed_price || 0) + (item.bundle_supplement || 0);
 
@@ -791,12 +805,21 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
       unitPriceCentimes = menuItem.price;
     }
 
+    // Build notes with instance number for bundles (e.g., [Plat + Dessert = 12#1])
+    let notes: string | null = null;
+    if (item.bundle_name) {
+      const instance = bundleInstanceCounters.get(item.bundle_name) || 1;
+      notes = `[${item.bundle_name}#${instance}]`;
+    } else {
+      notes = item.notes || null;
+    }
+
     total += unitPriceCentimes * item.quantity;
     orderItems.push({
       menu_item_id: item.menu_item_id,
       quantity: item.quantity,
       unit_price: unitPriceCentimes,
-      notes: item.bundle_name ? `[${item.bundle_name}]` : item.notes || null,
+      notes,
     });
   }
 

@@ -233,7 +233,7 @@ serve(async (req) => {
       if (totalError) return totalError;
     }
 
-    // Annotate auto-detected bundle items with [OfferName] notes and adjust pricing
+    // Annotate auto-detected bundle items with [OfferName#N] notes and adjust pricing
     // so they display correctly grouped on the dashboard (same as manual BundleBuilder bundles)
     let adjustedTotal = total;
     if (body.applied_offers && body.applied_offers.length > 0 && validatedOffers) {
@@ -244,6 +244,17 @@ serve(async (req) => {
         const offerName = offer.name;
         const fixedPrice = offer.config?.fixed_price;
         if (!fixedPrice || !appliedOffer.items_consumed?.length) continue;
+
+        // Find next available instance number for this bundle name
+        let maxInstance = 0;
+        for (const oi of orderItems) {
+          const m = oi.notes?.match(/^\[(.+)#(\d+)\]$/);
+          if (m && m[1] === offerName) {
+            maxInstance = Math.max(maxInstance, parseInt(m[2]));
+          }
+        }
+        const instanceNum = maxInstance + 1;
+        const bundleTag = `[${offerName}#${instanceNum}]`;
 
         // Check if all consumed items have the same quantity (common case)
         const quantities = appliedOffer.items_consumed.map((c: { quantity: number }) => c.quantity);
@@ -269,7 +280,7 @@ serve(async (req) => {
             const newItem = {
               ...orderItem,
               quantity: consumed.quantity,
-              notes: `[${offerName}]`,
+              notes: bundleTag,
             };
             orderItem.quantity -= consumed.quantity;
 
@@ -295,7 +306,7 @@ serve(async (req) => {
           } else {
             // Full consumption: annotate in place
             originalPriceSum += orderItem.unit_price * orderItem.quantity;
-            orderItem.notes = `[${offerName}]`;
+            orderItem.notes = bundleTag;
 
             if (allSameQty && firstAnnotated) {
               orderItem.unit_price = fixedPrice;
