@@ -9,11 +9,17 @@ interface OfferUse {
   id: string;
   discount_amount: number;
   free_item_name: string | null;
-  offer: { name: string; offer_type: string } | null;
+  offer: {
+    name: string;
+    offer_type: string;
+    config: Record<string, unknown>;
+    offer_items: Array<{ menu_item_id: string; role: string; quantity: number }>;
+  } | null;
 }
 
 type OrderWithOffers = OrderWithItemsAndOptions & {
   offer_uses?: OfferUse[];
+  offer_discount?: number;
 };
 
 export default function OrderStatus() {
@@ -47,7 +53,7 @@ export default function OrderStatus() {
             ),
             offer_uses (
               id, discount_amount, free_item_name,
-              offer:offers (name, offer_type)
+              offer:offers (name, offer_type, config, offer_items (menu_item_id, role, quantity))
             )
           `
           )
@@ -104,39 +110,124 @@ export default function OrderStatus() {
 
   // Parse offer_uses into structured data (hooks must be before early returns)
   const offerUses = useMemo(() => order?.offer_uses || [], [order?.offer_uses]);
+  const orderItems = order?.order_items || [];
 
-  const bundleOffers = useMemo(() => {
-    const bundles: { name: string; discount: number }[] = [];
-    const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
-    if (bundleUses.length === 0) return bundles;
+  // Group items into: manual bundles, auto bundles, free items, independent
+  const { manualBundleGroups, autoBundleGroups, freeItemIds, independentItems, promoOffers } =
+    useMemo(() => {
+      // 1. Manual bundles: identified by notes field "[BundleName]"
+      const manualGroups: {
+        name: string;
+        items: typeof orderItems;
+        totalPrice: number;
+      }[] = [];
+      const manualBundleItemIds = new Set<string>();
 
-    const byOffer = new Map<string, { name: string; totalDiscount: number }>();
-    for (const u of bundleUses) {
-      const name = u.offer?.name || 'Formule';
-      const existing = byOffer.get(name);
-      if (existing) {
-        existing.totalDiscount += u.discount_amount || 0;
-      } else {
-        byOffer.set(name, { name, totalDiscount: u.discount_amount || 0 });
+      const bundleMap = new Map<string, { items: typeof orderItems; totalPrice: number }>();
+
+      for (const item of orderItems) {
+        const match = item.notes?.match(/^\[(.+)\]$/);
+        if (match) {
+          const bundleName = match[1];
+          manualBundleItemIds.add(item.id);
+          const existing = bundleMap.get(bundleName);
+          if (existing) {
+            existing.items.push(item);
+            existing.totalPrice += item.unit_price * item.quantity;
+          } else {
+            bundleMap.set(bundleName, {
+              items: [item],
+              totalPrice: item.unit_price * item.quantity,
+            });
+          }
+        }
       }
-    }
 
-    for (const [, bundle] of byOffer) {
-      bundles.push({ name: bundle.name, discount: bundle.totalDiscount });
-    }
-    return bundles;
-  }, [offerUses]);
-
-  // Free items from buy_x_get_y offers
-  const freeItemNames = useMemo(() => {
-    const names = new Set<string>();
-    for (const u of offerUses) {
-      if (u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name) {
-        names.add(u.free_item_name);
+      for (const [name, data] of bundleMap) {
+        manualGroups.push({ name, ...data });
       }
-    }
-    return names;
-  }, [offerUses]);
+
+      // 2. Auto-detected bundles from offer_uses (offer_type = 'bundle')
+      const autoGroups: {
+        name: string;
+        discount: number;
+        fixedPrice: number;
+        items: Array<{ name: string; quantity: number; originalPrice: number }>;
+      }[] = [];
+      const autoBundleItemIds = new Set<string>();
+
+      const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
+      for (const use of bundleUses) {
+        if (!use.offer) continue;
+        const bundleMenuItemIds = new Set(
+          (use.offer.offer_items || []).map((oi) => oi.menu_item_id)
+        );
+        const config = use.offer.config as { fixed_price?: number };
+        const bundleItems: (typeof autoGroups)[0]['items'] = [];
+
+        // Match order items to this bundle (not yet claimed)
+        for (const menuItemId of bundleMenuItemIds) {
+          const match = orderItems.find(
+            (item) =>
+              item.menu_item_id === menuItemId &&
+              !manualBundleItemIds.has(item.id) &&
+              !autoBundleItemIds.has(item.id)
+          );
+          if (match) {
+            autoBundleItemIds.add(match.id);
+            bundleItems.push({
+              name: match.menu_item.name,
+              quantity: match.quantity,
+              originalPrice: match.menu_item.price,
+            });
+          }
+        }
+
+        autoGroups.push({
+          name: use.offer.name,
+          discount: use.discount_amount,
+          fixedPrice: config?.fixed_price || 0,
+          items: bundleItems,
+        });
+      }
+
+      // 3. Free items from buy_x_get_y
+      const freeIds = new Set<string>();
+      const buyXgetYUses = offerUses.filter(
+        (u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+      );
+      for (const use of buyXgetYUses) {
+        const match = orderItems.find(
+          (item) =>
+            item.menu_item.name === use.free_item_name &&
+            item.unit_price === 0 &&
+            !manualBundleItemIds.has(item.id) &&
+            !autoBundleItemIds.has(item.id) &&
+            !freeIds.has(item.id)
+        );
+        if (match) {
+          freeIds.add(match.id);
+        }
+      }
+
+      // 4. Remaining independent items
+      const independent = orderItems.filter(
+        (item) => !manualBundleItemIds.has(item.id) && !autoBundleItemIds.has(item.id)
+      );
+
+      // 5. Promo/threshold offers (for discount lines)
+      const promos = offerUses.filter(
+        (u) => u.offer?.offer_type !== 'bundle' && u.offer?.offer_type !== 'buy_x_get_y'
+      );
+
+      return {
+        manualBundleGroups: manualGroups,
+        autoBundleGroups: autoGroups,
+        freeItemIds: freeIds,
+        independentItems: independent,
+        promoOffers: promos,
+      };
+    }, [orderItems, offerUses]);
 
   if (loading) {
     return (
@@ -174,16 +265,13 @@ export default function OrderStatus() {
 
   // Discount breakdown
   const offerDiscountTotal = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
-  const totalDiscount = order.discount_amount || 0;
-  const loyaltyDiscount = Math.max(0, totalDiscount - offerDiscountTotal);
-  const promoOffers = offerUses.filter(
-    (u) => u.offer?.offer_type !== 'bundle' && u.offer?.offer_type !== 'buy_x_get_y'
-  );
+  const totalDiscount = (order.discount_amount || 0) + (order.offer_discount || 0);
+  const loyaltyDiscount = Math.max(0, (order.discount_amount || 0) - offerDiscountTotal);
   const subtotal = order.order_items.reduce(
     (sum, item) => sum + item.unit_price * item.quantity,
     0
   );
-  const hasDiscounts = totalDiscount > 0;
+  const hasDiscounts = totalDiscount > 0 || loyaltyDiscount > 0 || promoOffers.length > 0;
 
   return (
     <main className="min-h-screen pb-8">
@@ -294,59 +382,97 @@ export default function OrderStatus() {
           <h2 id="order-details-heading" className="font-semibold text-gray-900 mb-3">
             Details de la commande
           </h2>
-          <div className="space-y-2">
-            {/* Bundle offers */}
-            {bundleOffers.map((bundle, idx) => (
-              <div key={`bundle-${idx}`} className="bg-primary-50/30 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                  <span className="font-medium text-gray-900 text-sm">{bundle.name}</span>
+          <div className="space-y-3">
+            {/* Manual bundles (BundleBuilder) */}
+            {manualBundleGroups.map((bundle, idx) => (
+              <div key={`manual-bundle-${idx}`} className="bg-primary-50/30 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                    <span className="font-medium text-gray-900 text-sm">{bundle.name}</span>
+                  </div>
+                  <span className="font-semibold text-sm tabular-nums">
+                    {formatPrice(bundle.totalPrice)}
+                  </span>
                 </div>
-                {bundle.discount > 0 && (
-                  <p className="text-xs text-emerald-600 font-medium pl-6">
-                    Économie : {formatPrice(bundle.discount)}
-                  </p>
-                )}
+                <div className="pl-6 space-y-0.5">
+                  {bundle.items.map((item) => (
+                    <p key={item.id} className="text-xs text-gray-500">
+                      {item.quantity > 1 && `${item.quantity}× `}
+                      {item.menu_item.name}
+                    </p>
+                  ))}
+                </div>
               </div>
             ))}
 
-            {/* Order items */}
-            <ul className="space-y-2" aria-label="Articles commandes">
-              {order.order_items.map((item) => {
-                const isFree = freeItemNames.has(item.menu_item.name) && item.unit_price === 0;
-                const options = item.order_item_options?.filter((o) => o.price_modifier !== 0);
-                return (
-                  <li key={item.id}>
-                    <div className="flex justify-between items-start">
-                      <div className="min-w-0">
-                        <span className="text-gray-600 text-sm">
-                          {item.quantity}x {item.menu_item.name}
-                        </span>
-                        {options && options.length > 0 && (
-                          <p className="text-xs text-gray-400">
-                            {options.map((o) => o.option_name).join(', ')}
-                          </p>
+            {/* Auto-detected bundles */}
+            {autoBundleGroups.map((bundle, idx) => (
+              <div key={`auto-bundle-${idx}`} className="bg-primary-50/30 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                    <span className="font-medium text-gray-900 text-sm">{bundle.name}</span>
+                  </div>
+                  <span className="font-semibold text-sm tabular-nums">
+                    {formatPrice(bundle.fixedPrice)}
+                  </span>
+                </div>
+                <div className="pl-6 space-y-0.5">
+                  {bundle.items.map((bi, biIdx) => (
+                    <p key={biIdx} className="text-xs text-gray-500">
+                      {bi.quantity > 1 && `${bi.quantity}× `}
+                      {bi.name}
+                    </p>
+                  ))}
+                  {bundle.discount > 0 && (
+                    <p className="text-xs text-emerald-600 font-medium pt-0.5">
+                      Économie : {formatPrice(bundle.discount)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Independent items (including free items) */}
+            {independentItems.length > 0 && (
+              <ul className="space-y-2" aria-label="Articles commandes">
+                {independentItems.map((item) => {
+                  const isFree = freeItemIds.has(item.id);
+                  const options = item.order_item_options?.filter((o) => o.price_modifier !== 0);
+                  return (
+                    <li key={item.id}>
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0">
+                          <span className="text-gray-600 text-sm">
+                            {item.quantity}x {item.menu_item.name}
+                          </span>
+                          {options && options.length > 0 && (
+                            <p className="text-xs text-gray-400">
+                              {options.map((o) => o.option_name).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        {isFree ? (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-sm text-gray-400 line-through tabular-nums">
+                              {formatPrice(item.menu_item.price * item.quantity)}
+                            </span>
+                            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                              Offert
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-medium text-sm tabular-nums flex-shrink-0">
+                            {formatPrice(item.unit_price * item.quantity)}
+                          </span>
                         )}
                       </div>
-                      {isFree ? (
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <span className="text-sm text-gray-400 line-through tabular-nums">
-                            {formatPrice(item.menu_item.price * item.quantity)}
-                          </span>
-                          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                            Offert
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-medium text-sm tabular-nums flex-shrink-0">
-                          {formatPrice(item.unit_price * item.quantity)}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {/* Totals */}
@@ -383,7 +509,7 @@ export default function OrderStatus() {
                 {formatPrice(order.total_amount)}
               </span>
             </div>
-            {hasDiscounts && (
+            {totalDiscount > 0 && (
               <p className="text-xs text-emerald-600 font-medium text-right">
                 {formatPrice(totalDiscount)} économisés
               </p>
