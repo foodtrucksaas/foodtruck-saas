@@ -207,6 +207,17 @@ export function OrderSummaryCard({
     }
   };
 
+  // Add another instance of an auto-detected bundle (duplicate consumed items)
+  const handleAddAutoBundle = (offer: AppliedOfferDetail) => {
+    const items = getItemsForBundle(offer);
+    for (const bi of items) {
+      if (bi.cartItem) {
+        const key = getCartKey(bi.cartItem.menuItem.id, bi.cartItem.selectedOptions);
+        onUpdateQuantity(key, bi.cartItem.quantity + bi.quantity);
+      }
+    }
+  };
+
   // Loyalty calculations - use finalTotal (actual amount to pay) for points
   const currentPoints = loyaltyInfo?.loyalty_points || 0;
   // Ensure threshold is never 0 to prevent division by zero
@@ -265,8 +276,8 @@ export function OrderSummaryCard({
                   </span>
                   <button
                     type="button"
-                    disabled
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300"
+                    onClick={() => handleAddAutoBundle(offer)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                     aria-label="Augmenter la quantité"
                   >
                     <Plus className="w-3.5 h-3.5" strokeWidth={2} />
@@ -312,28 +323,29 @@ export function OrderSummaryCard({
               {/* Expanded bundle details */}
               {isExpanded && (
                 <div className="pl-[72px] pr-4 pb-3 space-y-1">
-                  {bundleItems.map((bi, idx) => (
-                    <div key={idx}>
-                      <p className="text-xs text-gray-500 italic">
-                        {bi.quantity > 1 && `${bi.quantity}× `}
-                        {bi.name}
-                      </p>
-                      {bi.cartItem?.selectedOptions && bi.cartItem.selectedOptions.length > 0 && (
-                        <p className="text-[11px] text-gray-400 pl-2">
-                          {bi.cartItem.selectedOptions
+                  {bundleItems.map((bi, idx) => {
+                    const optStr =
+                      bi.cartItem?.selectedOptions && bi.cartItem.selectedOptions.length > 0
+                        ? bi.cartItem.selectedOptions
                             .map((o) => {
-                              // Don't show price modifier for size options in bundles
                               const mod =
                                 !o.isSizeOption && o.priceModifier > 0
                                   ? ` (+${formatPrice(o.priceModifier)})`
                                   : '';
                               return `${o.name}${mod}`;
                             })
-                            .join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                            .join(', ')
+                        : '';
+                    return (
+                      <p key={idx} className="text-xs text-gray-500">
+                        <span className="italic">
+                          {bi.quantity > 1 && `${bi.quantity}× `}
+                          {bi.name}
+                        </span>
+                        {optStr && <span className="text-gray-400"> ({optStr})</span>}
+                      </p>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -429,19 +441,10 @@ export function OrderSummaryCard({
               {/* Expanded bundle details */}
               {isExpanded && (
                 <div className="pl-[72px] pr-4 pb-3 space-y-1">
-                  {bundleInfo.selections.map((sel, idx) => (
-                    <div key={idx}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500 italic">{sel.menuItem.name}</p>
-                        {sel.supplement > 0 && (
-                          <span className="text-xs text-amber-600">
-                            +{formatPrice(sel.supplement)}
-                          </span>
-                        )}
-                      </div>
-                      {sel.selectedOptions && sel.selectedOptions.length > 0 && (
-                        <p className="text-[11px] text-gray-400 pl-2">
-                          {sel.selectedOptions
+                  {bundleInfo.selections.map((sel, idx) => {
+                    const optStr =
+                      sel.selectedOptions && sel.selectedOptions.length > 0
+                        ? sel.selectedOptions
                             .map((o) => {
                               const mod =
                                 !o.isSizeOption && o.priceModifier > 0
@@ -449,11 +452,20 @@ export function OrderSummaryCard({
                                   : '';
                               return `${o.name}${mod}`;
                             })
-                            .join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                            .join(', ')
+                        : '';
+                    return (
+                      <p key={idx} className="text-xs text-gray-500">
+                        <span className="italic">{sel.menuItem.name}</span>
+                        {optStr && <span className="text-gray-400"> ({optStr})</span>}
+                        {sel.supplement > 0 && (
+                          <span className="text-amber-600 ml-1">
+                            +{formatPrice(sel.supplement)}
+                          </span>
+                        )}
+                      </p>
+                    );
+                  })}
                 </div>
               )}
             </div>
