@@ -515,25 +515,19 @@ export default function OrderStatus() {
                   </span>
                 </div>
                 <div className="pl-6 space-y-0.5">
-                  {bundle.items.map((item) => (
-                    <div key={item.id}>
-                      <p className="text-xs text-gray-500">
+                  {bundle.items.map((item) => {
+                    const optionStr =
+                      item.order_item_options && item.order_item_options.length > 0
+                        ? ` (${item.order_item_options.map((o) => o.option_name).join(', ')})`
+                        : '';
+                    return (
+                      <p key={item.id} className="text-xs text-gray-500">
                         {item.quantity > 1 && `${item.quantity}× `}
                         {item.menu_item.name}
+                        {optionStr}
                       </p>
-                      {item.order_item_options && item.order_item_options.length > 0 && (
-                        <p className="text-[11px] text-gray-400 pl-2">
-                          {item.order_item_options
-                            .map((o) => {
-                              const mod =
-                                o.price_modifier > 0 ? ` (+${formatPrice(o.price_modifier)})` : '';
-                              return `${o.option_name}${mod}`;
-                            })
-                            .join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
