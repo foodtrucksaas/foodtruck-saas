@@ -483,7 +483,10 @@ export function OrderSummaryCard({
 
           const optionsText = item.selectedOptions
             ?.map((opt) => {
-              const mod = opt.priceModifier > 0 ? ` (+${formatPrice(opt.priceModifier)})` : '';
+              const mod =
+                !opt.isSizeOption && opt.priceModifier > 0
+                  ? ` (+${formatPrice(opt.priceModifier)})`
+                  : '';
               return `${opt.name}${mod}`;
             })
             .join(', ');
@@ -573,8 +576,8 @@ export function OrderSummaryCard({
         })}
       </div>
 
-      {/* Totals */}
-      <div className="bg-gray-50 px-4 py-3 space-y-2">
+      {/* Totals - pr-[72px] aligns prices with item prices (accounting for X button + gap) */}
+      <div className="bg-gray-50 pl-4 pr-[72px] py-3 space-y-2">
         {/* Subtotal */}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Sous-total</span>
