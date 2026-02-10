@@ -13,6 +13,9 @@ if (CLIENT_URL) ALLOWED_ORIGINS.push(CLIENT_URL);
 
 // Pattern for allowed wildcard subdomains (foodtruck slugs)
 const ALLOWED_SUBDOMAIN_PATTERN = /^https:\/\/[a-z0-9-]+\.onmange\.app$/;
+// Pattern for Vercel preview deployments
+const VERCEL_PREVIEW_PATTERN =
+  /^https:\/\/foodtruck-saas-[a-z0-9]+-foodtrucksaas-projects\.vercel\.app$/;
 
 function isAllowedOrigin(origin: string): boolean {
   // Check exact match first
@@ -22,6 +25,10 @@ function isAllowedOrigin(origin: string): boolean {
   // Check wildcard subdomain pattern for *.onmange.app
   // SECURITY: Only allows https and valid slug characters (lowercase, numbers, hyphens)
   if (ALLOWED_SUBDOMAIN_PATTERN.test(origin)) {
+    return true;
+  }
+  // Allow Vercel preview deployments for this project
+  if (VERCEL_PREVIEW_PATTERN.test(origin)) {
     return true;
   }
   return false;
