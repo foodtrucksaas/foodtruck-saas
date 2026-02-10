@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X, Check, ChevronRight, ChevronLeft, Package, Plus, Minus } from 'lucide-react';
-import { formatPrice } from '@foodtruck/shared';
+import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
 import type {
   Offer,
   MenuItem,
@@ -135,11 +135,24 @@ export default function BundleBuilder({
   const currentBundleCat = bundleCategories[currentStep];
   const availableItems = currentBundleCat ? getItemsForCategory(currentBundleCat) : [];
 
-  const supplementsTotal = useMemo(() => {
-    return selections.reduce((sum, sel) => sum + (sel?.supplement || 0), 0);
-  }, [selections]);
-
-  const totalPrice = config.fixed_price + supplementsTotal;
+  const {
+    unitPrice: totalPrice,
+    supplementsTotal,
+    optionsTotal,
+  } = useMemo(
+    () =>
+      calculateBundlePrice({
+        fixedPrice: config.fixed_price,
+        freeOptions: config.free_options || false,
+        selections: selections
+          .filter((s): s is Selection => s !== null)
+          .map((s) => ({
+            supplement: s.supplement,
+            selectedOptions: s.selectedOptions,
+          })),
+      }),
+    [selections, config.fixed_price, config.free_options]
+  );
   const allSelected = selections.every((s) => s !== null);
 
   // Current sub-step phase
@@ -163,13 +176,13 @@ export default function BundleBuilder({
     const sizeEntry = entries.find((e) => e.group.display_order === 0) || entries[0];
     const supplement = getSupplement(bundleCat, item.id, sizeEntry?.option.id);
 
-    const selectedOptions: SelectedOption[] = entries.map((e, idx) => ({
+    const selectedOptions: SelectedOption[] = entries.map((e) => ({
       optionId: e.option.id,
       optionGroupId: e.group.id,
       name: e.option.name,
       groupName: e.group.name,
       priceModifier: e.option.price_modifier ?? 0,
-      isSizeOption: idx === 0,
+      isSizeOption: false,
     }));
 
     // Add supplement selections
@@ -609,7 +622,8 @@ export default function BundleBuilder({
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">
                   {formatPrice(config.fixed_price)}
-                  {supplementsTotal > 0 && ` + ${formatPrice(supplementsTotal)}`}
+                  {supplementsTotal + optionsTotal > 0 &&
+                    ` + ${formatPrice(supplementsTotal + optionsTotal)}`}
                 </span>
                 <span className="font-bold text-gray-900">= {formatPrice(totalPrice)}</span>
               </div>

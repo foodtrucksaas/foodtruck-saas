@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Minus, Plus, X, Tag, Check, Loader2, Package, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatPrice } from '@foodtruck/shared';
+import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
 import type {
   CartItem,
   AppliedOfferDetail,
@@ -356,23 +356,7 @@ export function OrderSummaryCard({
         {manualBundles.map((item) => {
           const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
           const bundleInfo = item.bundleInfo!;
-          const bundlePrice = bundleInfo.fixedPrice;
-          const supplementsTotal = bundleInfo.selections.reduce(
-            (sum, sel) => sum + sel.supplement,
-            0
-          );
-          let optionsTotal = 0;
-          if (!bundleInfo.freeOptions) {
-            bundleInfo.selections.forEach((sel) => {
-              const selOptionPrice =
-                sel.selectedOptions?.reduce(
-                  (optSum, opt) => optSum + (opt.isSizeOption ? 0 : opt.priceModifier),
-                  0
-                ) || 0;
-              optionsTotal += selOptionPrice;
-            });
-          }
-          const itemTotal = (bundlePrice + supplementsTotal + optionsTotal) * item.quantity;
+          const { total: itemTotal } = calculateBundlePrice(bundleInfo, item.quantity);
           const isExpanded = expandedBundles.has(cartKey);
 
           return (
