@@ -80,6 +80,12 @@ const config = {
       has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }],
       continue: true
     },
+    // Prevent caching of HTML files (ensures fresh index.html after deployments)
+    {
+      src: "/(?:client|dashboard)/(?:index\\.html|200\\.html)$",
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
+      continue: true
+    },
     // Cache hashed static assets (immutable - filename changes on content change)
     {
       src: "/(?:client|dashboard)/assets/.+\\.[a-f0-9]+\\.(js|css|woff2?|png|jpg|svg|webp)$",
