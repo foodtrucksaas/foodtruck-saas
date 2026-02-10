@@ -58,7 +58,7 @@ export default function OrderStatus() {
               order_item_options (*)
             ),
             offer_uses (
-              id, discount_amount, free_item_name,
+              id, offer_id, discount_amount, free_item_name,
               offer:offers (name, offer_type, config, offer_items (menu_item_id, role, quantity))
             )
           `
@@ -159,7 +159,26 @@ export default function OrderStatus() {
       manualGroups.push({ name, ...data });
     }
 
-    // 2. Auto-detected bundles from offer_uses (offer_type = 'bundle')
+    // 2. Free items from buy_x_get_y (detect BEFORE bundles so they aren't claimed)
+    const freeIds = new Set<string>();
+    const freeOfferNames = new Map<string, string>(); // itemId -> offer name
+    const buyXgetYUses = offerUses.filter(
+      (u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+    );
+    for (const use of buyXgetYUses) {
+      const match = orderItems.find(
+        (item) =>
+          item.menu_item.name === use.free_item_name &&
+          !manualBundleItemIds.has(item.id) &&
+          !freeIds.has(item.id)
+      );
+      if (match) {
+        freeIds.add(match.id);
+        freeOfferNames.set(match.id, use.offer?.name || 'Offre');
+      }
+    }
+
+    // 3. Auto-detected bundles from offer_uses (offer_type = 'bundle')
     const autoGroups: {
       name: string;
       discount: number;
@@ -189,27 +208,75 @@ export default function OrderStatus() {
     for (const [, uses] of bundleUsesByOffer) {
       const firstUse = uses[0];
       if (!firstUse.offer) continue;
-      const bundleMenuItemIds = new Set(
-        (firstUse.offer.offer_items || []).map((oi) => oi.menu_item_id)
-      );
-      const config = firstUse.offer.config as { fixed_price?: number };
+      const config = firstUse.offer.config as {
+        fixed_price?: number;
+        bundle_categories?: Array<{
+          category_id?: string;
+          category_ids?: string[];
+          quantity?: number;
+        }>;
+      };
+      const numInstances = uses.length;
 
-      // Find ALL matching items for this bundle offer
+      // Use bundle_categories from config to match the right items per category
+      const bundleCats = config?.bundle_categories || [];
       const allMatchedItems: typeof orderItems = [];
-      for (const item of orderItems) {
-        if (
-          bundleMenuItemIds.has(item.menu_item_id) &&
-          !manualBundleItemIds.has(item.id) &&
-          !autoBundleItemIds.has(item.id)
-        ) {
-          autoBundleItemIds.add(item.id);
-          allMatchedItems.push(item);
+
+      if (bundleCats.length > 0) {
+        // Match items per category as the optimization algorithm does
+        for (const cat of bundleCats) {
+          // Support both single category_id and array category_ids
+          const catIds: string[] = [];
+          if (cat.category_id) catIds.push(cat.category_id);
+          if (cat.category_ids) catIds.push(...cat.category_ids);
+          const qtyPerInstance = cat.quantity || 1;
+          const totalNeeded = qtyPerInstance * numInstances;
+
+          // Find eligible items from this category, sorted by price desc (most expensive first)
+          const eligible = orderItems
+            .filter(
+              (item) =>
+                catIds.includes(item.menu_item?.category_id || '') &&
+                !manualBundleItemIds.has(item.id) &&
+                !freeIds.has(item.id) &&
+                !autoBundleItemIds.has(item.id)
+            )
+            .sort((a, b) => b.unit_price - a.unit_price);
+
+          // Expand items with qty > 1 into individual units
+          const expandedEligible: (typeof orderItems)[0][] = [];
+          for (const item of eligible) {
+            for (let q = 0; q < item.quantity; q++) {
+              expandedEligible.push({ ...item, quantity: 1 });
+            }
+          }
+
+          // Take only the needed amount
+          for (let j = 0; j < Math.min(expandedEligible.length, totalNeeded); j++) {
+            autoBundleItemIds.add(expandedEligible[j].id);
+            allMatchedItems.push(expandedEligible[j]);
+          }
+        }
+      } else {
+        // Fallback: use offer_items menu_item_ids (less precise)
+        const bundleMenuItemIds = new Set(
+          (firstUse.offer.offer_items || []).map((oi) => oi.menu_item_id)
+        );
+        for (const item of orderItems) {
+          if (
+            bundleMenuItemIds.has(item.menu_item_id) &&
+            !manualBundleItemIds.has(item.id) &&
+            !freeIds.has(item.id) &&
+            !autoBundleItemIds.has(item.id)
+          ) {
+            autoBundleItemIds.add(item.id);
+            allMatchedItems.push(item);
+          }
         }
       }
 
-      const numInstances = uses.length;
       if (numInstances <= 1) {
-        // Single instance - show as one group
+        // Single instance
         autoGroups.push({
           name: firstUse.offer.name,
           discount: firstUse.discount_amount,
@@ -222,18 +289,9 @@ export default function OrderStatus() {
           })),
         });
       } else {
-        // Multiple instances - split items across bundles
-        // Expand items with qty > 1 into individual entries
-        const expandedItems: (typeof orderItems)[0][] = [];
-        for (const item of allMatchedItems) {
-          for (let q = 0; q < item.quantity; q++) {
-            expandedItems.push({ ...item, quantity: 1 });
-          }
-        }
-
-        // Group by category for balanced distribution
+        // Multiple instances - distribute items across bundles by category
         const byCategory = new Map<string, (typeof orderItems)[0][]>();
-        for (const item of expandedItems) {
+        for (const item of allMatchedItems) {
           const cat = item.menu_item?.category_id || 'unknown';
           if (!byCategory.has(cat)) byCategory.set(cat, []);
           byCategory.get(cat)!.push(item);
@@ -243,12 +301,10 @@ export default function OrderStatus() {
         for (let i = 0; i < numInstances; i++) {
           let instanceItems: (typeof orderItems)[0][];
           if (categoryGroups.length > 1) {
-            // Multi-category: take one from each per instance
             instanceItems = categoryGroups.map((group) => group[i]).filter(Boolean);
           } else {
-            // Single category: split evenly
-            const perInstance = Math.ceil(expandedItems.length / numInstances);
-            instanceItems = expandedItems.slice(i * perInstance, (i + 1) * perInstance);
+            const perInstance = Math.ceil(allMatchedItems.length / numInstances);
+            instanceItems = allMatchedItems.slice(i * perInstance, (i + 1) * perInstance);
           }
 
           autoGroups.push({
@@ -263,26 +319,6 @@ export default function OrderStatus() {
             })),
           });
         }
-      }
-    }
-
-    // 3. Free items from buy_x_get_y (stored at full price, discount tracked separately)
-    const freeIds = new Set<string>();
-    const freeOfferNames = new Map<string, string>(); // itemId -> offer name
-    const buyXgetYUses = offerUses.filter(
-      (u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
-    );
-    for (const use of buyXgetYUses) {
-      const match = orderItems.find(
-        (item) =>
-          item.menu_item.name === use.free_item_name &&
-          !manualBundleItemIds.has(item.id) &&
-          !autoBundleItemIds.has(item.id) &&
-          !freeIds.has(item.id)
-      );
-      if (match) {
-        freeIds.add(match.id);
-        freeOfferNames.set(match.id, use.offer?.name || 'Offre');
       }
     }
 
