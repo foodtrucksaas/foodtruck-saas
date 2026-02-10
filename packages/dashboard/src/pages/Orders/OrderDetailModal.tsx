@@ -219,13 +219,7 @@ export function OrderDetailModal({
                       const agg: { name: string; options: string; qty: number }[] = [];
                       bundleItems.forEach((item) => {
                         const opts =
-                          item.order_item_options
-                            ?.map((o) => {
-                              const mod =
-                                o.price_modifier > 0 ? ` (+${formatPrice(o.price_modifier)})` : '';
-                              return `${o.option_name}${mod}`;
-                            })
-                            .join(', ') || '';
+                          item.order_item_options?.map((o) => o.option_name).join(', ') || '';
                         const key = `${item.menu_item.name}|${opts}`;
                         const existing = agg.find((a) => `${a.name}|${a.options}` === key);
                         if (existing) {
