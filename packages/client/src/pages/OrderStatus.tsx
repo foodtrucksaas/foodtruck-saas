@@ -1,14 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Package } from 'lucide-react';
 import { formatPrice, formatDateTime, formatOrderId } from '@foodtruck/shared';
-import type { OrderWithItems } from '@foodtruck/shared';
+import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
+
+interface OfferUse {
+  id: string;
+  discount_amount: number;
+  free_item_name: string | null;
+  offer: { name: string; offer_type: string } | null;
+}
+
+type OrderWithOffers = OrderWithItemsAndOptions & {
+  offer_uses?: OfferUse[];
+};
 
 export default function OrderStatus() {
   const { orderId } = useParams<{ orderId: string }>();
   const [searchParams] = useSearchParams();
-  const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [order, setOrder] = useState<OrderWithOffers | null>(null);
   const [loading, setLoading] = useState(true);
 
   const success = searchParams.get('success');
@@ -31,7 +42,12 @@ export default function OrderStatus() {
             *,
             order_items (
               *,
-              menu_item:menu_items (*)
+              menu_item:menu_items (*),
+              order_item_options (*)
+            ),
+            offer_uses (
+              id, discount_amount, free_item_name,
+              offer:offers (name, offer_type)
             )
           `
           )
@@ -42,7 +58,7 @@ export default function OrderStatus() {
           if (error) {
             console.error('Error fetching order:', error);
           } else {
-            setOrder(data as OrderWithItems);
+            setOrder(data as unknown as OrderWithOffers);
           }
           setLoading(false);
         }
@@ -86,6 +102,42 @@ export default function OrderStatus() {
     };
   }, [orderId]);
 
+  // Parse offer_uses into structured data (hooks must be before early returns)
+  const offerUses = useMemo(() => order?.offer_uses || [], [order?.offer_uses]);
+
+  const bundleOffers = useMemo(() => {
+    const bundles: { name: string; discount: number }[] = [];
+    const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
+    if (bundleUses.length === 0) return bundles;
+
+    const byOffer = new Map<string, { name: string; totalDiscount: number }>();
+    for (const u of bundleUses) {
+      const name = u.offer?.name || 'Formule';
+      const existing = byOffer.get(name);
+      if (existing) {
+        existing.totalDiscount += u.discount_amount || 0;
+      } else {
+        byOffer.set(name, { name, totalDiscount: u.discount_amount || 0 });
+      }
+    }
+
+    for (const [, bundle] of byOffer) {
+      bundles.push({ name: bundle.name, discount: bundle.totalDiscount });
+    }
+    return bundles;
+  }, [offerUses]);
+
+  // Free items from buy_x_get_y offers
+  const freeItemNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const u of offerUses) {
+      if (u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name) {
+        names.add(u.free_item_name);
+      }
+    }
+    return names;
+  }, [offerUses]);
+
   if (loading) {
     return (
       <div
@@ -119,6 +171,19 @@ export default function OrderStatus() {
   const isCancelled = order.status === 'cancelled';
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
+
+  // Discount breakdown
+  const offerDiscountTotal = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+  const totalDiscount = order.discount_amount || 0;
+  const loyaltyDiscount = Math.max(0, totalDiscount - offerDiscountTotal);
+  const promoOffers = offerUses.filter(
+    (u) => u.offer?.offer_type !== 'bundle' && u.offer?.offer_type !== 'buy_x_get_y'
+  );
+  const subtotal = order.order_items.reduce(
+    (sum, item) => sum + item.unit_price * item.quantity,
+    0
+  );
+  const hasDiscounts = totalDiscount > 0;
 
   return (
     <main className="min-h-screen pb-8">
@@ -229,19 +294,100 @@ export default function OrderStatus() {
           <h2 id="order-details-heading" className="font-semibold text-gray-900 mb-3">
             Details de la commande
           </h2>
-          <ul className="space-y-3" aria-label="Articles commandes">
-            {order.order_items.map((item) => (
-              <li key={item.id} className="flex justify-between">
-                <span className="text-gray-600">
-                  {item.quantity}x {item.menu_item.name}
-                </span>
-                <span className="font-medium">{formatPrice(item.unit_price * item.quantity)}</span>
-              </li>
+          <div className="space-y-2">
+            {/* Bundle offers */}
+            {bundleOffers.map((bundle, idx) => (
+              <div key={`bundle-${idx}`} className="bg-primary-50/30 rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                  <span className="font-medium text-gray-900 text-sm">{bundle.name}</span>
+                </div>
+                {bundle.discount > 0 && (
+                  <p className="text-xs text-emerald-600 font-medium pl-6">
+                    Économie : {formatPrice(bundle.discount)}
+                  </p>
+                )}
+              </div>
             ))}
-          </ul>
-          <div className="border-t border-gray-100 pt-3 mt-3 flex justify-between">
-            <span className="font-semibold text-gray-900">Total</span>
-            <span className="font-bold text-primary-600">{formatPrice(order.total_amount)}</span>
+
+            {/* Order items */}
+            <ul className="space-y-2" aria-label="Articles commandes">
+              {order.order_items.map((item) => {
+                const isFree = freeItemNames.has(item.menu_item.name) && item.unit_price === 0;
+                const options = item.order_item_options?.filter((o) => o.price_modifier !== 0);
+                return (
+                  <li key={item.id}>
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0">
+                        <span className="text-gray-600 text-sm">
+                          {item.quantity}x {item.menu_item.name}
+                        </span>
+                        {options && options.length > 0 && (
+                          <p className="text-xs text-gray-400">
+                            {options.map((o) => o.option_name).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      {isFree ? (
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="text-sm text-gray-400 line-through tabular-nums">
+                            {formatPrice(item.menu_item.price * item.quantity)}
+                          </span>
+                          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                            Offert
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-medium text-sm tabular-nums flex-shrink-0">
+                          {formatPrice(item.unit_price * item.quantity)}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Totals */}
+          <div className="border-t border-gray-100 pt-3 mt-3 space-y-1.5">
+            {hasDiscounts && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Sous-total</span>
+                  <span className="text-gray-500 tabular-nums">{formatPrice(subtotal)}</span>
+                </div>
+                {promoOffers.map((u) => (
+                  <div key={u.id} className="flex justify-between text-sm">
+                    <span className="text-emerald-600">{u.offer?.name || 'Promo'}</span>
+                    <span className="text-emerald-600 font-medium tabular-nums">
+                      −{formatPrice(u.discount_amount)}
+                    </span>
+                  </div>
+                ))}
+                {loyaltyDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-emerald-600">Fidélité</span>
+                    <span className="text-emerald-600 font-medium tabular-nums">
+                      −{formatPrice(loyaltyDiscount)}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+            <div
+              className={`flex justify-between ${hasDiscounts ? 'pt-1.5 border-t border-gray-100' : ''}`}
+            >
+              <span className="font-semibold text-gray-900">Total</span>
+              <span className="font-bold text-primary-600 tabular-nums">
+                {formatPrice(order.total_amount)}
+              </span>
+            </div>
+            {hasDiscounts && (
+              <p className="text-xs text-emerald-600 font-medium text-right">
+                {formatPrice(totalDiscount)} économisés
+              </p>
+            )}
           </div>
         </section>
 
