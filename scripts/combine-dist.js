@@ -80,8 +80,19 @@ const config = {
       has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }],
       continue: true
     },
+    // Cache hashed static assets (immutable - filename changes on content change)
+    {
+      src: "/(?:client|dashboard)/assets/.+\\.[a-f0-9]+\\.(js|css|woff2?|png|jpg|svg|webp)$",
+      headers: { "Cache-Control": "public, max-age=31536000, immutable" },
+      continue: true
+    },
     // Handle filesystem (static files) first
     { handle: "filesystem" },
+    // Return 404 for missing static assets (don't serve index.html as JS/CSS)
+    {
+      src: "/(?:client|dashboard)/assets/.*\\.(?:js|css|map|woff2?|png|jpg|svg|webp|ico)$",
+      status: 404
+    },
     // Dashboard SPA fallback for pro.onmange.app
     {
       src: "/(.*)",

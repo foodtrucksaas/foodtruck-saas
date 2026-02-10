@@ -33,6 +33,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     console.error('ErrorBoundary caught an error:', error);
     console.error('Component stack:', errorInfo.componentStack);
 
+    // Auto-reload on chunk load failures (stale cache after deployment)
+    const isChunkError =
+      error.message.includes('Failed to fetch dynamically imported module') ||
+      error.message.includes('Loading chunk') ||
+      error.message.includes('Loading CSS chunk') ||
+      error.name === 'ChunkLoadError';
+
+    if (isChunkError) {
+      const lastReload = sessionStorage.getItem('chunk-error-reload');
+      const now = Date.now();
+      // Only auto-reload once per minute to avoid infinite loops
+      if (!lastReload || now - Number(lastReload) > 60000) {
+        sessionStorage.setItem('chunk-error-reload', String(now));
+        window.location.reload();
+        return;
+      }
+    }
+
     // If Sentry is available, report the error
     if (
       typeof window !== 'undefined' &&
