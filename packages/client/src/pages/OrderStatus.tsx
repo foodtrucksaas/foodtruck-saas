@@ -158,7 +158,16 @@ export default function OrderStatus() {
       name: string;
       discount: number;
       fixedPrice: number;
-      items: Array<{ name: string; quantity: number; originalPrice: number }>;
+      items: Array<{
+        name: string;
+        quantity: number;
+        originalPrice: number;
+        order_item_options?: Array<{
+          option_name: string;
+          option_group_name: string;
+          price_modifier: number;
+        }>;
+      }>;
     }[] = [];
     const autoBundleItemIds = new Set<string>();
 
@@ -183,6 +192,7 @@ export default function OrderStatus() {
             name: match.menu_item.name,
             quantity: match.quantity,
             originalPrice: match.menu_item.price,
+            order_item_options: match.order_item_options,
           });
         }
       }
@@ -418,10 +428,23 @@ export default function OrderStatus() {
                 </div>
                 <div className="pl-6 space-y-0.5">
                   {bundle.items.map((item) => (
-                    <p key={item.id} className="text-xs text-gray-500">
-                      {item.quantity > 1 && `${item.quantity}× `}
-                      {item.menu_item.name}
-                    </p>
+                    <div key={item.id}>
+                      <p className="text-xs text-gray-500">
+                        {item.quantity > 1 && `${item.quantity}× `}
+                        {item.menu_item.name}
+                      </p>
+                      {item.order_item_options && item.order_item_options.length > 0 && (
+                        <p className="text-[11px] text-gray-400 pl-2">
+                          {item.order_item_options
+                            .map((o) => {
+                              const mod =
+                                o.price_modifier > 0 ? ` (+${formatPrice(o.price_modifier)})` : '';
+                              return `${o.option_name}${mod}`;
+                            })
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -441,10 +464,23 @@ export default function OrderStatus() {
                 </div>
                 <div className="pl-6 space-y-0.5">
                   {bundle.items.map((bi, biIdx) => (
-                    <p key={biIdx} className="text-xs text-gray-500">
-                      {bi.quantity > 1 && `${bi.quantity}× `}
-                      {bi.name}
-                    </p>
+                    <div key={biIdx}>
+                      <p className="text-xs text-gray-500">
+                        {bi.quantity > 1 && `${bi.quantity}× `}
+                        {bi.name}
+                      </p>
+                      {bi.order_item_options && bi.order_item_options.length > 0 && (
+                        <p className="text-[11px] text-gray-400 pl-2">
+                          {bi.order_item_options
+                            .map((o) => {
+                              const mod =
+                                o.price_modifier > 0 ? ` (+${formatPrice(o.price_modifier)})` : '';
+                              return `${o.option_name}${mod}`;
+                            })
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
                   ))}
                   {bundle.discount > 0 && (
                     <p className="text-xs text-emerald-600 font-medium pt-0.5">
@@ -461,7 +497,7 @@ export default function OrderStatus() {
                 {independentItems.map((item) => {
                   const isFree = freeItemIds.has(item.id);
                   const offerName = freeOfferNames.get(item.id);
-                  const options = item.order_item_options?.filter((o) => o.price_modifier !== 0);
+                  const options = item.order_item_options;
                   return (
                     <li key={item.id}>
                       <div className="flex justify-between items-start">
@@ -471,7 +507,15 @@ export default function OrderStatus() {
                           </span>
                           {options && options.length > 0 && (
                             <p className="text-xs text-gray-400">
-                              {options.map((o) => o.option_name).join(', ')}
+                              {options
+                                .map((o) => {
+                                  const mod =
+                                    o.price_modifier > 0
+                                      ? ` (+${formatPrice(o.price_modifier)})`
+                                      : '';
+                                  return `${o.option_name}${mod}`;
+                                })
+                                .join(', ')}
                             </p>
                           )}
                           {isFree && offerName && (

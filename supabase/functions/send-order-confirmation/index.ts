@@ -100,32 +100,67 @@ serve(async (req) => {
       return errorResponse('Foodtruck not found', 404);
     }
 
-    // Build items HTML with options
-    const items = (order.order_items as OrderItem[])
-      .filter((item) => item.menu_item) // Skip items without menu_item
+    // Build items HTML with options, grouping bundles
+    const orderItems = (order.order_items as OrderItem[]).filter((item) => item.menu_item);
+
+    // Separate manual bundles from solo items
+    const bundleMap = new Map<string, OrderItem[]>();
+    const soloItems: OrderItem[] = [];
+    for (const item of orderItems) {
+      const match = item.notes?.match(/^\[(.+)\]$/);
+      if (match) {
+        const bundleName = match[1];
+        if (!bundleMap.has(bundleName)) bundleMap.set(bundleName, []);
+        bundleMap.get(bundleName)!.push(item);
+      } else {
+        soloItems.push(item);
+      }
+    }
+
+    // Helper to build options HTML for an item
+    const buildOptionsHtml = (item: OrderItem) => {
+      if (!item.order_item_options || item.order_item_options.length === 0) return '';
+      const optionsList = item.order_item_options
+        .map((opt) => {
+          const modifier =
+            opt.price_modifier > 0 ? ` (+${(opt.price_modifier / 100).toFixed(2)}€)` : '';
+          return `${escapeHtml(opt.option_name)}${modifier}`;
+        })
+        .join(', ');
+      return `<div style="font-size:13px;color:#6b7280;margin-top:2px;padding-left:20px">${optionsList}</div>`;
+    };
+
+    // Build bundle HTML
+    const bundleHtml = Array.from(bundleMap.entries())
+      .map(([bundleName, bundleItems]) => {
+        const bundleTotal = bundleItems.reduce(
+          (sum, i) => sum + (i.unit_price * i.quantity) / 100,
+          0
+        );
+        const itemsDetail = bundleItems
+          .map((item) => {
+            const opts = buildOptionsHtml(item);
+            return `<div style="font-size:13px;color:#6b7280;padding-left:20px;margin-top:2px">${item.quantity > 1 ? `${item.quantity}× ` : ''}${escapeHtml(item.menu_item.name)}${opts ? `<br/>${opts.replace('padding-left:20px', 'padding-left:30px')}` : ''}</div>`;
+          })
+          .join('');
+        return `
+          <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+              <tr>
+                <td style="text-align:left;font-weight:600">${escapeHtml(bundleName)}</td>
+                <td style="text-align:right;font-weight:500;white-space:nowrap">${bundleTotal.toFixed(2)}€</td>
+              </tr>
+            </table>
+            ${itemsDetail}
+          </div>`;
+      })
+      .join('');
+
+    // Build solo items HTML
+    const soloHtml = soloItems
       .map((item) => {
         const itemTotal = (item.unit_price * item.quantity) / 100;
-
-        // Build options list
-        let optionsHtml = '';
-        if (item.order_item_options && item.order_item_options.length > 0) {
-          const optionsList = item.order_item_options
-            .map((opt) => {
-              const modifier =
-                opt.price_modifier !== 0
-                  ? ` (${opt.price_modifier > 0 ? '+' : ''}${(opt.price_modifier / 100).toFixed(2)}€)`
-                  : '';
-              return `${escapeHtml(opt.option_name)}${modifier}`;
-            })
-            .join(', ');
-          optionsHtml = `<div style="font-size:13px;color:#6b7280;margin-top:2px;padding-left:20px">${optionsList}</div>`;
-        }
-
-        // Add item notes if present
-        let notesHtml = '';
-        if (item.notes) {
-          notesHtml = `<div style="font-size:12px;color:#9ca3af;font-style:italic;margin-top:2px;padding-left:20px">Note : ${escapeHtml(item.notes)}</div>`;
-        }
+        const optionsHtml = buildOptionsHtml(item);
 
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
@@ -138,10 +173,11 @@ serve(async (req) => {
               </tr>
             </table>
             ${optionsHtml}
-            ${notesHtml}
           </div>`;
       })
       .join('');
+
+    const items = bundleHtml + soloHtml;
 
     const total = (order.total_amount / 100).toFixed(2);
 

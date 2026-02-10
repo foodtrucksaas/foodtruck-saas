@@ -173,6 +173,21 @@ export function OrderSummaryCard({
   const offerTotalDiscount = appliedOffers.reduce((sum, o) => sum + o.discount_amount, 0);
   const visualSubtotal = total - offerTotalDiscount;
 
+  // Remove all constituent items of an auto-detected bundle
+  const handleRemoveAutoBundle = (offer: AppliedOfferDetail) => {
+    const items = getItemsForBundle(offer);
+    for (const bi of items) {
+      if (bi.cartItem) {
+        const key = getCartKey(bi.cartItem.menuItem.id, bi.cartItem.selectedOptions);
+        if (bi.cartItem.quantity <= bi.quantity) {
+          onRemoveItem(key);
+        } else {
+          onUpdateQuantity(key, bi.cartItem.quantity - bi.quantity);
+        }
+      }
+    }
+  };
+
   // Loyalty calculations - use finalTotal (actual amount to pay) for points
   const currentPoints = loyaltyInfo?.loyalty_points || 0;
   // Ensure threshold is never 0 to prevent division by zero
@@ -214,9 +229,9 @@ export function OrderSummaryCard({
 
           return (
             <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
-              {/* Bundle header - same layout as manual bundles */}
-              <div className="flex items-center gap-3 px-4 py-3">
-                {/* Quantity indicator - matching stepper position */}
+              {/* Bundle header */}
+              <div className="flex items-center gap-3 px-4 py-3 group">
+                {/* Quantity indicator */}
                 <div className="flex items-center justify-center bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] px-3 flex-shrink-0">
                   <span className="text-sm font-semibold text-gray-900 tabular-nums">
                     {offer.times_applied}
@@ -232,39 +247,54 @@ export function OrderSummaryCard({
                   <div className="flex items-center gap-2">
                     <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
+                    {isExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 truncate">
                     {bundleItems.map((bi) => bi.name).join(' + ')}
                   </p>
                 </button>
 
-                {/* Price and expand */}
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
-                    {formatPrice(discountedTotal * offer.times_applied)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => toggleBundleExpand(offer.offer_id)}
-                    className="p-1"
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
+                {/* Price */}
+                <p className="font-semibold text-gray-900 text-sm tabular-nums flex-shrink-0">
+                  {formatPrice(discountedTotal * offer.times_applied)}
+                </p>
+
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAutoBundle(offer)}
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                  aria-label="Supprimer"
+                >
+                  <X className="w-4 h-4" strokeWidth={2.5} />
+                </button>
               </div>
 
               {/* Expanded bundle details */}
               {isExpanded && (
                 <div className="pl-[72px] pr-4 pb-3 space-y-1">
                   {bundleItems.map((bi, idx) => (
-                    <p key={idx} className="text-xs text-gray-500 italic">
-                      {bi.quantity > 1 && `${bi.quantity}× `}
-                      {bi.name}
-                    </p>
+                    <div key={idx}>
+                      <p className="text-xs text-gray-500 italic">
+                        {bi.quantity > 1 && `${bi.quantity}× `}
+                        {bi.name}
+                      </p>
+                      {bi.cartItem?.selectedOptions && bi.cartItem.selectedOptions.length > 0 && (
+                        <p className="text-[11px] text-gray-400 pl-2">
+                          {bi.cartItem.selectedOptions
+                            .map((o) => {
+                              const mod =
+                                o.priceModifier > 0 ? ` (+${formatPrice(o.priceModifier)})` : '';
+                              return `${o.name}${mod}`;
+                            })
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
                   ))}
                   <p className="text-xs text-emerald-600 font-medium pt-1">
                     Économie: {formatPrice(offer.discount_amount)}
@@ -302,11 +332,27 @@ export function OrderSummaryCard({
             <div key={cartKey} className="bg-primary-50/30">
               {/* Bundle header */}
               <div className="flex items-center gap-3 px-4 py-3 group">
-                {/* Quantity indicator - matching auto-bundle style */}
-                <div className="flex items-center justify-center bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] px-3 flex-shrink-0">
-                  <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                {/* Quantity stepper */}
+                <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Réduire la quantité"
+                  >
+                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
                     {item.quantity}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Augmenter la quantité"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
                 </div>
 
                 {/* Bundle info */}
@@ -316,27 +362,23 @@ export function OrderSummaryCard({
                   className="flex-1 min-w-0 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-primary-600" />
+                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{bundleInfo.bundleName}</p>
+                    {isExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 truncate">
                     {bundleInfo.selections.map((s) => s.menuItem.name).join(' + ')}
                   </p>
                 </button>
 
-                {/* Price and expand */}
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
-                    {formatPrice(itemTotal)}
-                  </p>
-                  <button type="button" onClick={() => toggleBundleExpand(cartKey)} className="p-1">
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
+                {/* Price */}
+                <p className="font-semibold text-gray-900 text-sm tabular-nums flex-shrink-0">
+                  {formatPrice(itemTotal)}
+                </p>
 
                 {/* Remove button */}
                 <button
@@ -353,17 +395,25 @@ export function OrderSummaryCard({
               {isExpanded && (
                 <div className="pl-[72px] pr-4 pb-3 space-y-1">
                   {bundleInfo.selections.map((sel, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500 italic">
-                        {sel.menuItem.name}
-                        {sel.selectedOptions
-                          ?.filter((o) => o.isSizeOption)
-                          .map((o) => ` (${o.name})`)}
-                      </p>
-                      {sel.supplement > 0 && (
-                        <span className="text-xs text-amber-600">
-                          +{formatPrice(sel.supplement)}
-                        </span>
+                    <div key={idx}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500 italic">{sel.menuItem.name}</p>
+                        {sel.supplement > 0 && (
+                          <span className="text-xs text-amber-600">
+                            +{formatPrice(sel.supplement)}
+                          </span>
+                        )}
+                      </div>
+                      {sel.selectedOptions && sel.selectedOptions.length > 0 && (
+                        <p className="text-[11px] text-gray-400 pl-2">
+                          {sel.selectedOptions
+                            .map((o) => {
+                              const mod =
+                                o.priceModifier > 0 ? ` (+${formatPrice(o.priceModifier)})` : '';
+                              return `${o.name}${mod}`;
+                            })
+                            .join(', ')}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -398,11 +448,12 @@ export function OrderSummaryCard({
           const paidQty = displayQuantity - freeQty;
           const itemTotal = unitPrice * paidQty;
 
-          // Only show non-default options
-          const meaningfulOptions = item.selectedOptions?.filter(
-            (opt) => opt.priceModifier !== 0 || opt.isSizeOption
-          );
-          const optionsText = meaningfulOptions?.map((opt) => opt.name).join(', ');
+          const optionsText = item.selectedOptions
+            ?.map((opt) => {
+              const mod = opt.priceModifier > 0 ? ` (+${formatPrice(opt.priceModifier)})` : '';
+              return `${opt.name}${mod}`;
+            })
+            .join(', ');
 
           return (
             <div
