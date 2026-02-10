@@ -74,6 +74,10 @@ export function useOrders() {
             id, quantity, unit_price, notes,
             menu_item:menu_items (id, name, price),
             order_item_options (id, option_name, option_group_name, price_modifier)
+          ),
+          offer_uses (
+            id, discount_amount, free_item_name,
+            offer:offers (name, offer_type)
           )
         `
         )

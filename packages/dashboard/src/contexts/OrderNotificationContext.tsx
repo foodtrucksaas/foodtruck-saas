@@ -193,7 +193,9 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
       const { data, error } = await supabase
         .from('orders')
-        .select('*, order_items (*, menu_item:menu_items (*), order_item_options (*))')
+        .select(
+          '*, order_items (*, menu_item:menu_items (*), order_item_options (*)), offer_uses (id, discount_amount, free_item_name, offer:offers (name, offer_type))'
+        )
         .eq('foodtruck_id', foodtruckId)
         .eq('status', 'pending')
         .neq('customer_email', 'surplace@local')

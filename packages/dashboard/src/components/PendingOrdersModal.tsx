@@ -103,29 +103,20 @@ export default function PendingOrdersModal({
   // Extract discount info
   const orderWithDiscounts = order as OrderWithItemsAndOptions & {
     discount_amount?: number;
-    deal_discount?: number;
-    deal_id?: string;
-    promo_code_id?: string;
     offer_discount?: number;
+    offer_uses?: Array<{
+      id: string;
+      discount_amount: number;
+      free_item_name: string | null;
+      offer: { name: string; offer_type: string } | null;
+    }>;
   };
   const discountAmount = orderWithDiscounts.discount_amount || 0;
-  const dealDiscount = orderWithDiscounts.deal_discount || 0;
-  const offerDiscount = orderWithDiscounts.offer_discount || 0;
-  const hasPromoCode = !!orderWithDiscounts.promo_code_id;
-  const hasDeal = !!orderWithDiscounts.deal_id || dealDiscount > 0;
-  const hasOffer = offerDiscount > 0;
+  const offerUses = orderWithDiscounts.offer_uses || [];
 
-  // Determine discount label
-  const getDiscountLabel = () => {
-    const labels: string[] = [];
-    if (hasPromoCode) labels.push('Code promo');
-    if (hasDeal || hasOffer) labels.push('Offre');
-    const knownDiscount = dealDiscount + offerDiscount + (hasPromoCode ? discountAmount : 0);
-    if (discountAmount > knownDiscount) labels.push('Fidélité');
-
-    if (labels.length === 0) return 'Réduction';
-    return labels.join(' + ');
-  };
+  // Calculate loyalty discount (total minus all tracked offer discounts)
+  const trackedOfferDiscount = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+  const loyaltyDiscount = Math.max(0, discountAmount - trackedOfferDiscount);
 
   const goNext = () => {
     if (safeIndex < orders.length - 1) {
@@ -368,10 +359,25 @@ export default function PendingOrdersModal({
                   <span>Sous-total</span>
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-warning-600">
-                  <span>{getDiscountLabel()}</span>
-                  <span>-{formatPrice(discountAmount)}</span>
-                </div>
+                {offerUses.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between text-sm text-warning-600"
+                  >
+                    <span className="truncate pr-2">
+                      {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+                        ? `${u.free_item_name} offert`
+                        : u.offer?.name || 'Offre'}
+                    </span>
+                    <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
+                  </div>
+                ))}
+                {loyaltyDiscount > 0 && (
+                  <div className="flex items-center justify-between text-sm text-warning-600">
+                    <span>Fidélité</span>
+                    <span>-{formatPrice(loyaltyDiscount)}</span>
+                  </div>
+                )}
               </>
             )}
             <div className="flex items-center justify-between">

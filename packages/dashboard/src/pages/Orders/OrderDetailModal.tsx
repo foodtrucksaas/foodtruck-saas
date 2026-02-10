@@ -273,10 +273,56 @@ export function OrderDetailModal({
           )}
 
           {/* Total */}
-          <div className="border-t pt-3 flex justify-between items-center">
-            <span className="font-medium text-gray-600">Total</span>
-            <span className="text-2xl font-bold">{formatPrice(order.total_amount)}</span>
-          </div>
+          {(() => {
+            const od = order as OrderWithItemsAndOptions & {
+              discount_amount?: number;
+              offer_uses?: Array<{
+                id: string;
+                discount_amount: number;
+                free_item_name: string | null;
+                offer: { name: string; offer_type: string } | null;
+              }>;
+            };
+            const disc = od.discount_amount || 0;
+            const uses = od.offer_uses || [];
+            const tracked = uses.reduce((s, u) => s + (u.discount_amount || 0), 0);
+            const loyalty = Math.max(0, disc - tracked);
+            return (
+              <div className="border-t pt-3 space-y-1">
+                {disc > 0 && (
+                  <>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Sous-total</span>
+                      <span>{formatPrice(order.total_amount + disc)}</span>
+                    </div>
+                    {uses.map((u) => (
+                      <div
+                        key={u.id}
+                        className="flex items-center justify-between text-sm text-warning-600"
+                      >
+                        <span className="truncate pr-2">
+                          {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+                            ? `${u.free_item_name} offert`
+                            : u.offer?.name || 'Offre'}
+                        </span>
+                        <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
+                      </div>
+                    ))}
+                    {loyalty > 0 && (
+                      <div className="flex items-center justify-between text-sm text-warning-600">
+                        <span>Fidélité</span>
+                        <span>-{formatPrice(loyalty)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-600">Total</span>
+                  <span className="text-2xl font-bold">{formatPrice(order.total_amount)}</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Actions - with safe area for iPhone home indicator */}
