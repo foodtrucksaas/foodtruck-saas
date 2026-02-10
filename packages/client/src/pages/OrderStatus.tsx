@@ -575,18 +575,18 @@ export default function OrderStatus() {
                   const isFree = freeItemIds.has(item.id);
                   const offerName = freeOfferNames.get(item.id);
                   const options = item.order_item_options;
+                  const optionStr =
+                    options && options.length > 0
+                      ? ` (${options.map((o) => o.option_name).join(', ')})`
+                      : '';
                   return (
                     <li key={item.id}>
                       <div className="flex justify-between items-start">
                         <div className="min-w-0">
                           <span className="text-gray-600 text-sm">
                             {item.quantity}x {item.menu_item.name}
+                            <span className="text-gray-400">{optionStr}</span>
                           </span>
-                          {options && options.length > 0 && (
-                            <p className="text-xs text-gray-400">
-                              {options.map((o) => o.option_name).join(', ')}
-                            </p>
-                          )}
                           {isFree && offerName && (
                             <p className="text-xs text-emerald-600 font-medium">{offerName}</p>
                           )}
