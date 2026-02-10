@@ -124,13 +124,17 @@ export function Modal({
         className={`
           relative bg-white rounded-t-2xl sm:rounded-2xl w-full
           max-h-[90vh] shadow-xl flex flex-col overflow-hidden
-          animate-in fade-in slide-in-from-bottom-4 duration-200
+          animate-modal-in
           ${sizeClasses[size]}
         `}
+        style={{ maxHeight: '90vh' }}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
+          <div
+            className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100"
+            style={{ flexShrink: 0 }}
+          >
             {title && (
               <h2 id={generatedTitleId} className="text-lg font-bold text-gray-900">
                 {title}
@@ -150,11 +154,21 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain min-h-0">{children}</div>
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain min-h-0"
+          style={{ flex: '1 1 0%', overflowY: 'auto', minHeight: 0 }}
+        >
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-gray-50">{footer}</div>
+          <div
+            className="flex-shrink-0 p-4 border-t border-gray-100 bg-gray-50"
+            style={{ flexShrink: 0 }}
+          >
+            {footer}
+          </div>
         )}
       </div>
     </div>
