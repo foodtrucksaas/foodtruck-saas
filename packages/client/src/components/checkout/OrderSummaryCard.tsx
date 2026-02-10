@@ -250,11 +250,27 @@ export function OrderSummaryCard({
             <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
               {/* Bundle header */}
               <div className="flex items-center gap-3 px-4 py-3 group">
-                {/* Quantity indicator */}
-                <div className="flex items-center justify-center bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] px-3 flex-shrink-0">
-                  <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                {/* Quantity stepper */}
+                <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAutoBundle(offer)}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Réduire la quantité"
+                  >
+                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
                     {offer.times_applied}
                   </span>
+                  <button
+                    type="button"
+                    disabled
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300"
+                    aria-label="Augmenter la quantité"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
                 </div>
 
                 {/* Bundle info */}
@@ -306,8 +322,11 @@ export function OrderSummaryCard({
                         <p className="text-[11px] text-gray-400 pl-2">
                           {bi.cartItem.selectedOptions
                             .map((o) => {
+                              // Don't show price modifier for size options in bundles
                               const mod =
-                                o.priceModifier > 0 ? ` (+${formatPrice(o.priceModifier)})` : '';
+                                !o.isSizeOption && o.priceModifier > 0
+                                  ? ` (+${formatPrice(o.priceModifier)})`
+                                  : '';
                               return `${o.name}${mod}`;
                             })
                             .join(', ')}
@@ -315,9 +334,6 @@ export function OrderSummaryCard({
                       )}
                     </div>
                   ))}
-                  <p className="text-xs text-emerald-600 font-medium pt-1">
-                    Économie: {formatPrice(offer.discount_amount)}
-                  </p>
                 </div>
               )}
             </div>
@@ -428,7 +444,9 @@ export function OrderSummaryCard({
                           {sel.selectedOptions
                             .map((o) => {
                               const mod =
-                                o.priceModifier > 0 ? ` (+${formatPrice(o.priceModifier)})` : '';
+                                !o.isSizeOption && o.priceModifier > 0
+                                  ? ` (+${formatPrice(o.priceModifier)})`
+                                  : '';
                               return `${o.name}${mod}`;
                             })
                             .join(', ')}
