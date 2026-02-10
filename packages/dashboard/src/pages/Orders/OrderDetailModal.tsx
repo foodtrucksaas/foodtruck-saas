@@ -175,24 +175,92 @@ export function OrderDetailModal({
           <div>
             <h4 className="text-sm font-medium text-gray-500 mb-2">Articles</h4>
             <div className="space-y-2">
-              {order.order_items.map((item, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <div>
-                    <span className="font-medium">
-                      {item.quantity}x {item.menu_item.name}
-                    </span>
-                    {item.order_item_options && item.order_item_options.length > 0 && (
-                      <p className="text-xs text-gray-500">
-                        {item.order_item_options.map((opt) => opt.option_name).join(', ')}
-                      </p>
-                    )}
-                    {item.notes && <p className="text-xs text-amber-600 italic">💬 {item.notes}</p>}
-                  </div>
-                  <span className="text-gray-600">
-                    {formatPrice(item.unit_price * item.quantity)}
-                  </span>
-                </div>
-              ))}
+              {(() => {
+                const bMap = new Map<string, typeof order.order_items>();
+                const solo: typeof order.order_items = [];
+                order.order_items.forEach((item) => {
+                  const match = item.notes?.match(/^\[(.+)\]$/);
+                  if (match) {
+                    const name = match[1];
+                    if (!bMap.has(name)) bMap.set(name, []);
+                    bMap.get(name)!.push(item);
+                  } else {
+                    solo.push(item);
+                  }
+                });
+                return (
+                  <>
+                    {Array.from(bMap.entries()).map(([bundleName, bundleItems]) => {
+                      const bundleTotal = bundleItems.reduce(
+                        (sum, item) => sum + item.unit_price * item.quantity,
+                        0
+                      );
+                      const bundleCount = bundleItems.filter((i) => i.unit_price > 0).length || 1;
+                      const agg: { name: string; options: string; qty: number }[] = [];
+                      bundleItems.forEach((item) => {
+                        const opts =
+                          item.order_item_options?.map((o) => o.option_name).join(', ') || '';
+                        const key = `${item.menu_item.name}|${opts}`;
+                        const existing = agg.find((a) => `${a.name}|${a.options}` === key);
+                        if (existing) {
+                          existing.qty += item.quantity;
+                        } else {
+                          agg.push({
+                            name: item.menu_item.name,
+                            options: opts,
+                            qty: item.quantity,
+                          });
+                        }
+                      });
+
+                      return (
+                        <div key={bundleName} className="bg-gray-100 rounded-lg p-3">
+                          <div className="flex justify-between items-start">
+                            <span className="font-semibold text-gray-900 text-sm">
+                              {bundleCount > 1 ? `${bundleCount}× ` : ''}
+                              {bundleName}
+                            </span>
+                            <span className="text-gray-700 font-medium text-sm">
+                              {formatPrice(bundleTotal)}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {agg.map((a, i) => (
+                              <span key={i}>
+                                {i > 0 && ', '}
+                                {a.qty > 1 && `${a.qty}× `}
+                                {a.name}
+                                {a.options && ` (${a.options})`}
+                              </span>
+                            ))}
+                          </p>
+                        </div>
+                      );
+                    })}
+
+                    {solo.map((item, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <div>
+                          <span className="font-medium">
+                            {item.quantity}x {item.menu_item.name}
+                          </span>
+                          {item.order_item_options && item.order_item_options.length > 0 && (
+                            <p className="text-xs text-gray-500">
+                              {item.order_item_options.map((opt) => opt.option_name).join(', ')}
+                            </p>
+                          )}
+                          {item.notes && (
+                            <p className="text-xs text-gray-500 italic">{item.notes}</p>
+                          )}
+                        </div>
+                        <span className="text-gray-600">
+                          {formatPrice(item.unit_price * item.quantity)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </div>
 

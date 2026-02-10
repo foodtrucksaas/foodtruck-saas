@@ -75,6 +75,20 @@ export default function PendingOrdersModal({
 
   if (!order) return null;
 
+  // Group items: bundle items together, regular items separately
+  const bundleMap = new Map<string, typeof order.order_items>();
+  const standaloneItems: typeof order.order_items = [];
+  order.order_items.forEach((item) => {
+    const match = item.notes?.match(/^\[(.+)\]$/);
+    if (match) {
+      const name = match[1];
+      if (!bundleMap.has(name)) bundleMap.set(name, []);
+      bundleMap.get(name)!.push(item);
+    } else {
+      standaloneItems.push(item);
+    }
+  });
+
   // is_asap is part of Order type from database.types.ts
   const isAsap = (order as { is_asap?: boolean | null }).is_asap === true;
 
@@ -104,14 +118,13 @@ export default function PendingOrdersModal({
   // Determine discount label
   const getDiscountLabel = () => {
     const labels: string[] = [];
-    if (hasPromoCode) labels.push('code promo');
-    if (hasDeal) labels.push('offre');
-    if (hasOffer) labels.push('offre');
+    if (hasPromoCode) labels.push('Code promo');
+    if (hasDeal || hasOffer) labels.push('Offre');
     const knownDiscount = dealDiscount + offerDiscount + (hasPromoCode ? discountAmount : 0);
-    if (discountAmount > knownDiscount) labels.push('fidélité');
+    if (discountAmount > knownDiscount) labels.push('Fidélité');
 
     if (labels.length === 0) return 'Réduction';
-    return `Réduction (${[...new Set(labels)].join(' + ')})`;
+    return labels.join(' + ');
   };
 
   const goNext = () => {
@@ -272,7 +285,53 @@ export default function PendingOrdersModal({
           <div className="bg-gray-50 rounded-xl p-4 mb-4">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Articles commandés</h4>
             <div className="space-y-2">
-              {order.order_items.map((item, idx) => (
+              {/* Bundle groups */}
+              {Array.from(bundleMap.entries()).map(([bundleName, bundleItems]) => {
+                const bundleTotal = bundleItems.reduce(
+                  (sum, item) => sum + item.unit_price * item.quantity,
+                  0
+                );
+                const bundleCount = bundleItems.filter((i) => i.unit_price > 0).length || 1;
+                // Aggregate items by name + options for cleaner display
+                const agg: { name: string; options: string; qty: number }[] = [];
+                bundleItems.forEach((item) => {
+                  const opts = item.order_item_options?.map((o) => o.option_name).join(', ') || '';
+                  const key = `${item.menu_item.name}|${opts}`;
+                  const existing = agg.find((a) => `${a.name}|${a.options}` === key);
+                  if (existing) {
+                    existing.qty += item.quantity;
+                  } else {
+                    agg.push({ name: item.menu_item.name, options: opts, qty: item.quantity });
+                  }
+                });
+
+                return (
+                  <div key={bundleName} className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {bundleCount > 1 ? `${bundleCount}× ` : ''}
+                        {bundleName}
+                      </span>
+                      <span className="text-gray-700 font-medium text-sm">
+                        {formatPrice(bundleTotal)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {agg.map((a, i) => (
+                        <span key={i}>
+                          {i > 0 && ', '}
+                          {a.qty > 1 && `${a.qty}× `}
+                          {a.name}
+                          {a.options && ` (${a.options})`}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                );
+              })}
+
+              {/* Regular items */}
+              {standaloneItems.map((item, idx) => (
                 <div key={idx}>
                   <div className="flex justify-between">
                     <span className="text-gray-900">
@@ -287,9 +346,7 @@ export default function PendingOrdersModal({
                       {item.order_item_options.map((opt) => opt.option_name).join(', ')}
                     </div>
                   )}
-                  {item.notes && (
-                    <p className="ml-6 text-xs text-warning-600 italic">💬 {item.notes}</p>
-                  )}
+                  {item.notes && <p className="ml-6 text-xs text-gray-500 italic">{item.notes}</p>}
                 </div>
               ))}
             </div>
@@ -307,11 +364,11 @@ export default function PendingOrdersModal({
           <div className="py-3 border-t border-gray-200 space-y-1">
             {discountAmount > 0 && (
               <>
-                <div className="flex items-center justify-between text-gray-500">
+                <div className="flex items-center justify-between text-sm text-gray-500">
                   <span>Sous-total</span>
                   <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between text-success-600">
+                <div className="flex items-center justify-between text-sm text-warning-600">
                   <span>{getDiscountLabel()}</span>
                   <span>-{formatPrice(discountAmount)}</span>
                 </div>
