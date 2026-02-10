@@ -7,13 +7,19 @@ import { supabase } from '../lib/supabase';
 
 interface OfferUse {
   id: string;
+  offer_id: string;
   discount_amount: number;
   free_item_name: string | null;
   offer: {
     name: string;
     offer_type: string;
     config: Record<string, unknown>;
-    offer_items: Array<{ menu_item_id: string; role: string; quantity: number }>;
+    offer_items: Array<{
+      menu_item_id: string;
+      role: string;
+      quantity: number;
+      menu_item: { category_id: string } | null;
+    }>;
   } | null;
 }
 
@@ -171,38 +177,93 @@ export default function OrderStatus() {
     }[] = [];
     const autoBundleItemIds = new Set<string>();
 
+    // Group bundle uses by offer_id to split items across instances
     const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
+    const bundleUsesByOffer = new Map<string, typeof bundleUses>();
     for (const use of bundleUses) {
-      if (!use.offer) continue;
-      const bundleMenuItemIds = new Set((use.offer.offer_items || []).map((oi) => oi.menu_item_id));
-      const config = use.offer.config as { fixed_price?: number };
-      const bundleItems: (typeof autoGroups)[0]['items'] = [];
+      const id = use.offer_id;
+      if (!bundleUsesByOffer.has(id)) bundleUsesByOffer.set(id, []);
+      bundleUsesByOffer.get(id)!.push(use);
+    }
 
-      // Match order items to this bundle (not yet claimed)
-      for (const menuItemId of bundleMenuItemIds) {
-        const match = orderItems.find(
-          (item) =>
-            item.menu_item_id === menuItemId &&
-            !manualBundleItemIds.has(item.id) &&
-            !autoBundleItemIds.has(item.id)
-        );
-        if (match) {
-          autoBundleItemIds.add(match.id);
-          bundleItems.push({
-            name: match.menu_item.name,
-            quantity: match.quantity,
-            originalPrice: match.menu_item.price,
-            order_item_options: match.order_item_options,
-          });
+    for (const [, uses] of bundleUsesByOffer) {
+      const firstUse = uses[0];
+      if (!firstUse.offer) continue;
+      const bundleMenuItemIds = new Set(
+        (firstUse.offer.offer_items || []).map((oi) => oi.menu_item_id)
+      );
+      const config = firstUse.offer.config as { fixed_price?: number };
+
+      // Find ALL matching items for this bundle offer
+      const allMatchedItems: typeof orderItems = [];
+      for (const item of orderItems) {
+        if (
+          bundleMenuItemIds.has(item.menu_item_id) &&
+          !manualBundleItemIds.has(item.id) &&
+          !autoBundleItemIds.has(item.id)
+        ) {
+          autoBundleItemIds.add(item.id);
+          allMatchedItems.push(item);
         }
       }
 
-      autoGroups.push({
-        name: use.offer.name,
-        discount: use.discount_amount,
-        fixedPrice: config?.fixed_price || 0,
-        items: bundleItems,
-      });
+      const numInstances = uses.length;
+      if (numInstances <= 1) {
+        // Single instance - show as one group
+        autoGroups.push({
+          name: firstUse.offer.name,
+          discount: firstUse.discount_amount,
+          fixedPrice: config?.fixed_price || 0,
+          items: allMatchedItems.map((item) => ({
+            name: item.menu_item.name,
+            quantity: item.quantity,
+            originalPrice: item.menu_item.price,
+            order_item_options: item.order_item_options,
+          })),
+        });
+      } else {
+        // Multiple instances - split items across bundles
+        // Expand items with qty > 1 into individual entries
+        const expandedItems: (typeof orderItems)[0][] = [];
+        for (const item of allMatchedItems) {
+          for (let q = 0; q < item.quantity; q++) {
+            expandedItems.push({ ...item, quantity: 1 });
+          }
+        }
+
+        // Group by category for balanced distribution
+        const byCategory = new Map<string, (typeof orderItems)[0][]>();
+        for (const item of expandedItems) {
+          const cat = item.menu_item?.category_id || 'unknown';
+          if (!byCategory.has(cat)) byCategory.set(cat, []);
+          byCategory.get(cat)!.push(item);
+        }
+
+        const categoryGroups = Array.from(byCategory.values());
+        for (let i = 0; i < numInstances; i++) {
+          let instanceItems: (typeof orderItems)[0][];
+          if (categoryGroups.length > 1) {
+            // Multi-category: take one from each per instance
+            instanceItems = categoryGroups.map((group) => group[i]).filter(Boolean);
+          } else {
+            // Single category: split evenly
+            const perInstance = Math.ceil(expandedItems.length / numInstances);
+            instanceItems = expandedItems.slice(i * perInstance, (i + 1) * perInstance);
+          }
+
+          autoGroups.push({
+            name: firstUse.offer.name,
+            discount: uses[i]?.discount_amount || 0,
+            fixedPrice: config?.fixed_price || 0,
+            items: instanceItems.map((item) => ({
+              name: item.menu_item.name,
+              quantity: 1,
+              originalPrice: item.menu_item.price,
+              order_item_options: item.order_item_options,
+            })),
+          });
+        }
+      }
     }
 
     // 3. Free items from buy_x_get_y (stored at full price, discount tracked separately)

@@ -101,6 +101,25 @@ export function OrderSummaryCard({
     });
   }, [appliedOffers, regularItems]);
 
+  // Expand auto bundles with times_applied > 1 into separate display instances
+  const expandedAutoBundles = useMemo(() => {
+    return autoBundleOffers.flatMap((offer) => {
+      if (offer.times_applied <= 1) return [offer];
+      const perInstanceItems = offer.items_consumed.map((consumed) => ({
+        ...consumed,
+        quantity: Math.round(consumed.quantity / offer.times_applied),
+      }));
+      const discountPerInstance = Math.round(offer.discount_amount / offer.times_applied);
+      return Array.from({ length: offer.times_applied }, (_, i) => ({
+        ...offer,
+        offer_id: `${offer.offer_id}__${i}`,
+        items_consumed: perInstanceItems,
+        discount_amount: discountPerInstance,
+        times_applied: 1,
+      }));
+    });
+  }, [autoBundleOffers]);
+
   // Build a map of which regular items are consumed by which auto-bundle
   const itemsConsumedByBundle = useMemo(() => {
     const map = new Map<string, { offerId: string; quantityConsumed: number }>();
@@ -215,7 +234,7 @@ export function OrderSummaryCard({
       {/* Items */}
       <div className="divide-y divide-gray-50">
         {/* Auto-detected Bundles - Grouped from regular items */}
-        {autoBundleOffers.map((offer) => {
+        {expandedAutoBundles.map((offer) => {
           const bundleItems = getItemsForBundle(offer);
           const isExpanded = expandedBundles.has(offer.offer_id);
           // Calculate bundle total from config (we show the discounted total)
