@@ -113,121 +113,127 @@ export default function OrderStatus() {
   const orderItems = order?.order_items || [];
 
   // Group items into: manual bundles, auto bundles, free items, independent
-  const { manualBundleGroups, autoBundleGroups, freeItemIds, independentItems, promoOffers } =
-    useMemo(() => {
-      // 1. Manual bundles: identified by notes field "[BundleName]"
-      const manualGroups: {
-        name: string;
-        items: typeof orderItems;
-        totalPrice: number;
-      }[] = [];
-      const manualBundleItemIds = new Set<string>();
+  const {
+    manualBundleGroups,
+    autoBundleGroups,
+    freeItemIds,
+    freeOfferNames,
+    independentItems,
+    promoOffers,
+  } = useMemo(() => {
+    // 1. Manual bundles: identified by notes field "[BundleName]"
+    const manualGroups: {
+      name: string;
+      items: typeof orderItems;
+      totalPrice: number;
+    }[] = [];
+    const manualBundleItemIds = new Set<string>();
 
-      const bundleMap = new Map<string, { items: typeof orderItems; totalPrice: number }>();
+    const bundleMap = new Map<string, { items: typeof orderItems; totalPrice: number }>();
 
-      for (const item of orderItems) {
-        const match = item.notes?.match(/^\[(.+)\]$/);
-        if (match) {
-          const bundleName = match[1];
-          manualBundleItemIds.add(item.id);
-          const existing = bundleMap.get(bundleName);
-          if (existing) {
-            existing.items.push(item);
-            existing.totalPrice += item.unit_price * item.quantity;
-          } else {
-            bundleMap.set(bundleName, {
-              items: [item],
-              totalPrice: item.unit_price * item.quantity,
-            });
-          }
+    for (const item of orderItems) {
+      const match = item.notes?.match(/^\[(.+)\]$/);
+      if (match) {
+        const bundleName = match[1];
+        manualBundleItemIds.add(item.id);
+        const existing = bundleMap.get(bundleName);
+        if (existing) {
+          existing.items.push(item);
+          existing.totalPrice += item.unit_price * item.quantity;
+        } else {
+          bundleMap.set(bundleName, {
+            items: [item],
+            totalPrice: item.unit_price * item.quantity,
+          });
         }
       }
+    }
 
-      for (const [name, data] of bundleMap) {
-        manualGroups.push({ name, ...data });
-      }
+    for (const [name, data] of bundleMap) {
+      manualGroups.push({ name, ...data });
+    }
 
-      // 2. Auto-detected bundles from offer_uses (offer_type = 'bundle')
-      const autoGroups: {
-        name: string;
-        discount: number;
-        fixedPrice: number;
-        items: Array<{ name: string; quantity: number; originalPrice: number }>;
-      }[] = [];
-      const autoBundleItemIds = new Set<string>();
+    // 2. Auto-detected bundles from offer_uses (offer_type = 'bundle')
+    const autoGroups: {
+      name: string;
+      discount: number;
+      fixedPrice: number;
+      items: Array<{ name: string; quantity: number; originalPrice: number }>;
+    }[] = [];
+    const autoBundleItemIds = new Set<string>();
 
-      const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
-      for (const use of bundleUses) {
-        if (!use.offer) continue;
-        const bundleMenuItemIds = new Set(
-          (use.offer.offer_items || []).map((oi) => oi.menu_item_id)
-        );
-        const config = use.offer.config as { fixed_price?: number };
-        const bundleItems: (typeof autoGroups)[0]['items'] = [];
+    const bundleUses = offerUses.filter((u) => u.offer?.offer_type === 'bundle');
+    for (const use of bundleUses) {
+      if (!use.offer) continue;
+      const bundleMenuItemIds = new Set((use.offer.offer_items || []).map((oi) => oi.menu_item_id));
+      const config = use.offer.config as { fixed_price?: number };
+      const bundleItems: (typeof autoGroups)[0]['items'] = [];
 
-        // Match order items to this bundle (not yet claimed)
-        for (const menuItemId of bundleMenuItemIds) {
-          const match = orderItems.find(
-            (item) =>
-              item.menu_item_id === menuItemId &&
-              !manualBundleItemIds.has(item.id) &&
-              !autoBundleItemIds.has(item.id)
-          );
-          if (match) {
-            autoBundleItemIds.add(match.id);
-            bundleItems.push({
-              name: match.menu_item.name,
-              quantity: match.quantity,
-              originalPrice: match.menu_item.price,
-            });
-          }
-        }
-
-        autoGroups.push({
-          name: use.offer.name,
-          discount: use.discount_amount,
-          fixedPrice: config?.fixed_price || 0,
-          items: bundleItems,
-        });
-      }
-
-      // 3. Free items from buy_x_get_y
-      const freeIds = new Set<string>();
-      const buyXgetYUses = offerUses.filter(
-        (u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
-      );
-      for (const use of buyXgetYUses) {
+      // Match order items to this bundle (not yet claimed)
+      for (const menuItemId of bundleMenuItemIds) {
         const match = orderItems.find(
           (item) =>
-            item.menu_item.name === use.free_item_name &&
-            item.unit_price === 0 &&
+            item.menu_item_id === menuItemId &&
             !manualBundleItemIds.has(item.id) &&
-            !autoBundleItemIds.has(item.id) &&
-            !freeIds.has(item.id)
+            !autoBundleItemIds.has(item.id)
         );
         if (match) {
-          freeIds.add(match.id);
+          autoBundleItemIds.add(match.id);
+          bundleItems.push({
+            name: match.menu_item.name,
+            quantity: match.quantity,
+            originalPrice: match.menu_item.price,
+          });
         }
       }
 
-      // 4. Remaining independent items
-      const independent = orderItems.filter(
-        (item) => !manualBundleItemIds.has(item.id) && !autoBundleItemIds.has(item.id)
-      );
+      autoGroups.push({
+        name: use.offer.name,
+        discount: use.discount_amount,
+        fixedPrice: config?.fixed_price || 0,
+        items: bundleItems,
+      });
+    }
 
-      // 5. Promo/threshold offers (for discount lines)
-      const promos = offerUses.filter(
-        (u) => u.offer?.offer_type !== 'bundle' && u.offer?.offer_type !== 'buy_x_get_y'
+    // 3. Free items from buy_x_get_y (stored at full price, discount tracked separately)
+    const freeIds = new Set<string>();
+    const freeOfferNames = new Map<string, string>(); // itemId -> offer name
+    const buyXgetYUses = offerUses.filter(
+      (u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+    );
+    for (const use of buyXgetYUses) {
+      const match = orderItems.find(
+        (item) =>
+          item.menu_item.name === use.free_item_name &&
+          !manualBundleItemIds.has(item.id) &&
+          !autoBundleItemIds.has(item.id) &&
+          !freeIds.has(item.id)
       );
+      if (match) {
+        freeIds.add(match.id);
+        freeOfferNames.set(match.id, use.offer?.name || 'Offre');
+      }
+    }
 
-      return {
-        manualBundleGroups: manualGroups,
-        autoBundleGroups: autoGroups,
-        freeItemIds: freeIds,
-        independentItems: independent,
-        promoOffers: promos,
-      };
-    }, [orderItems, offerUses]);
+    // 4. Remaining independent items
+    const independent = orderItems.filter(
+      (item) => !manualBundleItemIds.has(item.id) && !autoBundleItemIds.has(item.id)
+    );
+
+    // 5. Promo/threshold offers (for discount lines)
+    const promos = offerUses.filter(
+      (u) => u.offer?.offer_type !== 'bundle' && u.offer?.offer_type !== 'buy_x_get_y'
+    );
+
+    return {
+      manualBundleGroups: manualGroups,
+      autoBundleGroups: autoGroups,
+      freeItemIds: freeIds,
+      freeOfferNames: freeOfferNames,
+      independentItems: independent,
+      promoOffers: promos,
+    };
+  }, [orderItems, offerUses]);
 
   if (loading) {
     return (
@@ -264,14 +270,29 @@ export default function OrderStatus() {
   const isConfirmed = order.status === 'confirmed';
 
   // Discount breakdown
-  const offerDiscountTotal = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
-  const totalDiscount = (order.discount_amount || 0) + (order.offer_discount || 0);
-  const loyaltyDiscount = Math.max(0, (order.discount_amount || 0) - offerDiscountTotal);
+  // discount_amount = promo + loyalty + offer discounts (all combined by checkout)
+  // offer_discount = just the offer/bundle part (stored separately)
+  const discountAmount = order.discount_amount || 0;
+  const offerDiscount = order.offer_discount || 0;
+  // Promo discount from promo_code_uses (if applicable)
+  const promoDiscountTotal = promoOffers.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+  // Loyalty = total discount - offer discount - promo discount
+  const loyaltyDiscount = Math.max(0, discountAmount - offerDiscount - promoDiscountTotal);
+  // Buy_x_get_y discounts (shown inline on items, not as separate lines)
+  const buyXgetYDiscount = offerUses
+    .filter((u) => u.offer?.offer_type === 'buy_x_get_y')
+    .reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+  // Bundle discounts from auto-detected bundles
+  const bundleDiscount = offerUses
+    .filter((u) => u.offer?.offer_type === 'bundle')
+    .reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+  const totalSavings = discountAmount;
   const subtotal = order.order_items.reduce(
     (sum, item) => sum + item.unit_price * item.quantity,
     0
   );
-  const hasDiscounts = totalDiscount > 0 || loyaltyDiscount > 0 || promoOffers.length > 0;
+  const hasDiscounts =
+    loyaltyDiscount > 0 || promoOffers.length > 0 || buyXgetYDiscount > 0 || bundleDiscount > 0;
 
   return (
     <main className="min-h-screen pb-8">
@@ -439,6 +460,7 @@ export default function OrderStatus() {
               <ul className="space-y-2" aria-label="Articles commandes">
                 {independentItems.map((item) => {
                   const isFree = freeItemIds.has(item.id);
+                  const offerName = freeOfferNames.get(item.id);
                   const options = item.order_item_options?.filter((o) => o.price_modifier !== 0);
                   return (
                     <li key={item.id}>
@@ -452,11 +474,14 @@ export default function OrderStatus() {
                               {options.map((o) => o.option_name).join(', ')}
                             </p>
                           )}
+                          {isFree && offerName && (
+                            <p className="text-xs text-emerald-600 font-medium">{offerName}</p>
+                          )}
                         </div>
                         {isFree ? (
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             <span className="text-sm text-gray-400 line-through tabular-nums">
-                              {formatPrice(item.menu_item.price * item.quantity)}
+                              {formatPrice(item.unit_price * item.quantity)}
                             </span>
                             <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                               Offert
@@ -483,6 +508,22 @@ export default function OrderStatus() {
                   <span className="text-gray-500">Sous-total</span>
                   <span className="text-gray-500 tabular-nums">{formatPrice(subtotal)}</span>
                 </div>
+                {bundleDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-emerald-600">Formules</span>
+                    <span className="text-emerald-600 font-medium tabular-nums">
+                      −{formatPrice(bundleDiscount)}
+                    </span>
+                  </div>
+                )}
+                {buyXgetYDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-emerald-600">Articles offerts</span>
+                    <span className="text-emerald-600 font-medium tabular-nums">
+                      −{formatPrice(buyXgetYDiscount)}
+                    </span>
+                  </div>
+                )}
                 {promoOffers.map((u) => (
                   <div key={u.id} className="flex justify-between text-sm">
                     <span className="text-emerald-600">{u.offer?.name || 'Promo'}</span>
@@ -509,9 +550,9 @@ export default function OrderStatus() {
                 {formatPrice(order.total_amount)}
               </span>
             </div>
-            {totalDiscount > 0 && (
+            {totalSavings > 0 && (
               <p className="text-xs text-emerald-600 font-medium text-right">
-                {formatPrice(totalDiscount)} économisés
+                {formatPrice(totalSavings)} économisés
               </p>
             )}
           </div>
