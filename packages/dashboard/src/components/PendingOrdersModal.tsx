@@ -118,6 +118,11 @@ export default function PendingOrdersModal({
   const trackedOfferDiscount = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
   const loyaltyDiscount = Math.max(0, discountAmount - trackedOfferDiscount);
 
+  // Free items from buy_x_get_y offers
+  const freeItemNames = offerUses
+    .filter((u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name)
+    .map((u) => u.free_item_name!);
+
   const goNext = () => {
     if (safeIndex < orders.length - 1) {
       setCurrentIndex(safeIndex + 1);
@@ -322,24 +327,46 @@ export default function PendingOrdersModal({
               })}
 
               {/* Regular items */}
-              {standaloneItems.map((item, idx) => (
-                <div key={idx}>
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">
-                      <span className="font-semibold">{item.quantity}x</span> {item.menu_item.name}
-                    </span>
-                    <span className="text-gray-600">
-                      {formatPrice(item.unit_price * item.quantity)}
-                    </span>
-                  </div>
-                  {item.order_item_options && item.order_item_options.length > 0 && (
-                    <div className="ml-6 text-xs text-gray-500">
-                      {item.order_item_options.map((opt) => opt.option_name).join(', ')}
+              {(() => {
+                const remainingFree = [...freeItemNames];
+                return standaloneItems.map((item, idx) => {
+                  const freeIdx = remainingFree.indexOf(item.menu_item.name);
+                  const isFree = freeIdx !== -1;
+                  if (isFree) remainingFree.splice(freeIdx, 1);
+                  return (
+                    <div key={idx}>
+                      <div className="flex justify-between items-start">
+                        <span className={isFree ? 'text-gray-400' : 'text-gray-900'}>
+                          <span className="font-semibold">{item.quantity}x</span>{' '}
+                          {item.menu_item.name}
+                        </span>
+                        {isFree ? (
+                          <div className="text-right flex-shrink-0 flex items-center gap-1">
+                            <span className="text-gray-400 line-through text-sm">
+                              {formatPrice(item.unit_price * item.quantity)}
+                            </span>
+                            <span className="text-xs font-semibold text-success-600 bg-success-50 px-1.5 py-0.5 rounded">
+                              Offert
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-600">
+                            {formatPrice(item.unit_price * item.quantity)}
+                          </span>
+                        )}
+                      </div>
+                      {item.order_item_options && item.order_item_options.length > 0 && (
+                        <div className="ml-6 text-xs text-gray-500">
+                          {item.order_item_options.map((opt) => opt.option_name).join(', ')}
+                        </div>
+                      )}
+                      {item.notes && (
+                        <p className="ml-6 text-xs text-gray-500 italic">{item.notes}</p>
+                      )}
                     </div>
-                  )}
-                  {item.notes && <p className="ml-6 text-xs text-gray-500 italic">{item.notes}</p>}
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           </div>
 

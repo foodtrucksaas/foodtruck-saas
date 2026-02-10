@@ -87,6 +87,26 @@ export function OrderDetailModal({
   const canCancel =
     order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
 
+  // Extract discount/offer info
+  const orderWithDiscounts = order as OrderWithItemsAndOptions & {
+    discount_amount?: number;
+    offer_uses?: Array<{
+      id: string;
+      discount_amount: number;
+      free_item_name: string | null;
+      offer: { name: string; offer_type: string } | null;
+    }>;
+  };
+  const discountAmount = orderWithDiscounts.discount_amount || 0;
+  const offerUses = orderWithDiscounts.offer_uses || [];
+  const trackedDiscount = offerUses.reduce((s, u) => s + (u.discount_amount || 0), 0);
+  const loyaltyDiscount = Math.max(0, discountAmount - trackedDiscount);
+
+  // Free items from buy_x_get_y offers
+  const freeItemNames = offerUses
+    .filter((u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name)
+    .map((u) => u.free_item_name!);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
@@ -244,34 +264,53 @@ export function OrderDetailModal({
                       );
                     })}
 
-                    {solo.map((item, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <div>
-                          <span className="font-medium">
-                            {item.quantity}x {item.menu_item.name}
-                          </span>
-                          {item.order_item_options && item.order_item_options.length > 0 && (
-                            <p className="text-xs text-gray-500">
-                              {item.order_item_options
-                                .map((opt) => {
-                                  const mod =
-                                    opt.price_modifier > 0
-                                      ? ` (+${formatPrice(opt.price_modifier)})`
-                                      : '';
-                                  return `${opt.option_name}${mod}`;
-                                })
-                                .join(', ')}
-                            </p>
-                          )}
-                          {item.notes && (
-                            <p className="text-xs text-gray-500 italic">{item.notes}</p>
-                          )}
-                        </div>
-                        <span className="text-gray-600">
-                          {formatPrice(item.unit_price * item.quantity)}
-                        </span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const remainingFree = [...freeItemNames];
+                      return solo.map((item, idx) => {
+                        const freeIdx = remainingFree.indexOf(item.menu_item.name);
+                        const isFree = freeIdx !== -1;
+                        if (isFree) remainingFree.splice(freeIdx, 1);
+                        return (
+                          <div key={idx} className="flex justify-between items-start">
+                            <div>
+                              <span className={`font-medium ${isFree ? 'text-gray-400' : ''}`}>
+                                {item.quantity}x {item.menu_item.name}
+                              </span>
+                              {item.order_item_options && item.order_item_options.length > 0 && (
+                                <p className="text-xs text-gray-500">
+                                  {item.order_item_options
+                                    .map((opt) => {
+                                      const mod =
+                                        opt.price_modifier > 0
+                                          ? ` (+${formatPrice(opt.price_modifier)})`
+                                          : '';
+                                      return `${opt.option_name}${mod}`;
+                                    })
+                                    .join(', ')}
+                                </p>
+                              )}
+                              {item.notes && (
+                                <p className="text-xs text-gray-500 italic">{item.notes}</p>
+                              )}
+                            </div>
+                            {isFree ? (
+                              <div className="text-right flex-shrink-0 flex items-center gap-1">
+                                <span className="text-gray-400 line-through text-sm">
+                                  {formatPrice(item.unit_price * item.quantity)}
+                                </span>
+                                <span className="text-xs font-semibold text-success-600 bg-success-50 px-1.5 py-0.5 rounded">
+                                  Offert
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-600">
+                                {formatPrice(item.unit_price * item.quantity)}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
                   </>
                 );
               })()}
@@ -287,56 +326,39 @@ export function OrderDetailModal({
           )}
 
           {/* Total */}
-          {(() => {
-            const od = order as OrderWithItemsAndOptions & {
-              discount_amount?: number;
-              offer_uses?: Array<{
-                id: string;
-                discount_amount: number;
-                free_item_name: string | null;
-                offer: { name: string; offer_type: string } | null;
-              }>;
-            };
-            const disc = od.discount_amount || 0;
-            const uses = od.offer_uses || [];
-            const tracked = uses.reduce((s, u) => s + (u.discount_amount || 0), 0);
-            const loyalty = Math.max(0, disc - tracked);
-            return (
-              <div className="border-t pt-3 space-y-1">
-                {disc > 0 && (
-                  <>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Sous-total</span>
-                      <span>{formatPrice(order.total_amount + disc)}</span>
-                    </div>
-                    {uses.map((u) => (
-                      <div
-                        key={u.id}
-                        className="flex items-center justify-between text-sm text-warning-600"
-                      >
-                        <span className="truncate pr-2">
-                          {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
-                            ? `${u.free_item_name} offert`
-                            : u.offer?.name || 'Offre'}
-                        </span>
-                        <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
-                      </div>
-                    ))}
-                    {loyalty > 0 && (
-                      <div className="flex items-center justify-between text-sm text-warning-600">
-                        <span>Fidélité</span>
-                        <span>-{formatPrice(loyalty)}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-600">Total</span>
-                  <span className="text-2xl font-bold">{formatPrice(order.total_amount)}</span>
+          <div className="border-t pt-3 space-y-1">
+            {discountAmount > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>Sous-total</span>
+                  <span>{formatPrice(order.total_amount + discountAmount)}</span>
                 </div>
-              </div>
-            );
-          })()}
+                {offerUses.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between text-sm text-warning-600"
+                  >
+                    <span className="truncate pr-2">
+                      {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
+                        ? `${u.free_item_name} offert`
+                        : u.offer?.name || 'Offre'}
+                    </span>
+                    <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
+                  </div>
+                ))}
+                {loyaltyDiscount > 0 && (
+                  <div className="flex items-center justify-between text-sm text-warning-600">
+                    <span>Fidélité</span>
+                    <span>-{formatPrice(loyaltyDiscount)}</span>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="flex justify-between items-center">
+              <span className="font-medium text-gray-600">Total</span>
+              <span className="text-2xl font-bold">{formatPrice(order.total_amount)}</span>
+            </div>
+          </div>
         </div>
 
         {/* Actions - with safe area for iPhone home indicator */}
