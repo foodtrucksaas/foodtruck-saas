@@ -94,7 +94,7 @@ export function MenuItemForm({
       isOpen={isOpen}
       onClose={onClose}
       title={editingItem ? 'Modifier le plat' : 'Nouveau plat'}
-      size="lg"
+      size="xl"
       footer={footerButtons}
     >
       <form id="menu-item-form" onSubmit={onSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
@@ -249,7 +249,7 @@ export function MenuItemForm({
             <p className="text-xs text-gray-500 mb-2">
               Cliquez sur le prix pour personnaliser selon la taille
             </p>
-            <div className="space-y-2 max-h-[200px] sm:max-h-[250px] overflow-y-auto">
+            <div className="space-y-2">
               {(group.category_options || []).map((opt) => {
                 const isDisabled = formData.disabled_options.includes(opt.id);
                 const defaultPrice = (opt.price_modifier || 0) / 100;
@@ -438,7 +438,7 @@ export function MenuItemForm({
             <p className="text-xs text-gray-500 mb-2">
               Cliquez sur le prix pour personnaliser selon la taille
             </p>
-            <div className="space-y-2 max-h-[200px] sm:max-h-[250px] overflow-y-auto">
+            <div className="space-y-2">
               {(group.category_options || []).map((supp) => {
                 const isDisabled = formData.disabled_options.includes(supp.id);
                 const hasVariablePricing =
@@ -629,7 +629,7 @@ export function MenuItemForm({
           <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
             Allergènes
           </label>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2 max-h-[150px] overflow-y-auto">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {ALLERGENS.map((allergen) => (
               <label
                 key={allergen}

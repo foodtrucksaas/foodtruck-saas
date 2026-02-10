@@ -358,8 +358,8 @@ export default function BundleBuilder({
   // ─── Render ───
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
+      <div className="bg-white w-full max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-3xl overflow-hidden flex flex-col animate-sheet-in sm:animate-modal-in shadow-xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
@@ -600,7 +600,7 @@ export default function BundleBuilder({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t px-4 py-3 safe-area-bottom">
+        <div className="sticky bottom-0 bg-white border-t px-4 py-3 safe-area-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
           {/* Summary */}
           {selections.some((s) => s !== null) && (
             <div className="mb-3 p-3 bg-gray-50 rounded-xl">

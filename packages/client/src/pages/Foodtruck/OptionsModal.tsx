@@ -177,9 +177,9 @@ export default function OptionsModal({
 
   return (
     <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-xl animate-sheet-in sm:animate-modal-in">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] shadow-xl animate-sheet-in sm:animate-modal-in flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
+        <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-anthracite">{menuItem.name}</h2>
           <button
             onClick={onClose}
@@ -191,7 +191,7 @@ export default function OptionsModal({
         </div>
 
         {/* Option Groups */}
-        <div className="p-4 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 space-y-6">
           {optionGroups
             .filter((g) =>
               g.category_options?.some((o) => o.is_available && !disabledOptions.includes(o.id))
@@ -304,7 +304,7 @@ export default function OptionsModal({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div className="flex-shrink-0 bg-white border-t border-gray-100 p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
           <button
             onClick={handleConfirm}
             disabled={!isValid()}
