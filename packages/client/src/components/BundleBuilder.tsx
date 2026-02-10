@@ -107,6 +107,21 @@ export default function BundleBuilder({
       }));
   };
 
+  // Get optional multi-select groups (supplements like extra cheese, toppings, etc.)
+  const getSupplementGroups = (categoryId: string | null) => {
+    if (!categoryId) return [];
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category?.category_option_groups) return [];
+
+    return category.category_option_groups
+      .filter((g) => g.is_multiple && g.category_options?.length)
+      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+      .map((group) => ({
+        group,
+        options: (group.category_options || []).filter((o) => o.is_available !== false),
+      }));
+  };
+
   // Current bundle category
   const currentBundleCat = bundleCategories[currentStep];
   const availableItems = currentBundleCat ? getItemsForCategory(currentBundleCat) : [];
@@ -115,6 +130,8 @@ export default function BundleBuilder({
   const [pendingItem, setPendingItem] = useState<{
     item: MenuItem;
     optionSelections: Record<string, { group: CategoryOptionGroup; option: CategoryOption }>;
+    phase: 'required' | 'supplements';
+    supplementSelections: Record<string, string[]>;
   } | null>(null);
 
   // Reset pending item when step changes
@@ -135,7 +152,8 @@ export default function BundleBuilder({
   // Finalize item selection with all options chosen
   const finalizeSelection = (
     item: MenuItem,
-    optionSelections: Record<string, { group: CategoryOptionGroup; option: CategoryOption }>
+    optionSelections: Record<string, { group: CategoryOptionGroup; option: CategoryOption }>,
+    supplementSelections: Record<string, string[]>
   ) => {
     const bundleCat = bundleCategories[currentStep];
     const entries = Object.values(optionSelections);
@@ -150,6 +168,26 @@ export default function BundleBuilder({
       priceModifier: e.option.price_modifier ?? 0,
       isSizeOption: idx === 0, // First group is considered the size option
     }));
+
+    // Add supplement selections
+    const suppGroups = getSupplementGroups(item.category_id);
+    Object.entries(supplementSelections).forEach(([groupId, optionIds]) => {
+      const groupData = suppGroups.find((sg) => sg.group.id === groupId);
+      if (!groupData) return;
+      optionIds.forEach((optionId) => {
+        const option = groupData.options.find((o) => o.id === optionId);
+        if (option) {
+          selectedOptions.push({
+            optionId: option.id,
+            optionGroupId: groupData.group.id,
+            name: option.name,
+            groupName: groupData.group.name,
+            priceModifier: option.price_modifier ?? 0,
+            isSizeOption: false,
+          });
+        }
+      });
+    });
 
     const newSelections = [...selections];
     newSelections[currentStep] = {
@@ -179,14 +217,42 @@ export default function BundleBuilder({
 
     // Check if all required groups are now selected
     if (Object.keys(updated).length >= requiredGroups.length) {
-      finalizeSelection(item, updated);
+      const suppGroups = getSupplementGroups(item.category_id);
+      if (suppGroups.length > 0) {
+        // Switch to supplement phase
+        setPendingItem({
+          item,
+          optionSelections: updated,
+          phase: 'supplements',
+          supplementSelections: {},
+        });
+      } else {
+        finalizeSelection(item, updated, {});
+      }
     } else {
-      setPendingItem({ item, optionSelections: updated });
+      setPendingItem({
+        item,
+        optionSelections: updated,
+        phase: 'required',
+        supplementSelections: {},
+      });
     }
   };
 
   // Handle simple item selection (no option groups)
   const handleSelectItem = (item: MenuItem) => {
+    const suppGroups = getSupplementGroups(item.category_id);
+    if (suppGroups.length > 0) {
+      // Show supplement phase for this item
+      setPendingItem({
+        item,
+        optionSelections: {},
+        phase: 'supplements',
+        supplementSelections: {},
+      });
+      return;
+    }
+
     const bundleCat = bundleCategories[currentStep];
     const supplement = getSupplement(bundleCat, item.id);
 
@@ -204,6 +270,29 @@ export default function BundleBuilder({
     if (currentStep < bundleCategories.length - 1) {
       setTimeout(() => setCurrentStep(currentStep + 1), 300);
     }
+  };
+
+  // Toggle a supplement option (multi-select)
+  const handleSupplementToggle = (groupId: string, optionId: string) => {
+    if (!pendingItem) return;
+    const current = pendingItem.supplementSelections[groupId] || [];
+    const updated = current.includes(optionId)
+      ? current.filter((id) => id !== optionId)
+      : [...current, optionId];
+    setPendingItem({
+      ...pendingItem,
+      supplementSelections: { ...pendingItem.supplementSelections, [groupId]: updated },
+    });
+  };
+
+  // Confirm selection with supplements
+  const handleConfirmSupplements = () => {
+    if (!pendingItem) return;
+    finalizeSelection(
+      pendingItem.item,
+      pendingItem.optionSelections,
+      pendingItem.supplementSelections
+    );
   };
 
   // Handle add to cart
@@ -328,65 +417,130 @@ export default function BundleBuilder({
             {availableItems.map((item) => {
               const supplement = getSupplement(currentBundleCat, item.id);
               const requiredGroups = getRequiredOptionGroups(item.category_id);
+              const supplementGroups = getSupplementGroups(item.category_id);
               const isSelected = selections[currentStep]?.menuItem.id === item.id;
               const isPending = pendingItem?.item.id === item.id;
+              const isInSupplementPhase = isPending && pendingItem?.phase === 'supplements';
 
-              // If item has required option groups, show them
-              if (requiredGroups.length > 0) {
+              // If item has required option groups OR is in supplement phase, show card
+              if (
+                requiredGroups.length > 0 ||
+                (supplementGroups.length > 0 && isInSupplementPhase)
+              ) {
                 return (
-                  <div key={item.id} className="border rounded-xl overflow-hidden">
-                    <div className="px-4 py-3 bg-gray-50 font-medium text-gray-900">
+                  <div
+                    key={item.id}
+                    className={`border rounded-xl overflow-hidden ${isInSupplementPhase ? 'border-primary-500' : ''}`}
+                  >
+                    <div
+                      className={`px-4 py-3 font-medium ${isInSupplementPhase ? 'bg-primary-50 text-primary-700' : 'bg-gray-50 text-gray-900'}`}
+                    >
                       {item.name}
                     </div>
-                    {requiredGroups.map(({ group, options: groupOptions }) => {
-                      const pendingSelection =
-                        pendingItem?.item.id === item.id
-                          ? pendingItem.optionSelections[group.id]
+                    {/* Required option groups */}
+                    {!isInSupplementPhase &&
+                      requiredGroups.map(({ group, options: groupOptions }) => {
+                        const pendingSelection =
+                          pendingItem?.item.id === item.id
+                            ? pendingItem.optionSelections[group.id]
+                            : undefined;
+                        const finalSelection = isSelected
+                          ? selections[currentStep]?.selectedOptions?.find(
+                              (o) => o.optionGroupId === group.id
+                            )
                           : undefined;
-                      const finalSelection = isSelected
-                        ? selections[currentStep]?.selectedOptions?.find(
-                            (o) => o.optionGroupId === group.id
-                          )
-                        : undefined;
 
-                      return (
-                        <div key={group.id}>
-                          {requiredGroups.length > 1 && (
-                            <div className="px-4 py-1.5 bg-gray-50 border-t">
-                              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
-                                {group.name}
-                              </span>
+                        return (
+                          <div key={group.id}>
+                            {requiredGroups.length > 1 && (
+                              <div className="px-4 py-1.5 bg-gray-50 border-t">
+                                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
+                                  {group.name}
+                                </span>
+                              </div>
+                            )}
+                            <div className="divide-y">
+                              {groupOptions.map((opt) => {
+                                if (isSizeExcluded(currentBundleCat, item.id, opt.id)) {
+                                  return (
+                                    <div
+                                      key={opt.id}
+                                      className="px-4 py-3 flex items-center justify-between opacity-50"
+                                    >
+                                      <span className="text-gray-400 line-through">{opt.name}</span>
+                                      <span className="text-xs text-gray-400">Non disponible</span>
+                                    </div>
+                                  );
+                                }
+
+                                const optSupplement = getSupplement(
+                                  currentBundleCat,
+                                  item.id,
+                                  opt.id
+                                );
+                                const isOptSelected =
+                                  pendingSelection?.option.id === opt.id ||
+                                  finalSelection?.optionId === opt.id;
+
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    onClick={() =>
+                                      handleSelectOption(item, group, opt, requiredGroups)
+                                    }
+                                    className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                                      isOptSelected ? 'bg-primary-50' : ''
+                                    }`}
+                                  >
+                                    <span
+                                      className={
+                                        isOptSelected ? 'text-primary-700 font-medium' : ''
+                                      }
+                                    >
+                                      {opt.name}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {optSupplement > 0 && (
+                                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
+                                          +{formatPrice(optSupplement)}
+                                        </span>
+                                      )}
+                                      {isOptSelected && (
+                                        <Check className="w-5 h-5 text-primary-600" />
+                                      )}
+                                      {!isOptSelected && !isPending && !isSelected && (
+                                        <ChevronRight className="w-5 h-5 text-gray-300" />
+                                      )}
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
-                          )}
+                          </div>
+                        );
+                      })}
+                    {/* Supplement groups (shown after all required groups are selected) */}
+                    {isInSupplementPhase &&
+                      supplementGroups.map(({ group, options: groupOptions }) => (
+                        <div key={group.id}>
+                          <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center justify-between">
+                            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
+                              {group.name}
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full font-medium">
+                              Optionnel
+                            </span>
+                          </div>
                           <div className="divide-y">
                             {groupOptions.map((opt) => {
-                              if (isSizeExcluded(currentBundleCat, item.id, opt.id)) {
-                                return (
-                                  <div
-                                    key={opt.id}
-                                    className="px-4 py-3 flex items-center justify-between opacity-50"
-                                  >
-                                    <span className="text-gray-400 line-through">{opt.name}</span>
-                                    <span className="text-xs text-gray-400">Non disponible</span>
-                                  </div>
-                                );
-                              }
-
-                              const optSupplement = getSupplement(
-                                currentBundleCat,
-                                item.id,
-                                opt.id
-                              );
-                              const isOptSelected =
-                                pendingSelection?.option.id === opt.id ||
-                                finalSelection?.optionId === opt.id;
+                              const isOptSelected = (
+                                pendingItem?.supplementSelections[group.id] || []
+                              ).includes(opt.id);
 
                               return (
                                 <button
                                   key={opt.id}
-                                  onClick={() =>
-                                    handleSelectOption(item, group, opt, requiredGroups)
-                                  }
+                                  onClick={() => handleSupplementToggle(group.id, opt.id)}
                                   className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors ${
                                     isOptSelected ? 'bg-primary-50' : ''
                                   }`}
@@ -397,16 +551,15 @@ export default function BundleBuilder({
                                     {opt.name}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    {optSupplement > 0 && (
-                                      <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
-                                        +{formatPrice(optSupplement)}
+                                    {(opt.price_modifier ?? 0) > 0 ? (
+                                      <span className="text-xs text-gray-500">
+                                        +{formatPrice(opt.price_modifier ?? 0)}
                                       </span>
+                                    ) : (
+                                      <span className="text-xs text-gray-400">Gratuit</span>
                                     )}
                                     {isOptSelected && (
                                       <Check className="w-5 h-5 text-primary-600" />
-                                    )}
-                                    {!isOptSelected && !isPending && !isSelected && (
-                                      <ChevronRight className="w-5 h-5 text-gray-300" />
                                     )}
                                   </div>
                                 </button>
@@ -414,8 +567,18 @@ export default function BundleBuilder({
                             })}
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                    {/* Confirm button for supplement phase */}
+                    {isInSupplementPhase && (
+                      <div className="p-3 border-t">
+                        <button
+                          onClick={handleConfirmSupplements}
+                          className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 active:scale-[0.98] transition-all"
+                        >
+                          Confirmer
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               }
