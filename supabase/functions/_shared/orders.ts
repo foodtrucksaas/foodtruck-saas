@@ -817,6 +817,11 @@ export async function createOrder(
   const discountAmount = data.discount_amount || 0;
   const finalAmount = Math.max(0, total - discountAmount);
 
+  // Calculate offer discount from applied_offers
+  const offerDiscount = data.applied_offers
+    ? data.applied_offers.reduce((sum, o) => sum + (o.discount_amount || 0), 0)
+    : 0;
+
   const { data: order, error } = await supabase
     .from('orders')
     .insert({
@@ -831,6 +836,7 @@ export async function createOrder(
       promo_code_id: data.promo_code_id || null,
       deal_id: data.deal_id || null,
       deal_discount: data.deal_discount || null,
+      offer_discount: offerDiscount > 0 ? offerDiscount : 0,
       status,
       notes: data.notes || null,
     })

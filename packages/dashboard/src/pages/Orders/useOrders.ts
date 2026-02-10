@@ -69,6 +69,7 @@ export function useOrders() {
           id, status, pickup_time, total_amount, discount_amount, notes,
           customer_email, customer_name, customer_phone, created_at,
           cancellation_reason, cancelled_by,
+          deal_discount, deal_id, promo_code_id, offer_discount,
           order_items (
             id, quantity, unit_price, notes,
             menu_item:menu_items (id, name, price),

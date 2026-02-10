@@ -33,22 +33,26 @@ export default function NewOrderPopup({
     deal_discount?: number;
     deal_id?: string;
     promo_code_id?: string;
+    offer_discount?: number;
   };
   const discountAmount = orderWithDiscounts.discount_amount || 0;
   const dealDiscount = orderWithDiscounts.deal_discount || 0;
+  const offerDiscount = orderWithDiscounts.offer_discount || 0;
   const hasPromoCode = !!orderWithDiscounts.promo_code_id;
   const hasDeal = !!orderWithDiscounts.deal_id || dealDiscount > 0;
+  const hasOffer = offerDiscount > 0;
 
   // Determine discount label
   const getDiscountLabel = () => {
     const labels: string[] = [];
     if (hasPromoCode) labels.push('code promo');
     if (hasDeal) labels.push('offre');
-    if (discountAmount > 0 && !hasPromoCode && !hasDeal) labels.push('fidélité');
-    if (discountAmount > dealDiscount && hasDeal && !hasPromoCode) labels.push('fidélité');
+    if (hasOffer) labels.push('offre');
+    const knownDiscount = dealDiscount + offerDiscount + (hasPromoCode ? discountAmount : 0);
+    if (discountAmount > knownDiscount) labels.push('fidélité');
 
     if (labels.length === 0) return 'Réduction';
-    return `Réduction (${labels.join(' + ')})`;
+    return `Réduction (${[...new Set(labels)].join(' + ')})`;
   };
 
   // Only show backdrop for the topmost popup (index 0)
