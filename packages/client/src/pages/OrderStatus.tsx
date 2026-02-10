@@ -551,30 +551,19 @@ export default function OrderStatus() {
                   </span>
                 </div>
                 <div className="pl-6 space-y-0.5">
-                  {bundle.items.map((bi, biIdx) => (
-                    <div key={biIdx}>
-                      <p className="text-xs text-gray-500">
+                  {bundle.items.map((bi, biIdx) => {
+                    const optionStr =
+                      bi.order_item_options && bi.order_item_options.length > 0
+                        ? ` (${bi.order_item_options.map((o) => o.option_name).join(', ')})`
+                        : '';
+                    return (
+                      <p key={biIdx} className="text-xs text-gray-500">
                         {bi.quantity > 1 && `${bi.quantity}× `}
                         {bi.name}
+                        {optionStr}
                       </p>
-                      {bi.order_item_options && bi.order_item_options.length > 0 && (
-                        <p className="text-[11px] text-gray-400 pl-2">
-                          {bi.order_item_options
-                            .map((o) => {
-                              const mod =
-                                o.price_modifier > 0 ? ` (+${formatPrice(o.price_modifier)})` : '';
-                              return `${o.option_name}${mod}`;
-                            })
-                            .join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                  {bundle.discount > 0 && (
-                    <p className="text-xs text-emerald-600 font-medium pt-0.5">
-                      Économie : {formatPrice(bundle.discount)}
-                    </p>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -595,15 +584,7 @@ export default function OrderStatus() {
                           </span>
                           {options && options.length > 0 && (
                             <p className="text-xs text-gray-400">
-                              {options
-                                .map((o) => {
-                                  const mod =
-                                    o.price_modifier > 0
-                                      ? ` (+${formatPrice(o.price_modifier)})`
-                                      : '';
-                                  return `${o.option_name}${mod}`;
-                                })
-                                .join(', ')}
+                              {options.map((o) => o.option_name).join(', ')}
                             </p>
                           )}
                           {isFree && offerName && (
