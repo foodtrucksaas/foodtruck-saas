@@ -249,15 +249,32 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         free_item_name: string | null;
       }>;
 
-      const appliedOffers: AppliedOfferDetail[] = offers.map((o) => ({
-        offer_id: o.offer_id,
-        offer_name: o.offer_name,
-        offer_type: o.offer_type as AppliedOfferDetail['offer_type'],
-        times_applied: o.times_applied,
-        discount_amount: o.calculated_discount,
-        items_consumed: o.items_consumed || [],
-        free_item_name: o.free_item_name,
-      }));
+      const appliedOffers: AppliedOfferDetail[] = offers.map((o) => {
+        // SQL returns expanded individual items (one per unit) without a quantity field.
+        // Aggregate by menu_item_id to create the expected {menu_item_id, quantity} format.
+        const rawConsumed = (o.items_consumed || []) as Array<{
+          menu_item_id: string;
+          quantity?: number;
+        }>;
+        const consumedMap = new Map<string, number>();
+        for (const item of rawConsumed) {
+          const qty = item.quantity ?? 1;
+          consumedMap.set(item.menu_item_id, (consumedMap.get(item.menu_item_id) || 0) + qty);
+        }
+
+        return {
+          offer_id: o.offer_id,
+          offer_name: o.offer_name,
+          offer_type: o.offer_type as AppliedOfferDetail['offer_type'],
+          times_applied: o.times_applied,
+          discount_amount: o.calculated_discount,
+          items_consumed: Array.from(consumedMap.entries()).map(([menu_item_id, quantity]) => ({
+            menu_item_id,
+            quantity,
+          })),
+          free_item_name: o.free_item_name,
+        };
+      });
 
       return {
         applied_offers: appliedOffers,
