@@ -7,6 +7,8 @@ interface TimelineViewProps {
   currentSlotStr: string;
   slotInterval: number;
   isToday: boolean;
+  startHour?: number;
+  endHour?: number;
   onOrderClick: (order: OrderWithItemsAndOptions) => void;
 }
 
@@ -90,12 +92,17 @@ export function TimelineView({
   currentSlotStr,
   slotInterval,
   isToday,
+  startHour = 10,
+  endHour = 22,
   onOrderClick,
 }: TimelineViewProps) {
   const currentSlotRef = useRef<HTMLDivElement>(null);
 
-  // Generate slots from 10:00 to 22:00 (typical foodtruck hours)
-  const timeSlots = useMemo(() => generateTimeSlots(10, 22, slotInterval), [slotInterval]);
+  // Generate slots based on service hours
+  const timeSlots = useMemo(
+    () => generateTimeSlots(startHour, endHour, slotInterval),
+    [startHour, endHour, slotInterval]
+  );
 
   // Group orders by time slot
   const ordersBySlot = useMemo(() => {

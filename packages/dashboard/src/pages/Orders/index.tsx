@@ -17,6 +17,8 @@ export default function Orders() {
     setSelectedOrder,
     currentSlotStr,
     slotInterval,
+    serviceStartHour,
+    serviceEndHour,
     nowRef,
     pending,
     confirmed,
@@ -454,6 +456,8 @@ export default function Orders() {
             currentSlotStr={currentSlotStr}
             slotInterval={slotInterval}
             isToday={isToday}
+            startHour={serviceStartHour}
+            endHour={serviceEndHour}
             onOrderClick={setSelectedOrder}
           />
         )

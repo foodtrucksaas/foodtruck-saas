@@ -18,6 +18,13 @@ function getBusinessDate(): Date {
   return now;
 }
 
+interface ScheduleRow {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+}
+
 export function useOrders() {
   const { foodtruck } = useFoodtruck();
   const {
@@ -31,9 +38,68 @@ export function useOrders() {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItemsAndOptions | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(getBusinessDate());
+  const [schedules, setSchedules] = useState<ScheduleRow[]>([]);
   const nowRef = useRef<HTMLDivElement>(null);
 
   const slotInterval = foodtruck?.order_slot_interval ?? 15;
+
+  // Fetch schedules once for the foodtruck
+  useEffect(() => {
+    if (!foodtruck?.id) return;
+    supabase
+      .from('schedules')
+      .select('day_of_week, start_time, end_time, is_active')
+      .eq('foodtruck_id', foodtruck.id)
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (data) setSchedules(data as ScheduleRow[]);
+      });
+  }, [foodtruck?.id]);
+
+  // Compute timeline hours based on schedule + actual orders
+  const { serviceStartHour, serviceEndHour } = useMemo(() => {
+    const DEFAULT_START = 10;
+    const DEFAULT_END = 22;
+
+    // Get day_of_week for selectedDate (JS: 0=Sunday matches DB: 0=Sunday)
+    const dayOfWeek = selectedDate.getDay();
+    const daySchedules = schedules.filter((s) => s.day_of_week === dayOfWeek);
+
+    let startH = DEFAULT_START;
+    let endH = DEFAULT_END;
+
+    if (daySchedules.length > 0) {
+      // Use earliest start and latest end across all schedules for this day
+      const starts = daySchedules.map((s) => parseInt(s.start_time.split(':')[0], 10));
+      const ends = daySchedules.map((s) => {
+        const h = parseInt(s.end_time.split(':')[0], 10);
+        const m = parseInt(s.end_time.split(':')[1], 10);
+        // If end has minutes, round up to next hour for the timeline
+        return m > 0 ? h + 1 : h;
+      });
+      startH = Math.min(...starts);
+      endH = Math.max(...ends);
+    }
+
+    // Also expand range to cover any actual orders outside schedule
+    if (orders.length > 0) {
+      const firstOrderHour = new Date(orders[0].pickup_time).getHours();
+      const lastOrderHour = new Date(orders[orders.length - 1].pickup_time).getHours();
+      startH = Math.min(startH, firstOrderHour);
+      endH = Math.max(endH, lastOrderHour + 1);
+    }
+
+    // Ensure minimum 4-hour range
+    if (endH - startH < 4) {
+      endH = startH + 4;
+    }
+
+    // Clamp to 0-24
+    startH = Math.max(0, startH);
+    endH = Math.min(24, endH);
+
+    return { serviceStartHour: startH, serviceEndHour: endH };
+  }, [selectedDate, schedules, orders]);
 
   // Check if viewing today (business day) or future
   const isToday = useMemo(() => {
@@ -323,6 +389,10 @@ export function useOrders() {
     pickedUp,
     cancelled,
     useReadyStatus,
+
+    // Timeline hours
+    serviceStartHour,
+    serviceEndHour,
 
     // Date navigation
     selectedDate,

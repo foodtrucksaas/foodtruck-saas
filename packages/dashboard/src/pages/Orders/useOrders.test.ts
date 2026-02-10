@@ -136,6 +136,7 @@ describe('useOrders', () => {
 
     mockSupabaseEq.mockReturnValue({
       gte: mockSupabaseGte,
+      eq: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
 
     mockSupabaseGte.mockReturnValue({
@@ -408,7 +409,9 @@ describe('useOrders', () => {
   describe('markPickedUp', () => {
     it('should mark order as picked up', async () => {
       const mockUpdateEq = vi.fn().mockReturnValue({
-        select: vi.fn().mockResolvedValue({ data: [{ id: 'order-1', status: 'picked_up' }], error: null }),
+        select: vi
+          .fn()
+          .mockResolvedValue({ data: [{ id: 'order-1', status: 'picked_up' }], error: null }),
       });
 
       mockSupabaseUpdate.mockReturnValue({
