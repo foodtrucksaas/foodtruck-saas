@@ -385,21 +385,12 @@ export default function OrderStatus() {
   const promoDiscountTotal = promoOffers.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
   // Loyalty = total discount - offer discount - promo discount
   const loyaltyDiscount = Math.max(0, discountAmount - offerDiscount - promoDiscountTotal);
-  // Buy_x_get_y discounts (shown inline on items, not as separate lines)
-  const buyXgetYDiscount = offerUses
-    .filter((u) => u.offer?.offer_type === 'buy_x_get_y')
-    .reduce((sum, u) => sum + (u.discount_amount || 0), 0);
-  // Bundle discounts from auto-detected bundles
-  const bundleDiscount = offerUses
-    .filter((u) => u.offer?.offer_type === 'bundle')
-    .reduce((sum, u) => sum + (u.discount_amount || 0), 0);
   const totalSavings = discountAmount;
   const subtotal = order.order_items.reduce(
     (sum, item) => sum + item.unit_price * item.quantity,
     0
   );
-  const hasDiscounts =
-    loyaltyDiscount > 0 || promoOffers.length > 0 || buyXgetYDiscount > 0 || bundleDiscount > 0;
+  const hasDiscounts = loyaltyDiscount > 0 || promoOffers.length > 0;
 
   return (
     <main className="min-h-screen pb-8">
@@ -649,22 +640,6 @@ export default function OrderStatus() {
                   <span className="text-gray-500">Sous-total</span>
                   <span className="text-gray-500 tabular-nums">{formatPrice(subtotal)}</span>
                 </div>
-                {bundleDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-emerald-600">Formules</span>
-                    <span className="text-emerald-600 font-medium tabular-nums">
-                      −{formatPrice(bundleDiscount)}
-                    </span>
-                  </div>
-                )}
-                {buyXgetYDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-emerald-600">Articles offerts</span>
-                    <span className="text-emerald-600 font-medium tabular-nums">
-                      −{formatPrice(buyXgetYDiscount)}
-                    </span>
-                  </div>
-                )}
                 {promoOffers.map((u) => (
                   <div key={u.id} className="flex justify-between text-sm">
                     <span className="text-emerald-600">{u.offer?.name || 'Promo'}</span>
