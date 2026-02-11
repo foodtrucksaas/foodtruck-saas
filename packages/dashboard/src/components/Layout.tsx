@@ -56,6 +56,24 @@ const navigation: NavItem[] = [
   { type: 'link', name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 
+function OnboardingBanner() {
+  const { foodtruck } = useFoodtruck();
+  if (!foodtruck || foodtruck.onboarding_completed_at) return null;
+  return (
+    <Link
+      to="/onboarding-assistant"
+      className="block bg-primary-50 border-b border-primary-100 px-4 py-3 text-sm text-primary-700 hover:bg-primary-100 transition-colors"
+    >
+      <span className="font-medium">Terminer la configuration</span>
+      <span className="hidden sm:inline">
+        {' '}
+        — L'assistant vous guide pour configurer emplacements, horaires et menu
+      </span>
+      <span className="ml-2">&rarr;</span>
+    </Link>
+  );
+}
+
 function LayoutContent({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showQuickOrder, setShowQuickOrder] = useState(false);
@@ -290,6 +308,8 @@ function LayoutContent({ children }: LayoutProps) {
           </div>
         </header>
 
+        <OnboardingBanner />
+
         {/* Content - native scroll */}
         <main
           id="main-content"
@@ -343,6 +363,8 @@ function LayoutContent({ children }: LayoutProps) {
             </div>
           </div>
         </header>
+
+        <OnboardingBanner />
 
         {/* Desktop content */}
         <main
