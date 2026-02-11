@@ -1,20 +1,6 @@
--- Fix: schedules table has no 'address' column, use locations.address instead
+-- Fix: ORDER BY use_count should be "useCount" (quoted camelCase alias)
 
-DO $$
-DECLARE
-    func_oid oid;
-BEGIN
-    FOR func_oid IN
-        SELECT p.oid FROM pg_proc p
-        JOIN pg_namespace n ON p.pronamespace = n.oid
-        WHERE p.proname = 'get_analytics' AND n.nspname = 'public'
-    LOOP
-        EXECUTE 'DROP FUNCTION IF EXISTS public.get_analytics(' ||
-            pg_get_function_identity_arguments(func_oid) || ') CASCADE';
-    END LOOP;
-END $$;
-
-CREATE FUNCTION get_analytics(
+CREATE OR REPLACE FUNCTION get_analytics(
   p_foodtruck_id UUID,
   p_start_date DATE,
   p_end_date DATE
@@ -186,7 +172,7 @@ BEGIN
       ) cat_stats
     ),
     'offerStats', (
-      SELECT COALESCE(json_agg(offer_stats ORDER BY "useCount" DESC), '[]'::json)
+      SELECT COALESCE(json_agg(offer_stats), '[]'::json)
       FROM (
         SELECT
           f.name as "offerName",
