@@ -19,7 +19,7 @@ const TOTAL_STEPS = 5;
 
 function OnboardingAssistantContent() {
   const navigate = useNavigate();
-  const { state } = useOnboarding();
+  const { state, goToStep } = useOnboarding();
   const { saveAllData, updateProgress, saveLocations, saveSchedules, saveMenu, saveOffers } =
     useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
@@ -120,6 +120,7 @@ function OnboardingAssistantContent() {
               totalSteps={TOTAL_STEPS}
               labels={STEP_LABELS}
               completedSteps={state.completedSteps}
+              onStepClick={goToStep}
             />
           )}
         </div>

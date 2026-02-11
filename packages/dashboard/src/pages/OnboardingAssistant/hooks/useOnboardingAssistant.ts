@@ -109,6 +109,13 @@ export function useOnboardingAssistant() {
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
         }
+        // Restore step progress from database
+        if (foodtruck.onboarding_step && foodtruck.onboarding_step > 1) {
+          for (let i = 1; i < foodtruck.onboarding_step; i++) {
+            dispatch({ type: 'COMPLETE_STEP', step: i });
+          }
+          dispatch({ type: 'SET_STEP', step: foodtruck.onboarding_step });
+        }
       } catch (err) {
         console.error('Error loading existing data:', err);
       }

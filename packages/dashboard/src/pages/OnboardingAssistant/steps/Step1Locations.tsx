@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Plus, Check, ArrowRight } from 'lucide-react';
 import {
   GooglePlacesAutocomplete,
@@ -10,6 +10,13 @@ import { AssistantBubble, StepContainer, ActionButton } from '../components';
 export function Step1Locations() {
   const { state, dispatch, nextStep } = useOnboarding();
   const [saving, setSaving] = useState(false);
+
+  // When locations exist (loaded from DB) and we're not adding a new one, show summary
+  useEffect(() => {
+    if (state.locations.length > 0 && !state.showAddAnother && !state.currentLocation.name) {
+      dispatch({ type: 'SET_SHOW_ADD_ANOTHER', show: true });
+    }
+  }, [state.locations.length, state.showAddAnother, state.currentLocation.name, dispatch]);
 
   const handlePlaceSelect = (place: PlaceResult) => {
     dispatch({
@@ -50,48 +57,34 @@ export function Step1Locations() {
 
   const isLocationValid = state.currentLocation.name.trim() && state.currentLocation.address.trim();
 
-  // Show the "add another" confirmation screen
+  // Show the locations summary / "add another" screen
   if (state.showAddAnother && state.locations.length > 0) {
-    const lastLocation = state.locations[state.locations.length - 1];
-
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
-          <AssistantBubble message="Emplacement ajouté !" emoji="✅" variant="success" />
+          <AssistantBubble
+            message={`${state.locations.length} emplacement${state.locations.length > 1 ? 's' : ''} enregistré${state.locations.length > 1 ? 's' : ''}`}
+            emoji="✅"
+            variant="success"
+          />
 
-          {/* Display added location */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-5 h-5 text-primary-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">{lastLocation.name}</p>
-                <p className="text-sm text-gray-500 mt-0.5">{lastLocation.address}</p>
-              </div>
-              <Check className="w-5 h-5 text-success-500 flex-shrink-0" />
-            </div>
-          </div>
-
-          {/* Show all locations if more than one */}
-          {state.locations.length > 1 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">
-                Tous vos emplacements ({state.locations.length})
-              </p>
-              <div className="space-y-2">
-                {state.locations.slice(0, -1).map((loc, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm"
-                  >
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium text-gray-700">{loc.name}</span>
+          {/* Display all locations */}
+          <div className="space-y-2">
+            {state.locations.map((loc, index) => (
+              <div key={loc.id || index} className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-primary-600" />
                   </div>
-                ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900">{loc.name}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{loc.address}</p>
+                  </div>
+                  <Check className="w-5 h-5 text-success-500 flex-shrink-0" />
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
 
           <AssistantBubble message="Avez-vous un autre emplacement ?" />
 
