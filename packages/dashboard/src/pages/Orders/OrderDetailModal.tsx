@@ -124,7 +124,7 @@ export function OrderDetailModal({
     >
       <div className="absolute inset-0 bg-black/60 animate-backdrop-in" />
       <div
-        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col animate-modal-in"
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[100dvh] sm:max-h-[90vh] overflow-hidden flex flex-col animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - with safe area for notch/Dynamic Island */}
