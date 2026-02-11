@@ -543,16 +543,16 @@ export default function BundleBuilder({
             {isSupplementPhase &&
               supplementGroups.map(({ group, options: groupOptions }) => (
                 <div key={group.id} className="space-y-2">
-                  {supplementGroups.length > 1 && (
-                    <div className="flex items-center justify-between px-1 pt-2">
+                  <div className="flex items-center justify-between px-1 pt-2">
+                    {supplementGroups.length > 1 && (
                       <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                         {group.name}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full font-medium">
-                        Optionnel
-                      </span>
-                    </div>
-                  )}
+                    )}
+                    <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full font-medium ml-auto">
+                      Optionnel
+                    </span>
+                  </div>
                   {groupOptions.map((opt) => {
                     const isOptSelected = (
                       pendingItem?.supplementSelections[group.id] || []
@@ -655,7 +655,7 @@ export default function BundleBuilder({
                 onClick={handleConfirmSupplements}
                 className="flex-1 py-3 rounded-xl font-semibold bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98] transition-all"
               >
-                Confirmer
+                Continuer
               </button>
             ) : (
               <button
@@ -669,7 +669,7 @@ export default function BundleBuilder({
               >
                 {allSelected
                   ? `Ajouter • ${formatPrice(totalPrice * quantity)}`
-                  : `Sélectionnez ${bundleCategories.length - selections.filter((s) => s).length} élément(s)`}
+                  : 'Ajouter au panier'}
               </button>
             )}
           </div>
