@@ -174,10 +174,12 @@ serve(async (req) => {
           const emailSubject = replaceVariables(campaign.email_subject || '');
 
           const safeFoodtruckName = escapeHtml(campaign.foodtruck?.name) || 'FoodTruck';
-          // Sanitize the from name: remove newlines, angle brackets, and other dangerous chars for email headers
-          const safeFromName = (campaign.foodtruck?.name || 'FoodTruck')
-            .replace(/[\r\n<>"]/g, '')
-            .substring(0, 100);
+          // Sanitize the from name: only allow safe characters for email headers (prevents header injection)
+          const safeFromName =
+            (campaign.foodtruck?.name || 'FoodTruck')
+              .replace(/[^a-zA-Z0-9\s\-\u00C0-\u024F']/g, '')
+              .substring(0, 100)
+              .trim() || 'FoodTruck';
           const { data: emailResult, error: emailError } = await resend.emails.send({
             from: `${safeFromName} <noreply@${Deno.env.get('RESEND_DOMAIN') || 'resend.dev'}>`,
             to: recipient.email,

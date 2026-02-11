@@ -294,10 +294,16 @@ serve(async (req) => {
     // Sending confirmation email for order
 
     const resendDomain = Deno.env.get('RESEND_DOMAIN') || 'resend.dev';
+    // Sanitize foodtruck name for email headers (prevents header injection)
+    const safeFromName =
+      (order.foodtruck.name || 'FoodTruck')
+        .replace(/[^a-zA-Z0-9\s\-\u00C0-\u024F']/g, '')
+        .substring(0, 100)
+        .trim() || 'FoodTruck';
     const emailPayload = {
-      from: `${order.foodtruck.name} <commandes@${resendDomain}>`,
+      from: `${safeFromName} <commandes@${resendDomain}>`,
       to: [order.customer_email],
-      subject: `Commande confirmée - ${order.foodtruck.name}`,
+      subject: `Commande confirmée - ${safeFromName}`,
       html,
     };
 

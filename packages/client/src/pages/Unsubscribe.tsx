@@ -9,8 +9,12 @@ export default function Unsubscribe() {
   const [status, setStatus] = useState<Status>('confirm');
   const [error, setError] = useState<string | null>(null);
 
-  const email = searchParams.get('email');
+  const rawEmail = searchParams.get('email');
   const foodtruckId = searchParams.get('foodtruck');
+
+  // Sanitize: only accept valid email format to prevent XSS via URL parameter
+  const email =
+    rawEmail && /^[^\s@<>"'&]+@[^\s@<>"'&]+\.[^\s@<>"'&]+$/.test(rawEmail) ? rawEmail : null;
 
   const handleUnsubscribe = async () => {
     if (!email) {
