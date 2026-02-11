@@ -40,7 +40,7 @@ serve(async (req) => {
 
     const supabase = createSupabaseAdmin();
 
-    // Fetch order with items and options
+    // Fetch order with items, options, and offer uses
     const { data: order, error } = await supabase
       .from('orders')
       .select(
@@ -53,6 +53,12 @@ serve(async (req) => {
           notes,
           menu_item:menu_items (name),
           order_item_options (option_name, option_group_name, price_modifier)
+        ),
+        offer_uses (
+          id,
+          discount_amount,
+          free_item_name,
+          offer:offers (name, offer_type)
         )
       `
       )
@@ -117,18 +123,45 @@ serve(async (req) => {
       }
     }
 
-    // Helper to build options HTML for an item
+    // Helper to build options HTML for an item (no price modifiers — already in total)
     const buildOptionsHtml = (item: OrderItem) => {
       if (!item.order_item_options || item.order_item_options.length === 0) return '';
       const optionsList = item.order_item_options
-        .map((opt) => {
-          const modifier =
-            opt.price_modifier > 0 ? ` (+${(opt.price_modifier / 100).toFixed(2)}€)` : '';
-          return `${escapeHtml(opt.option_name)}${modifier}`;
-        })
+        .map((opt) => escapeHtml(opt.option_name))
         .join(', ');
       return `<div style="font-size:13px;color:#6b7280;margin-top:2px;padding-left:20px">${optionsList}</div>`;
     };
+
+    // Extract offer uses for discount breakdown and free items
+    const offerUses = ((order as Record<string, unknown>).offer_uses || []) as Array<{
+      id: string;
+      discount_amount: number;
+      free_item_name: string | null;
+      offer: { name: string; offer_type: string } | null;
+    }>;
+    const discountAmount = (order.discount_amount as number) || 0;
+
+    // Calculate loyalty discount (total minus all tracked offer discounts)
+    const trackedOfferDiscount = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
+    const loyaltyDiscount = Math.max(0, discountAmount - trackedOfferDiscount);
+
+    // Visible offers (not bundles or buy_x_get_y which are shown inline)
+    const visibleOfferUses = offerUses.filter(
+      (u) =>
+        u.discount_amount > 0 &&
+        u.offer?.offer_type !== 'bundle' &&
+        u.offer?.offer_type !== 'buy_x_get_y'
+    );
+    const visibleDiscount =
+      visibleOfferUses.reduce((sum, u) => sum + u.discount_amount, 0) + loyaltyDiscount;
+
+    // Free items from buy_x_get_y offers
+    const freeItemNames = offerUses
+      .filter((u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name)
+      .map((u) => u.free_item_name!);
+
+    // Order ID (inline — can't import shared in Deno)
+    const orderId = order.id ? `#${(order.id as string).slice(0, 8).toUpperCase()}` : '';
 
     // Build bundle HTML
     const bundleHtml = Array.from(bundleMap.entries())
@@ -137,17 +170,33 @@ serve(async (req) => {
           (sum, i) => sum + (i.unit_price * i.quantity) / 100,
           0
         );
-        const itemsDetail = bundleItems
-          .map((item) => {
-            const opts = buildOptionsHtml(item);
-            return `<div style="font-size:13px;color:#6b7280;padding-left:20px;margin-top:2px">${item.quantity > 1 ? `${item.quantity}× ` : ''}${escapeHtml(item.menu_item.name)}${opts ? `<br/>${opts.replace('padding-left:20px', 'padding-left:30px')}` : ''}</div>`;
+        const bundleCount = bundleItems.filter((i) => i.unit_price > 0).length || 1;
+        // Aggregate identical items within a bundle
+        const agg: { name: string; options: string; qty: number }[] = [];
+        bundleItems.forEach((item) => {
+          const opts = item.order_item_options?.map((o) => o.option_name).join(', ') || '';
+          const key = `${item.menu_item.name}|${opts}`;
+          const existing = agg.find((a) => `${a.name}|${a.options}` === key);
+          if (existing) {
+            existing.qty += item.quantity;
+          } else {
+            agg.push({ name: item.menu_item.name, options: opts, qty: item.quantity });
+          }
+        });
+        const cleanName = bundleName.replace(/#\d+$/, '');
+        const itemsDetail = agg
+          .map((a) => {
+            const optHtml = a.options
+              ? `<br/><span style="font-size:12px;color:#9ca3af;padding-left:30px">${escapeHtml(a.options)}</span>`
+              : '';
+            return `<div style="font-size:13px;color:#6b7280;padding-left:20px;margin-top:2px">${a.qty > 1 ? `${a.qty}× ` : ''}${escapeHtml(a.name)}${optHtml}</div>`;
           })
           .join('');
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
               <tr>
-                <td style="text-align:left;font-weight:600">${escapeHtml(bundleName)}</td>
+                <td style="text-align:left;font-weight:600">${bundleCount > 1 ? `${bundleCount}× ` : ''}${escapeHtml(cleanName)}</td>
                 <td style="text-align:right;font-weight:500;white-space:nowrap">${bundleTotal.toFixed(2)}€</td>
               </tr>
             </table>
@@ -156,11 +205,24 @@ serve(async (req) => {
       })
       .join('');
 
-    // Build solo items HTML
-    const soloHtml = soloItems
-      .map((item) => {
+    // Build solo items HTML (free items last, with "Offert" badge)
+    const remainingFree = [...freeItemNames];
+    const taggedItems = soloItems.map((item) => {
+      const freeIdx = remainingFree.indexOf(item.menu_item.name);
+      const isFree = freeIdx !== -1;
+      if (isFree) remainingFree.splice(freeIdx, 1);
+      return { item, isFree };
+    });
+    taggedItems.sort((a, b) => (a.isFree === b.isFree ? 0 : a.isFree ? 1 : -1));
+
+    const soloHtml = taggedItems
+      .map(({ item, isFree }) => {
         const itemTotal = (item.unit_price * item.quantity) / 100;
         const optionsHtml = buildOptionsHtml(item);
+        const priceHtml = isFree
+          ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:13px">${itemTotal.toFixed(2)}€</span>
+             <span style="background:#dcfce7;color:#16a34a;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px">Offert</span>`
+          : `${itemTotal.toFixed(2)}€`;
 
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
@@ -169,7 +231,7 @@ serve(async (req) => {
                 <td style="text-align:left">
                   <strong>${item.quantity}x</strong> ${escapeHtml(item.menu_item.name)}
                 </td>
-                <td style="text-align:right;font-weight:500;white-space:nowrap">${itemTotal.toFixed(2)}€</td>
+                <td style="text-align:right;font-weight:500;white-space:nowrap">${priceHtml}</td>
               </tr>
             </table>
             ${optionsHtml}
@@ -201,16 +263,37 @@ serve(async (req) => {
         </div>`;
     }
 
-    // Build discount section if applicable
+    // Build discount section with detailed breakdown
     let discountHtml = '';
-    if (order.discount_amount && order.discount_amount > 0) {
-      discountHtml = `
+    if (visibleDiscount > 0) {
+      // Subtotal line
+      discountHtml += `
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
           <tr>
-            <td style="text-align:left;color:#059669">Réduction</td>
-            <td style="text-align:right;color:#059669">-${(order.discount_amount / 100).toFixed(2)}€</td>
+            <td style="text-align:left;color:#6b7280;font-size:14px">Sous-total</td>
+            <td style="text-align:right;color:#6b7280;font-size:14px">${((order.total_amount + visibleDiscount) / 100).toFixed(2)}€</td>
           </tr>
         </table>`;
+      // Individual offer lines
+      for (const u of visibleOfferUses) {
+        discountHtml += `
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:4px">
+          <tr>
+            <td style="text-align:left;color:#d97706;font-size:14px">${escapeHtml(u.offer?.name || 'Offre')}</td>
+            <td style="text-align:right;color:#d97706;font-size:14px">-${(u.discount_amount / 100).toFixed(2)}€</td>
+          </tr>
+        </table>`;
+      }
+      // Loyalty line
+      if (loyaltyDiscount > 0) {
+        discountHtml += `
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:4px">
+          <tr>
+            <td style="text-align:left;color:#d97706;font-size:14px">Fidélité</td>
+            <td style="text-align:right;color:#d97706;font-size:14px">-${(loyaltyDiscount / 100).toFixed(2)}€</td>
+          </tr>
+        </table>`;
+      }
     }
 
     const html = `
@@ -234,7 +317,7 @@ serve(async (req) => {
               Bonjour <strong>${escapeHtml(order.customer_name)}</strong>,
             </p>
             <p style="font-size:16px;color:#374151;margin:0 0 20px">
-              Votre commande chez <strong style="color:#f97316">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
+              Votre commande <span style="font-family:monospace;color:#9ca3af;font-size:13px">${orderId}</span> chez <strong style="color:#f97316">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
             </p>
 
             <!-- Pickup time -->
