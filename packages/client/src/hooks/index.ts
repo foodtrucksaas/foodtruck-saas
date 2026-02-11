@@ -12,3 +12,5 @@ export { useLoyalty, calculateLoyaltyDiscount } from './useLoyalty';
 export { useOffers } from './useOffers';
 
 export { useBundleDetection } from './useBundleDetection';
+
+export { useDocumentMeta } from './useDocumentMeta';

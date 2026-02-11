@@ -49,6 +49,27 @@ fs.mkdirSync(path.join(vercelOutputDir, 'static'), { recursive: true });
 // Copy dist to static
 copyDir(distDir, path.join(vercelOutputDir, 'static'));
 
+// Create OG render Edge Function (injects Open Graph meta tags for social sharing)
+const clientIndexPath = path.join(distDir, 'client', 'index.html');
+if (fs.existsSync(clientIndexPath)) {
+  const clientHtml = fs.readFileSync(clientIndexPath, 'utf-8');
+  const ogFuncSource = fs.readFileSync(path.join(__dirname, 'og-render-func.js'), 'utf-8');
+  // Embed the built HTML template into the function
+  const ogFuncCode = ogFuncSource.replace(
+    "const HTML_TEMPLATE = '__HTML_TEMPLATE__';",
+    `const HTML_TEMPLATE = ${JSON.stringify(clientHtml)};`
+  );
+
+  const ogFuncDir = path.join(vercelOutputDir, 'functions', 'og-render.func');
+  fs.mkdirSync(ogFuncDir, { recursive: true });
+  fs.writeFileSync(path.join(ogFuncDir, 'index.js'), ogFuncCode);
+  fs.writeFileSync(
+    path.join(ogFuncDir, '.vc-config.json'),
+    JSON.stringify({ runtime: 'edge', entrypoint: 'index.js' }, null, 2)
+  );
+  console.log('✓ OG render Edge Function created');
+}
+
 // Create config.json with routing rules
 const config = {
   version: 3,
@@ -105,10 +126,10 @@ const config = {
       dest: "/dashboard/index.html",
       has: [{ type: "host", value: "pro\\.onmange\\.app" }]
     },
-    // Client subdomain SPA fallback for foodtruck slugs
+    // Client subdomain SPA fallback — served through Edge Function for OG meta tags
     {
       src: "/(.*)",
-      dest: "/client/index.html",
+      dest: "/og-render",
       has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }]
     },
     // Client SPA fallback for paths that don't match static files

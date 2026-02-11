@@ -23,7 +23,7 @@ import LocationCard from '../../components/LocationCard';
 import { OptimizedImage } from '../../components/OptimizedImage';
 import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
-import { useOffers, useBundleDetection } from '../../hooks';
+import { useOffers, useBundleDetection, useDocumentMeta } from '../../hooks';
 import { useFoodtruck, type BundleOffer } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
@@ -112,6 +112,38 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       ? appliedOffers.map((o) => o.offer_name).join(' + ')
       : bestOffer?.offer_name;
   const finalTotal = Math.max(0, total - appliedDiscount);
+
+  // SEO: dynamic meta tags + JSON-LD structured data
+  const jsonLd = useMemo(() => {
+    if (!foodtruck) return undefined;
+    const ld: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'FoodEstablishment',
+      name: foodtruck.name,
+      url: `https://${foodtruck.slug}.onmange.app`,
+      ...(foodtruck.description && { description: foodtruck.description }),
+      ...(foodtruck.logo_url && { image: foodtruck.logo_url }),
+      ...(foodtruck.phone && { telephone: foodtruck.phone }),
+      ...(foodtruck.cuisine_types?.length && {
+        servesCuisine: foodtruck.cuisine_types.join(', '),
+      }),
+    };
+    if (todaySchedule) {
+      ld.address = {
+        '@type': 'PostalAddress',
+        streetAddress: todaySchedule.location.address,
+      };
+    }
+    return ld;
+  }, [foodtruck, todaySchedule]);
+
+  useDocumentMeta({
+    title: foodtruck ? `${foodtruck.name} — Commander en ligne` : undefined,
+    description: foodtruck?.description || undefined,
+    ogImage: foodtruck?.cover_image_url || foodtruck?.logo_url || undefined,
+    ogUrl: foodtruck ? `https://${foodtruck.slug}.onmange.app` : undefined,
+    jsonLd,
+  });
 
   // Track active category based on scroll position
   useEffect(() => {
