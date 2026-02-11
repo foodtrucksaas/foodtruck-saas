@@ -150,7 +150,7 @@ serve(async (req) => {
           <body style="margin:0;padding:0;background-color:#f3f4f6">
             <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif">
               <!-- Header -->
-              <div style="background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white;padding:40px 30px;text-align:center;border-radius:12px 12px 0 0">
+              <div style="background:linear-gradient(135deg,#F97066 0%,#C94D3A 100%);color:white;padding:40px 30px;text-align:center;border-radius:12px 12px 0 0">
                 <h1 style="margin:0;font-size:28px;font-weight:600">Rappel de commande</h1>
               </div>
 
@@ -160,13 +160,13 @@ serve(async (req) => {
                   Bonjour <strong>${escapeHtml(order.customer_name)}</strong>,
                 </p>
                 <p style="font-size:16px;color:#374151;margin:0 0 20px">
-                  Pour rappel, votre commande chez <strong style="color:#3b82f6">${escapeHtml(order.foodtruck.name)}</strong> sera disponible à :
+                  Pour rappel, votre commande chez <strong style="color:#F97066">${escapeHtml(order.foodtruck.name)}</strong> sera disponible à :
                 </p>
 
                 <!-- Pickup time highlight -->
-                <div style="background:#dbeafe;padding:25px;border-radius:12px;margin:25px 0;text-align:center">
-                  <div style="font-size:42px;font-weight:700;color:#1e40af">${pickupTimeStr}</div>
-                  <p style="margin:10px 0 0;color:#1e3a8a;font-size:14px">Montant à régler sur place : <strong>${total}€</strong></p>
+                <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:25px;border-radius:12px;margin:25px 0;text-align:center">
+                  <div style="font-size:42px;font-weight:700;color:#111827">${pickupTimeStr}</div>
+                  <p style="margin:10px 0 0;color:#374151;font-size:14px">Montant à régler sur place : <strong>${total}€</strong></p>
                 </div>
 
                 <p style="font-size:14px;color:#6b7280;margin:20px 0;text-align:center">
@@ -177,7 +177,7 @@ serve(async (req) => {
                   order.foodtruck.phone
                     ? `
                   <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
-                    Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#3b82f6;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
+                    Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#F97066;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
                   </p>
                 `
                     : ''
@@ -190,7 +190,8 @@ serve(async (req) => {
 
               <!-- Footer -->
               <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">
-                <p style="margin:0">Cet email a été envoyé par ${escapeHtml(order.foodtruck.name)}</p>
+                <p style="margin:0 0 5px;font-size:14px;color:#374151">À bientôt !</p>
+                <p style="margin:0;font-weight:600;color:#111827">${escapeHtml(order.foodtruck.name)}</p>
               </div>
             </div>
           </body>

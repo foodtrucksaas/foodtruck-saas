@@ -175,7 +175,7 @@ foodtruck-saas/
 
 #### Suivi
 
-- [ ] Confirmation par email
+- [x] Confirmation par email
 - [x] Statut commande en temps réel
 - [x] Historique commandes (si connecté)
 
@@ -877,7 +877,7 @@ _Dernière mise à jour : 3 Février 2026_
 ### Fonctionnalités restantes à implémenter :
 
 - [x] Vue planning vertical (créneaux de retrait par tranches de 15min) - Dashboard ✅
-- [ ] Confirmation par email (nécessite configuration SMTP)
+- [x] Confirmation par email ✅
 
 ### Fichiers implémentés :
 
