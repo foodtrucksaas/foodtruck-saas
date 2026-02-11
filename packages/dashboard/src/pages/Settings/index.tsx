@@ -10,6 +10,7 @@ import {
   Palette,
   User,
   Link2,
+  Code2,
 } from 'lucide-react';
 import { useSettings } from './useSettings';
 import { ProfileSection } from './ProfileSection';
@@ -17,6 +18,7 @@ import { SocialMediaSection } from './SocialMediaSection';
 import { PaymentMethodsSection } from './PaymentMethodsSection';
 import { BusinessInfoSection } from './BusinessInfoSection';
 import { QRCodeSection } from './QRCodeSection';
+import { EmbedButtonSection } from './EmbedButtonSection';
 import { OrderSettingsSection } from './OrderSettingsSection';
 import { OffersSettingsSection } from './OffersSettingsSection';
 import { AccountSection } from './AccountSection';
@@ -30,6 +32,7 @@ const SECTIONS = [
   { id: 'business', label: 'Entreprise', icon: Building },
   { id: 'payment', label: 'Paiement', icon: Wallet },
   { id: 'qr', label: 'QR Code', icon: QrCode },
+  { id: 'embed', label: 'Bouton', icon: Code2 },
   { id: 'orders', label: 'Commandes', icon: ShoppingBag },
   { id: 'offers', label: 'Offres', icon: Tag },
   { id: 'theme', label: 'Thème', icon: Palette },
@@ -304,6 +307,16 @@ export default function Settings() {
         className="scroll-mt-36"
       >
         <QRCodeSection foodtruck={foodtruck} clientLink={clientLink} />
+      </div>
+
+      {/* Embed Button Section */}
+      <div
+        ref={(el) => {
+          sectionRefs.current['embed'] = el;
+        }}
+        className="scroll-mt-36"
+      >
+        <EmbedButtonSection foodtruck={foodtruck} clientLink={clientLink} />
       </div>
 
       {/* Order Settings Section */}
