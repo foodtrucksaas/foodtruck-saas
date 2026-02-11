@@ -166,7 +166,7 @@ export default function Dashboard() {
     todayStatus,
     upcomingOrders,
     outOfStockItems,
-    activeOffersCount,
+    activeOffers,
     weekOrderCount,
     weekOrderAmount,
   } = useDashboard();
@@ -229,8 +229,13 @@ export default function Dashboard() {
             {upcomingOrders.map((order) => {
               const pickupDate = new Date(order.pickup_time);
               const timeStr = `${pickupDate.getHours().toString().padStart(2, '0')}h${pickupDate.getMinutes().toString().padStart(2, '0')}`;
-              const itemCount = order.order_items.length;
               const statusStyle = getStatusStyle(order.status);
+              const itemsSummary = order.order_items
+                .map(
+                  (item) =>
+                    `${item.quantity > 1 ? item.quantity + '× ' : ''}${item.menu_item?.name ?? '?'}`
+                )
+                .join(', ');
 
               return (
                 <div key={order.id} className="flex items-center gap-3 px-4 py-3">
@@ -238,11 +243,9 @@ export default function Dashboard() {
                     {timeStr}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 truncate">{itemsSummary}</p>
+                    <p className="text-xs text-gray-400 truncate">
                       {order.customer_name || 'Client'}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {itemCount} article{itemCount > 1 ? 's' : ''}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
@@ -308,7 +311,19 @@ export default function Dashboard() {
             </div>
             <span className="text-xs font-semibold text-gray-700">Offres actives</span>
           </div>
-          <p className="text-lg font-bold text-gray-900">{activeOffersCount}</p>
+          {activeOffers.length === 0 ? (
+            <p className="text-xs text-gray-400">Aucune offre active</p>
+          ) : activeOffers.length <= 5 ? (
+            <ul className="space-y-0.5 mt-1">
+              {activeOffers.map((offer) => (
+                <li key={offer.id} className="text-xs text-gray-700 truncate">
+                  {offer.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-lg font-bold text-gray-900">{activeOffers.length}</p>
+          )}
           <Link
             to="/offers"
             className="text-xs text-primary-500 hover:text-primary-600 mt-1.5 inline-block font-medium"

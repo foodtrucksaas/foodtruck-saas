@@ -18,7 +18,12 @@ export interface UpcomingOrder {
   pickup_time: string;
   total_amount: number;
   customer_name: string | null;
-  order_items: { id: string }[];
+  order_items: { id: string; quantity: number; menu_item: { name: string } | null }[];
+}
+
+export interface ActiveOffer {
+  id: string;
+  name: string;
 }
 
 // --- Hook ---
@@ -31,7 +36,7 @@ export function useDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [todayStatus, setTodayStatus] = useState<TodayStatus>({ type: 'no_service' });
   const [upcomingOrders, setUpcomingOrders] = useState<UpcomingOrder[]>([]);
-  const [activeOffersCount, setActiveOffersCount] = useState(0);
+  const [activeOffers, setActiveOffers] = useState<ActiveOffer[]>([]);
   const [weekOrderCount, setWeekOrderCount] = useState(0);
   const [weekOrderAmount, setWeekOrderAmount] = useState(0);
 
@@ -74,7 +79,7 @@ export function useDashboard() {
         .maybeSingle(),
       supabase
         .from('offers')
-        .select('id', { count: 'exact', head: true })
+        .select('id, name')
         .eq('foodtruck_id', foodtruck.id)
         .eq('is_active', true),
       supabase
@@ -123,7 +128,7 @@ export function useDashboard() {
     }
 
     // Active offers
-    setActiveOffersCount(offersRes.count ?? 0);
+    setActiveOffers((offersRes.data || []) as ActiveOffer[]);
 
     // Week stats
     const weekOrders = weekRes.data || [];
@@ -146,7 +151,9 @@ export function useDashboard() {
       supabase.rpc('get_dashboard_stats', { p_foodtruck_id: foodtruck.id }),
       supabase
         .from('orders')
-        .select('id, status, pickup_time, total_amount, customer_name, order_items(id)')
+        .select(
+          'id, status, pickup_time, total_amount, customer_name, order_items(id, quantity, menu_item:menu_items(name))'
+        )
         .eq('foodtruck_id', foodtruck.id)
         .gte('pickup_time', `${todayStr}T00:00:00`)
         .lt('pickup_time', `${tomorrowStr}T00:00:00`)
@@ -182,7 +189,7 @@ export function useDashboard() {
     todayStatus,
     upcomingOrders,
     outOfStockItems,
-    activeOffersCount,
+    activeOffers,
     weekOrderCount,
     weekOrderAmount,
   };
