@@ -1,5 +1,16 @@
 import { useState, useMemo } from 'react';
-import { Minus, Plus, X, Tag, Check, Loader2, Package, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Minus,
+  Plus,
+  X,
+  Tag,
+  Check,
+  Loader2,
+  Trash2,
+  UtensilsCrossed,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
 import type {
   CartItem,
@@ -265,7 +276,7 @@ export function OrderSummaryCard({
           return (
             <div
               key={`bundle-${offer.offer_id}`}
-              className="bg-primary-50/30 border-l-3 border-l-primary-400"
+              className="bg-primary-50 border-l-3 border-l-primary-400"
             >
               {/* Bundle header */}
               <div className="relative flex items-center gap-3 px-4 py-3 group">
@@ -274,10 +285,14 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => handleRemoveAutoBundle(offer)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                    aria-label="Réduire la quantité"
+                    className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center transition-all active:scale-90 ${offer.times_applied <= 1 ? 'text-red-400 hover:text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    aria-label={offer.times_applied <= 1 ? 'Supprimer' : 'Réduire la quantité'}
                   >
-                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                    {offer.times_applied <= 1 ? (
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                    ) : (
+                      <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                    )}
                   </button>
                   <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
                     {offer.times_applied}
@@ -285,7 +300,7 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => handleAddAutoBundle(offer)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                     aria-label="Augmenter la quantité"
                   >
                     <Plus className="w-3.5 h-3.5" strokeWidth={2} />
@@ -299,7 +314,7 @@ export function OrderSummaryCard({
                   className="flex-1 min-w-0 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                    <UtensilsCrossed className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
                     {isExpanded ? (
                       <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
@@ -368,7 +383,7 @@ export function OrderSummaryCard({
           const isExpanded = expandedBundles.has(cartKey);
 
           return (
-            <div key={cartKey} className="bg-primary-50/30 border-l-3 border-l-primary-400">
+            <div key={cartKey} className="bg-primary-50 border-l-3 border-l-primary-400">
               {/* Bundle header */}
               <div className="relative flex items-center gap-3 px-4 py-3 group">
                 {/* Quantity stepper */}
@@ -376,10 +391,14 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                    aria-label="Réduire la quantité"
+                    className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center transition-all active:scale-90 ${item.quantity <= 1 ? 'text-red-400 hover:text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    aria-label={item.quantity <= 1 ? 'Supprimer' : 'Réduire la quantité'}
                   >
-                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                    {item.quantity <= 1 ? (
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                    ) : (
+                      <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                    )}
                   </button>
                   <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums">
                     {item.quantity}
@@ -387,7 +406,7 @@ export function OrderSummaryCard({
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                     aria-label="Augmenter la quantité"
                   >
                     <Plus className="w-3.5 h-3.5" strokeWidth={2} />
@@ -401,7 +420,7 @@ export function OrderSummaryCard({
                   className="flex-1 min-w-0 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                    <UtensilsCrossed className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{bundleInfo.bundleName}</p>
                     {isExpanded ? (
                       <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
@@ -509,10 +528,14 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                  aria-label="Réduire la quantité"
+                  className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center transition-all active:scale-90 ${item.quantity <= 1 ? 'text-red-400 hover:text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  aria-label={item.quantity <= 1 ? 'Supprimer' : 'Réduire la quantité'}
                 >
-                  <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                  {item.quantity <= 1 ? (
+                    <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                  ) : (
+                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                  )}
                 </button>
                 <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums transition-all">
                   {consumed ? `${displayQuantity}` : item.quantity}
@@ -520,7 +543,7 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                  className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
                   aria-label="Augmenter la quantité"
                 >
                   <Plus className="w-3.5 h-3.5" strokeWidth={2} />
