@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import { useOrderNotification } from '../../contexts/OrderNotificationContext';
 import { formatLocalDate } from '@foodtruck/shared';
-import type { DashboardStats } from '@foodtruck/shared';
+import type { DashboardStats, OrderWithItemsAndOptions } from '@foodtruck/shared';
 
 // --- Types ---
 
@@ -11,15 +11,6 @@ export type TodayStatus =
   | { type: 'open'; locationName: string; startTime: string; endTime: string }
   | { type: 'closed'; reason: string | null }
   | { type: 'no_service' };
-
-export interface UpcomingOrder {
-  id: string;
-  status: string;
-  pickup_time: string;
-  total_amount: number;
-  customer_name: string | null;
-  order_items: { id: string; quantity: number; menu_item: { name: string } | null }[];
-}
 
 export interface ActiveOffer {
   id: string;
@@ -30,15 +21,18 @@ export interface ActiveOffer {
 
 export function useDashboard() {
   const { foodtruck, menuItems } = useFoodtruck();
-  const { refreshTrigger } = useOrderNotification();
+  const { refreshTrigger, acceptOrder: contextAcceptOrder } = useOrderNotification();
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [todayStatus, setTodayStatus] = useState<TodayStatus>({ type: 'no_service' });
-  const [upcomingOrders, setUpcomingOrders] = useState<UpcomingOrder[]>([]);
+  const [upcomingOrders, setUpcomingOrders] = useState<OrderWithItemsAndOptions[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithItemsAndOptions | null>(null);
   const [activeOffers, setActiveOffers] = useState<ActiveOffer[]>([]);
   const [weekOrderCount, setWeekOrderCount] = useState(0);
   const [weekOrderAmount, setWeekOrderAmount] = useState(0);
+
+  const useReadyStatus = foodtruck?.use_ready_status || false;
 
   // Derived: out-of-stock items from context (no query needed)
   const outOfStockItems = useMemo(
@@ -152,7 +146,19 @@ export function useDashboard() {
       supabase
         .from('orders')
         .select(
-          'id, status, pickup_time, total_amount, customer_name, order_items(id, quantity, menu_item:menu_items(name))'
+          `id, status, pickup_time, total_amount, discount_amount, notes,
+          customer_email, customer_name, customer_phone, created_at,
+          cancellation_reason, cancelled_by,
+          deal_discount, deal_id, promo_code_id, offer_discount,
+          order_items (
+            id, quantity, unit_price, notes,
+            menu_item:menu_items (id, name, price),
+            order_item_options (id, option_name, option_group_name, price_modifier)
+          ),
+          offer_uses (
+            id, discount_amount, free_item_name,
+            offer:offers (name, offer_type)
+          )`
         )
         .eq('foodtruck_id', foodtruck.id)
         .gte('pickup_time', `${todayStr}T00:00:00`)
@@ -163,7 +169,7 @@ export function useDashboard() {
     ]);
 
     setStats(statsRes.data as unknown as DashboardStats | null);
-    setUpcomingOrders((ordersRes.data || []) as UpcomingOrder[]);
+    setUpcomingOrders((ordersRes.data || []) as unknown as OrderWithItemsAndOptions[]);
     setLoading(false);
   }, [foodtruck]);
 
@@ -183,14 +189,74 @@ export function useDashboard() {
     }
   }, [refreshTrigger, fetchVolatileData]);
 
+  // --- Order actions ---
+
+  const acceptOrder = useCallback(
+    async (id: string) => {
+      await contextAcceptOrder(id);
+      fetchVolatileData();
+    },
+    [contextAcceptOrder, fetchVolatileData]
+  );
+
+  const cancelOrderWithReason = useCallback(
+    async (id: string, reason: string) => {
+      await supabase
+        .from('orders')
+        .update({ status: 'cancelled', cancellation_reason: reason, cancelled_by: 'merchant' })
+        .eq('id', id);
+      setSelectedOrder(null);
+      fetchVolatileData();
+    },
+    [fetchVolatileData]
+  );
+
+  const markReady = useCallback(
+    async (id: string) => {
+      await supabase.from('orders').update({ status: 'ready' }).eq('id', id);
+      setSelectedOrder(null);
+      fetchVolatileData();
+    },
+    [fetchVolatileData]
+  );
+
+  const markPickedUp = useCallback(
+    async (id: string) => {
+      await supabase.from('orders').update({ status: 'picked_up' }).eq('id', id);
+      setSelectedOrder(null);
+      fetchVolatileData();
+    },
+    [fetchVolatileData]
+  );
+
+  const updatePickupTime = useCallback(
+    async (id: string, currentPickupTime: string, newTime: string) => {
+      const currentDate = new Date(currentPickupTime);
+      const [hours, minutes] = newTime.split(':').map(Number);
+      currentDate.setHours(hours, minutes, 0, 0);
+      await supabase.from('orders').update({ pickup_time: currentDate.toISOString() }).eq('id', id);
+      setSelectedOrder(null);
+      fetchVolatileData();
+    },
+    [fetchVolatileData]
+  );
+
   return {
     loading,
     stats,
     todayStatus,
     upcomingOrders,
+    selectedOrder,
+    setSelectedOrder,
     outOfStockItems,
     activeOffers,
     weekOrderCount,
     weekOrderAmount,
+    useReadyStatus,
+    acceptOrder,
+    cancelOrderWithReason,
+    markReady,
+    markPickedUp,
+    updatePickupTime,
   };
 }

@@ -17,6 +17,7 @@ import { formatPrice, formatTime } from '@foodtruck/shared';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import { useOrderNotification } from '../../contexts/OrderNotificationContext';
 import { Skeleton } from '../../components/Skeleton';
+import { OrderDetailModal } from '../Orders/OrderDetailModal';
 import { useDashboard } from './useDashboard';
 import type { TodayStatus } from './useDashboard';
 
@@ -165,10 +166,18 @@ export default function Dashboard() {
     stats,
     todayStatus,
     upcomingOrders,
+    selectedOrder,
+    setSelectedOrder,
     outOfStockItems,
     activeOffers,
     weekOrderCount,
     weekOrderAmount,
+    useReadyStatus,
+    acceptOrder,
+    cancelOrderWithReason,
+    markReady,
+    markPickedUp,
+    updatePickupTime,
   } = useDashboard();
 
   if (loading && !stats) {
@@ -229,16 +238,22 @@ export default function Dashboard() {
             {upcomingOrders.map((order) => {
               const pickupDate = new Date(order.pickup_time);
               const timeStr = `${pickupDate.getHours().toString().padStart(2, '0')}h${pickupDate.getMinutes().toString().padStart(2, '0')}`;
-              const statusStyle = getStatusStyle(order.status);
+              const statusStyle = getStatusStyle(order.status ?? '');
               const itemsSummary = order.order_items
-                .map(
-                  (item) =>
-                    `${item.quantity > 1 ? item.quantity + '× ' : ''}${item.menu_item?.name ?? '?'}`
-                )
+                .map((item) => {
+                  const name = item.menu_item?.name ?? '?';
+                  const opts = item.order_item_options?.map((o) => o.option_name).join(', ');
+                  const label = opts ? `${name} (${opts})` : name;
+                  return item.quantity > 1 ? `${item.quantity}× ${label}` : label;
+                })
                 .join(', ');
 
               return (
-                <div key={order.id} className="flex items-center gap-3 px-4 py-3">
+                <div
+                  key={order.id}
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setSelectedOrder(order)}
+                >
                   <span className="text-sm font-mono font-semibold text-gray-900 w-12 flex-shrink-0">
                     {timeStr}
                   </span>
@@ -346,6 +361,22 @@ export default function Dashboard() {
           </p>
         </div>
       </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          useReadyStatus={useReadyStatus}
+          onClose={() => setSelectedOrder(null)}
+          onAccept={() => acceptOrder(selectedOrder.id)}
+          onCancelWithReason={(reason) => cancelOrderWithReason(selectedOrder.id, reason)}
+          onMarkReady={() => markReady(selectedOrder.id)}
+          onMarkPickedUp={() => markPickedUp(selectedOrder.id)}
+          onUpdatePickupTime={(newTime) =>
+            updatePickupTime(selectedOrder.id, selectedOrder.pickup_time, newTime)
+          }
+        />
+      )}
     </div>
   );
 }
