@@ -9,13 +9,13 @@ const OFFER_TYPES = [
   {
     type: 'bundle' as const,
     label: 'Menu / Formule',
-    description: 'Pizza + Boisson a prix fixe',
+    description: 'Pizza + Boisson à prix fixe',
     icon: Package,
-    example: '"Menu Midi a 12€"',
+    example: '"Menu Midi à 12€"',
   },
   {
     type: 'buy_x_get_y' as const,
-    label: 'X achetes = Y offert',
+    label: 'X achetés = Y offert',
     description: '3 pizzas = 1 boisson offerte',
     icon: Gift,
     example: '"3 pizzas = 1 boisson offerte"',
@@ -30,9 +30,9 @@ const OFFER_TYPES = [
   {
     type: 'threshold_discount' as const,
     label: 'Remise au palier',
-    description: 'Des 25€ = -5€',
+    description: 'Dès 25€ = -5€',
     icon: TrendingUp,
-    example: '"Des 25€ = -5€"',
+    example: '"Dès 25€ = -5€"',
   },
 ];
 
@@ -126,15 +126,15 @@ export function Step4Offers() {
           <AssistantBubble message="Proposez-vous des offres ou formules ?" emoji="🎁" />
 
           <p className="text-sm text-gray-600">
-            Les offres attirent de nouveaux clients et fidelisent les existants !
+            Les offres attirent de nouveaux clients et fidélisent les existants !
           </p>
 
           <div className="space-y-3">
             <ActionButton onClick={() => handleWantsOffers(true)}>
-              Oui, je veux creer une offre
+              Oui, je veux créer une offre
             </ActionButton>
             <ActionButton onClick={() => handleWantsOffers(false)} variant="secondary">
-              Non, peut-etre plus tard
+              Non, peut-être plus tard
             </ActionButton>
           </div>
         </div>
@@ -156,7 +156,7 @@ export function Step4Offers() {
         hideActions
       >
         <div className="space-y-6">
-          <AssistantBubble message="Quel type d'offre souhaitez-vous creer ?" emoji="🎁" />
+          <AssistantBubble message="Quel type d'offre souhaitez-vous créer ?" emoji="🎁" />
 
           <div className="space-y-3">
             {OFFER_TYPES.map(({ type, label, description, icon: Icon, example }) => (
@@ -182,7 +182,7 @@ export function Step4Offers() {
       <StepContainer
         onBack={() => setSubStep('select-type')}
         onNext={handleSaveOffer}
-        nextLabel="Creer l'offre"
+        nextLabel="Créer l'offre"
         nextDisabled={!isConfigValid()}
       >
         <div className="space-y-6">
@@ -263,7 +263,7 @@ export function Step4Offers() {
                 </div>
               </div>
               <p className="text-xs text-gray-500">
-                Vous pourrez configurer les categories eligibles plus tard.
+                Vous pourrez configurer les catégories éligibles plus tard.
               </p>
             </div>
           )}
@@ -394,7 +394,7 @@ export function Step4Offers() {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
-          <AssistantBubble message="Offre creee !" emoji="✅" variant="success" />
+          <AssistantBubble message="Offre créée !" emoji="✅" variant="success" />
 
           {/* Summary of offers */}
           <div className="space-y-2">

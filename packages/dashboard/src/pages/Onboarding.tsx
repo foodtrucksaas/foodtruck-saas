@@ -59,7 +59,7 @@ export default function Onboarding() {
         .single();
 
       if (foodtruckError) {
-        throw new Error('Erreur lors de la creation du food truck');
+        throw new Error('Erreur lors de la création du food truck');
       }
 
       // Don't create default categories - the onboarding assistant will handle menu creation
@@ -95,7 +95,7 @@ export default function Onboarding() {
             <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Truck className="w-10 h-10 text-primary-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Creez votre food truck</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Créez votre food truck</h1>
             <p className="text-gray-600">Un assistant va vous guider pour tout configurer</p>
           </div>
 
@@ -133,7 +133,7 @@ export default function Onboarding() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="input min-h-[100px] resize-none"
-                  placeholder="Decrivez votre cuisine, ce qui vous rend unique..."
+                  placeholder="Décrivez votre cuisine, ce qui vous rend unique..."
                 />
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function Onboarding() {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Creation en cours...
+                  Création en cours...
                 </>
               ) : (
                 <>

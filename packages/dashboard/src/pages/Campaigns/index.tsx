@@ -35,7 +35,7 @@ export default function Campaigns() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Envoyez des emails et SMS a vos clients
+          Envoyez des emails et SMS à vos clients
         </p>
         <button
           onClick={openNewCampaign}
@@ -52,13 +52,13 @@ export default function Campaigns() {
           <Send className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
           <p className="text-gray-500">Aucune campagne</p>
           <p className="text-sm text-gray-400 mt-1">
-            Creez votre premiere campagne pour fideliser vos clients
+            Créez votre première campagne pour fidéliser vos clients
           </p>
           <button
             onClick={openNewCampaign}
             className="mt-4 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
           >
-            Creer une campagne
+            Créer une campagne
           </button>
         </div>
       ) : (

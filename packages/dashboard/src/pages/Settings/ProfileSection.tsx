@@ -151,9 +151,9 @@ export function ProfileSection({
           }
         />
 
-        {/* Type d'activite */}
+        {/* Type d'activité */}
         <EditableField
-          label="Type d'activite"
+          label="Type d'activité"
           field="is_mobile"
           editingField={editingField}
           editLoading={editLoading}
@@ -165,7 +165,7 @@ export function ProfileSection({
               {foodtruck?.is_mobile ? (
                 <>
                   <MapPin className="w-5 h-5 text-primary-500" />
-                  <span className="text-gray-900 font-medium">Itinerant</span>
+                  <span className="text-gray-900 font-medium">Itinérant</span>
                 </>
               ) : (
                 <>
@@ -184,12 +184,12 @@ export function ProfileSection({
                   value: false,
                   icon: Building2,
                   title: 'Fixe',
-                  description: 'Toujours au meme endroit',
+                  description: 'Toujours au même endroit',
                 },
                 {
                   value: true,
                   icon: MapPin,
-                  title: 'Itinerant',
+                  title: 'Itinérant',
                   description: "Change d'emplacement selon le planning",
                 },
               ]}
@@ -216,7 +216,7 @@ export function ProfileSection({
               value={editForm.description}
               onChange={(e) => onUpdateForm('description', e.target.value)}
               className="input min-h-[100px] resize-none w-full"
-              placeholder="Decrivez votre food truck..."
+              placeholder="Décrivez votre food truck..."
               autoFocus
             />
           }
@@ -235,7 +235,7 @@ export function ProfileSection({
           displayValue={
             <div className="space-y-1">
               <p className="text-gray-900">
-                {foodtruck?.phone || <span className="text-gray-400">Aucun telephone</span>}
+                {foodtruck?.phone || <span className="text-gray-400">Aucun téléphone</span>}
               </p>
               <p className="text-gray-900">
                 {foodtruck?.email || <span className="text-gray-400">Aucun email</span>}
@@ -245,7 +245,7 @@ export function ProfileSection({
           editContent={
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="label text-xs">Telephone</label>
+                <label className="label text-xs">Téléphone</label>
                 <input
                   type="tel"
                   value={editForm.phone}

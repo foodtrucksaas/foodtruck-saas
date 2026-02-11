@@ -21,8 +21,8 @@ const templates: OfferTemplate[] = [
     type: 'bundle',
     icon: Package,
     title: 'Menu / Formule',
-    example: 'Entree + Plat + Boisson = 15€',
-    description: 'Creez une formule a prix fixe avec plusieurs choix',
+    example: 'Entrée + Plat + Boisson = 15€',
+    description: 'Créez une formule à prix fixe avec plusieurs choix',
     color: 'text-white',
     bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-primary-500 hover:shadow-md',
     popular: true,
@@ -30,9 +30,9 @@ const templates: OfferTemplate[] = [
   {
     type: 'buy_x_get_y',
     icon: Gift,
-    title: 'X achetes = Y offert',
+    title: 'X achetés = Y offert',
     example: '3 pizzas = 1 boisson offerte',
-    description: 'Offrez un article quand le client en achete plusieurs',
+    description: 'Offrez un article quand le client en achète plusieurs',
     color: 'text-white',
     bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-warning-500 hover:shadow-md',
   },
@@ -41,7 +41,7 @@ const templates: OfferTemplate[] = [
     icon: Tag,
     title: 'Code Promo',
     example: '-10% avec WELCOME10',
-    description: 'Un code a saisir pour avoir une reduction',
+    description: 'Un code à saisir pour avoir une réduction',
     color: 'text-white',
     bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-info-500 hover:shadow-md',
   },
@@ -49,8 +49,8 @@ const templates: OfferTemplate[] = [
     type: 'threshold_discount',
     icon: TrendingUp,
     title: 'Remise au palier',
-    example: "Des 25€ d'achat = 5€ offerts",
-    description: "Reduction automatique a partir d'un montant",
+    example: "Dès 25€ d'achat = 5€ offerts",
+    description: "Réduction automatique à partir d'un montant",
     color: 'text-white',
     bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-success-500 hover:shadow-md',
   },
@@ -61,9 +61,9 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
     <div className="space-y-4">
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Quel type d'offre voulez-vous creer ?
+          Quel type d'offre voulez-vous créer ?
         </h3>
-        <p className="text-sm text-gray-500">Choisissez le modele qui correspond a votre besoin</p>
+        <p className="text-sm text-gray-500">Choisissez le modèle qui correspond à votre besoin</p>
       </div>
 
       <div className="grid gap-3">

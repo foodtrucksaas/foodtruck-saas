@@ -64,7 +64,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
       {/* Categories declencheurs */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categories a acheter *
+          Catégories à acheter *
         </label>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => {
@@ -146,7 +146,7 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
       {/* Categories recompense */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categories offertes *
+          Catégories offertes *
         </label>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => {

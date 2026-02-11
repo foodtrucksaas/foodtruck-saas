@@ -173,7 +173,7 @@ export default function Orders() {
               <button
                 onClick={goToPreviousDay}
                 className="w-10 h-10 sm:w-11 sm:h-11 min-w-[44px] min-h-[44px] sm:min-w-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all flex-shrink-0 flex items-center justify-center active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
-                aria-label="Jour precedent"
+                aria-label="Jour précédent"
                 type="button"
               >
                 <ChevronLeft className="w-5 h-5" aria-hidden="true" />
@@ -211,7 +211,7 @@ export default function Orders() {
                   <div
                     className="absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-30"
                     role="dialog"
-                    aria-label="Selecteur de date"
+                    aria-label="Sélecteur de date"
                   >
                     <label htmlFor="orders-date-picker" className="sr-only">
                       Choisir une date
@@ -272,7 +272,7 @@ export default function Orders() {
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-h-[44px] rounded-xl flex items-center justify-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                 aria-pressed={soundEnabled}
-                aria-label={soundEnabled ? 'Desactiver le son' : 'Activer le son'}
+                aria-label={soundEnabled ? 'Désactiver le son' : 'Activer le son'}
                 type="button"
               >
                 {soundEnabled ? (
@@ -353,7 +353,7 @@ export default function Orders() {
                   className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('confirmed') ? 'bg-info-500' : 'bg-gray-300'}`}
                   aria-hidden="true"
                 />
-                <span className="hidden sm:inline">Acceptees</span>
+                <span className="hidden sm:inline">Acceptées</span>
                 <span className="sm:hidden">OK</span>
                 {confirmed > 0 && (
                   <span
@@ -381,8 +381,8 @@ export default function Orders() {
                     className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('ready') ? 'bg-success-500' : 'bg-gray-300'}`}
                     aria-hidden="true"
                   />
-                  <span className="hidden sm:inline">Pretes</span>
-                  <span className="sm:hidden">Pret</span>
+                  <span className="hidden sm:inline">Prêtes</span>
+                  <span className="sm:hidden">Prêt</span>
                   {ready > 0 && (
                     <span
                       className="bg-success-500 text-white px-1 sm:px-1.5 py-0.5 rounded-full text-xs font-semibold min-w-[18px] sm:min-w-[20px]"
@@ -409,7 +409,7 @@ export default function Orders() {
                   className={`w-2 h-2 rounded-full flex-shrink-0 ${activeFilters.includes('picked_up') ? 'bg-gray-500' : 'bg-gray-300'}`}
                   aria-hidden="true"
                 />
-                <span className="hidden sm:inline">Retirees</span>
+                <span className="hidden sm:inline">Retirées</span>
                 <span className="sm:hidden">Fait</span>
                 {pickedUp > 0 && (
                   <span

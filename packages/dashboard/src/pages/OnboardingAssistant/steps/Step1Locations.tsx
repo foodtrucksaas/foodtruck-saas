@@ -57,7 +57,7 @@ export function Step1Locations() {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
-          <AssistantBubble message="Emplacement ajoute !" emoji="✅" variant="success" />
+          <AssistantBubble message="Emplacement ajouté !" emoji="✅" variant="success" />
 
           {/* Display added location */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -126,7 +126,7 @@ export function Step1Locations() {
         <AssistantBubble
           message={
             state.locations.length === 0
-              ? 'Ou etes-vous installe ? Commencez par ajouter votre premier emplacement.'
+              ? 'Où êtes-vous installé ? Commencez par ajouter votre premier emplacement.'
               : 'Ajoutez un nouvel emplacement.'
           }
           emoji="📍"
@@ -148,7 +148,7 @@ export function Step1Locations() {
                 })
               }
               className="input min-h-[48px] text-base"
-              placeholder="Ex: Marche des Halles"
+              placeholder="Ex: Marché des Halles"
               autoFocus
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -159,7 +159,7 @@ export function Step1Locations() {
           {/* Address with Google Places */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Adresse complete
+              Adresse complète
             </label>
             <GooglePlacesAutocomplete
               value={state.currentLocation.address}
@@ -175,7 +175,7 @@ export function Step1Locations() {
             {state.currentLocation.latitude && (
               <p className="flex items-center gap-1 text-xs text-success-600 mt-1">
                 <Check className="w-3 h-3" />
-                Position detectee
+                Position détectée
               </p>
             )}
           </div>
@@ -186,7 +186,7 @@ export function Step1Locations() {
           <div>
             <p className="text-xs text-gray-500 mb-2">Suggestions rapides :</p>
             <div className="flex flex-wrap gap-2">
-              {['Marche', 'Centre-ville', 'Zone commerciale', 'Parking'].map((suggestion) => (
+              {['Marché', 'Centre-ville', 'Zone commerciale', 'Parking'].map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"

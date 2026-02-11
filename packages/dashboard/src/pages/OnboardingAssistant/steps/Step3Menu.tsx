@@ -15,7 +15,7 @@ import {
 } from '../components';
 
 const CATEGORY_SUGGESTIONS = [
-  'Entrees',
+  'Entrées',
   'Plats',
   'Desserts',
   'Boissons',
@@ -29,7 +29,7 @@ const OPTION_TYPES = [
   { type: 'size' as const, label: 'Tailles', description: 'S, M, L, XL...', icon: Ruler },
   {
     type: 'supplement' as const,
-    label: 'Supplements',
+    label: 'Suppléments',
     description: 'Fromage, Bacon...',
     icon: Plus,
   },
@@ -82,7 +82,7 @@ export function Step3Menu() {
     if (type === 'size') {
       setOptionGroupName('Taille');
     } else if (type === 'supplement') {
-      setOptionGroupName('Supplements');
+      setOptionGroupName('Suppléments');
     } else {
       setOptionGroupName('');
     }
@@ -181,8 +181,8 @@ export function Step3Menu() {
           <AssistantBubble
             message={
               state.categories.length === 0
-                ? 'Creons votre menu ! Commencez par creer une categorie.'
-                : 'Ajoutez une nouvelle categorie.'
+                ? 'Créons votre menu ! Commencez par créer une catégorie.'
+                : 'Ajoutez une nouvelle catégorie.'
             }
             emoji="🍽️"
           />
@@ -191,7 +191,7 @@ export function Step3Menu() {
           {state.categories.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700">
-                Categories creees ({state.categories.length})
+                Catégories créées ({state.categories.length})
               </p>
               <div className="flex flex-wrap gap-2">
                 {state.categories.map((cat) => (
@@ -209,7 +209,7 @@ export function Step3Menu() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nom de la categorie
+              Nom de la catégorie
             </label>
             <input
               type="text"
@@ -244,12 +244,12 @@ export function Step3Menu() {
         <StepContainer hideActions>
           <div className="space-y-6">
             <AssistantBubble
-              message={`Vos ${state.currentCategory.name} ont-elles des particularites ?`}
+              message={`Vos ${state.currentCategory.name} ont-elles des particularités ?`}
               emoji="🎯"
             />
 
             <p className="text-sm text-gray-600">
-              Par exemple : differentes tailles, types de preparation, supplements...
+              Par exemple : différentes tailles, types de préparation, suppléments...
             </p>
 
             <div className="space-y-3">
@@ -267,7 +267,7 @@ export function Step3Menu() {
             {/* Show added option groups */}
             {state.currentCategory.optionGroups.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">Particularites ajoutees :</p>
+                <p className="text-sm font-medium text-gray-700">Particularités ajoutées :</p>
                 <div className="space-y-2">
                   {state.currentCategory.optionGroups.map((og) => (
                     <div
@@ -287,8 +287,8 @@ export function Step3Menu() {
 
             <ActionButton onClick={handleSkipOptions} variant="outline">
               {state.currentCategory.optionGroups.length > 0
-                ? 'Continuer sans autre particularite'
-                : 'Non, pas de particularite'}
+                ? 'Continuer sans autre particularité'
+                : 'Non, pas de particularité'}
             </ActionButton>
 
             {state.currentCategory.optionGroups.length > 0 && (
@@ -317,7 +317,7 @@ export function Step3Menu() {
               selectedOptionType === 'size'
                 ? 'Quelles tailles proposez-vous ?'
                 : selectedOptionType === 'supplement'
-                  ? 'Quels supplements proposez-vous ?'
+                  ? 'Quels suppléments proposez-vous ?'
                   : 'Quelles options proposez-vous ?'
             }
             emoji="📝"
@@ -337,7 +337,7 @@ export function Step3Menu() {
                 selectedOptionType === 'size'
                   ? 'Taille'
                   : selectedOptionType === 'supplement'
-                    ? 'Supplements'
+                    ? 'Suppléments'
                     : 'Ex: Cuisson, Sauce...'
               }
             />
@@ -390,7 +390,7 @@ export function Step3Menu() {
           {/* Display added values */}
           {optionValues.length > 0 && (
             <div>
-              <p className="text-sm text-gray-600 mb-2">Options ajoutees :</p>
+              <p className="text-sm text-gray-600 mb-2">Options ajoutées :</p>
               <div className="flex flex-wrap gap-2">
                 {optionValues.map((value) => (
                   <div
@@ -530,7 +530,7 @@ export function Step3Menu() {
               variant="secondary"
               icon={<FolderPlus className="w-5 h-5" />}
             >
-              Nouvelle categorie
+              Nouvelle catégorie
             </ActionButton>
             <ActionButton
               onClick={handleFinishMenu}
@@ -539,7 +539,7 @@ export function Step3Menu() {
               }
               icon={<ChevronRight className="w-5 h-5" />}
             >
-              Menu termine, continuer
+              Menu terminé, continuer
             </ActionButton>
           </div>
         </div>
@@ -552,7 +552,7 @@ export function Step3Menu() {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
-          <AssistantBubble message="Categorie ajoutee !" emoji="✅" variant="success" />
+          <AssistantBubble message="Catégorie ajoutée !" emoji="✅" variant="success" />
 
           {/* Summary of categories */}
           <div className="space-y-2">
@@ -575,7 +575,7 @@ export function Step3Menu() {
             </div>
           </div>
 
-          <AssistantBubble message="Voulez-vous ajouter une autre categorie ?" />
+          <AssistantBubble message="Voulez-vous ajouter une autre catégorie ?" />
 
           <div className="space-y-3">
             <ActionButton
@@ -583,7 +583,7 @@ export function Step3Menu() {
               variant="secondary"
               icon={<Plus className="w-5 h-5" />}
             >
-              Oui, ajouter une categorie
+              Oui, ajouter une catégorie
             </ActionButton>
             <ActionButton onClick={handleFinishMenu} icon={<ChevronRight className="w-5 h-5" />}>
               Non, continuer

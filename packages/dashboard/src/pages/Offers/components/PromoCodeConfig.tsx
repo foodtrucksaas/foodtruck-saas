@@ -20,7 +20,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
       {/* Type + Valeur */}
       <div className="flex items-end gap-3 flex-wrap">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Reduction</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Réduction</label>
           <div className="flex">
             <button
               type="button"
@@ -58,7 +58,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
           />
         </div>
         <span className="text-gray-500 pb-2">
-          {form.promoCodeDiscountType === 'percentage' ? '%' : '€'} de reduction
+          {form.promoCodeDiscountType === 'percentage' ? '%' : '€'} de réduction
         </span>
       </div>
 
@@ -83,7 +83,7 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
           </div>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Reduction max</label>
+          <label className="block text-sm text-gray-600 mb-1">Réduction max</label>
           <div className="relative">
             <input
               type="number"

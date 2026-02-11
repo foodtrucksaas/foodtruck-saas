@@ -112,7 +112,7 @@ export function Step2Schedule() {
       >
         <div className="space-y-6">
           <AssistantBubble
-            message="Quand travaillez-vous ? Selectionnez vos jours de travail."
+            message="Quand travaillez-vous ? Sélectionnez vos jours de travail."
             emoji="📅"
           />
 
@@ -139,7 +139,7 @@ export function Step2Schedule() {
 
           {state.selectedDays.length > 0 && (
             <p className="text-sm text-gray-600 text-center">
-              {state.selectedDays.length} jour{state.selectedDays.length > 1 ? 's' : ''} selectionne
+              {state.selectedDays.length} jour{state.selectedDays.length > 1 ? 's' : ''} sélectionné
               {state.selectedDays.length > 1 ? 's' : ''}
             </p>
           )}
@@ -191,7 +191,7 @@ export function Step2Schedule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 <MapPin className="w-4 h-4 inline mr-1" />
-                Ou etes-vous ?
+                Où êtes-vous ?
               </label>
               <select
                 value={currentDayConfig.location_id}
@@ -214,7 +214,7 @@ export function Step2Schedule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 <Clock className="w-4 h-4 inline mr-1" />
-                Arrivee
+                Arrivée
               </label>
               <input
                 type="time"
@@ -228,7 +228,7 @@ export function Step2Schedule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 <Clock className="w-4 h-4 inline mr-1" />
-                Depart
+                Départ
               </label>
               <input
                 type="time"
@@ -249,7 +249,7 @@ export function Step2Schedule() {
               className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
             >
               <Copy className="w-4 h-4" />
-              Appliquer a tous les jours
+              Appliquer à tous les jours
             </button>
           )}
         </div>
@@ -261,17 +261,17 @@ export function Step2Schedule() {
   return (
     <StepContainer onNext={handleFinish} nextLabel="J'ai compris" showBack={false}>
       <div className="space-y-6">
-        <AssistantBubble message="Bon a savoir !" emoji="💡" variant="tip" />
+        <AssistantBubble message="Bon à savoir !" emoji="💡" variant="tip" />
 
         <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
           <p className="text-gray-800">
-            Votre planning est maintenant configure pour chaque semaine.
+            Votre planning est maintenant configuré pour chaque semaine.
           </p>
 
           {/* Mini calendar preview */}
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Apercu</span>
+              <span className="text-sm font-medium text-gray-700">Aperçu</span>
             </div>
             <div className="grid grid-cols-7 gap-1 text-center text-xs">
               {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, index) => (
@@ -297,7 +297,7 @@ export function Step2Schedule() {
         </div>
 
         <AssistantBubble
-          message="Pour gerer les exceptions (vacances, jours feries, changements ponctuels), vous pourrez cliquer sur n'importe quel jour dans le calendrier de votre tableau de bord."
+          message="Pour gérer les exceptions (vacances, jours fériés, changements ponctuels), vous pourrez cliquer sur n'importe quel jour dans le calendrier de votre tableau de bord."
           variant="info"
         />
 
@@ -310,7 +310,7 @@ export function Step2Schedule() {
             </li>
             <li className="flex items-center gap-2">
               <span className="w-3 h-3 bg-amber-500 rounded-full"></span>
-              Horaires ou lieu different
+              Horaires ou lieu différent
             </li>
             <li className="flex items-center gap-2">
               <span className="w-3 h-3 bg-blue-500 rounded-full"></span>

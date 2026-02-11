@@ -40,7 +40,7 @@ export default function Offers() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Gerez toutes vos offres promotionnelles
+          Gérez toutes vos offres promotionnelles
         </p>
         <button
           onClick={() => openCreateWizard()}
@@ -81,9 +81,9 @@ export default function Offers() {
       {offers.length === 0 ? (
         <div className="card p-12 text-center">
           <Sparkles className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">Aucune offre creee</p>
+          <p className="text-gray-500">Aucune offre créée</p>
           <p className="text-sm text-gray-400 mt-1">
-            Creez votre premiere offre promotionnelle pour attirer plus de clients
+            Créez votre première offre promotionnelle pour attirer plus de clients
           </p>
           <button
             onClick={() => openCreateWizard()}

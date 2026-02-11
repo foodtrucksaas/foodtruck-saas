@@ -3,7 +3,7 @@ import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer } from '../components';
 
 const PAYMENT_METHODS = [
-  { id: 'cash', label: 'Especes', icon: Banknote },
+  { id: 'cash', label: 'Espèces', icon: Banknote },
   { id: 'card', label: 'Carte bancaire', icon: CreditCard },
   { id: 'contactless', label: 'Sans contact', icon: Smartphone },
   { id: 'ticket_resto', label: 'Titres-restaurant', icon: Ticket },
@@ -45,14 +45,14 @@ export function Step5Settings() {
       nextDisabled={!isValid}
     >
       <div className="space-y-8">
-        <AssistantBubble message="Dernieres configurations !" emoji="⚙️" />
+        <AssistantBubble message="Dernières configurations !" emoji="⚙️" />
 
         {/* Payment methods */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Moyens de paiement acceptes</h3>
+            <h3 className="text-base font-semibold text-gray-900">Moyens de paiement acceptés</h3>
             <p className="text-sm text-gray-500 mt-1">
-              Selectionnez les moyens de paiement que vous acceptez sur place.
+              Sélectionnez les moyens de paiement que vous acceptez sur place.
             </p>
           </div>
 
@@ -92,9 +92,9 @@ export function Step5Settings() {
         {/* Slot interval */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Intervalle des creneaux</h3>
+            <h3 className="text-base font-semibold text-gray-900">Intervalle des créneaux</h3>
             <p className="text-sm text-gray-500 mt-1">
-              Les clients choisiront un creneau de retrait selon cet intervalle.
+              Les clients choisiront un créneau de retrait selon cet intervalle.
             </p>
           </div>
 
@@ -117,7 +117,7 @@ export function Step5Settings() {
             <p className="text-sm text-blue-800">
               <span className="font-medium">Exemple :</span> Avec un intervalle de{' '}
               {state.settings.pickup_slot_interval} minutes, vos clients pourront choisir des
-              creneaux comme 12h00, 12h
+              créneaux comme 12h00, 12h
               {state.settings.pickup_slot_interval.toString().padStart(2, '0')}, 12h
               {(state.settings.pickup_slot_interval * 2).toString().padStart(2, '0')}...
             </p>

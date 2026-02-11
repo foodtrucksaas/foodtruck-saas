@@ -112,7 +112,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
       {/* Elements de la formule */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Elements de la formule *
+          Éléments de la formule *
         </label>
 
         <div className="space-y-2">
@@ -159,7 +159,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                     type="button"
                     onClick={() => removeChoice(index)}
                     className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg active:scale-95"
-                    aria-label="Supprimer cet element"
+                    aria-label="Supprimer cet élément"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -241,7 +241,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
             >
               <Plus className="w-4 h-4 inline mr-1" />
               {form.bundleCategories.length === 0
-                ? 'Ajouter un element (ex: Entree, Plat, Boisson...)'
+                ? 'Ajouter un élément (ex: Entrée, Plat, Boisson...)'
                 : 'Ajouter'}
             </button>
           )}
@@ -256,7 +256,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
           onChange={(e) => updateForm({ bundleFreeOptions: e.target.checked })}
           className="rounded border-gray-300 text-primary-500"
         />
-        <span className="text-sm text-gray-600">Supplements/extras gratuits dans la formule</span>
+        <span className="text-sm text-gray-600">Suppléments/extras gratuits dans la formule</span>
       </label>
     </div>
   );

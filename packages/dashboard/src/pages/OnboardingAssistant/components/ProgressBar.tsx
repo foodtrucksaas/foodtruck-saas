@@ -56,7 +56,7 @@ export function ProgressBar({ currentStep, totalSteps, labels, completedSteps }:
       <div className="sm:hidden">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-900">
-            Etape {currentStep} sur {totalSteps}
+            Étape {currentStep} sur {totalSteps}
           </span>
           <span className="text-sm text-gray-500">{labels[currentStep - 1]}</span>
         </div>

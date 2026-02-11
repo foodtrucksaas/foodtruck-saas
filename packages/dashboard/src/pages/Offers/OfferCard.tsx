@@ -92,7 +92,7 @@ function formatOfferSummary(offer: OfferWithItems): string {
         config.discount_type === 'percentage'
           ? `-${config.discount_value}%`
           : `-${formatPrice(config.discount_value || 0)}`;
-      return `Des ${formatPrice(config.min_amount || 0)} = ${thresholdDiscount}`;
+      return `Dès ${formatPrice(config.min_amount || 0)} = ${thresholdDiscount}`;
     }
     default:
       return '';

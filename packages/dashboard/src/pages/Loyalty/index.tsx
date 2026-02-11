@@ -179,12 +179,12 @@ export default function Loyalty() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Gerez votre programme et suivez vos clients
+          Gérez votre programme et suivez vos clients
         </p>
         <div
           className={`px-3 py-1.5 rounded-full text-sm font-medium self-start sm:self-auto ${settings.loyalty_enabled ? 'bg-success-500 text-white' : 'bg-gray-100 text-gray-600'}`}
         >
-          {settings.loyalty_enabled ? 'Active' : 'Desactive'}
+          {settings.loyalty_enabled ? 'Active' : 'Désactivé'}
         </div>
       </div>
 

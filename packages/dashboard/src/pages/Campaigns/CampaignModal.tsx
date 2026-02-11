@@ -121,7 +121,7 @@ export function CampaignModal({
             {/* Segment */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                A qui envoyer ?
+                À qui envoyer ?
               </label>
               <div className="space-y-2">
                 {SEGMENT_OPTIONS.map((seg) => (
@@ -214,7 +214,7 @@ export function CampaignModal({
                     type="text"
                     value={form.emailSubject}
                     onChange={(e) => setForm({ ...form, emailSubject: e.target.value })}
-                    placeholder="Ex: On est a Fontevraud aujourd'hui !"
+                    placeholder="Ex: On est à Fontevraud aujourd'hui !"
                     className="w-full px-4 py-3 min-h-[48px] border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
@@ -223,7 +223,7 @@ export function CampaignModal({
                   <textarea
                     value={form.emailBody}
                     onChange={(e) => setForm({ ...form, emailBody: e.target.value })}
-                    placeholder="Bonjour {name},&#10;&#10;Bonne nouvelle ! On est a {location} aujourd'hui jusqu'a 14h.&#10;&#10;A tout de suite !"
+                    placeholder="Bonjour {name},&#10;&#10;Bonne nouvelle ! On est à {location} aujourd'hui jusqu'à 14h.&#10;&#10;À tout de suite !"
                     rows={5}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                   />
@@ -244,12 +244,12 @@ export function CampaignModal({
                   <textarea
                     value={form.smsBody}
                     onChange={(e) => setForm({ ...form, smsBody: e.target.value })}
-                    placeholder="Ex: {foodtruck} est a {location} aujourd'hui ! Commandez sur {link}"
+                    placeholder="Ex: {foodtruck} est à {location} aujourd'hui ! Commandez sur {link}"
                     rows={3}
                     maxLength={160}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                   />
-                  <p className="text-xs text-gray-400 mt-1">{form.smsBody.length}/160 caracteres</p>
+                  <p className="text-xs text-gray-400 mt-1">{form.smsBody.length}/160 caractères</p>
                 </div>
               </div>
             )}
@@ -268,7 +268,7 @@ export function CampaignModal({
             onClick={onSave}
             className="px-6 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors active:scale-[0.98] shadow-lg shadow-primary-500/25"
           >
-            {isEditing ? 'Sauvegarder' : 'Creer la campagne'}
+            {isEditing ? 'Sauvegarder' : 'Créer la campagne'}
           </button>
         </div>
       </div>

@@ -227,7 +227,7 @@ export function OfferWizard({
                   </>
                 ) : (
                   <>
-                    {editingOffer ? 'Sauvegarder' : "Creer l'offre"}
+                    {editingOffer ? 'Sauvegarder' : "Créer l'offre"}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

@@ -53,13 +53,13 @@ export function StepComplete() {
           <div className="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-in">
             <Sparkles className="w-10 h-10 text-success-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Felicitations !</h1>
-          <p className="text-gray-600">{state.foodtruck?.name || 'Votre foodtruck'} est pret !</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Félicitations !</h1>
+          <p className="text-gray-600">{state.foodtruck?.name || 'Votre foodtruck'} est prêt !</p>
         </div>
 
         {/* Stats summary */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3">
-          <h3 className="font-semibold text-gray-900">Recapitulatif</h3>
+          <h3 className="font-semibold text-gray-900">Récapitulatif</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -129,7 +129,7 @@ export function StepComplete() {
               {copied ? (
                 <>
                   <Check className="w-4 h-4" />
-                  <span className="hidden sm:inline">Copie !</span>
+                  <span className="hidden sm:inline">Copié !</span>
                 </>
               ) : (
                 <>
@@ -157,14 +157,14 @@ export function StepComplete() {
           variant="secondary"
           icon={<QrCode className="w-5 h-5" />}
         >
-          Generer mon QR Code
+          Générer mon QR Code
         </ActionButton>
       </div>
 
       {/* Fixed footer */}
       <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-4 sm:px-6 py-3 safe-area-bottom">
         <ActionButton onClick={handleGoToDashboard} icon={<LayoutDashboard className="w-5 h-5" />}>
-          Acceder au tableau de bord
+          Accéder au tableau de bord
         </ActionButton>
       </div>
 

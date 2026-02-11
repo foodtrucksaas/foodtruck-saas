@@ -477,7 +477,7 @@ const KpiCard = memo(function KpiCard({
           {displayChange >= 0 ? '+' : ''}
           {displayChange.toFixed(1)}%
         </span>
-        <span className="text-gray-400 ml-1 hidden sm:inline">vs periode prec.</span>
+        <span className="text-gray-400 ml-1 hidden sm:inline">vs période préc.</span>
       </div>
     </div>
   );

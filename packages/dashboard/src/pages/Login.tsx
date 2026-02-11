@@ -50,9 +50,9 @@ export default function Login() {
       <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center" role="status" aria-live="polite">
           <Mail className="w-16 h-16 text-primary-500 mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifiez votre boite mail</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Vérifiez votre boîte mail</h1>
           <p className="text-gray-600 mb-6">
-            Nous avons envoye un lien de connexion a <strong>{email}</strong>
+            Nous avons envoyé un lien de connexion à <strong>{email}</strong>
           </p>
           <button
             onClick={() => setMagicLinkSent(false)}
@@ -77,7 +77,7 @@ export default function Login() {
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">FoodTruck SaaS</h1>
-          <p className="text-gray-600 mt-2">Connectez-vous a votre espace</p>
+          <p className="text-gray-600 mt-2">Connectez-vous à votre espace</p>
         </div>
 
         {/* Two main action buttons */}
@@ -89,7 +89,7 @@ export default function Login() {
             to="/register"
             className="card p-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
-            <p className="text-sm font-medium text-gray-700 text-center">Creer un compte</p>
+            <p className="text-sm font-medium text-gray-700 text-center">Créer un compte</p>
           </Link>
         </nav>
 
@@ -136,7 +136,7 @@ export default function Login() {
                   to="/forgot-password"
                   className="text-sm text-primary-600 hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
                 >
-                  Mot de passe oublie ?
+                  Mot de passe oublié ?
                 </Link>
               </div>
               <div className="relative">

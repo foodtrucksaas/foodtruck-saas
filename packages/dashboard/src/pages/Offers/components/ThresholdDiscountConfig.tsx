@@ -8,10 +8,10 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
       {/* Montant minimum */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          A partir de combien ? *
+          À partir de combien ? *
         </label>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500">Des</span>
+          <span className="text-gray-500">Dès</span>
           <div className="relative w-28">
             <input
               type="number"
@@ -32,7 +32,7 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
       {/* Type + Valeur de reduction */}
       <div className="flex items-end gap-3 flex-wrap">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Reduction</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Réduction</label>
           <div className="flex">
             <button
               type="button"
@@ -77,7 +77,7 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
       {/* Resume */}
       {form.thresholdMinAmount && form.thresholdDiscountValue && (
         <div className="bg-success-50 rounded-lg p-3 text-sm text-success-600">
-          Des <span className="font-bold">{form.thresholdMinAmount}€</span> d'achat ={' '}
+          Dès <span className="font-bold">{form.thresholdMinAmount}€</span> d'achat ={' '}
           <span className="font-bold">
             -{form.thresholdDiscountValue}
             {form.thresholdDiscountType === 'percentage' ? '%' : '€'}
