@@ -113,6 +113,13 @@ const config = {
       headers: { "Cache-Control": "public, max-age=31536000, immutable" },
       continue: true
     },
+    // Client subdomain HTML pages — serve through Edge Function BEFORE filesystem
+    // (otherwise the landing page index.html intercepts the root path)
+    {
+      src: "/(?!client/|dashboard/).*",
+      dest: "/og-render",
+      has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }]
+    },
     // Handle filesystem (static files) first
     { handle: "filesystem" },
     // Return 404 for missing static assets (don't serve index.html as JS/CSS)
