@@ -251,26 +251,30 @@ export default function Dashboard() {
               return (
                 <div
                   key={order.id}
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors space-y-1"
                   onClick={() => setSelectedOrder(order)}
                 >
-                  <span className="text-sm font-mono font-semibold text-gray-900 w-12 flex-shrink-0">
-                    {timeStr}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{itemsSummary}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {order.customer_name || 'Client'}
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm font-mono font-semibold text-gray-900 w-12 flex-shrink-0 pt-px">
+                      {timeStr}
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 min-w-0 flex-1">
+                      {itemsSummary}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
-                    {formatPrice(order.total_amount)}
-                  </span>
-                  <span
-                    className={`inline-flex text-[11px] ${statusStyle.bg} ${statusStyle.text} px-2 py-0.5 rounded-full font-medium flex-shrink-0`}
-                  >
-                    {statusStyle.label}
-                  </span>
+                  <div className="flex items-center gap-3 pl-[60px]">
+                    <span className="text-xs text-gray-400 truncate min-w-0 flex-1">
+                      {order.customer_name || 'Client'}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+                      {formatPrice(order.total_amount)}
+                    </span>
+                    <span
+                      className={`inline-flex text-[11px] ${statusStyle.bg} ${statusStyle.text} px-2 py-0.5 rounded-full font-medium flex-shrink-0`}
+                    >
+                      {statusStyle.label}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -286,10 +290,10 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Section 4: Alerts / Quick Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Section 4: Alerts / Quick Info — horizontal scroll on mobile, grid on desktop */}
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
         {/* Out of stock */}
-        <div className="card p-3 sm:p-4">
+        <div className="card p-3 sm:p-4 min-w-[200px] snap-start flex-shrink-0 sm:min-w-0 sm:flex-shrink">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-red-100 flex-shrink-0">
               <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
@@ -319,7 +323,7 @@ export default function Dashboard() {
         </div>
 
         {/* Active offers */}
-        <div className="card p-3 sm:p-4">
+        <div className="card p-3 sm:p-4 min-w-[200px] snap-start flex-shrink-0 sm:min-w-0 sm:flex-shrink">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-purple-100 flex-shrink-0">
               <Sparkles className="w-3.5 h-3.5 text-purple-500" />
@@ -348,7 +352,7 @@ export default function Dashboard() {
         </div>
 
         {/* Week stats */}
-        <div className="card p-3 sm:p-4">
+        <div className="card p-3 sm:p-4 min-w-[200px] snap-start flex-shrink-0 sm:min-w-0 sm:flex-shrink">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-blue-100 flex-shrink-0">
               <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
