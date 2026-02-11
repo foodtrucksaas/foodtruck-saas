@@ -78,11 +78,11 @@ export function AccountSection() {
     setDeleting(true);
     setDeleteError('');
     try {
-      // Verify session is still valid before attempting deletion
+      // Refresh session to get a fresh access token before deletion
       const {
         data: { session },
         error: sessionError,
-      } = await supabase.auth.getSession();
+      } = await supabase.auth.refreshSession();
 
       if (sessionError || !session) {
         setDeleteError('Votre session a expiré. Veuillez vous reconnecter et réessayer.');
