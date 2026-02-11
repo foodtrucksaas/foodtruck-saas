@@ -40,6 +40,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Foodtruck exists but onboarding not completed → redirect to assistant
+  if (!foodtruck.onboarding_completed_at) {
+    return <Navigate to="/onboarding-assistant" replace />;
+  }
+
   return <Layout>{children}</Layout>;
 }
 
@@ -101,7 +106,11 @@ export default function App() {
                 foodtruckLoading ? (
                   <Loading />
                 ) : foodtruck ? (
-                  <Navigate to="/" replace />
+                  foodtruck.onboarding_completed_at ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <Navigate to="/onboarding-assistant" replace />
+                  )
                 ) : (
                   <Onboarding />
                 )
