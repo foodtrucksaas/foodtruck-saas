@@ -182,6 +182,10 @@ export default function Settings() {
                 Utilisez uniquement des lettres minuscules, chiffres et tirets. Minimum 3
                 caractères.
               </p>
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+                Attention : changer votre adresse rendra vos anciens QR codes, boutons et liens
+                partagés inaccessibles. Pensez à réimprimer vos supports.
+              </p>
               {editError && (
                 <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{editError}</p>
               )}
