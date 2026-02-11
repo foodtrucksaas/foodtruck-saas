@@ -34,9 +34,9 @@ export function RecurringScheduleTab({
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div>
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Horaires recurrents</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Horaires récurrents</h2>
           <p className="text-xs sm:text-sm text-gray-500">
-            Ces horaires se repetent chaque semaine
+            Ces horaires se répètent chaque semaine
           </p>
         </div>
         <button
@@ -51,7 +51,7 @@ export function RecurringScheduleTab({
 
       {locations.length === 0 && (
         <div className="card p-3 sm:p-4 bg-warning-50 border-warning-200 text-warning-700 text-xs sm:text-sm">
-          Creez d'abord un emplacement dans l'onglet "Emplacements" avant d'ajouter des horaires.
+          Créez d'abord un emplacement dans l'onglet "Emplacements" avant d'ajouter des horaires.
         </div>
       )}
 
@@ -109,7 +109,7 @@ export function RecurringScheduleTab({
                 className="input min-h-[44px]"
                 required
               >
-                <option value="">Selectionner</option>
+                <option value="">Sélectionner</option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name}
@@ -120,7 +120,7 @@ export function RecurringScheduleTab({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <label className="label text-xs sm:text-sm">Heure d'arrivee *</label>
+              <label className="label text-xs sm:text-sm">Heure d'arrivée *</label>
               <input
                 type="time"
                 value={form.start_time}
@@ -130,7 +130,7 @@ export function RecurringScheduleTab({
               />
             </div>
             <div>
-              <label className="label text-xs sm:text-sm">Heure de depart *</label>
+              <label className="label text-xs sm:text-sm">Heure de départ *</label>
               <input
                 type="time"
                 value={form.end_time}
@@ -197,7 +197,7 @@ export function RecurringScheduleTab({
           </div>
         ))}
         {schedules.length === 0 && (
-          <p className="text-gray-500 text-xs sm:text-sm">Aucun horaire configure</p>
+          <p className="text-gray-500 text-xs sm:text-sm">Aucun horaire configuré</p>
         )}
       </div>
     </section>

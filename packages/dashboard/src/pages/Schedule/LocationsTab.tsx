@@ -96,17 +96,17 @@ export function LocationsTab({
               value={form.name}
               onChange={(e) => onFormChange({ ...form, name: e.target.value })}
               className="input min-h-[44px]"
-              placeholder="Ex: Marche des Halles, Place du Village..."
+              placeholder="Ex: Marché des Halles, Place du Village..."
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Ce nom sera affiche aux clients (simple et reconnaissable)
+              Ce nom sera affiché aux clients (simple et reconnaissable)
             </p>
           </div>
 
           {/* Adresse avec Google Places */}
           <div>
-            <label className="label text-xs sm:text-sm">Adresse complete (pour l'itineraire)</label>
+            <label className="label text-xs sm:text-sm">Adresse complète (pour l'itinéraire)</label>
             <GooglePlacesAutocomplete
               value={form.address}
               onChange={(value) => onFormChange({ ...form, address: value })}
@@ -235,9 +235,9 @@ export function LocationsTab({
         {locations.length === 0 && (
           <div className="text-center py-8">
             <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Aucun emplacement configure</p>
+            <p className="text-gray-500 text-sm">Aucun emplacement configuré</p>
             <p className="text-gray-400 text-xs mt-1">
-              Ajoutez vos points de vente pour creer votre planning
+              Ajoutez vos points de vente pour créer votre planning
             </p>
           </div>
         )}

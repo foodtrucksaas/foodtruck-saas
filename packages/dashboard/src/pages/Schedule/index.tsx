@@ -57,7 +57,7 @@ export default function SchedulePage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-        Gerez vos horaires, emplacements et exceptions
+        Gérez vos horaires, emplacements et exceptions
       </p>
 
       {/* Tabs - full width on mobile, scrollable */}

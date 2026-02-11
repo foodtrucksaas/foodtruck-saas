@@ -38,7 +38,7 @@ export function CalendarView({
         <button
           onClick={onPreviousMonth}
           className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-xl transition-colors active:scale-95"
-          aria-label="Mois precedent"
+          aria-label="Mois précédent"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -62,11 +62,11 @@ export function CalendarView({
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-warning-500/25 border border-warning-400" />
-          <span className="text-gray-600">Modifie</span>
+          <span className="text-gray-600">Modifié</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-error-500/25 border border-error-400" />
-          <span className="text-gray-600">Ferme</span>
+          <span className="text-gray-600">Fermé</span>
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export function CalendarView({
                   {effective.type === 'closed' && (
                     <div className="text-xs text-error-600 font-medium flex items-center gap-0.5">
                       <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                      <span className="hidden sm:inline">Ferme</span>
+                      <span className="hidden sm:inline">Fermé</span>
                     </div>
                   )}
                   {effective.type === 'override' && effective.location && (
