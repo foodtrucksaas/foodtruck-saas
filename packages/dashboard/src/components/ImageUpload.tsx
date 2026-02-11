@@ -80,18 +80,18 @@ export function ImageUpload({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-gray-700 hover:bg-gray-100 transition-colors active:scale-95"
-                title="Changer l'image"
+                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-gray-700 hover:bg-gray-100 transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="Changer l'image"
               >
-                <Camera className="w-5 h-5" />
+                <Camera className="w-5 h-5" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={onRemove}
-                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-error-600 hover:bg-error-50 transition-colors active:scale-95"
-                title="Supprimer l'image"
+                className="min-w-[44px] min-h-[44px] p-2.5 bg-white rounded-full text-error-600 hover:bg-error-50 transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="Supprimer l'image"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           )}

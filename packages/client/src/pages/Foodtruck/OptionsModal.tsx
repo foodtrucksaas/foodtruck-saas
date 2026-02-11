@@ -296,7 +296,7 @@ export default function OptionsModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: sans oignon, bien cuit..."
-              className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:border-transparent transition-all duration-200 hover:border-gray-300"
               rows={2}
               maxLength={200}
             />

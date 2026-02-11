@@ -301,13 +301,20 @@ export function OrderSummaryCard({
                   type="button"
                   onClick={() => toggleBundleExpand(offer.offer_id)}
                   className="flex-1 min-w-0 text-left"
+                  aria-expanded={isExpanded}
                 >
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
                     {isExpanded ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronUp
+                        className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown
+                        className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                   <p className="text-xs text-gray-500 truncate">
@@ -417,13 +424,20 @@ export function OrderSummaryCard({
                   type="button"
                   onClick={() => toggleBundleExpand(cartKey)}
                   className="flex-1 min-w-0 text-left"
+                  aria-expanded={isExpanded}
                 >
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-gray-900 text-sm">{bundleInfo.bundleName}</p>
                     {isExpanded ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronUp
+                        className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown
+                        className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                   <p className="text-xs text-gray-500 truncate">

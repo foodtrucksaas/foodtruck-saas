@@ -34,6 +34,8 @@ export function useTimeSlots(
   const [isCurrentlyOpen, setIsCurrentlyOpen] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function generateSlotsForDate() {
       if (!foodtruckId || !settings) return;
 
@@ -138,6 +140,8 @@ export function useTimeSlots(
         settings.maxOrdersPerSlot
       );
 
+      if (cancelled) return;
+
       // Calculate buffer for prep time
       const marginByPrepTime: Record<number, number> = { 5: 0, 10: 2, 15: 3 };
       const margin = marginByPrepTime[settings.minPrepTime] ?? 0;
@@ -185,6 +189,9 @@ export function useTimeSlots(
     }
 
     generateSlotsForDate();
+    return () => {
+      cancelled = true;
+    };
   }, [foodtruckId, settings, allSchedules, selectedDate, exceptions]);
 
   return { slots, schedules, loading, notOpenYet, isCurrentlyOpen };

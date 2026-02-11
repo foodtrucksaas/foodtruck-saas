@@ -62,6 +62,7 @@ export default function Home() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un food truck..."
+              aria-label="Rechercher un food truck"
               className="w-full pl-12 pr-4 py-3 min-h-[48px] rounded-xl bg-white text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
             />
           </div>

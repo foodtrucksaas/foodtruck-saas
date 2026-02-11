@@ -144,7 +144,7 @@ export function Modal({
               <button
                 onClick={onClose}
                 type="button"
-                aria-label="Fermer la fenetre"
+                aria-label="Fermer la fenêtre"
                 className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95"
               >
                 <X className="w-5 h-5 text-gray-500" aria-hidden="true" />

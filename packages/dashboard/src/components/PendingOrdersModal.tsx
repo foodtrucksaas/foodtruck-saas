@@ -194,9 +194,10 @@ export default function PendingOrdersModal({
           {/* Close button - larger touch target */}
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-90"
+            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/40 hover:bg-white/60 flex items-center justify-center transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            aria-label="Fermer"
           >
-            <X className="w-5 h-5 text-warning-800" />
+            <X className="w-5 h-5 text-warning-800" aria-hidden="true" />
           </button>
 
           <h2 className="text-lg sm:text-xl font-bold pr-12">
@@ -210,9 +211,10 @@ export default function PendingOrdersModal({
             <button
               onClick={goPrev}
               disabled={safeIndex === 0}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              aria-label="Commande précédente"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-6 h-6" aria-hidden="true" />
             </button>
 
             {/* Dots indicator */}
@@ -245,9 +247,10 @@ export default function PendingOrdersModal({
             <button
               onClick={goNext}
               disabled={safeIndex === orders.length - 1}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              aria-label="Commande suivante"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
         )}

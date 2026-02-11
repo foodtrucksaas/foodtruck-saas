@@ -44,6 +44,8 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
   const [showPromoSection, setShowPromoSection] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchInitialData() {
       if (!foodtruckId) return;
 
@@ -58,6 +60,8 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
           api.foodtrucks.getSettings(foodtruckId),
           api.offers.countActivePromoCodes(foodtruckId),
         ]);
+
+        if (cancelled) return;
 
         const settingsData: FoodtruckSettings = {
           slotInterval: foodtruckSettings?.order_slot_interval ?? 15,
@@ -92,13 +96,16 @@ export function useCheckoutData(foodtruckId: string | undefined): UseCheckoutDat
         const isPromoSectionEnabled = foodtruckSettings?.show_promo_section !== false;
         setShowPromoSection(hasPromoCodes && isPromoSectionEnabled);
       } catch (error) {
-        console.error('Error fetching checkout data:', error);
+        if (!cancelled) console.error('Error fetching checkout data:', error);
       }
 
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     }
 
     fetchInitialData();
+    return () => {
+      cancelled = true;
+    };
   }, [foodtruckId]);
 
   // Calculate available dates

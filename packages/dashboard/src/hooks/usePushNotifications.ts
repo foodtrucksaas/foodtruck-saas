@@ -22,10 +22,7 @@ export async function removeDeviceToken(): Promise<void> {
   if (!currentDeviceToken) return;
 
   try {
-    const { error } = await supabase
-      .from('device_tokens')
-      .delete()
-      .eq('token', currentDeviceToken);
+    const { error } = await supabase.from('device_tokens').delete().eq('token', currentDeviceToken);
 
     if (error) {
       console.error('Error removing device token:', error);
@@ -36,7 +33,9 @@ export async function removeDeviceToken(): Promise<void> {
 }
 
 export function usePushNotifications(options?: UsePushNotificationsOptions) {
-  const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+  const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>(
+    'prompt'
+  );
   const [token, setToken] = useState<string | null>(null);
   const { foodtruck } = useFoodtruck();
   const { user } = useAuth();
@@ -79,8 +78,8 @@ export function usePushNotifications(options?: UsePushNotificationsOptions) {
         });
 
         // Listen for registration errors
-        await PushNotifications.addListener('registrationError', () => {
-          // Registration failed silently
+        await PushNotifications.addListener('registrationError', (err) => {
+          console.warn('Push notification registration failed:', err);
         });
 
         // Listen for notification tap (when user clicks on the notification)
@@ -113,9 +112,8 @@ export function usePushNotifications(options?: UsePushNotificationsOptions) {
 
         // Register for push notifications
         await PushNotifications.register();
-
-      } catch {
-        // Push notification setup failed silently
+      } catch (err) {
+        console.warn('Push notification setup failed:', err);
       }
     };
 
@@ -143,10 +141,7 @@ async function saveTokenToDatabase(token: string, userId: string, foodtruckId: s
 
     // First, delete any existing row with this token (regardless of owner)
     // This handles the case where a different user logs in on the same device
-    await supabase
-      .from('device_tokens')
-      .delete()
-      .eq('token', token);
+    await supabase.from('device_tokens').delete().eq('token', token);
 
     // Insert the new token with current user/foodtruck
     const { error } = await supabase

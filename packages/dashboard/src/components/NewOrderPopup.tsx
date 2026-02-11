@@ -119,7 +119,7 @@ export default function NewOrderPopup({
           {/* Close button - larger touch target */}
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-90"
+            className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-150 active:scale-95"
             aria-label="Fermer"
           >
             <X className="w-5 h-5 text-white" aria-hidden="true" />

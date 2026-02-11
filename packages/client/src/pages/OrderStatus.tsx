@@ -69,7 +69,7 @@ export default function OrderStatus() {
         if (isMounted) {
           if (error) {
             console.error('Error fetching order:', error);
-          } else {
+          } else if (data && typeof data === 'object' && 'id' in data) {
             setOrder(data as unknown as OrderWithOffers);
           }
           setLoading(false);

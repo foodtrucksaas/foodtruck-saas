@@ -42,7 +42,7 @@ export function CheckoutFormContent({
           value={customerName}
           onChange={(e) => onCustomerNameChange(e.target.value)}
           placeholder="Ex: Jean Dupont"
-          className="w-full px-4 py-3 min-h-[48px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+          className="w-full px-4 py-3 min-h-[48px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base"
           autoFocus
         />
       </div>
@@ -89,7 +89,7 @@ export function CheckoutFormContent({
           <select
             value={pickupTime}
             onChange={(e) => onPickupTimeChange(e.target.value)}
-            className="w-full px-4 py-3 min-h-[48px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+            className="w-full px-4 py-3 min-h-[48px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base"
           >
             {availableTimeSlots.map((slot) => {
               const slotInfo = slotAvailability[slot];
@@ -115,7 +115,7 @@ export function CheckoutFormContent({
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           placeholder="Instructions spéciales..."
-          className="w-full px-4 py-3 min-h-[80px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none text-base"
+          className="w-full px-4 py-3 min-h-[80px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 resize-none text-base"
           rows={2}
         />
       </div>

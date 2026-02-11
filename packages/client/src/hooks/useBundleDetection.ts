@@ -30,29 +30,30 @@ interface UseBundleDetectionResult {
 
 // Get the price of a cart item (including options)
 function getItemPrice(item: CartItem): number {
-  const sizeOption = item.selectedOptions?.find(opt => opt.isSizeOption);
+  const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
   const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-  const supplementsTotal = item.selectedOptions?.reduce(
-    (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier), 0
-  ) || 0;
+  const supplementsTotal =
+    item.selectedOptions?.reduce(
+      (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
+      0
+    ) || 0;
   return basePrice + supplementsTotal;
 }
 
 // Get the selected size ID from a cart item's options
 function getSelectedSizeId(item: CartItem): string | null {
-  const sizeOption = item.selectedOptions?.find(opt => opt.isSizeOption);
+  const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
   return sizeOption?.optionId || null;
 }
 
 // Check if a cart item matches a bundle category
-function itemMatchesCategory(
-  item: CartItem,
-  bundleCat: BundleCategoryConfig
-): boolean {
+function itemMatchesCategory(item: CartItem, bundleCat: BundleCategoryConfig): boolean {
   // Get eligible category IDs (support both new array format and legacy singular format)
   const eligibleCategoryIds = bundleCat.category_ids?.length
     ? bundleCat.category_ids
-    : (bundleCat.category_id ? [bundleCat.category_id] : []);
+    : bundleCat.category_id
+      ? [bundleCat.category_id]
+      : [];
 
   // Must be in one of the eligible categories
   if (!item.menuItem.category_id || !eligibleCategoryIds.includes(item.menuItem.category_id)) {
@@ -101,9 +102,11 @@ function calculateBundlePrice(
   // Add options price (unless free_options)
   if (!bundle.config.free_options) {
     matchedItems.forEach(({ item }) => {
-      const optionsPrice = item.selectedOptions?.reduce(
-        (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier), 0
-      ) || 0;
+      const optionsPrice =
+        item.selectedOptions?.reduce(
+          (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
+          0
+        ) || 0;
       price += optionsPrice;
     });
   }
@@ -112,15 +115,12 @@ function calculateBundlePrice(
 }
 
 // Try to match a bundle to cart items
-function tryMatchBundle(
-  bundle: BundleOffer,
-  cartItems: CartItem[]
-): DetectedBundle | null {
+function tryMatchBundle(bundle: BundleOffer, cartItems: CartItem[]): DetectedBundle | null {
   const bundleCategories = bundle.config.bundle_categories || [];
   if (bundleCategories.length === 0) return null;
 
   // Only consider non-bundle cart items
-  const eligibleItems = cartItems.filter(item => !item.bundleInfo);
+  const eligibleItems = cartItems.filter((item) => !item.bundleInfo);
   if (eligibleItems.length === 0) return null;
 
   // For each bundle category, find a matching cart item
@@ -149,9 +149,7 @@ function tryMatchBundle(
   }
 
   // All categories matched! Calculate prices
-  const originalPrice = matchedItems.reduce(
-    (sum, { item }) => sum + getItemPrice(item), 0
-  );
+  const originalPrice = matchedItems.reduce((sum, { item }) => sum + getItemPrice(item), 0);
   const bundlePrice = calculateBundlePrice(bundle, matchedItems);
   const savings = originalPrice - bundlePrice;
 
@@ -160,7 +158,7 @@ function tryMatchBundle(
 
   return {
     bundle,
-    matchedItems: matchedItems.map(m => m.item),
+    matchedItems: matchedItems.map((m) => m.item),
     originalPrice,
     bundlePrice,
     savings,
@@ -197,12 +195,12 @@ export function useBundleDetection(
         if (data) {
           // Filter to only category_choice bundles
           const categoryBundles = (data as unknown as BundleOffer[]).filter(
-            b => b.config?.type === 'category_choice' && b.config?.bundle_categories?.length
+            (b) => b.config?.type === 'category_choice' && b.config?.bundle_categories?.length
           );
           setBundles(categoryBundles);
         }
-      } catch {
-        // Silent fail
+      } catch (err) {
+        console.warn('Bundle detection fetch failed:', err);
       }
       setLoading(false);
     };
@@ -213,11 +211,14 @@ export function useBundleDetection(
   // Create a stable cart signature for bundle detection
   const cartSignature = useMemo(() => {
     // Only include non-bundle items for bundle detection
-    const eligibleItems = items.filter(item => !item.bundleInfo);
-    return eligibleItems.map(item => {
-      const sizeId = getSelectedSizeId(item);
-      return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeId || ''}`;
-    }).sort().join('|');
+    const eligibleItems = items.filter((item) => !item.bundleInfo);
+    return eligibleItems
+      .map((item) => {
+        const sizeId = getSelectedSizeId(item);
+        return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeId || ''}`;
+      })
+      .sort()
+      .join('|');
   }, [items]);
 
   // Detect applicable bundles

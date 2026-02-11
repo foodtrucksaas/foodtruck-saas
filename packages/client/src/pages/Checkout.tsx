@@ -22,7 +22,6 @@ import {
   usePromoCode,
   useLoyalty,
   useOffers,
-  useBundleDetection,
   calculateLoyaltyDiscount,
 } from '../hooks';
 
@@ -65,6 +64,7 @@ export default function Checkout({ slug }: CheckoutProps) {
     }
 
     // Otherwise, fetch the UUID from the slug
+    let cancelled = false;
     const fetchFoodtruckId = async () => {
       const { data, error } = await supabase
         .from('foodtrucks')
@@ -72,6 +72,7 @@ export default function Checkout({ slug }: CheckoutProps) {
         .eq('slug', identifier)
         .single();
 
+      if (cancelled) return;
       if (error || !data) {
         setFormError('Food truck introuvable. Vérifiez le lien.');
         return;
@@ -79,6 +80,9 @@ export default function Checkout({ slug }: CheckoutProps) {
       setResolvedFoodtruckId(data.id);
     };
     fetchFoodtruckId();
+    return () => {
+      cancelled = true;
+    };
   }, [cartFoodtruckId, paramId, slug]);
 
   // Use resolved UUID for API calls, fallback to cart/param if already UUID
@@ -115,10 +119,8 @@ export default function Checkout({ slug }: CheckoutProps) {
     slots,
     schedules,
     loading: slotsLoading,
-    notOpenYet: _notOpenYet,
     isCurrentlyOpen,
   } = useTimeSlots(foodtruckId, selectedDate, allSchedules, exceptions, settings);
-  void _notOpenYet;
 
   const {
     promoCode,
@@ -137,23 +139,12 @@ export default function Checkout({ slug }: CheckoutProps) {
     setUseLoyaltyReward,
   } = useLoyalty(foodtruckId, form.email);
 
-  const {
-    applicableOffers,
-    loading: _offersLoading,
-    appliedOffers,
-    bestOffer,
-    totalOfferDiscount,
-  } = useOffers(foodtruckId, items, total, form.email);
-  void _offersLoading;
-
-  const {
-    bestBundle: _bestBundle,
-    totalBundleSavings: _totalBundleSavings,
-    loading: _bundleLoading,
-  } = useBundleDetection(foodtruckId, items);
-  void _bestBundle;
-  void _totalBundleSavings;
-  void _bundleLoading;
+  const { applicableOffers, appliedOffers, bestOffer, totalOfferDiscount } = useOffers(
+    foodtruckId,
+    items,
+    total,
+    form.email
+  );
 
   // Set initial selected date when available dates are loaded
   useEffect(() => {
@@ -198,12 +189,10 @@ export default function Checkout({ slug }: CheckoutProps) {
     form.loyaltyOptIn
   );
 
-  const offerDiscountValue = totalOfferDiscount || 0;
-  const appliedOfferDiscount = offerDiscountValue;
-  const appliedBundleDiscount = 0;
+  const appliedOfferDiscount = totalOfferDiscount || 0;
 
-  const postOfferTotal = total - appliedOfferDiscount - appliedBundleDiscount;
-  const postLoyaltyTotal = postOfferTotal - loyaltyDiscount;
+  const postOfferTotal = Math.max(0, total - appliedOfferDiscount);
+  const postLoyaltyTotal = Math.max(0, postOfferTotal - loyaltyDiscount);
 
   let promoDiscount = 0;
   if (appliedPromo) {
@@ -255,7 +244,13 @@ export default function Checkout({ slug }: CheckoutProps) {
       pickupDateTime = now.toISOString();
     } else {
       const [pickupTimeStr] = form.pickupTime.split('|');
-      const [hours, minutes] = pickupTimeStr.split(':').map(Number);
+      const timeParts = pickupTimeStr.split(':');
+      if (timeParts.length < 2 || isNaN(Number(timeParts[0])) || isNaN(Number(timeParts[1]))) {
+        setFormError('Format de créneau invalide. Veuillez resélectionner.');
+        setSubmitting(false);
+        return;
+      }
+      const [hours, minutes] = timeParts.map(Number);
       const pickupDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
@@ -286,8 +281,7 @@ export default function Checkout({ slug }: CheckoutProps) {
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
       promo_code_id: appliedPromo?.id,
-      discount_amount:
-        promoDiscount + loyaltyDiscount + appliedOfferDiscount + appliedBundleDiscount,
+      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount,
       use_loyalty_reward: loyaltyDiscount > 0,
       loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
       loyalty_reward_count: loyaltyRewardCount,
@@ -407,7 +401,7 @@ export default function Checkout({ slug }: CheckoutProps) {
         aria-label="Chargement en cours"
       >
         <div
-          className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full"
+          className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"
           aria-hidden="true"
         />
         <span className="sr-only">Chargement du formulaire de commande</span>
@@ -439,8 +433,7 @@ export default function Checkout({ slug }: CheckoutProps) {
   }
 
   const canShowPromo =
-    showPromoSection &&
-    (settings?.promoCodesStackable || (appliedOfferDiscount === 0 && appliedBundleDiscount === 0));
+    showPromoSection && (settings?.promoCodesStackable || appliedOfferDiscount === 0);
 
   return (
     <main className="min-h-screen bg-gray-50 animate-fade-in" id="main-content">
@@ -457,7 +450,7 @@ export default function Checkout({ slug }: CheckoutProps) {
           </button>
           <div>
             <h1 className="font-semibold text-gray-900">Finaliser la commande</h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               {items.reduce(
                 (s, i) =>
                   s + (i.bundleInfo ? i.bundleInfo.selections.length * i.quantity : i.quantity),
@@ -617,7 +610,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 const selectedSchedule = schedules.find((s) => s.id === scheduleId);
                 if (!selectedSchedule?.location?.address) return null;
                 return (
-                  <p className="mt-2 text-xs text-gray-400">{selectedSchedule.location.address}</p>
+                  <p className="mt-2 text-xs text-gray-500">{selectedSchedule.location.address}</p>
                 );
               })()}
           </div>
@@ -640,7 +633,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
                 placeholder="Jean Dupont"
                 required
                 aria-required="true"
@@ -659,7 +652,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
                 placeholder="jean@exemple.fr"
                 required
                 aria-required="true"
@@ -678,7 +671,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
                 placeholder="06 12 34 56 78"
                 autoComplete="tel"
               />
@@ -698,7 +691,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                     id="checkout-notes"
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[60px] resize-none"
+                    className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[60px] resize-none"
                     placeholder="Allergies, instructions spéciales..."
                     autoFocus
                   />
@@ -707,7 +700,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 <button
                   type="button"
                   onClick={() => setShowNotes(true)}
-                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors rounded py-1"
+                  className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700 transition-colors rounded py-1"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   Ajouter des instructions
@@ -774,7 +767,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, loyaltyOptIn: false })}
-                    className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                    className="text-xs text-gray-500 hover:text-red-500 transition-colors"
                   >
                     Se désinscrire du programme de fidélité. Tous vos points seront perdus.
                   </button>
@@ -812,7 +805,7 @@ export default function Checkout({ slug }: CheckoutProps) {
         </div>
 
         {/* Privacy */}
-        <p className="text-xs text-gray-400 text-center mt-4 px-8">
+        <p className="text-xs text-gray-500 text-center mt-4 px-8">
           En confirmant, vous acceptez que vos informations soient conservées pour le suivi de vos
           commandes.
         </p>
