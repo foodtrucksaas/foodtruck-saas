@@ -260,9 +260,9 @@ serve(async (req) => {
       );
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
       pickupLocationHtml = `
-          <div style="border-top:1px solid #e5e1d5;margin-top:12px;padding-top:12px">
-            <strong style="color:#92400e;font-size:13px">Lieu :</strong><br>
-            <a href="${mapsUrl}" style="color:#78350f;text-decoration:underline;font-size:15px" target="_blank">${addressText}</a>
+          <div style="border-top:1px solid #e5e7eb;margin-top:12px;padding-top:12px">
+            <strong style="color:#374151;font-size:13px">Lieu :</strong><br>
+            <a href="${mapsUrl}" style="color:#F97066;text-decoration:underline;font-size:15px" target="_blank">${addressText}</a>
           </div>`;
     }
 
@@ -334,9 +334,9 @@ serve(async (req) => {
             </p>
 
             <!-- Pickup info (time + location) -->
-            <div style="background:#fef3c7;padding:15px;border-radius:8px;margin:20px 0">
-              <strong style="color:#92400e;font-size:13px">Retrait :</strong><br>
-              <span style="color:#78350f;font-size:18px">${pickupDateStr}</span>
+            <div style="background:#f9fafb;padding:15px;border-radius:8px;margin:20px 0;border:1px solid #e5e7eb">
+              <strong style="color:#374151;font-size:13px">Retrait :</strong><br>
+              <span style="color:#111827;font-size:18px">${pickupDateStr}</span>
               ${pickupLocationHtml}
             </div>
 
@@ -345,11 +345,14 @@ serve(async (req) => {
               <h3 style="margin:0 0 15px;color:#111827;font-size:18px">Récapitulatif de votre commande</h3>
               ${items}
               ${discountHtml}
-              <div style="background:#FFF5F3;border-radius:8px;padding:12px 16px;margin-top:15px;border:1px solid #FFD4CC">
+              <div style="background:#f9fafb;border-radius:8px;padding:12px 16px;margin-top:15px;border:1px solid #e5e7eb">
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
                   <tr>
-                    <td style="font-size:13px;color:#6b7280;text-align:left">À régler sur place</td>
-                    <td style="font-size:22px;font-weight:700;color:#F97066;text-align:right">${total}</td>
+                    <td style="text-align:left;vertical-align:middle">
+                      <strong style="font-size:15px;color:#111827">Montant estimé</strong><br>
+                      <span style="font-size:12px;color:#9ca3af">à régler sur place</span>
+                    </td>
+                    <td style="font-size:22px;font-weight:700;color:#374151;text-align:right;vertical-align:middle">${total}</td>
                   </tr>
                 </table>
               </div>
