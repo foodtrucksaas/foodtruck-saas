@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapPin, Plus, Check, ArrowRight } from 'lucide-react';
 import {
   GooglePlacesAutocomplete,
@@ -10,13 +10,8 @@ import { AssistantBubble, StepContainer, ActionButton } from '../components';
 export function Step1Locations() {
   const { state, dispatch, nextStep } = useOnboarding();
   const [saving, setSaving] = useState(false);
-
-  // When locations exist (loaded from DB) and we're not adding a new one, show summary
-  useEffect(() => {
-    if (state.locations.length > 0 && !state.showAddAnother && !state.currentLocation.name) {
-      dispatch({ type: 'SET_SHOW_ADD_ANOTHER', show: true });
-    }
-  }, [state.locations.length, state.showAddAnother, state.currentLocation.name, dispatch]);
+  // Track whether the user explicitly clicked "add another"
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   const handlePlaceSelect = (place: PlaceResult) => {
     dispatch({
@@ -43,11 +38,13 @@ export function Step1Locations() {
       };
       dispatch({ type: 'ADD_LOCATION', location: locationWithId });
       setSaving(false);
+      setIsAddingNew(false);
     }, 300);
   };
 
   const handleAddAnother = () => {
-    dispatch({ type: 'SET_SHOW_ADD_ANOTHER', show: false });
+    dispatch({ type: 'RESET_CURRENT_LOCATION' });
+    setIsAddingNew(true);
   };
 
   const handleContinue = () => {
@@ -57,8 +54,8 @@ export function Step1Locations() {
 
   const isLocationValid = state.currentLocation.name.trim() && state.currentLocation.address.trim();
 
-  // Show the locations summary / "add another" screen
-  if (state.showAddAnother && state.locations.length > 0) {
+  // Show the locations summary when locations exist and we're not adding a new one
+  if (state.locations.length > 0 && !isAddingNew) {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
@@ -113,7 +110,7 @@ export function Step1Locations() {
       nextDisabled={!isLocationValid}
       nextLoading={saving}
       showBack={state.locations.length > 0}
-      onBack={() => dispatch({ type: 'SET_SHOW_ADD_ANOTHER', show: true })}
+      onBack={() => setIsAddingNew(false)}
     >
       <div className="space-y-6">
         <AssistantBubble
