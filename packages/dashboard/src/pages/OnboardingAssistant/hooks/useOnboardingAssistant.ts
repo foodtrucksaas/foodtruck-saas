@@ -118,43 +118,31 @@ export function useOnboardingAssistant() {
   }, [foodtruck, dispatch]);
 
   // Save locations to database
+  // Uses upsert because Step 1 generates temp UUIDs via crypto.randomUUID()
+  // that don't exist in the DB yet — a plain update would silently affect 0 rows
   const saveLocations = useCallback(async (): Promise<string[]> => {
     if (!foodtruck || state.locations.length === 0) return [];
 
     const locationIds: string[] = [];
 
     for (const loc of state.locations) {
-      if (loc.id) {
-        // Update existing
-        await supabase
-          .from('locations')
-          .update({
-            name: loc.name,
-            address: loc.address,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            google_place_id: loc.google_place_id,
-          })
-          .eq('id', loc.id);
-        locationIds.push(loc.id);
-      } else {
-        // Insert new
-        const { data, error } = await supabase
-          .from('locations')
-          .insert({
-            foodtruck_id: foodtruck.id,
-            name: loc.name,
-            address: loc.address,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            google_place_id: loc.google_place_id,
-          })
-          .select('id')
-          .single();
+      const payload = {
+        foodtruck_id: foodtruck.id,
+        name: loc.name,
+        address: loc.address,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        google_place_id: loc.google_place_id,
+      };
 
-        if (error) throw error;
-        if (data) locationIds.push(data.id);
-      }
+      const { data, error } = await supabase
+        .from('locations')
+        .upsert({ ...(loc.id ? { id: loc.id } : {}), ...payload })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      if (data) locationIds.push(data.id);
     }
 
     return locationIds;
@@ -165,24 +153,35 @@ export function useOnboardingAssistant() {
     async (locationIds: string[]) => {
       if (!foodtruck || state.schedules.length === 0) return;
 
-      // Create location name to ID map for schedules that reference by name
-      const locationNameToId: Record<string, string> = {};
+      // Build mapping: temp/old ID or name → real DB ID
+      const locationIdMap: Record<string, string> = {};
       state.locations.forEach((loc, index) => {
-        const id = loc.id || locationIds[index];
-        if (id) {
-          locationNameToId[loc.name] = id;
-          locationNameToId[loc.id || ''] = id;
+        const dbId = locationIds[index] || loc.id;
+        if (dbId) {
+          // Map by name (for schedules that reference by name)
+          locationIdMap[loc.name] = dbId;
+          // Map by original ID (temp UUID or real UUID)
+          if (loc.id) locationIdMap[loc.id] = dbId;
         }
       });
 
+      // Resolve location_id for each schedule
+      const resolveLocationId = (scheduleLocationId: string): string => {
+        return locationIdMap[scheduleLocationId] || scheduleLocationId || locationIds[0];
+      };
+
       // Delete existing schedules
-      await supabase.from('schedules').delete().eq('foodtruck_id', foodtruck.id);
+      const { error: deleteError } = await supabase
+        .from('schedules')
+        .delete()
+        .eq('foodtruck_id', foodtruck.id);
+      if (deleteError) throw deleteError;
 
       // Insert new schedules
       const schedulesToInsert = state.schedules.map((s) => ({
         foodtruck_id: foodtruck.id,
         day_of_week: s.day_of_week,
-        location_id: locationNameToId[s.location_id] || s.location_id || locationIds[0],
+        location_id: resolveLocationId(s.location_id),
         start_time: s.start_time,
         end_time: s.end_time,
         is_active: true,
