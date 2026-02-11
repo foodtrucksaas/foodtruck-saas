@@ -2,9 +2,21 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import type { AnalyticsData } from '@foodtruck/shared';
-import { DAY_NAMES, formatLocalDate, safeNumber, calculatePercentageChange } from '@foodtruck/shared';
+import {
+  DAY_NAMES,
+  formatLocalDate,
+  safeNumber,
+  calculatePercentageChange,
+} from '@foodtruck/shared';
 
-export type DatePreset = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'custom';
+export type DatePreset =
+  | 'today'
+  | 'yesterday'
+  | 'last7days'
+  | 'last30days'
+  | 'thisMonth'
+  | 'lastMonth'
+  | 'custom';
 
 export const DATE_PRESETS: { key: DatePreset; label: string }[] = [
   { key: 'today', label: "Aujourd'hui" },
@@ -79,14 +91,16 @@ export function useAnalytics() {
   useEffect(() => {
     if (!foodtruck) return;
     setLoading(true);
-    supabase.rpc('get_analytics', {
-      p_foodtruck_id: foodtruck.id,
-      p_start_date: formatDateForInput(dateRange.start),
-      p_end_date: formatDateForInput(dateRange.end),
-    }).then(({ data }) => {
-      setAnalytics(data as unknown as AnalyticsData);
-      setLoading(false);
-    });
+    supabase
+      .rpc('get_analytics', {
+        p_foodtruck_id: foodtruck.id,
+        p_start_date: formatDateForInput(dateRange.start),
+        p_end_date: formatDateForInput(dateRange.end),
+      })
+      .then(({ data }) => {
+        setAnalytics(data as unknown as AnalyticsData);
+        setLoading(false);
+      });
   }, [foodtruck, dateRange]);
 
   const revenueChange = calculatePercentageChange(
@@ -102,17 +116,37 @@ export function useAnalytics() {
     safeNumber(analytics?.previousAverageOrderValue)
   );
 
-  const revenueData = useMemo(() =>
-    analytics?.amountByDay?.map((d) => ({
-      date: formatDateDisplay(d.date),
-      fullDate: d.date,
-      revenue: d.amount / 100,
-      orders: d.order_count,
-    })) || []
-  , [analytics]);
+  const revenueData = useMemo(() => {
+    if (!analytics?.amountByDay) return [];
+    // Build a map of existing data
+    const dataMap = new Map(
+      analytics.amountByDay.map((d) => [d.date, { amount: d.amount, order_count: d.order_count }])
+    );
+    // Generate all days in range
+    const days: { date: string; fullDate: string; revenue: number; orders: number }[] = [];
+    const current = new Date(dateRange.start);
+    const end = new Date(dateRange.end);
+    while (current <= end) {
+      const key = formatDateForInput(current);
+      const entry = dataMap.get(key);
+      days.push({
+        date: formatDateDisplay(key),
+        fullDate: key,
+        revenue: entry ? entry.amount / 100 : 0,
+        orders: entry ? entry.order_count : 0,
+      });
+      current.setDate(current.getDate() + 1);
+    }
+    return days;
+  }, [analytics, dateRange]);
 
   const hourlyData = useMemo(() => {
-    const hours = Array.from({ length: 24 }, (_, i) => ({ hour: i, label: `${i}h`, orders: 0, revenue: 0 }));
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      hour: i,
+      label: `${i}h`,
+      orders: 0,
+      revenue: 0,
+    }));
     analytics?.ordersByHour?.forEach((h) => {
       if (hours[h.hour]) {
         hours[h.hour].orders = h.order_count;
@@ -123,7 +157,13 @@ export function useAnalytics() {
   }, [analytics]);
 
   const dayOfWeekData = useMemo(() => {
-    const days = DAY_NAMES.map((name, i) => ({ day: i, name: name.substring(0, 3), fullName: name, orders: 0, revenue: 0 }));
+    const days = DAY_NAMES.map((name, i) => ({
+      day: i,
+      name: name.substring(0, 3),
+      fullName: name,
+      orders: 0,
+      revenue: 0,
+    }));
     analytics?.ordersByDayOfWeek?.forEach((d) => {
       if (days[d.day_of_week]) {
         days[d.day_of_week].orders = d.order_count;
@@ -152,9 +192,15 @@ export function useAnalytics() {
       [''],
       ['Produits les plus vendus'],
       ['Produit', 'Quantité', 'Montant'],
-      ...(analytics.topItems?.map((item) => [item.menuItemName, item.quantity.toString(), (item.amount / 100).toFixed(2) + ' €']) || []),
+      ...(analytics.topItems?.map((item) => [
+        item.menuItemName,
+        item.quantity.toString(),
+        (item.amount / 100).toFixed(2) + ' €',
+      ]) || []),
     ];
-    const blob = new Blob([rows.map((row) => row.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([rows.map((row) => row.join(',')).join('\n')], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `stats-${analytics.startDate}-${analytics.endDate}.csv`;
@@ -162,8 +208,23 @@ export function useAnalytics() {
   }, [analytics]);
 
   return {
-    analytics, loading, preset, setPreset, showPresetDropdown, setShowPresetDropdown,
-    customStartDate, setCustomStartDate, customEndDate, setCustomEndDate,
-    revenueChange, orderChange, avgChange, revenueData, hourlyData, dayOfWeekData, maxItemRevenue, exportCSV,
+    analytics,
+    loading,
+    preset,
+    setPreset,
+    showPresetDropdown,
+    setShowPresetDropdown,
+    customStartDate,
+    setCustomStartDate,
+    customEndDate,
+    setCustomEndDate,
+    revenueChange,
+    orderChange,
+    avgChange,
+    revenueData,
+    hourlyData,
+    dayOfWeekData,
+    maxItemRevenue,
+    exportCSV,
   };
 }
