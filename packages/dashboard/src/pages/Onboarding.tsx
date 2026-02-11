@@ -39,7 +39,7 @@ export default function Onboarding() {
         .from('foodtrucks')
         .select('id')
         .eq('slug', baseSlug)
-        .single();
+        .maybeSingle();
 
       const finalSlug = existingSlug
         ? `${baseSlug}-${Date.now().toString(36).slice(-4)}`

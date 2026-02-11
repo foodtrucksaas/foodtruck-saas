@@ -38,7 +38,7 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
       .from('foodtrucks')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     setFoodtruck(foodtruckData);
 

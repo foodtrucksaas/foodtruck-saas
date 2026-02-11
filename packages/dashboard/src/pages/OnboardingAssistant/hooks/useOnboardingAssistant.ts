@@ -210,7 +210,7 @@ export function useOnboardingAssistant() {
         .select('id')
         .eq('foodtruck_id', foodtruck.id)
         .eq('name', cat.name)
-        .single();
+        .maybeSingle();
 
       if (existingCat) {
         categoryId = existingCat.id;
