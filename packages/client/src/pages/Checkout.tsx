@@ -184,10 +184,10 @@ export default function Checkout({ slug }: CheckoutProps) {
     }
   }, [slots]);
 
-  // Update loyalty opt-in when loyalty info is loaded
+  // Sync loyalty opt-in with stored customer preference
   useEffect(() => {
-    if (loyaltyInfo?.loyalty_opt_in === true) {
-      setForm((prev) => ({ ...prev, loyaltyOptIn: true }));
+    if (loyaltyInfo?.loyalty_opt_in !== undefined) {
+      setForm((prev) => ({ ...prev, loyaltyOptIn: !!loyaltyInfo.loyalty_opt_in }));
     }
   }, [loyaltyInfo]);
 
