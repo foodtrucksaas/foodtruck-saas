@@ -321,7 +321,7 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => handleRemoveAutoBundle(offer)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
+                  className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
                   aria-label="Supprimer"
                 >
                   <X className="w-4 h-4" strokeWidth={2.5} />
@@ -423,7 +423,7 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onRemoveItem(cartKey)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
+                  className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
                   aria-label="Supprimer"
                 >
                   <X className="w-4 h-4" strokeWidth={2.5} />
@@ -574,7 +574,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => onRemoveItem(cartKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
+                className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
                 aria-label="Supprimer"
               >
                 <X className="w-4 h-4" strokeWidth={2.5} />
