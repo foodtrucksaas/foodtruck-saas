@@ -481,128 +481,134 @@ export function OrderSummaryCard({
           );
         })}
 
-        {/* Independent items (not part of any bundle) */}
-        {independentItems.map((item) => {
-          const consumed = itemsConsumedByBundle.get(item.menuItem.id);
-          const displayQuantity = consumed
-            ? item.quantity - consumed.quantityConsumed
-            : item.quantity;
+        {/* Independent items (not part of any bundle) — free items last */}
+        {[...independentItems]
+          .sort((a, b) => {
+            const aFree = freeItemsMap.has(a.menuItem.id) ? 1 : 0;
+            const bFree = freeItemsMap.has(b.menuItem.id) ? 1 : 0;
+            return aFree - bFree;
+          })
+          .map((item) => {
+            const consumed = itemsConsumedByBundle.get(item.menuItem.id);
+            const displayQuantity = consumed
+              ? item.quantity - consumed.quantityConsumed
+              : item.quantity;
 
-          if (displayQuantity <= 0) return null;
+            if (displayQuantity <= 0) return null;
 
-          const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
-          const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-          const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-          const supplementsTotal =
-            item.selectedOptions?.reduce(
-              (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
-              0
-            ) || 0;
-          const unitPrice = basePrice + supplementsTotal;
+            const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
+            const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
+            const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
+            const supplementsTotal =
+              item.selectedOptions?.reduce(
+                (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
+                0
+              ) || 0;
+            const unitPrice = basePrice + supplementsTotal;
 
-          // Check if some quantity is free via buy_x_get_y
-          const freeInfo = freeItemsMap.get(item.menuItem.id);
-          const freeQty = freeInfo ? Math.min(freeInfo.freeQty, displayQuantity) : 0;
-          const paidQty = displayQuantity - freeQty;
-          const itemTotal = unitPrice * paidQty;
+            // Check if some quantity is free via buy_x_get_y
+            const freeInfo = freeItemsMap.get(item.menuItem.id);
+            const freeQty = freeInfo ? Math.min(freeInfo.freeQty, displayQuantity) : 0;
+            const paidQty = displayQuantity - freeQty;
+            const itemTotal = unitPrice * paidQty;
 
-          const optionsText = item.selectedOptions
-            ?.map((opt) => {
-              const mod =
-                !opt.isSizeOption && opt.priceModifier > 0
-                  ? ` (+${formatPrice(opt.priceModifier)})`
-                  : '';
-              return `${opt.name}${mod}`;
-            })
-            .join(', ');
+            const optionsText = item.selectedOptions
+              ?.map((opt) => {
+                const mod =
+                  !opt.isSizeOption && opt.priceModifier > 0
+                    ? ` (+${formatPrice(opt.priceModifier)})`
+                    : '';
+                return `${opt.name}${mod}`;
+              })
+              .join(', ');
 
-          return (
-            <div
-              key={cartKey}
-              className="relative flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50"
-            >
-              {/* Quantity stepper */}
-              <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
-                <button
-                  type="button"
-                  onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
-                  className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center transition-all active:scale-90 ${item.quantity <= 1 ? 'text-red-400 hover:text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  aria-label={item.quantity <= 1 ? 'Supprimer' : 'Réduire la quantité'}
-                >
-                  {item.quantity <= 1 ? (
-                    <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
-                  ) : (
-                    <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+            return (
+              <div
+                key={cartKey}
+                className="relative flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50"
+              >
+                {/* Quantity stepper */}
+                <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)}
+                    className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center transition-all active:scale-90 ${item.quantity <= 1 ? 'text-red-400 hover:text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    aria-label={item.quantity <= 1 ? 'Supprimer' : 'Réduire la quantité'}
+                  >
+                    {item.quantity <= 1 ? (
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                    ) : (
+                      <Minus className="w-3.5 h-3.5" strokeWidth={2} />
+                    )}
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums transition-all">
+                    {consumed ? `${displayQuantity}` : item.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
+                    className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
+                    aria-label="Augmenter la quantité"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                </div>
+
+                {/* Item info */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm">{item.menuItem.name}</p>
+                  {optionsText && <p className="text-xs text-gray-400 truncate">{optionsText}</p>}
+                  {freeQty > 0 && (
+                    <p className="text-xs text-emerald-600 font-medium">{freeInfo!.offerName}</p>
                   )}
-                </button>
-                <span className="w-6 text-center text-sm font-semibold text-gray-900 tabular-nums transition-all">
-                  {consumed ? `${displayQuantity}` : item.quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
-                  className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all active:scale-90"
-                  aria-label="Augmenter la quantité"
-                >
-                  <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-              </div>
+                </div>
 
-              {/* Item info */}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 text-sm">{item.menuItem.name}</p>
-                {optionsText && <p className="text-xs text-gray-400 truncate">{optionsText}</p>}
-                {freeQty > 0 && (
-                  <p className="text-xs text-emerald-600 font-medium">{freeInfo!.offerName}</p>
-                )}
-              </div>
-
-              {/* Price */}
-              <div className="text-right flex-shrink-0">
-                {freeQty > 0 && freeQty >= displayQuantity ? (
-                  /* All items are free */
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm text-gray-400 line-through tabular-nums">
-                      {formatPrice(unitPrice * displayQuantity)}
-                    </span>
-                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                      Offert
-                    </span>
-                  </div>
-                ) : freeQty > 0 ? (
-                  /* Some items free, some paid */
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm tabular-nums">
-                      {formatPrice(itemTotal)}
-                    </p>
-                    <div className="flex items-center gap-1 justify-end">
-                      <span className="text-xs text-gray-400 line-through tabular-nums">
-                        {formatPrice(unitPrice * freeQty)}
+                {/* Price */}
+                <div className="text-right flex-shrink-0">
+                  {freeQty > 0 && freeQty >= displayQuantity ? (
+                    /* All items are free */
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-gray-400 line-through tabular-nums">
+                        {formatPrice(unitPrice * displayQuantity)}
                       </span>
-                      <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded-full">
+                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                         Offert
                       </span>
                     </div>
-                  </div>
-                ) : (
-                  <p className="font-semibold text-gray-900 text-sm tabular-nums">
-                    {formatPrice(itemTotal)}
-                  </p>
-                )}
-              </div>
+                  ) : freeQty > 0 ? (
+                    /* Some items free, some paid */
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm tabular-nums">
+                        {formatPrice(itemTotal)}
+                      </p>
+                      <div className="flex items-center gap-1 justify-end">
+                        <span className="text-xs text-gray-400 line-through tabular-nums">
+                          {formatPrice(unitPrice * freeQty)}
+                        </span>
+                        <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded-full">
+                          Offert
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="font-semibold text-gray-900 text-sm tabular-nums">
+                      {formatPrice(itemTotal)}
+                    </p>
+                  )}
+                </div>
 
-              {/* Remove button - always visible on mobile, hover on desktop */}
-              <button
-                type="button"
-                onClick={() => onRemoveItem(cartKey)}
-                className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
-                aria-label="Supprimer"
-              >
-                <X className="w-4 h-4" strokeWidth={2.5} />
-              </button>
-            </div>
-          );
-        })}
+                {/* Remove button - always visible on mobile, hover on desktop */}
+                <button
+                  type="button"
+                  onClick={() => onRemoveItem(cartKey)}
+                  className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 active:scale-90"
+                  aria-label="Supprimer"
+                >
+                  <X className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+              </div>
+            );
+          })}
       </div>
 
       {/* Totals - pr-[72px] aligns prices with item prices (accounting for X button + gap) */}
