@@ -41,12 +41,14 @@ function getStatusStyle(status: string) {
 function StatCard({
   icon: Icon,
   color,
+  tint,
   value,
   label,
   onClick,
 }: {
   icon: React.ElementType;
   color: string;
+  tint: string;
   value: string | number;
   label: string;
   onClick?: () => void;
@@ -56,9 +58,9 @@ function StatCard({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
-      className={`card p-3 ${
+      className={`rounded-xl border p-3 ${tint} ${
         onClick
-          ? 'cursor-pointer hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
+          ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
           : ''
       }`}
       onClick={onClick}
@@ -77,33 +79,44 @@ function StatCard({
 }
 
 function TodayBanner({ status }: { status: TodayStatus }) {
+  if (status.type === 'open') {
+    return (
+      <div className="rounded-xl bg-gradient-to-r from-primary-500 to-primary-400 p-4 shadow-lg shadow-primary-500/20">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-xl bg-white/20 flex-shrink-0">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-white truncate">
+                {status.locationName}
+              </p>
+              <p className="text-sm text-white/80">
+                {formatTime(status.startTime)} – {formatTime(status.endTime)}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/schedule"
+            className="text-xs text-white/80 hover:text-white flex-shrink-0 font-medium bg-white/15 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Planning →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`card p-3 sm:p-4 border-l-4 ${
-        status.type === 'open'
-          ? 'border-l-primary-500'
-          : status.type === 'closed'
-            ? 'border-l-red-400'
-            : 'border-l-gray-300'
+      className={`rounded-xl p-4 ${
+        status.type === 'closed'
+          ? 'bg-red-50 border border-red-200'
+          : 'bg-gray-50 border border-gray-200'
       }`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          {status.type === 'open' && (
-            <>
-              <div className="p-2 rounded-xl bg-primary-100 flex-shrink-0">
-                <MapPin className="w-4 h-4 text-primary-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                  {status.locationName}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {formatTime(status.startTime)} – {formatTime(status.endTime)}
-                </p>
-              </div>
-            </>
-          )}
           {status.type === 'closed' && (
             <>
               <div className="p-2 rounded-xl bg-red-100 flex-shrink-0">
@@ -197,6 +210,7 @@ export default function Dashboard() {
           <StatCard
             icon={Clock}
             color="bg-warning-500"
+            tint="bg-warning-50 border-warning-100"
             value={stats?.pendingOrders ?? '-'}
             label="En attente"
             onClick={stats?.pendingOrders ? showAllPendingOrders : undefined}
@@ -205,18 +219,21 @@ export default function Dashboard() {
         <StatCard
           icon={isAutoAccept ? ShoppingBag : CheckCircle}
           color={isAutoAccept ? 'bg-primary-500' : 'bg-info-500'}
+          tint={isAutoAccept ? 'bg-primary-50 border-primary-100' : 'bg-info-50 border-info-100'}
           value={isAutoAccept ? (stats?.todayOrders ?? '-') : (stats?.confirmedOrders ?? '-')}
           label={isAutoAccept ? 'Commandes du jour' : 'Acceptées'}
         />
         <StatCard
           icon={Package}
           color="bg-success-500"
+          tint="bg-success-50 border-success-100"
           value={stats?.pickedUpOrders ?? '-'}
           label="Retirées"
         />
         <StatCard
           icon={Banknote}
           color="bg-primary-500"
+          tint="bg-primary-50 border-primary-100"
           value={stats ? formatPrice(stats.todayOrderAmount) : '-'}
           label="Montant du jour"
         />
@@ -224,8 +241,8 @@ export default function Dashboard() {
 
       {/* Section 3: Upcoming Orders */}
       <div className="card overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Commandes à venir</h2>
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-700">Commandes à venir</h2>
         </div>
 
         {upcomingOrders.length === 0 ? (
