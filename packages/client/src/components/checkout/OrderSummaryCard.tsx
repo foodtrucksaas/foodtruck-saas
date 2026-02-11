@@ -237,7 +237,12 @@ export function OrderSummaryCard({
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">Votre commande</h2>
           <span className="text-xs text-gray-400">
-            {items.reduce((s, i) => s + i.quantity, 0)} articles
+            {items.reduce(
+              (s, i) =>
+                s + (i.bundleInfo ? i.bundleInfo.selections.length * i.quantity : i.quantity),
+              0
+            )}{' '}
+            articles
           </span>
         </div>
       </div>
@@ -258,7 +263,10 @@ export function OrderSummaryCard({
           const discountedTotal = bundleTotal - offer.discount_amount / offer.times_applied;
 
           return (
-            <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
+            <div
+              key={`bundle-${offer.offer_id}`}
+              className="bg-primary-50/30 border-l-3 border-l-primary-400"
+            >
               {/* Bundle header */}
               <div className="relative flex items-center gap-3 px-4 py-3 group">
                 {/* Quantity stepper */}
@@ -360,7 +368,7 @@ export function OrderSummaryCard({
           const isExpanded = expandedBundles.has(cartKey);
 
           return (
-            <div key={cartKey} className="bg-primary-50/30">
+            <div key={cartKey} className="bg-primary-50/30 border-l-3 border-l-primary-400">
               {/* Bundle header */}
               <div className="relative flex items-center gap-3 px-4 py-3 group">
                 {/* Quantity stepper */}

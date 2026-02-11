@@ -455,13 +455,23 @@ export default function Checkout({ slug }: CheckoutProps) {
           >
             <ArrowLeft className="w-5 h-5 text-gray-700" aria-hidden="true" />
           </button>
-          <h1 className="font-semibold text-gray-900">Finaliser la commande</h1>
+          <div>
+            <h1 className="font-semibold text-gray-900">Finaliser la commande</h1>
+            <p className="text-xs text-gray-400">
+              {items.reduce(
+                (s, i) =>
+                  s + (i.bundleInfo ? i.bundleInfo.selections.length * i.quantity : i.quantity),
+                0
+              )}{' '}
+              articles · {formatPrice(finalTotal)}
+            </p>
+          </div>
         </div>
       </header>
 
       <form
         onSubmit={handleSubmit}
-        className="pb-32"
+        className="pb-32 max-w-lg mx-auto"
         id="checkout-form"
         aria-label="Formulaire de commande"
       >
