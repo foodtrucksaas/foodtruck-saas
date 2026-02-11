@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UtensilsCrossed } from 'lucide-react';
 import { OnboardingProvider, useOnboarding } from './OnboardingContext';
 import { ProgressBar } from './components';
@@ -17,6 +18,7 @@ const STEP_LABELS = ['Emplacements', 'Planning', 'Menu', 'Offres', 'Parametres']
 const TOTAL_STEPS = 5;
 
 function OnboardingAssistantContent() {
+  const navigate = useNavigate();
   const { state } = useOnboarding();
   const { saveAllData, updateProgress } = useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
@@ -76,6 +78,14 @@ function OnboardingAssistantContent() {
                 {foodtruck && <p className="text-xs text-gray-500">{foodtruck.name}</p>}
               </div>
             </div>
+            {state.currentStep <= TOTAL_STEPS && (
+              <button
+                onClick={() => navigate('/')}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] px-2"
+              >
+                Passer
+              </button>
+            )}
           </div>
 
           {/* Progress bar - only show during steps, not on complete */}
