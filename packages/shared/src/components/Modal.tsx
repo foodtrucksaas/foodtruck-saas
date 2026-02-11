@@ -68,33 +68,35 @@ export function Modal({
     }
   }, []);
 
+  // Auto-focus on open — separate effect so it only runs when isOpen changes,
+  // not when handler references change (which would steal focus from inputs).
   useEffect(() => {
     if (isOpen) {
-      // Store currently focused element
       previousActiveElement.current = document.activeElement as HTMLElement;
-
-      document.addEventListener('keydown', handleEscape);
-      document.addEventListener('keydown', handleTabKey);
-      document.body.style.overflow = 'hidden';
-
-      // Focus the modal or first focusable element
       setTimeout(() => {
         const firstFocusable = modalRef.current?.querySelector<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         firstFocusable?.focus();
       }, 0);
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Event listeners and body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleTabKey);
+    document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('keydown', handleTabKey);
       document.body.style.overflow = 'unset';
-
-      // Restore focus to previously focused element
-      if (!isOpen && previousActiveElement.current) {
-        previousActiveElement.current.focus();
-      }
     };
   }, [isOpen, handleEscape, handleTabKey]);
 
