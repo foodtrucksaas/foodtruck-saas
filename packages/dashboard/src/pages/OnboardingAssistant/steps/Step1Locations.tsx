@@ -6,9 +6,12 @@ import {
 } from '../../../components/GooglePlacesAutocomplete';
 import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton } from '../components';
+import { supabase } from '../../../lib/supabase';
+import { useFoodtruck } from '../../../contexts/FoodtruckContext';
 
 export function Step1Locations() {
   const { state, dispatch, nextStep } = useOnboarding();
+  const { foodtruck } = useFoodtruck();
   const [saving, setSaving] = useState(false);
   // Track whether the user explicitly clicked "add another"
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -25,21 +28,37 @@ export function Step1Locations() {
     });
   };
 
-  const handleSaveLocation = () => {
-    if (!state.currentLocation.name.trim()) return;
+  const handleSaveLocation = async () => {
+    if (!state.currentLocation.name.trim() || !foodtruck) return;
 
     setSaving(true);
-    // Simulate brief save animation
-    setTimeout(() => {
-      // Generate a temporary ID for the location
-      const locationWithId = {
-        ...state.currentLocation,
-        id: crypto.randomUUID(),
-      };
-      dispatch({ type: 'ADD_LOCATION', location: locationWithId });
-      setSaving(false);
+    try {
+      // Save to database immediately so it persists if user navigates away
+      const { data, error } = await supabase
+        .from('locations')
+        .insert({
+          foodtruck_id: foodtruck.id,
+          name: state.currentLocation.name,
+          address: state.currentLocation.address,
+          latitude: state.currentLocation.latitude,
+          longitude: state.currentLocation.longitude,
+          google_place_id: state.currentLocation.google_place_id,
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      dispatch({
+        type: 'ADD_LOCATION',
+        location: { ...state.currentLocation, id: data.id },
+      });
       setIsAddingNew(false);
-    }, 300);
+    } catch (err) {
+      console.error('Error saving location:', err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddAnother = () => {
