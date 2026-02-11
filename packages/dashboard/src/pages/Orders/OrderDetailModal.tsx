@@ -263,10 +263,14 @@ export function OrderDetailModal({
 
                     {(() => {
                       const remainingFree = [...freeItemNames];
-                      return solo.map((item, idx) => {
+                      const tagged = solo.map((item) => {
                         const freeIdx = remainingFree.indexOf(item.menu_item.name);
                         const isFree = freeIdx !== -1;
                         if (isFree) remainingFree.splice(freeIdx, 1);
+                        return { item, isFree };
+                      });
+                      tagged.sort((a, b) => (a.isFree === b.isFree ? 0 : a.isFree ? 1 : -1));
+                      return tagged.map(({ item, isFree }, idx) => {
                         return (
                           <div key={idx} className="flex justify-between items-start">
                             <div>

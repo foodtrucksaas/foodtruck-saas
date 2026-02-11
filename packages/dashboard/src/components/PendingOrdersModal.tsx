@@ -339,13 +339,18 @@ export default function PendingOrdersModal({
                 );
               })}
 
-              {/* Regular items */}
+              {/* Regular items (free items last) */}
               {(() => {
                 const remainingFree = [...freeItemNames];
-                return standaloneItems.map((item, idx) => {
+                // Tag each item as free or not, then sort free items to the end
+                const tagged = standaloneItems.map((item) => {
                   const freeIdx = remainingFree.indexOf(item.menu_item.name);
                   const isFree = freeIdx !== -1;
                   if (isFree) remainingFree.splice(freeIdx, 1);
+                  return { item, isFree };
+                });
+                tagged.sort((a, b) => (a.isFree === b.isFree ? 0 : a.isFree ? 1 : -1));
+                return tagged.map(({ item, isFree }, idx) => {
                   return (
                     <div key={idx}>
                       <div className="flex justify-between items-start">
