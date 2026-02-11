@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef, ReactNode, memo, useCallback } from 'react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Calendar, ChevronDown, Download, Clock, MapPin } from 'lucide-react';
 import { Package, ShoppingBag, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { formatPrice, safeDivide, safeNumber } from '@foodtruck/shared';
@@ -209,12 +199,12 @@ export default function Analytics() {
       <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="card p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-            Évolution des montants
+            Montant par jour
           </h2>
           {revenueData.length > 0 ? (
             <SafeChart className="h-[220px] sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData}>
+                <BarChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
                   <YAxis stroke="#6b7280" fontSize={12} tickFormatter={(v) => `${v}€`} />
@@ -228,17 +218,9 @@ export default function Analytics() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                       fontSize: '14px',
                     }}
-                    cursor={{ strokeWidth: 2 }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#F97066"
-                    strokeWidth={2}
-                    dot={{ fill: '#F97066', strokeWidth: 0 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
+                  <Bar dataKey="revenue" fill="#F97066" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </SafeChart>
           ) : (

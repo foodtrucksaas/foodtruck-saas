@@ -47,7 +47,7 @@ const navigation: NavItem[] = [
   { type: 'link', name: 'Menus & Offres', href: '/offers', icon: Sparkles },
   // Performance & Clients
   { type: 'separator', label: 'Performance' },
-  { type: 'link', name: 'Statistiques', href: '/analytics', icon: BarChart3 },
+  { type: 'link', name: 'Analyses', href: '/analytics', icon: BarChart3 },
   { type: 'link', name: 'Clients', href: '/customers', icon: Users },
   { type: 'link', name: 'Fidélité', href: '/loyalty', icon: Gift },
   { type: 'link', name: 'Campagnes', href: '/campaigns', icon: Send },
