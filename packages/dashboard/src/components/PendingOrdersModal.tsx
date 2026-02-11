@@ -118,6 +118,16 @@ export default function PendingOrdersModal({
   const trackedOfferDiscount = offerUses.reduce((sum, u) => sum + (u.discount_amount || 0), 0);
   const loyaltyDiscount = Math.max(0, discountAmount - trackedOfferDiscount);
 
+  // Filter out offers already shown inline (bundles as cards, buy_x_get_y as "Offert" badges)
+  const visibleOfferUses = offerUses.filter(
+    (u) =>
+      u.discount_amount > 0 &&
+      u.offer?.offer_type !== 'bundle' &&
+      u.offer?.offer_type !== 'buy_x_get_y'
+  );
+  const visibleDiscount =
+    visibleOfferUses.reduce((sum, u) => sum + u.discount_amount, 0) + loyaltyDiscount;
+
   // Free items from buy_x_get_y offers
   const freeItemNames = offerUses
     .filter((u) => u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name)
@@ -380,27 +390,21 @@ export default function PendingOrdersModal({
 
           {/* Total */}
           <div className="py-3 border-t border-gray-200 space-y-1">
-            {discountAmount > 0 && (
+            {visibleDiscount > 0 && (
               <>
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <span>Sous-total</span>
-                  <span>{formatPrice(order.total_amount + discountAmount)}</span>
+                  <span>{formatPrice(order.total_amount + visibleDiscount)}</span>
                 </div>
-                {offerUses
-                  .filter((u) => u.discount_amount > 0)
-                  .map((u) => (
-                    <div
-                      key={u.id}
-                      className="flex items-center justify-between text-sm text-warning-600"
-                    >
-                      <span className="truncate pr-2">
-                        {u.offer?.offer_type === 'buy_x_get_y' && u.free_item_name
-                          ? `${u.free_item_name} offert`
-                          : u.offer?.name || 'Offre'}
-                      </span>
-                      <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
-                    </div>
-                  ))}
+                {visibleOfferUses.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between text-sm text-warning-600"
+                  >
+                    <span className="truncate pr-2">{u.offer?.name || 'Offre'}</span>
+                    <span className="whitespace-nowrap">-{formatPrice(u.discount_amount)}</span>
+                  </div>
+                ))}
                 {loyaltyDiscount > 0 && (
                   <div className="flex items-center justify-between text-sm text-warning-600">
                     <span>Fidélité</span>
