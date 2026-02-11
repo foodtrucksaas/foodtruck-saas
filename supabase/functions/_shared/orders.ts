@@ -85,6 +85,22 @@ export function validateOrderRequest(body: OrderRequest): Response | null {
     return errorResponse('Invalid pickup_time format', 400);
   }
 
+  // Validate item count (prevent oversized payloads)
+  if (items.length > 100) {
+    return errorResponse('Too many items in order', 400);
+  }
+
+  // Validate field lengths (prevent DoS via oversized payloads)
+  if (customer_name.length > 200) {
+    return errorResponse('Customer name too long', 400);
+  }
+  if (body.notes && body.notes.length > 2000) {
+    return errorResponse('Notes too long', 400);
+  }
+  if (body.customer_phone && body.customer_phone.length > 30) {
+    return errorResponse('Phone number too long', 400);
+  }
+
   // Validate items have required fields
   for (const item of items) {
     if (!item.menu_item_id || !UUID_REGEX.test(item.menu_item_id)) {
