@@ -132,10 +132,10 @@ const config = {
       dest: "/og-render",
       has: [{ type: "host", value: "(?!pro\\.|www\\.)([^.]+)\\.onmange\\.app" }]
     },
-    // Client SPA fallback for paths that don't match static files
+    // Client SPA fallback — served through Edge Function for OG meta tags
     {
       src: "/client/(.*)",
-      dest: "/client/index.html"
+      dest: "/og-render"
     },
     // Dashboard SPA fallback for paths that don't match static files
     {
