@@ -260,7 +260,7 @@ export function OrderSummaryCard({
           return (
             <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
               {/* Bundle header */}
-              <div className="relative flex items-center gap-3 px-4 pr-12 py-3 group">
+              <div className="relative flex items-center gap-3 px-4 py-3 group">
                 {/* Quantity stepper */}
                 <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                   <button
@@ -362,7 +362,7 @@ export function OrderSummaryCard({
           return (
             <div key={cartKey} className="bg-primary-50/30">
               {/* Bundle header */}
-              <div className="relative flex items-center gap-3 px-4 pr-12 py-3 group">
+              <div className="relative flex items-center gap-3 px-4 py-3 group">
                 {/* Quantity stepper */}
                 <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                   <button
@@ -494,7 +494,7 @@ export function OrderSummaryCard({
           return (
             <div
               key={cartKey}
-              className="relative flex items-center gap-3 px-4 pr-12 py-3 group transition-all duration-200 hover:bg-gray-50"
+              className="relative flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50"
             >
               {/* Quantity stepper */}
               <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
@@ -577,7 +577,7 @@ export function OrderSummaryCard({
       </div>
 
       {/* Totals - pr-[72px] aligns prices with item prices (accounting for X button + gap) */}
-      <div className="bg-gray-50 pl-4 pr-12 py-3 space-y-2">
+      <div className="bg-gray-50 px-4 py-3 space-y-2">
         {/* Subtotal */}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Sous-total</span>
