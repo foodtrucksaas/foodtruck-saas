@@ -260,7 +260,7 @@ export function OrderSummaryCard({
           return (
             <div key={`bundle-${offer.offer_id}`} className="bg-primary-50/30">
               {/* Bundle header */}
-              <div className="flex items-center gap-3 px-4 py-3 group">
+              <div className="relative flex items-center gap-3 px-4 pr-12 py-3 group">
                 {/* Quantity stepper */}
                 <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                   <button
@@ -313,7 +313,7 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => handleRemoveAutoBundle(offer)}
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
                   aria-label="Supprimer"
                 >
                   <X className="w-4 h-4" strokeWidth={2.5} />
@@ -362,7 +362,7 @@ export function OrderSummaryCard({
           return (
             <div key={cartKey} className="bg-primary-50/30">
               {/* Bundle header */}
-              <div className="flex items-center gap-3 px-4 py-3 group">
+              <div className="relative flex items-center gap-3 px-4 pr-12 py-3 group">
                 {/* Quantity stepper */}
                 <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
                   <button
@@ -415,7 +415,7 @@ export function OrderSummaryCard({
                 <button
                   type="button"
                   onClick={() => onRemoveItem(cartKey)}
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
                   aria-label="Supprimer"
                 >
                   <X className="w-4 h-4" strokeWidth={2.5} />
@@ -494,7 +494,7 @@ export function OrderSummaryCard({
           return (
             <div
               key={cartKey}
-              className="flex items-center gap-3 px-4 py-3 group transition-all duration-200 hover:bg-gray-50"
+              className="relative flex items-center gap-3 px-4 pr-12 py-3 group transition-all duration-200 hover:bg-gray-50"
             >
               {/* Quantity stepper */}
               <div className="flex items-center bg-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-200">
@@ -566,7 +566,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => onRemoveItem(cartKey)}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-red-500 transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
                 aria-label="Supprimer"
               >
                 <X className="w-4 h-4" strokeWidth={2.5} />
@@ -577,7 +577,7 @@ export function OrderSummaryCard({
       </div>
 
       {/* Totals - pr-[72px] aligns prices with item prices (accounting for X button + gap) */}
-      <div className="bg-gray-50 pl-4 pr-[72px] py-3 space-y-2">
+      <div className="bg-gray-50 px-4 py-3 space-y-2">
         {/* Subtotal */}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Sous-total</span>
