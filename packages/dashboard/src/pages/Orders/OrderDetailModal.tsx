@@ -282,15 +282,7 @@ export function OrderDetailModal({
                               </span>
                               {item.order_item_options && item.order_item_options.length > 0 && (
                                 <p className="text-xs text-gray-500">
-                                  {item.order_item_options
-                                    .map((opt) => {
-                                      const mod =
-                                        opt.price_modifier > 0
-                                          ? ` (+${formatPrice(opt.price_modifier)})`
-                                          : '';
-                                      return `${opt.option_name}${mod}`;
-                                    })
-                                    .join(', ')}
+                                  {item.order_item_options.map((opt) => opt.option_name).join(', ')}
                                 </p>
                               )}
                               {item.notes && (
