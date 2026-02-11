@@ -346,7 +346,7 @@ export default function PendingOrdersModal({
                   return (
                     <div key={idx}>
                       <div className="flex justify-between items-start">
-                        <span className={isFree ? 'text-gray-400' : 'text-gray-900'}>
+                        <span className="text-gray-900">
                           <span className="font-semibold">{item.quantity}x</span>{' '}
                           {item.menu_item.name}
                         </span>

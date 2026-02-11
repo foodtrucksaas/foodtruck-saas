@@ -277,7 +277,7 @@ export function OrderDetailModal({
                         return (
                           <div key={idx} className="flex justify-between items-start">
                             <div>
-                              <span className={`font-medium ${isFree ? 'text-gray-400' : ''}`}>
+                              <span className="font-medium">
                                 {item.quantity}x {item.menu_item.name}
                               </span>
                               {item.order_item_options && item.order_item_options.length > 0 && (
