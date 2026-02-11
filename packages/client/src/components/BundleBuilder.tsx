@@ -348,7 +348,10 @@ export default function BundleBuilder({
 
   const getSubStepTitle = () => {
     if (isItemPhase) {
-      return `Choisissez votre ${getCategoryName(currentBundleCat, currentStep).toLowerCase()}`;
+      const name = getCategoryName(currentBundleCat, currentStep).toLowerCase();
+      // Strip trailing 's' for singular form (plats→plat, desserts→dessert)
+      const singular = name.endsWith('s') ? name.slice(0, -1) : name;
+      return `Choisissez un ${singular}`;
     }
     if (currentOptionGroup) {
       return currentOptionGroup.group.name;
@@ -439,7 +442,7 @@ export default function BundleBuilder({
                 newSelections[currentStep] = null;
                 setSelections(newSelections);
               }}
-              className="px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-gray-700 active:scale-95"
+              className="px-3 py-2 min-h-[44px] text-xs text-primary-500 font-medium hover:text-primary-700 active:scale-95"
             >
               Changer
             </button>
@@ -585,16 +588,6 @@ export default function BundleBuilder({
                 </div>
               ))}
 
-            {/* Confirm button for supplements */}
-            {isSupplementPhase && (
-              <button
-                onClick={handleConfirmSupplements}
-                className="w-full py-3 mt-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 active:scale-[0.98] transition-all"
-              >
-                Confirmer
-              </button>
-            )}
-
             {availableItems.length === 0 && isItemPhase && (
               <p className="text-center text-gray-500 py-8">
                 Aucun article disponible pour cette catégorie
@@ -636,38 +629,49 @@ export default function BundleBuilder({
 
           {/* Quantity and Add button */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
-                disabled={quantity <= 1}
-                aria-label="Réduire la quantité"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="w-8 text-center font-medium">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
-                aria-label="Augmenter la quantité"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+            {allSelected && (
+              <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+                  disabled={quantity <= 1}
+                  aria-label="Réduire la quantité"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-8 text-center font-medium">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors"
+                  aria-label="Augmenter la quantité"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
-            <button
-              onClick={handleAddToCart}
-              disabled={!allSelected}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                allSelected
-                  ? 'bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98]'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {allSelected
-                ? `Ajouter • ${formatPrice(totalPrice * quantity)}`
-                : `Sélectionnez ${bundleCategories.length - selections.filter((s) => s).length} élément(s)`}
-            </button>
+            {isSupplementPhase ? (
+              <button
+                onClick={handleConfirmSupplements}
+                className="flex-1 py-3 rounded-xl font-semibold bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98] transition-all"
+              >
+                Confirmer
+              </button>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={!allSelected}
+                className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                  allSelected
+                    ? 'bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98]'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {allSelected
+                  ? `Ajouter • ${formatPrice(totalPrice * quantity)}`
+                  : `Sélectionnez ${bundleCategories.length - selections.filter((s) => s).length} élément(s)`}
+              </button>
+            )}
           </div>
         </div>
       </div>
