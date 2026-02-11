@@ -57,11 +57,11 @@ export function CalendarView({
       {/* Legend - scrollable on mobile */}
       <div className="flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4 text-xs">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-primary-500/25 border border-primary-400" />
+          <div className="w-3 h-3 rounded bg-success-500/25 border border-success-400" />
           <span className="text-gray-600">Ouvert</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-info-500/25 border border-info-400" />
+          <div className="w-3 h-3 rounded bg-warning-500/25 border border-warning-400" />
           <span className="text-gray-600">Modifie</span>
         </div>
         <div className="flex items-center gap-1">
@@ -92,11 +92,11 @@ export function CalendarView({
             bgColor = 'bg-error-500/15 hover:bg-error-500/25';
             borderColor = 'border-error-400';
           } else if (effective.type === 'override') {
-            bgColor = 'bg-info-500/15 hover:bg-info-500/25';
-            borderColor = 'border-info-400';
+            bgColor = 'bg-warning-500/15 hover:bg-warning-500/25';
+            borderColor = 'border-warning-400';
           } else if (effective.type === 'normal') {
-            bgColor = 'bg-primary-500/15 hover:bg-primary-500/25';
-            borderColor = 'border-primary-400';
+            bgColor = 'bg-success-500/15 hover:bg-success-500/25';
+            borderColor = 'border-success-400';
           }
 
           if (!day.isCurrentMonth) {
@@ -132,16 +132,18 @@ export function CalendarView({
                     </div>
                   )}
                   {effective.type === 'override' && effective.location && (
-                    <div className="text-xs text-info-600 truncate">{effective.location.name}</div>
+                    <div className="text-xs text-warning-700 truncate">
+                      {effective.location.name}
+                    </div>
                   )}
                   {effective.type === 'normal' &&
                     effective.schedules.slice(0, 1).map((s, i) => (
-                      <div key={i} className="text-xs text-primary-600 truncate">
+                      <div key={i} className="text-xs text-success-700 truncate">
                         {s.location.name}
                       </div>
                     ))}
                   {effective.type === 'normal' && effective.schedules.length > 1 && (
-                    <div className="text-xs text-primary-500">
+                    <div className="text-xs text-success-600">
                       +{effective.schedules.length - 1}
                     </div>
                   )}

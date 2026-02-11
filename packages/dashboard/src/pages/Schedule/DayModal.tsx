@@ -58,15 +58,15 @@ export function DayModal({
               onClick={() => onFormChange({ ...form, mode: 'normal' })}
               className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'normal'
-                  ? 'border-primary-500 bg-primary-50'
+                  ? 'border-success-500 bg-success-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
               <Calendar
-                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'normal' ? 'text-primary-500' : 'text-gray-400'}`}
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'normal' ? 'text-success-500' : 'text-gray-400'}`}
               />
               <p
-                className={`text-xs font-medium ${form.mode === 'normal' ? 'text-primary-700' : 'text-gray-600'}`}
+                className={`text-xs font-medium ${form.mode === 'normal' ? 'text-success-700' : 'text-gray-600'}`}
               >
                 Normal
               </p>
@@ -76,15 +76,15 @@ export function DayModal({
               onClick={() => onFormChange({ ...form, mode: 'override' })}
               className={`p-3 min-h-[72px] rounded-xl border-2 text-center transition-all active:scale-[0.98] ${
                 form.mode === 'override'
-                  ? 'border-info-500 bg-info-50'
+                  ? 'border-warning-500 bg-warning-50'
                   : 'border-gray-100 hover:border-gray-200'
               }`}
             >
               <Pencil
-                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-info-500' : 'text-gray-400'}`}
+                className={`w-5 h-5 mx-auto mb-1 ${form.mode === 'override' ? 'text-warning-500' : 'text-gray-400'}`}
               />
               <p
-                className={`text-xs font-medium ${form.mode === 'override' ? 'text-info-700' : 'text-gray-600'}`}
+                className={`text-xs font-medium ${form.mode === 'override' ? 'text-warning-700' : 'text-gray-600'}`}
               >
                 Modifier
               </p>
