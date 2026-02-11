@@ -1,16 +1,5 @@
 import { useState, useMemo } from 'react';
-import {
-  Minus,
-  Plus,
-  X,
-  Tag,
-  Check,
-  Loader2,
-  Trash2,
-  UtensilsCrossed,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { Minus, Plus, X, Tag, Check, Loader2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
 import type {
   CartItem,
@@ -314,7 +303,6 @@ export function OrderSummaryCard({
                   className="flex-1 min-w-0 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <UtensilsCrossed className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{offer.offer_name}</p>
                     {isExpanded ? (
                       <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
@@ -346,29 +334,40 @@ export function OrderSummaryCard({
               {/* Expanded bundle details */}
               {isExpanded && (
                 <div className="pl-[72px] pr-4 pb-3 space-y-1">
-                  {bundleItems.map((bi, idx) => {
-                    const optStr =
-                      bi.cartItem?.selectedOptions && bi.cartItem.selectedOptions.length > 0
-                        ? bi.cartItem.selectedOptions
-                            .map((o) => {
-                              const mod =
-                                !o.isSizeOption && o.priceModifier > 0
-                                  ? ` (+${formatPrice(o.priceModifier)})`
-                                  : '';
-                              return `${o.name}${mod}`;
-                            })
-                            .join(', ')
-                        : '';
-                    return (
-                      <p key={idx} className="text-xs text-gray-500">
-                        <span className="italic">
-                          {bi.quantity > 1 && `${bi.quantity}× `}
-                          {bi.name}
-                        </span>
-                        {optStr && <span className="text-gray-400"> ({optStr})</span>}
-                      </p>
-                    );
-                  })}
+                  {[...bundleItems]
+                    .sort((a, b) => {
+                      const aFree = a.name === offer.free_item_name ? 1 : 0;
+                      const bFree = b.name === offer.free_item_name ? 1 : 0;
+                      return aFree - bFree;
+                    })
+                    .map((bi, idx) => {
+                      const isFree = bi.name === offer.free_item_name;
+                      const optStr =
+                        bi.cartItem?.selectedOptions && bi.cartItem.selectedOptions.length > 0
+                          ? bi.cartItem.selectedOptions
+                              .map((o) => {
+                                const mod =
+                                  !o.isSizeOption && o.priceModifier > 0
+                                    ? ` (+${formatPrice(o.priceModifier)})`
+                                    : '';
+                                return `${o.name}${mod}`;
+                              })
+                              .join(', ')
+                          : '';
+                      return (
+                        <p
+                          key={idx}
+                          className={`text-xs ${isFree ? 'text-success-600 font-medium' : 'text-gray-500'}`}
+                        >
+                          <span className="italic">
+                            {bi.quantity > 1 && `${bi.quantity}× `}
+                            {bi.name}
+                          </span>
+                          {isFree && ' (offert)'}
+                          {optStr && <span className="text-gray-400"> ({optStr})</span>}
+                        </p>
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -420,7 +419,6 @@ export function OrderSummaryCard({
                   className="flex-1 min-w-0 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <UtensilsCrossed className="w-4 h-4 text-primary-600 flex-shrink-0" />
                     <p className="font-medium text-gray-900 text-sm">{bundleInfo.bundleName}</p>
                     {isExpanded ? (
                       <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
