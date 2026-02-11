@@ -24,8 +24,8 @@ export function StepContainer({
 }: StepContainerProps) {
   return (
     <div className="flex flex-col h-full">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 pb-4">
+      {/* Content */}
+      <div className="flex-1 px-4 sm:px-6 pb-4">
         <div className="space-y-6 py-4">{children}</div>
       </div>
 
