@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, ReactNode, memo, useCallback } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Calendar, ChevronDown, Download, Clock, MapPin } from 'lucide-react';
+import { Calendar, ChevronDown, Download, MapPin, Sparkles } from 'lucide-react';
 import { Package, ShoppingBag, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { formatPrice, safeDivide, safeNumber } from '@foodtruck/shared';
 import { useAnalytics, DATE_PRESETS } from './useAnalytics';
@@ -269,15 +269,28 @@ export default function Analytics() {
       {/* Second Row */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="card p-4 sm:p-6">
-          <div className="flex items-center gap-2 mb-3 sm:mb-4">
-            <Clock className="w-5 h-5 text-gray-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Heures de pointe</h2>
-          </div>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+            Heures de pointe
+          </h2>
           <SafeChart className="h-[200px] sm:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hourlyData}>
-                <XAxis dataKey="label" stroke="#6b7280" fontSize={10} interval={1} />
-                <YAxis stroke="#6b7280" fontSize={10} width={30} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  stroke="#6b7280"
+                  fontSize={11}
+                  interval={1}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="#6b7280"
+                  fontSize={11}
+                  width={30}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   formatter={(value: number) => [value, 'Commandes']}
                   contentStyle={{
@@ -288,9 +301,9 @@ export default function Analytics() {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     fontSize: '13px',
                   }}
-                  cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                  cursor={{ fill: 'rgba(30, 41, 59, 0.06)' }}
                 />
-                <Bar dataKey="orders" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="orders" fill="#1e293b" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </SafeChart>
@@ -313,7 +326,41 @@ export default function Analytics() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">Aucune donnée</p>
+            <p className="text-gray-400 text-sm text-center py-8">Aucune donnée</p>
+          )}
+        </div>
+        <div className="card p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Sparkles className="w-5 h-5 text-gray-400" />
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Offres utilisées</h2>
+          </div>
+          {analytics?.offerStats && analytics.offerStats.length > 0 ? (
+            <div className="space-y-3">
+              {analytics.offerStats.map((offer, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">{offer.offerName}</p>
+                    <p className="text-xs text-gray-400">
+                      {offer.offerType === 'bundle'
+                        ? 'Menu/Formule'
+                        : offer.offerType === 'buy_x_get_y'
+                          ? 'X acheté = Y offert'
+                          : offer.offerType === 'promo_code'
+                            ? 'Code promo'
+                            : 'Remise palier'}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-semibold text-gray-900">{offer.useCount}×</p>
+                    {offer.totalDiscount > 0 && (
+                      <p className="text-xs text-gray-400">-{formatPrice(offer.totalDiscount)}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm text-center py-8">Aucune offre utilisée</p>
           )}
         </div>
       </div>

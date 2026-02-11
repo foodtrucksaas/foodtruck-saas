@@ -109,6 +109,14 @@ export interface AnalyticsData {
   // Customer stats
   uniqueCustomers: number;
   returningCustomers: number;
+
+  // Offer usage stats
+  offerStats?: {
+    offerName: string;
+    offerType: string;
+    useCount: number;
+    totalDiscount: number;
+  }[];
 }
 
 export interface DashboardStats {
@@ -118,8 +126,8 @@ export interface DashboardStats {
   confirmedOrders: number;
   pickedUpOrders: number;
   // Legacy fields (mapped to new statuses for backward compat)
-  preparingOrders: number;  // Same as confirmedOrders
-  readyOrders: number;      // Always 0 (status removed)
+  preparingOrders: number; // Same as confirmedOrders
+  readyOrders: number; // Always 0 (status removed)
 }
 
 export interface TimeSlot {
