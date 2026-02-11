@@ -647,78 +647,80 @@ export function OrderSummaryCard({
           </div>
         )}
 
-        {/* Loyalty Section - Clean minimal design */}
+        {/* Loyalty Section */}
         {loyaltyOptIn && loyaltyInfo && !loyaltyLoading && (
           <div className="mt-3 pt-3 border-t border-gray-200">
-            {/* Can redeem - checkbox */}
-            {loyaltyInfo.can_redeem ? (
-              <div className="space-y-2">
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={useLoyaltyReward}
-                        onChange={(e) => onToggleUseLoyaltyReward?.(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center">
-                        {useLoyaltyReward && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={3}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3.5 border border-emerald-100/60">
+              {loyaltyInfo.can_redeem ? (
+                <div className="space-y-2.5">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={useLoyaltyReward}
+                          onChange={(e) => onToggleUseLoyaltyReward?.(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-5 h-5 rounded-md border-2 border-emerald-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all flex items-center justify-center bg-white">
+                          {useLoyaltyReward && (
+                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                          )}
+                        </div>
                       </div>
+                      <span className="text-sm font-medium text-gray-800">
+                        Utiliser ma récompense
+                      </span>
                     </div>
-                    <span className="text-sm text-gray-700">Utiliser ma récompense</span>
-                  </div>
-                  <span className="text-sm font-semibold text-emerald-600">
-                    −{formatPrice(loyaltyInfo.max_discount)}
-                  </span>
-                </label>
-                {pointsToEarn > 0 && (
-                  <p className="text-xs text-gray-500 pl-7">
-                    Cette commande vous rapporte{' '}
-                    <span className="text-emerald-600 font-medium">+{pointsToEarn} pts</span>
-                  </p>
-                )}
-              </div>
-            ) : (
-              /* Progress display - minimal */
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    Fidélité{' '}
-                    <span className="text-emerald-600 font-medium">+{pointsToEarn} pts</span>
-                  </span>
-                  <span className="text-xs tabular-nums">
-                    <span className="text-gray-600 font-medium">{futurePoints}</span>
-                    <span className="text-gray-400">/{threshold} pts</span>
-                  </span>
+                    <span className="text-sm font-bold text-emerald-600 tabular-nums">
+                      −{formatPrice(loyaltyInfo.max_discount)}
+                    </span>
+                  </label>
+                  {pointsToEarn > 0 && (
+                    <p className="text-xs text-emerald-600/70 pl-[30px]">
+                      +{pointsToEarn} pts avec cette commande
+                    </p>
+                  )}
                 </div>
-                <div className="relative">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (futurePoints / threshold) * 100)}%` }}
-                    />
+              ) : (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-800">Fidélité</span>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5 tabular-nums">
+                      +{pointsToEarn} pts
+                    </span>
                   </div>
-                  {/* Goal marker */}
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 bg-gray-300 rounded-full" />
+                  <div className="relative">
+                    <div className="h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, (futurePoints / threshold) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {willReachReward ? (
+                        <span className="text-emerald-600 font-medium">
+                          {formatPrice(loyaltyInfo.loyalty_reward)} offerts à la prochaine commande
+                        </span>
+                      ) : (
+                        <>
+                          Plus que{' '}
+                          <span className="font-medium text-gray-700">
+                            {threshold - futurePoints} pts
+                          </span>{' '}
+                          pour {formatPrice(loyaltyInfo.loyalty_reward)} offerts
+                        </>
+                      )}
+                    </p>
+                    <span className="text-xs text-gray-400 tabular-nums flex-shrink-0 ml-2">
+                      {futurePoints}/{threshold}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs text-emerald-600 font-medium">
-                  {willReachReward
-                    ? `🎉 Récompense atteinte ! ${formatPrice(loyaltyInfo.loyalty_reward)} seront déduits lors de votre prochaine commande`
-                    : `Plus que ${threshold - futurePoints} pts pour ${formatPrice(loyaltyInfo.loyalty_reward)} offerts !`}
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
