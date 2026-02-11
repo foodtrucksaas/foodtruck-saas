@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, Loader2 } from 'lucide-react';
 import { OnboardingProvider, useOnboarding } from './OnboardingContext';
 import { ProgressBar } from './components';
 import {
@@ -20,8 +20,10 @@ const TOTAL_STEPS = 5;
 function OnboardingAssistantContent() {
   const navigate = useNavigate();
   const { state } = useOnboarding();
-  const { saveAllData, updateProgress } = useOnboardingAssistant();
+  const { saveAllData, updateProgress, saveLocations, saveSchedules, saveMenu, saveOffers } =
+    useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
+  const [skipping, setSkipping] = useState(false);
 
   // Save all data when reaching step 6 (complete)
   useEffect(() => {
@@ -43,6 +45,28 @@ function OnboardingAssistantContent() {
       updateProgress(state.currentStep);
     }
   }, [state.currentStep, updateProgress]);
+
+  // Save whatever data has been entered so far before leaving
+  const handleSkip = async () => {
+    setSkipping(true);
+    try {
+      if (state.locations.length > 0) {
+        const locationIds = await saveLocations();
+        if (state.schedules.length > 0) {
+          await saveSchedules(locationIds);
+        }
+      }
+      if (state.categories.length > 0) {
+        await saveMenu();
+      }
+      if (state.offers.length > 0) {
+        await saveOffers();
+      }
+    } catch (err) {
+      console.error('Error saving partial onboarding data:', err);
+    }
+    navigate('/');
+  };
 
   const renderStep = () => {
     switch (state.currentStep) {
@@ -80,10 +104,11 @@ function OnboardingAssistantContent() {
             </div>
             {state.currentStep <= TOTAL_STEPS && (
               <button
-                onClick={() => navigate('/')}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] px-2"
+                onClick={handleSkip}
+                disabled={skipping}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] px-2 disabled:opacity-50"
               >
-                Passer
+                {skipping ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Passer'}
               </button>
             )}
           </div>
