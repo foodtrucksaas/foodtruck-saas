@@ -218,8 +218,9 @@ export default function Analytics() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                       fontSize: '14px',
                     }}
+                    cursor={{ fill: 'rgba(30, 41, 59, 0.08)' }}
                   />
-                  <Bar dataKey="revenue" fill="#F97066" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#1e293b" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </SafeChart>
