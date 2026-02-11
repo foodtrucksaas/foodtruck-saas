@@ -39,12 +39,9 @@ export default function Offers() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="hidden sm:block">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Offres & Promotions</h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Gerez toutes vos offres promotionnelles
-          </p>
-        </div>
+        <p className="hidden sm:block text-sm sm:text-base text-gray-600">
+          Gerez toutes vos offres promotionnelles
+        </p>
         <button
           onClick={() => openCreateWizard()}
           className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"

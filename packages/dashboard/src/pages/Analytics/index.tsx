@@ -101,12 +101,9 @@ export default function Analytics() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="hidden sm:block">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Statistiques</h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Analysez les performances de votre food truck
-          </p>
-        </div>
+        <p className="hidden sm:block text-gray-600 text-sm sm:text-base">
+          Analysez les performances de votre food truck
+        </p>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative">
             <button

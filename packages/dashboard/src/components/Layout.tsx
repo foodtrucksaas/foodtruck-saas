@@ -252,6 +252,9 @@ function LayoutContent({ children }: LayoutProps) {
           >
             <Menu className="w-5 h-5 text-gray-700" aria-hidden="true" />
           </button>
+          <h1 className="text-base font-semibold text-gray-900 truncate flex-1 mx-2">
+            {currentPageName}
+          </h1>
           <div className="flex items-center gap-1.5">
             {/* Pending orders - bell with badge */}
             <button

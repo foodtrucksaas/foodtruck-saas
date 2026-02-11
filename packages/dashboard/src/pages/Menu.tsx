@@ -82,12 +82,9 @@ export default function Menu() {
 
   return (
     <div className="space-y-6">
-      {/* Page header - hidden on mobile (Layout provides header) */}
+      {/* Page header */}
       <div className="hidden lg:flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Menu</h1>
-          <p className="text-gray-600">Gérez les plats de votre food truck</p>
-        </div>
+        <p className="text-gray-600">Gérez les plats de votre food truck</p>
         <button
           onClick={() => setShowCategoryManager(!showCategoryManager)}
           className="btn-secondary"

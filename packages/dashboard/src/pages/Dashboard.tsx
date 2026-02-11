@@ -78,20 +78,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header - hidden on mobile (Layout provides header) */}
-      <div className="hidden sm:flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tableau de bord</h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Bienvenue sur votre espace {foodtruck?.name}
-          </p>
-        </div>
-      </div>
-
-      {/* Mobile welcome message */}
-      <div className="sm:hidden">
-        <p className="text-sm text-gray-600">Bienvenue, {foodtruck?.name}</p>
-      </div>
+      {/* Welcome message */}
+      <p className="text-sm text-gray-600">Bienvenue, {foodtruck?.name}</p>
 
       {/* Stats - Row 1: Commandes - grid 2 colonnes sur mobile, 3 sur desktop */}
       <div

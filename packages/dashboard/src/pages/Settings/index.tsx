@@ -111,11 +111,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-4 sm:space-y-8 max-w-2xl">
-      {/* Header - hidden on mobile (Layout provides header) */}
-      <div className="hidden sm:block">
-        <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
-        <p className="text-gray-600">Gérez les informations de votre food truck</p>
-      </div>
+      <p className="hidden sm:block text-gray-600">Gérez les informations de votre food truck</p>
 
       {/* Mobile Quick Navigation - sticky horizontal scroll */}
       <div className="sm:hidden sticky top-0 z-20 -mx-4 px-4 py-3 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200">
