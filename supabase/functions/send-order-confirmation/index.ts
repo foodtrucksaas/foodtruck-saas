@@ -86,19 +86,34 @@ serve(async (req) => {
       return successResponse({ success: true, message: 'Email skipped (manual order)' });
     }
 
-    // Get location for pickup time
+    // Get location for pickup time — match by time slot, not just day
     const pickupDate = new Date(order.pickup_time);
     const dayOfWeek = pickupDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const pickupHHMM = `${String(pickupDate.getHours()).padStart(2, '0')}:${String(pickupDate.getMinutes()).padStart(2, '0')}`;
 
     const { data: schedules } = await supabase
       .from('schedules')
-      .select('location:locations (name, address)')
+      .select('start_time, end_time, location:locations (name, address)')
       .eq('foodtruck_id', order.foodtruck_id)
       .eq('day_of_week', dayOfWeek)
-      .eq('is_active', true)
-      .limit(1);
+      .eq('is_active', true);
 
-    const location = (schedules?.[0]?.location as { name: string; address: string | null }) || null;
+    // Find the schedule whose time range contains the pickup time
+    type ScheduleRow = {
+      start_time: string;
+      end_time: string;
+      location: { name: string; address: string | null } | null;
+    };
+    const matchedSchedule =
+      (schedules as ScheduleRow[] | null)?.find((s) => {
+        const start = s.start_time?.slice(0, 5); // "HH:MM"
+        const end = s.end_time?.slice(0, 5);
+        return start && end && pickupHHMM >= start && pickupHHMM <= end;
+      }) ||
+      (schedules as ScheduleRow[] | null)?.[0] ||
+      null; // fallback to first
+
+    const location = matchedSchedule?.location || null;
 
     // Format pickup date
     const pickupDateStr = pickupDate.toLocaleString('fr-FR', {
