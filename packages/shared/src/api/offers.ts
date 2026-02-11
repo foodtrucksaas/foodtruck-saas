@@ -18,6 +18,49 @@ import type {
   OfferConfig,
 } from '../types';
 import type { Json } from '../types/database.types';
+import {
+  isBundleConfig,
+  isBuyXGetYConfig,
+  isPromoCodeConfig,
+  isThresholdDiscountConfig,
+} from '../types';
+
+/** Validate offer config values to prevent invalid pricing data */
+function validateOfferConfig(config: OfferConfig): string | null {
+  if (isBundleConfig(config)) {
+    if (typeof config.fixed_price !== 'number' || config.fixed_price < 0) {
+      return 'Bundle fixed_price must be a non-negative number';
+    }
+  } else if (isBuyXGetYConfig(config)) {
+    if (typeof config.trigger_quantity !== 'number' || config.trigger_quantity < 1) {
+      return 'trigger_quantity must be at least 1';
+    }
+    if (typeof config.reward_quantity !== 'number' || config.reward_quantity < 1) {
+      return 'reward_quantity must be at least 1';
+    }
+  } else if (isPromoCodeConfig(config)) {
+    if (!config.code || typeof config.code !== 'string' || config.code.trim().length === 0) {
+      return 'Promo code is required';
+    }
+    if (typeof config.discount_value !== 'number' || config.discount_value <= 0) {
+      return 'discount_value must be positive';
+    }
+    if (config.discount_type === 'percentage' && config.discount_value > 100) {
+      return 'Percentage discount cannot exceed 100';
+    }
+  } else if (isThresholdDiscountConfig(config)) {
+    if (typeof config.min_amount !== 'number' || config.min_amount < 0) {
+      return 'min_amount must be non-negative';
+    }
+    if (typeof config.discount_value !== 'number' || config.discount_value <= 0) {
+      return 'discount_value must be positive';
+    }
+    if (config.discount_type === 'percentage' && config.discount_value > 100) {
+      return 'Percentage discount cannot exceed 100';
+    }
+  }
+  return null;
+}
 
 export interface CartItemForOffers {
   menu_item_id: string;
@@ -100,6 +143,9 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Create an offer
     async create(offer: OfferInsert): Promise<Offer> {
+      const configError = validateOfferConfig(offer.config);
+      if (configError) throw new Error(configError);
+
       const { data, error } = await supabase
         .from('offers')
         .insert({
@@ -114,6 +160,22 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
 
     // Update an offer
     async update(id: string, updates: OfferUpdate): Promise<Offer> {
+      if (updates.config) {
+        // Generic validation: check numeric values are not negative
+        const cfg = updates.config as unknown as Record<string, unknown>;
+        for (const key of [
+          'fixed_price',
+          'discount_value',
+          'min_amount',
+          'trigger_quantity',
+          'reward_quantity',
+        ]) {
+          if (key in cfg && (typeof cfg[key] !== 'number' || (cfg[key] as number) < 0)) {
+            throw new Error(`${key} must be a non-negative number`);
+          }
+        }
+      }
+
       const updateData: Record<string, unknown> = { ...updates };
       if (updates.config) {
         updateData.config = updates.config as unknown as Json;

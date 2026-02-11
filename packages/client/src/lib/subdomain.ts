@@ -14,8 +14,13 @@ export function getSubdomain(): string | null {
   const parts = hostname.split('.');
   if (parts.length >= 3 && parts.slice(-2).join('.') === 'onmange.app') {
     const subdomain = parts[0];
-    // Exclude reserved subdomains
-    if (subdomain !== 'www' && subdomain !== 'app' && subdomain !== 'dashboard') {
+    // Exclude reserved subdomains and validate format (alphanumeric + hyphens only)
+    if (
+      subdomain !== 'www' &&
+      subdomain !== 'app' &&
+      subdomain !== 'dashboard' &&
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subdomain)
+    ) {
       return subdomain;
     }
   }
