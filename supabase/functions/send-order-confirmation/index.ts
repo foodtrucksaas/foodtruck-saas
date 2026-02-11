@@ -4,6 +4,15 @@ import { createSupabaseAdmin } from '../_shared/supabase.ts';
 import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
 
 /**
+ * Format price: 12.00 → "12€", 8.50 → "8,50€"
+ */
+function formatPrice(cents: number): string {
+  const euros = cents / 100;
+  if (euros % 1 === 0) return `${euros}€`;
+  return `${euros.toFixed(2).replace('.', ',')}€`;
+}
+
+/**
  * Escape HTML special characters to prevent XSS
  */
 function escapeHtml(text: string | null | undefined): string {
@@ -166,10 +175,7 @@ serve(async (req) => {
     // Build bundle HTML
     const bundleHtml = Array.from(bundleMap.entries())
       .map(([bundleName, bundleItems]) => {
-        const bundleTotal = bundleItems.reduce(
-          (sum, i) => sum + (i.unit_price * i.quantity) / 100,
-          0
-        );
+        const bundleTotalCents = bundleItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
         const bundleCount = bundleItems.filter((i) => i.unit_price > 0).length || 1;
         // Aggregate identical items within a bundle
         const agg: { name: string; options: string; qty: number }[] = [];
@@ -197,7 +203,7 @@ serve(async (req) => {
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
               <tr>
                 <td style="text-align:left;font-weight:600">${bundleCount > 1 ? `${bundleCount}× ` : ''}${escapeHtml(cleanName)}</td>
-                <td style="text-align:right;font-weight:500;white-space:nowrap">${bundleTotal.toFixed(2)}€</td>
+                <td style="text-align:right;font-weight:500;white-space:nowrap">${formatPrice(bundleTotalCents)}</td>
               </tr>
             </table>
             ${itemsDetail}
@@ -217,12 +223,12 @@ serve(async (req) => {
 
     const soloHtml = taggedItems
       .map(({ item, isFree }) => {
-        const itemTotal = (item.unit_price * item.quantity) / 100;
+        const itemTotalCents = item.unit_price * item.quantity;
         const optionsHtml = buildOptionsHtml(item);
         const priceHtml = isFree
-          ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:13px">${itemTotal.toFixed(2)}€</span>
+          ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:13px">${formatPrice(itemTotalCents)}</span>
              <span style="background:#dcfce7;color:#16a34a;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px">Offert</span>`
-          : `${itemTotal.toFixed(2)}€`;
+          : formatPrice(itemTotalCents);
 
         return `
           <div style="padding:12px 0;border-bottom:1px solid #e5e7eb">
@@ -241,10 +247,10 @@ serve(async (req) => {
 
     const items = bundleHtml + soloHtml;
 
-    const total = (order.total_amount / 100).toFixed(2);
+    const total = formatPrice(order.total_amount);
 
-    // Build location section if available, with clickable address for directions
-    let locationHtml = '';
+    // Build pickup card (time + location merged)
+    let pickupLocationHtml = '';
     if (location) {
       const addressText = location.address
         ? `${escapeHtml(location.name)} - ${escapeHtml(location.address)}`
@@ -253,14 +259,11 @@ serve(async (req) => {
         location.address ? `${location.name}, ${location.address}` : location.name
       );
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
-      locationHtml = `
-        <div style="background:#dbeafe;padding:15px;border-radius:8px;margin:20px 0">
-          <strong style="color:#1e40af">Lieu de retrait :</strong><br>
-          <a href="${mapsUrl}" style="color:#1e3a8a;text-decoration:underline;font-size:15px" target="_blank">${addressText}</a>
-          <div style="margin-top:8px">
-            <a href="${mapsUrl}" style="display:inline-block;background:#1e40af;color:white;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none" target="_blank">Voir l'itinéraire</a>
-          </div>
-        </div>`;
+      pickupLocationHtml = `
+          <div style="border-top:1px solid #e5e1d5;margin-top:12px;padding-top:12px">
+            <strong style="color:#92400e;font-size:13px">Lieu :</strong><br>
+            <a href="${mapsUrl}" style="color:#78350f;text-decoration:underline;font-size:15px" target="_blank">${addressText}</a>
+          </div>`;
     }
 
     // Build order notes section if present
@@ -281,7 +284,7 @@ serve(async (req) => {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
           <tr>
             <td style="text-align:left;color:#6b7280;font-size:14px">Sous-total</td>
-            <td style="text-align:right;color:#6b7280;font-size:14px">${((order.total_amount + visibleDiscount) / 100).toFixed(2)}€</td>
+            <td style="text-align:right;color:#6b7280;font-size:14px">${formatPrice(order.total_amount + visibleDiscount)}</td>
           </tr>
         </table>`;
       // Individual offer lines
@@ -290,7 +293,7 @@ serve(async (req) => {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:4px">
           <tr>
             <td style="text-align:left;color:#d97706;font-size:14px">${escapeHtml(u.offer?.name || 'Offre')}</td>
-            <td style="text-align:right;color:#d97706;font-size:14px">-${(u.discount_amount / 100).toFixed(2)}€</td>
+            <td style="text-align:right;color:#d97706;font-size:14px">-${formatPrice(u.discount_amount)}</td>
           </tr>
         </table>`;
       }
@@ -300,7 +303,7 @@ serve(async (req) => {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:4px">
           <tr>
             <td style="text-align:left;color:#d97706;font-size:14px">Fidélité</td>
-            <td style="text-align:right;color:#d97706;font-size:14px">-${(loyaltyDiscount / 100).toFixed(2)}€</td>
+            <td style="text-align:right;color:#d97706;font-size:14px">-${formatPrice(loyaltyDiscount)}</td>
           </tr>
         </table>`;
       }
@@ -330,28 +333,26 @@ serve(async (req) => {
               Votre commande chez <strong style="color:#F97066">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
             </p>
 
-            <!-- Pickup time -->
+            <!-- Pickup info (time + location) -->
             <div style="background:#fef3c7;padding:15px;border-radius:8px;margin:20px 0">
-              <strong style="color:#92400e">Heure de retrait :</strong><br>
+              <strong style="color:#92400e;font-size:13px">Retrait :</strong><br>
               <span style="color:#78350f;font-size:18px">${pickupDateStr}</span>
+              ${pickupLocationHtml}
             </div>
-
-            ${locationHtml}
 
             <!-- Order summary -->
             <div style="background:#f9fafb;padding:20px;border-radius:8px;margin:20px 0">
               <h3 style="margin:0 0 15px;color:#111827;font-size:18px">Récapitulatif de votre commande</h3>
               ${items}
               ${discountHtml}
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:15px;padding-top:15px;border-top:2px solid #e5e7eb">
-                <tr>
-                  <td style="font-size:20px;font-weight:700;color:#F97066;text-align:left">Total</td>
-                  <td style="font-size:20px;font-weight:700;color:#F97066;text-align:right">${total}€</td>
-                </tr>
-              </table>
-              <p style="font-size:13px;color:#6b7280;margin:10px 0 0;text-align:center">
-                Montant à régler sur place
-              </p>
+              <div style="background:#FFF5F3;border-radius:8px;padding:12px 16px;margin-top:15px;border:1px solid #FFD4CC">
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                  <tr>
+                    <td style="font-size:13px;color:#6b7280;text-align:left">À régler sur place</td>
+                    <td style="font-size:22px;font-weight:700;color:#F97066;text-align:right">${total}</td>
+                  </tr>
+                </table>
+              </div>
             </div>
 
             ${orderNotesHtml}
@@ -370,14 +371,12 @@ serve(async (req) => {
                 : ''
             }
 
-            <p style="font-size:16px;color:#374151;margin:30px 0 0;text-align:center">
-              À bientôt !
-            </p>
           </div>
 
           <!-- Footer -->
           <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">
-            <p style="margin:0">Cet email a été envoyé par ${escapeHtml(order.foodtruck.name)}</p>
+            <p style="margin:0 0 4px">À bientôt !</p>
+            <p style="margin:0">${escapeHtml(order.foodtruck.name)}</p>
           </div>
         </div>
       </body>
