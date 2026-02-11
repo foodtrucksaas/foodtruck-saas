@@ -16,7 +16,6 @@ interface OfferTemplate {
   popular?: boolean;
 }
 
-// Couleurs spécifiques aux offres (distinctes des statuts commandes)
 const templates: OfferTemplate[] = [
   {
     type: 'bundle',
@@ -25,7 +24,7 @@ const templates: OfferTemplate[] = [
     example: 'Entree + Plat + Boisson = 15€',
     description: 'Creez une formule a prix fixe avec plusieurs choix',
     color: 'text-white',
-    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-violet-500 hover:shadow-md',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-primary-500 hover:shadow-md',
     popular: true,
   },
   {
@@ -35,7 +34,7 @@ const templates: OfferTemplate[] = [
     example: '3 pizzas = 1 boisson offerte',
     description: 'Offrez un article quand le client en achete plusieurs',
     color: 'text-white',
-    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-amber-500 hover:shadow-md',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-warning-500 hover:shadow-md',
   },
   {
     type: 'promo_code',
@@ -44,7 +43,7 @@ const templates: OfferTemplate[] = [
     example: '-10% avec WELCOME10',
     description: 'Un code a saisir pour avoir une reduction',
     color: 'text-white',
-    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-500 hover:shadow-md',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-info-500 hover:shadow-md',
   },
   {
     type: 'threshold_discount',
@@ -53,7 +52,7 @@ const templates: OfferTemplate[] = [
     example: "Des 25€ d'achat = 5€ offerts",
     description: "Reduction automatique a partir d'un montant",
     color: 'text-white',
-    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-teal-500 hover:shadow-md',
+    bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-success-500 hover:shadow-md',
   },
 ];
 
@@ -88,12 +87,12 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
               <div
                 className={`p-3 rounded-xl flex-shrink-0 transition-colors ${
                   template.type === 'bundle'
-                    ? 'bg-violet-500'
+                    ? 'bg-primary-500'
                     : template.type === 'buy_x_get_y'
-                      ? 'bg-amber-500'
+                      ? 'bg-warning-500'
                       : template.type === 'promo_code'
-                        ? 'bg-indigo-500'
-                        : 'bg-teal-500'
+                        ? 'bg-info-500'
+                        : 'bg-success-500'
                 }`}
               >
                 <Icon className={`w-6 h-6 ${template.color} transition-colors`} />
@@ -116,12 +115,12 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
                 <svg
                   className={`w-5 h-5 text-gray-300 transition-colors ${
                     template.type === 'bundle'
-                      ? 'group-hover:text-violet-500'
+                      ? 'group-hover:text-primary-500'
                       : template.type === 'buy_x_get_y'
-                        ? 'group-hover:text-amber-500'
+                        ? 'group-hover:text-warning-500'
                         : template.type === 'promo_code'
-                          ? 'group-hover:text-indigo-500'
-                          : 'group-hover:text-teal-500'
+                          ? 'group-hover:text-info-500'
+                          : 'group-hover:text-success-500'
                   }`}
                   fill="none"
                   viewBox="0 0 24 24"

@@ -41,19 +41,18 @@ const typeIcons: Record<OfferType, typeof Package> = {
   threshold_discount: TrendingUp,
 };
 
-// Couleurs spécifiques aux offres (distinctes des statuts commandes)
 const typeColors: Record<OfferType, string> = {
-  bundle: 'bg-violet-500 text-white',
-  buy_x_get_y: 'bg-amber-500 text-white',
-  promo_code: 'bg-indigo-500 text-white',
-  threshold_discount: 'bg-teal-500 text-white',
+  bundle: 'bg-primary-500 text-white',
+  buy_x_get_y: 'bg-warning-500 text-white',
+  promo_code: 'bg-info-500 text-white',
+  threshold_discount: 'bg-success-500 text-white',
 };
 
 const typeBadgeColors: Record<OfferType, string> = {
-  bundle: 'bg-violet-100 text-violet-700',
-  buy_x_get_y: 'bg-amber-100 text-amber-700',
-  promo_code: 'bg-indigo-100 text-indigo-700',
-  threshold_discount: 'bg-teal-100 text-teal-700',
+  bundle: 'bg-primary-100 text-primary-700',
+  buy_x_get_y: 'bg-warning-100 text-warning-600',
+  promo_code: 'bg-info-100 text-info-600',
+  threshold_discount: 'bg-success-100 text-success-600',
 };
 
 function formatOfferSummary(offer: OfferWithItems): string {
