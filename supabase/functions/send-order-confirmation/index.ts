@@ -243,13 +243,23 @@ serve(async (req) => {
 
     const total = (order.total_amount / 100).toFixed(2);
 
-    // Build location section if available
+    // Build location section if available, with clickable address for directions
     let locationHtml = '';
     if (location) {
+      const addressText = location.address
+        ? `${escapeHtml(location.name)} - ${escapeHtml(location.address)}`
+        : escapeHtml(location.name);
+      const mapsQuery = encodeURIComponent(
+        location.address ? `${location.name}, ${location.address}` : location.name
+      );
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
       locationHtml = `
         <div style="background:#dbeafe;padding:15px;border-radius:8px;margin:20px 0">
           <strong style="color:#1e40af">Lieu de retrait :</strong><br>
-          <span style="color:#1e3a8a">${escapeHtml(location.name)}${location.address ? ` - ${escapeHtml(location.address)}` : ''}</span>
+          <a href="${mapsUrl}" style="color:#1e3a8a;text-decoration:underline;font-size:15px" target="_blank">${addressText}</a>
+          <div style="margin-top:8px">
+            <a href="${mapsUrl}" style="display:inline-block;background:#1e40af;color:white;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none" target="_blank">Voir l'itinéraire</a>
+          </div>
         </div>`;
     }
 
@@ -306,7 +316,7 @@ serve(async (req) => {
       <body style="margin:0;padding:0;background-color:#f3f4f6">
         <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif">
           <!-- Header -->
-          <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);color:white;padding:40px 30px;text-align:center;border-radius:12px 12px 0 0">
+          <div style="background:linear-gradient(135deg,#F97066 0%,#C94D3A 100%);color:white;padding:40px 30px;text-align:center;border-radius:12px 12px 0 0">
             <h1 style="margin:0;font-size:28px;font-weight:600">Commande confirmée !</h1>
             <p style="margin:10px 0 0;opacity:0.9;font-size:16px">Votre commande a été acceptée</p>
           </div>
@@ -317,7 +327,7 @@ serve(async (req) => {
               Bonjour <strong>${escapeHtml(order.customer_name)}</strong>,
             </p>
             <p style="font-size:16px;color:#374151;margin:0 0 20px">
-              Votre commande <span style="font-family:monospace;color:#9ca3af;font-size:13px">${orderId}</span> chez <strong style="color:#f97316">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
+              Votre commande chez <strong style="color:#F97066">${escapeHtml(order.foodtruck.name)}</strong> a été acceptée.
             </p>
 
             <!-- Pickup time -->
@@ -335,8 +345,8 @@ serve(async (req) => {
               ${discountHtml}
               <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:15px;padding-top:15px;border-top:2px solid #e5e7eb">
                 <tr>
-                  <td style="font-size:20px;font-weight:700;color:#f97316;text-align:left">Total</td>
-                  <td style="font-size:20px;font-weight:700;color:#f97316;text-align:right">${total}€</td>
+                  <td style="font-size:20px;font-weight:700;color:#F97066;text-align:left">Total</td>
+                  <td style="font-size:20px;font-weight:700;color:#F97066;text-align:right">${total}€</td>
                 </tr>
               </table>
               <p style="font-size:13px;color:#6b7280;margin:10px 0 0;text-align:center">
@@ -346,12 +356,15 @@ serve(async (req) => {
 
             ${orderNotesHtml}
 
-            <!-- Contact -->
+            <!-- Order ID & Contact -->
+            <p style="font-family:monospace;font-size:12px;color:#9ca3af;margin:20px 0 0;text-align:center">
+              ${orderId}
+            </p>
             ${
               order.foodtruck.phone
                 ? `
-              <p style="font-size:14px;color:#6b7280;margin:20px 0 0;text-align:center">
-                Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#f97316;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
+              <p style="font-size:14px;color:#6b7280;margin:8px 0 0;text-align:center">
+                Une question ? Contactez-nous au <a href="tel:${escapeHtml(order.foodtruck.phone)}" style="color:#F97066;text-decoration:none;font-weight:500">${escapeHtml(order.foodtruck.phone)}</a>
               </p>
             `
                 : ''
