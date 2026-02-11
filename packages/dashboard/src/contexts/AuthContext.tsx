@@ -97,7 +97,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      // Supabase returns success even if email exists (to prevent enumeration).
+      // Detect this by checking for an empty identities array.
+      if (!error && data?.user && data.user.identities?.length === 0) {
+        return {
+          error: {
+            message: 'Un compte existe déjà avec cet email',
+            name: 'AuthError',
+            status: 409,
+          } as AuthError,
+        };
+      }
       return { error };
     } catch (err) {
       console.error('Unexpected error during sign up:', err);
