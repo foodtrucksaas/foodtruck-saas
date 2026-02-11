@@ -91,20 +91,25 @@ export function AccountSection() {
       }
 
       // Call Edge Function to delete account and all associated data
-      const { data, error: deleteAccountError } = await supabase.functions.invoke(
-        'delete-account',
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        }
-      );
+      // Use raw fetch for full control over headers and error body
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const response = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-      if (deleteAccountError) {
-        console.error('Delete account error:', deleteAccountError);
-        throw new Error(deleteAccountError.message || 'Erreur de suppression');
+      if (!response.ok) {
+        const body = await response.text();
+        console.error('Delete account response:', response.status, body);
+        throw new Error(body || `Erreur HTTP ${response.status}`);
       }
 
+      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }
