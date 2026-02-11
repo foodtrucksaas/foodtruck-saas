@@ -685,7 +685,7 @@ export function OrderSummaryCard({
                 </div>
                 <p className="text-xs text-emerald-600 font-medium">
                   {willReachReward
-                    ? '🎉 Récompense débloquée à la prochaine commande !'
+                    ? `🎉 Récompense atteinte ! ${formatPrice(loyaltyInfo.loyalty_reward)} seront déduits lors de votre prochaine commande`
                     : `Plus que ${threshold - futurePoints} pts pour ${formatPrice(loyaltyInfo.loyalty_reward)} offerts !`}
                 </p>
               </div>

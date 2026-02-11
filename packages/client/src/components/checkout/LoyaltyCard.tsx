@@ -106,7 +106,10 @@ export function LoyaltyCard({
         />
       </div>
       {willReachReward ? (
-        <p className="text-xs text-emerald-600">Récompense débloquée à la prochaine commande !</p>
+        <p className="text-xs text-emerald-600">
+          Récompense atteinte ! {formatPrice(loyaltyInfo.loyalty_reward)} seront déduits lors de
+          votre prochaine commande
+        </p>
       ) : (
         <p className="text-xs text-gray-400">
           Encore {threshold - futurePoints} pts → {formatPrice(loyaltyInfo.loyalty_reward)} offerts
