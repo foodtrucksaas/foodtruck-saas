@@ -194,13 +194,6 @@ export function OrderDetailModal({
             </span>
           </div>
 
-          {/* Payment info notice */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <p className="text-sm text-amber-800">
-              💰 <strong>Montant à régler sur place :</strong> {formatPrice(order.total_amount)}
-            </p>
-          </div>
-
           {/* Items */}
           <div>
             <h4 className="text-sm font-medium text-gray-500 mb-2">Articles</h4>
