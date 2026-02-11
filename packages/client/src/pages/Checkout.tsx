@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Gift, ChevronDown } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  Gift,
+  ChevronDown,
+  Clock,
+  CalendarDays,
+  User,
+  MessageSquare,
+} from 'lucide-react';
 import { formatPrice, formatTime, isValidEmail } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
@@ -530,14 +539,15 @@ export default function Checkout({ slug }: CheckoutProps) {
           );
         })()}
 
-        {/* Main Form Section */}
-        <div className="mx-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Form Sections */}
+        <div className="mx-4 space-y-3">
           {/* Pickup Time */}
-          <div className="p-4 border-b border-gray-100">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Retrait
-            </label>
-            <div className="mt-2 flex items-center gap-2">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-semibold text-gray-900">Retrait</span>
+            </div>
+            <div className="flex items-center gap-2">
               {settings?.allowAsapOrders && isCurrentlyOpen && (
                 <button
                   type="button"
@@ -583,8 +593,9 @@ export default function Checkout({ slug }: CheckoutProps) {
               <button
                 type="button"
                 onClick={() => setShowDatePicker(true)}
-                className="px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors active:scale-95"
+                className="px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors active:scale-95 flex items-center gap-1.5"
               >
+                <CalendarDays className="w-4 h-4" />
                 Autre jour
               </button>
             </div>
@@ -602,13 +613,17 @@ export default function Checkout({ slug }: CheckoutProps) {
           </div>
 
           {/* Contact Info */}
-          <fieldset className="p-4 border-b border-gray-100 space-y-3">
-            <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <fieldset className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+            <legend className="flex items-center gap-2 text-sm font-semibold text-gray-900 float-left w-full mb-3">
+              <User className="w-4 h-4 text-gray-400" />
               Coordonnées
             </legend>
             <div>
-              <label htmlFor="checkout-name" className="sr-only">
-                Nom (obligatoire)
+              <label
+                htmlFor="checkout-name"
+                className="text-xs font-medium text-gray-500 mb-1 block"
+              >
+                Nom *
               </label>
               <input
                 id="checkout-name"
@@ -616,15 +631,18 @@ export default function Checkout({ slug }: CheckoutProps) {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                placeholder="Nom *"
+                placeholder="Jean Dupont"
                 required
                 aria-required="true"
                 autoComplete="name"
               />
             </div>
             <div>
-              <label htmlFor="checkout-email" className="sr-only">
-                Email (obligatoire)
+              <label
+                htmlFor="checkout-email"
+                className="text-xs font-medium text-gray-500 mb-1 block"
+              >
+                Email *
               </label>
               <input
                 id="checkout-email"
@@ -632,15 +650,18 @@ export default function Checkout({ slug }: CheckoutProps) {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                placeholder="Email *"
+                placeholder="jean@exemple.fr"
                 required
                 aria-required="true"
                 autoComplete="email"
               />
             </div>
             <div>
-              <label htmlFor="checkout-phone" className="sr-only">
-                Telephone (optionnel)
+              <label
+                htmlFor="checkout-phone"
+                className="text-xs font-medium text-gray-500 mb-1 block"
+              >
+                Téléphone (optionnel)
               </label>
               <input
                 id="checkout-phone"
@@ -648,27 +669,25 @@ export default function Checkout({ slug }: CheckoutProps) {
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                placeholder="Téléphone (optionnel)"
+                placeholder="06 12 34 56 78"
                 autoComplete="tel"
               />
             </div>
           </fieldset>
 
           {/* Notes - Collapsible */}
-          <div className="p-4 border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
             {showNotes ? (
               <div>
-                <label
-                  htmlFor="checkout-notes"
-                  className="text-xs font-medium text-gray-500 uppercase tracking-wide block"
-                >
-                  Instructions
-                </label>
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageSquare className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-semibold text-gray-900">Instructions</span>
+                </div>
                 <textarea
                   id="checkout-notes"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="mt-2 w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[60px] resize-none"
+                  className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[60px] resize-none"
                   placeholder="Allergies, instructions spéciales..."
                   autoFocus
                 />
@@ -677,15 +696,16 @@ export default function Checkout({ slug }: CheckoutProps) {
               <button
                 type="button"
                 onClick={() => setShowNotes(true)}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded py-2 min-h-[44px]"
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded min-h-[44px] w-full"
               >
-                + Ajouter des instructions
+                <MessageSquare className="w-4 h-4" />
+                Ajouter des instructions
               </button>
             )}
           </div>
 
-          {/* Opt-ins - intégrés dans le formulaire */}
-          <div className="p-4 space-y-3">
+          {/* Opt-ins */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
             {settings?.loyaltyEnabled && (
               <>
                 {loyaltyInfo?.loyalty_opt_in === true ? (
