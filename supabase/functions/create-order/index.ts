@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { handleCors } from '../_shared/cors.ts';
 import { successResponse, errorResponse, setCurrentRequest } from '../_shared/responses.ts';
 import { createLogger, generateRequestId } from '../_shared/logger.ts';
+import { createSupabaseAdmin } from '../_shared/supabase.ts';
 import {
   validateOrderRequest,
   getFoodtruck,
@@ -22,61 +23,30 @@ import {
 } from '../_shared/orders.ts';
 
 // ============================================
-// RATE LIMITING
-// In-memory rate limiter (resets on function cold start)
-// For production, consider using Redis or Supabase table
+// RATE LIMITING (persistent via PostgreSQL)
 // ============================================
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 10; // 10 orders per minute per IP
-const RATE_LIMIT_MAX_ENTRIES = 10000; // Maximum number of entries to prevent memory leak
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_MAX_REQUESTS = 10;
 
-function checkRateLimit(identifier: string): boolean {
-  const now = Date.now();
-
-  // Prevent memory leak: if map is too large, clear old entries immediately
-  if (rateLimitMap.size >= RATE_LIMIT_MAX_ENTRIES) {
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (now > value.resetAt) {
-        rateLimitMap.delete(key);
-      }
+async function checkRateLimit(identifier: string): Promise<boolean> {
+  try {
+    const supabase = createSupabaseAdmin();
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_identifier: identifier,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+    });
+    if (error) {
+      // If rate limit check fails, allow the request (fail open)
+      console.error('Rate limit check failed:', error.message);
+      return true;
     }
-    // If still too large after cleanup, clear oldest half
-    if (rateLimitMap.size >= RATE_LIMIT_MAX_ENTRIES) {
-      const entriesToDelete = Math.floor(rateLimitMap.size / 2);
-      let deleted = 0;
-      for (const key of rateLimitMap.keys()) {
-        if (deleted >= entriesToDelete) break;
-        rateLimitMap.delete(key);
-        deleted++;
-      }
-    }
-  }
-
-  const entry = rateLimitMap.get(identifier);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return data as boolean;
+  } catch {
+    // Fail open on unexpected errors
     return true;
   }
-
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
 }
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitMap.entries()) {
-    if (now > value.resetAt) {
-      rateLimitMap.delete(key);
-    }
-  }
-}, 60 * 1000);
 
 // ============================================
 // SERVICE ROLE KEY VALIDATION
@@ -109,7 +79,7 @@ serve(async (req) => {
       req.headers.get('x-real-ip') ||
       'unknown';
 
-    if (!checkRateLimit(clientIP)) {
+    if (!(await checkRateLimit(clientIP))) {
       logger.warn('Rate limit exceeded', { clientIP });
       return errorResponse('Trop de requêtes. Veuillez réessayer dans une minute.', 429);
     }
