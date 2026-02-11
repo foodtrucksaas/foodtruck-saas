@@ -81,15 +81,15 @@ serve(async (req) => {
     const pickupDate = new Date(order.pickup_time);
     const dayOfWeek = pickupDate.getDay(); // 0 = Sunday, 6 = Saturday
 
-    const { data: schedule } = await supabase
+    const { data: schedules } = await supabase
       .from('schedules')
       .select('location:locations (name, address)')
       .eq('foodtruck_id', order.foodtruck_id)
       .eq('day_of_week', dayOfWeek)
       .eq('is_active', true)
-      .single();
+      .limit(1);
 
-    const location = schedule?.location as { name: string; address: string | null } | null;
+    const location = (schedules?.[0]?.location as { name: string; address: string | null }) || null;
 
     // Format pickup date
     const pickupDateStr = pickupDate.toLocaleString('fr-FR', {
@@ -357,8 +357,8 @@ serve(async (req) => {
             ${orderNotesHtml}
 
             <!-- Order ID & Contact -->
-            <p style="font-family:monospace;font-size:12px;color:#9ca3af;margin:20px 0 0;text-align:center">
-              ${orderId}
+            <p style="font-family:monospace;font-size:14px;color:#9ca3af;margin:20px 0 0;text-align:center">
+              Commande ${orderId}
             </p>
             ${
               order.foodtruck.phone
