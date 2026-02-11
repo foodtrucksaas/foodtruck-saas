@@ -11,29 +11,34 @@ import {
 
 describe('formatters', () => {
   describe('formatPrice', () => {
-    it('should format price in cents to EUR', () => {
+    it('should format whole euro prices without decimals', () => {
       // Intl uses narrow no-break space (U+202F) in fr-FR locale
-      expect(formatPrice(1000)).toMatch(/10,00.*€/);
+      expect(formatPrice(1000)).toMatch(/^10\s*€$/);
+      expect(formatPrice(100)).toMatch(/^1\s*€$/);
+    });
+
+    it('should format prices with cents using 2 decimals', () => {
       expect(formatPrice(1050)).toMatch(/10,50.*€/);
-      expect(formatPrice(100)).toMatch(/1,00.*€/);
+      expect(formatPrice(1099)).toMatch(/10,99.*€/);
     });
 
     it('should handle zero', () => {
-      expect(formatPrice(0)).toMatch(/0,00.*€/);
+      expect(formatPrice(0)).toMatch(/^0\s*€$/);
     });
 
     it('should handle large numbers', () => {
-      expect(formatPrice(100000)).toMatch(/1.000,00.*€/);
+      expect(formatPrice(100000)).toMatch(/1.000\s*€/);
+      expect(formatPrice(100050)).toMatch(/1.000,50.*€/);
     });
 
     it('should fallback to EUR for invalid currency', () => {
-      expect(formatPrice(1000, 'INVALID')).toMatch(/10,00.*€/);
-      expect(formatPrice(1000, '')).toMatch(/10,00.*€/);
+      expect(formatPrice(1000, 'INVALID')).toMatch(/10\s*€/);
+      expect(formatPrice(1000, '')).toMatch(/10\s*€/);
     });
 
     it('should accept valid currencies', () => {
-      expect(formatPrice(1000, 'USD')).toMatch(/10,00.*\$/);
-      expect(formatPrice(1000, 'GBP')).toMatch(/10,00.*£/);
+      expect(formatPrice(1000, 'USD')).toMatch(/10.*\$/);
+      expect(formatPrice(1000, 'GBP')).toMatch(/10.*£/);
     });
   });
 

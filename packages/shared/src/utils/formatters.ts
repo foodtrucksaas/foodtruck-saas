@@ -13,10 +13,15 @@ export function formatPrice(price: number, currency: string = 'EUR'): string {
     ? currency
     : 'EUR';
 
+  const euros = safeNumber(price) / 100;
+  const isWholeEuro = euros % 1 === 0;
+
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: validCurrency,
-  }).format(safeNumber(price) / 100);
+    minimumFractionDigits: isWholeEuro ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(euros);
 }
 
 /**
