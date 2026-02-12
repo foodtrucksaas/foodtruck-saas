@@ -120,6 +120,7 @@ export function useOnboardingAssistant() {
             })),
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
+          dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
         }
 
         // Restore step progress from database
