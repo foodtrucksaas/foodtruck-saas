@@ -31,7 +31,7 @@ export function Step2Schedule() {
 
   // Restore sub-step if days were already selected
   const [subStep, setSubStep] = useState<ScheduleSubStep>(() => {
-    if (state.selectedDays.length > 0 && state.schedules.length > 0) {
+    if (state.selectedDays.length > 0) {
       return 'configure-days';
     }
     return 'select-days';
