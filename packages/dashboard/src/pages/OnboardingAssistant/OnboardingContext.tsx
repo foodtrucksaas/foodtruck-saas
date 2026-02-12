@@ -451,13 +451,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
-  // Clear sessionStorage when leaving the assistant so next visit loads fresh from DB
-  useEffect(() => {
-    return () => {
-      clearOnboardingSession();
-    };
-  }, []);
-
   const nextStep = useCallback(() => {
     dispatch({ type: 'COMPLETE_STEP', step: state.currentStep });
     dispatch({ type: 'SET_STEP', step: state.currentStep + 1 });
