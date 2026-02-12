@@ -57,15 +57,30 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
     updateBundleCategory(catIndex, { excludedItems: newExcluded });
   };
 
-  const setItemSupplement = (catIndex: number, itemId: string, price: number | null) => {
+  const setItemSupplement = (catIndex: number, key: string, price: number | null) => {
     const cat = form.bundleCategories[catIndex];
     const newSupplements = { ...cat.supplements };
     if (price === null || price === 0) {
-      delete newSupplements[itemId];
+      delete newSupplements[key];
     } else {
-      newSupplements[itemId] = price;
+      newSupplements[key] = price;
     }
     updateBundleCategory(catIndex, { supplements: newSupplements });
+  };
+
+  const toggleExcludedSize = (catIndex: number, itemId: string, sizeId: string) => {
+    const cat = form.bundleCategories[catIndex];
+    const current = cat.excludedSizes[itemId] || [];
+    const newExcluded = current.includes(sizeId)
+      ? current.filter((id) => id !== sizeId)
+      : [...current, sizeId];
+    const newExcludedSizes = { ...cat.excludedSizes };
+    if (newExcluded.length === 0) {
+      delete newExcludedSizes[itemId];
+    } else {
+      newExcludedSizes[itemId] = newExcluded;
+    }
+    updateBundleCategory(catIndex, { excludedSizes: newExcludedSizes });
   };
 
   return (
@@ -171,53 +186,104 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                     <p className="text-xs text-gray-500 mb-2">
                       {eligibleCount}/{items.length} articles inclus
                     </p>
-                    <div className="max-h-48 overflow-y-auto space-y-1">
+                    <div className="max-h-64 overflow-y-auto space-y-1">
                       {items.map((item) => {
                         const isExcluded = choice.excludedItems.includes(item.id);
                         const supplement = choice.supplements[item.id];
                         const itemCategory = categories.find((c) => c.id === item.category_id);
                         const sizeOptions = getSizeOptions(itemCategory);
+                        const excludedSizesForItem = choice.excludedSizes[item.id] || [];
 
                         return (
-                          <div
-                            key={item.id}
-                            className={`flex items-center gap-2 p-1.5 rounded ${isExcluded ? 'opacity-50' : ''}`}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => toggleExcludedItem(index, item.id)}
-                              className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                                !isExcluded
-                                  ? 'bg-primary-500 border-primary-500 text-white'
-                                  : 'border-gray-300 bg-white'
-                              }`}
+                          <div key={item.id}>
+                            <div
+                              className={`flex items-center gap-2 p-1.5 rounded ${isExcluded ? 'opacity-50' : ''}`}
                             >
-                              {!isExcluded && <Check className="w-2.5 h-2.5" />}
-                            </button>
-                            <span
-                              className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}
-                            >
-                              {item.name}
-                            </span>
-                            {!isExcluded && !sizeOptions && (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  step="0.5"
-                                  min="0"
-                                  value={supplement ? (supplement / 100).toString() : ''}
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    setItemSupplement(
-                                      index,
-                                      item.id,
-                                      isNaN(val) || val === 0 ? null : Math.round(val * 100)
-                                    );
-                                  }}
-                                  onWheel={(e) => e.currentTarget.blur()}
-                                  className="w-14 text-xs px-1.5 py-1 border rounded text-right"
-                                  placeholder="+0€"
-                                />
+                              <button
+                                type="button"
+                                onClick={() => toggleExcludedItem(index, item.id)}
+                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                                  !isExcluded
+                                    ? 'bg-primary-500 border-primary-500 text-white'
+                                    : 'border-gray-300 bg-white'
+                                }`}
+                              >
+                                {!isExcluded && <Check className="w-2.5 h-2.5" />}
+                              </button>
+                              <span
+                                className={`text-sm flex-1 ${isExcluded ? 'line-through text-gray-400' : ''}`}
+                              >
+                                {item.name}
+                              </span>
+                              {!isExcluded && !sizeOptions && (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    step="0.5"
+                                    min="0"
+                                    value={supplement ? (supplement / 100).toString() : ''}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setItemSupplement(
+                                        index,
+                                        item.id,
+                                        isNaN(val) || val === 0 ? null : Math.round(val * 100)
+                                      );
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
+                                    className="w-14 text-xs px-1.5 py-1 border rounded text-right"
+                                    placeholder="+0€"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            {/* Per-size chips with delta inputs */}
+                            {!isExcluded && sizeOptions && (
+                              <div className="ml-7 space-y-1 px-1.5 pb-1">
+                                {sizeOptions.map((opt) => {
+                                  const isOptExcluded = excludedSizesForItem.includes(opt.id);
+                                  const sizeKey = `${item.id}:${opt.id}`;
+                                  const sizeDelta = choice.supplements[sizeKey] || 0;
+                                  return (
+                                    <div key={opt.id} className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExcludedSize(index, item.id, opt.id)}
+                                        className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                          !isOptExcluded
+                                            ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                            : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                        }`}
+                                      >
+                                        {opt.name}
+                                      </button>
+                                      {!isOptExcluded && (
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-gray-400">+</span>
+                                          <input
+                                            type="number"
+                                            step="0.5"
+                                            min="0"
+                                            value={sizeDelta ? (sizeDelta / 100).toString() : ''}
+                                            onChange={(e) => {
+                                              const val = parseFloat(e.target.value);
+                                              setItemSupplement(
+                                                index,
+                                                sizeKey,
+                                                isNaN(val) || val === 0
+                                                  ? null
+                                                  : Math.round(val * 100)
+                                              );
+                                            }}
+                                            onWheel={(e) => e.currentTarget.blur()}
+                                            className="w-14 text-xs px-1.5 py-0.5 border rounded text-right"
+                                            placeholder="0€"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
