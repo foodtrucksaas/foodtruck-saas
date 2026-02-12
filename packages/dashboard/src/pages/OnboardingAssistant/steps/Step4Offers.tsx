@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Gift, Package, Tag, TrendingUp, ChevronRight, ChevronDown, Check } from 'lucide-react';
+import { Gift, Package, Tag, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
 
@@ -168,7 +168,7 @@ export function Step4Offers() {
   // Step: Ask if they want offers
   if (subStep === 'ask') {
     return (
-      <StepContainer onBack={prevStep} hideActions>
+      <StepContainer onBack={prevStep}>
         <div className="space-y-6">
           <AssistantBubble message="Proposez-vous des offres ou formules ?" emoji="🎁" />
 
@@ -200,7 +200,6 @@ export function Step4Offers() {
             setSubStep('ask');
           }
         }}
-        hideActions
       >
         <div className="space-y-6">
           <AssistantBubble message="Quel type d'offre souhaitez-vous créer ?" emoji="🎁" />
@@ -687,9 +686,9 @@ export function Step4Offers() {
   // Step: Done (ask for another)
   if (subStep === 'done') {
     return (
-      <StepContainer hideActions>
+      <StepContainer onBack={prevStep} onNext={handleFinish} nextLabel="Continuer">
         <div className="space-y-6">
-          <AssistantBubble message="Offre créée !" emoji="✅" variant="success" />
+          <AssistantBubble message="Vos offres" emoji="🎁" />
 
           {/* Summary of offers */}
           <div className="space-y-2">
@@ -718,20 +717,13 @@ export function Step4Offers() {
             </div>
           </div>
 
-          <AssistantBubble message="Voulez-vous ajouter une autre offre ?" />
-
-          <div className="space-y-3">
-            <ActionButton
-              onClick={handleAddAnother}
-              variant="secondary"
-              icon={<Gift className="w-5 h-5" />}
-            >
-              Oui, ajouter une offre
-            </ActionButton>
-            <ActionButton onClick={handleFinish} icon={<ChevronRight className="w-5 h-5" />}>
-              Non, continuer
-            </ActionButton>
-          </div>
+          <ActionButton
+            onClick={handleAddAnother}
+            variant="secondary"
+            icon={<Gift className="w-5 h-5" />}
+          >
+            Ajouter une offre
+          </ActionButton>
         </div>
       </StepContainer>
     );
