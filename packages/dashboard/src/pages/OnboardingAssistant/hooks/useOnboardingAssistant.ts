@@ -65,13 +65,18 @@ export function useOnboardingAssistant() {
           .eq('is_active', true);
 
         if (schedulesData && schedulesData.length > 0) {
-          const schedules: OnboardingSchedule[] = schedulesData.map((s) => ({
-            day_of_week: s.day_of_week,
-            location_id: s.location_id,
-            start_time: s.start_time,
-            end_time: s.end_time,
-          }));
-          const selectedDays = [...new Set(schedulesData.map((s) => s.day_of_week))];
+          // Deduplicate by day_of_week (keep last entry per day)
+          const scheduleMap = new Map<number, OnboardingSchedule>();
+          for (const s of schedulesData) {
+            scheduleMap.set(s.day_of_week, {
+              day_of_week: s.day_of_week,
+              location_id: s.location_id,
+              start_time: s.start_time,
+              end_time: s.end_time,
+            });
+          }
+          const schedules = Array.from(scheduleMap.values());
+          const selectedDays = [...scheduleMap.keys()];
           dispatch({ type: 'SET_SCHEDULES', schedules });
           dispatch({ type: 'SET_SELECTED_DAYS', days: selectedDays });
         }
@@ -259,8 +264,12 @@ export function useOnboardingAssistant() {
         .eq('foodtruck_id', foodtruck.id);
       if (deleteError) throw deleteError;
 
-      // Insert new schedules
-      const schedulesToInsert = state.schedules.map((s) => ({
+      // Insert new schedules (deduplicate by day_of_week, keep last)
+      const deduped = new Map<number, OnboardingSchedule>();
+      for (const s of state.schedules) {
+        deduped.set(s.day_of_week, s);
+      }
+      const schedulesToInsert = Array.from(deduped.values()).map((s) => ({
         foodtruck_id: foodtruck.id,
         day_of_week: s.day_of_week,
         location_id: resolveLocationId(s.location_id),
