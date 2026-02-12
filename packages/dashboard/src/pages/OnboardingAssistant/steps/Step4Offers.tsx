@@ -43,12 +43,14 @@ export function Step4Offers() {
   const [offerName, setOfferName] = useState('');
   const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>({});
   const [bundleCategories, setBundleCategories] = useState<string[]>([]);
-  // Track selected items per category (category name → item IDs). If a category is selected but not in this map, all items are selected.
-  const [bundleItems, setBundleItems] = useState<Record<string, string[]>>({});
-  // Track selected options per category (category name → option names). If a category has option groups but is not in this map, all options are selected.
-  const [bundleOptions, setBundleOptions] = useState<Record<string, string[]>>({});
+  // Track excluded items per category (category name → excluded item IDs)
+  const [bundleExcludedItems, setBundleExcludedItems] = useState<Record<string, string[]>>({});
+  // Track excluded options per item (itemId → excluded option names)
+  const [bundleExcludedOptions, setBundleExcludedOptions] = useState<Record<string, string[]>>({});
   // Track which categories are expanded for article detail
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  // Track which items are expanded for option detail
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const handleWantsOffers = (wants: boolean) => {
     dispatch({ type: 'SET_WANTS_OFFERS', wants });
@@ -64,9 +66,10 @@ export function Step4Offers() {
     // Set default name based on type
     setOfferName(type === 'bundle' ? '' : OFFER_TYPES.find((t) => t.type === type)?.label || '');
     setBundleCategories([]);
-    setBundleItems({});
-    setBundleOptions({});
+    setBundleExcludedItems({});
+    setBundleExcludedOptions({});
     setExpandedCategories([]);
+    setExpandedItems([]);
     // Set default config
     switch (type) {
       case 'bundle':
@@ -91,14 +94,12 @@ export function Step4Offers() {
       case 'bundle': {
         if (!offerConfig.fixed_price || Number(offerConfig.fixed_price) <= 0) return false;
         if (bundleCategories.length < 2) return false;
-        // Each selected category must have at least 1 item selected
+        // Each selected category must have at least 1 eligible item
         for (const catName of bundleCategories) {
           const cat = state.categories.find((c) => c.name === catName);
-          if (!cat) return false;
-          const selectedItemIds = bundleItems[catName];
-          // If not in map, all items selected (OK if items exist)
-          if (!selectedItemIds && cat.items.length === 0) return false;
-          if (selectedItemIds && selectedItemIds.length === 0) return false;
+          if (!cat || cat.items.length === 0) return false;
+          const excluded = bundleExcludedItems[catName] || [];
+          if (cat.items.length - excluded.length <= 0) return false;
         }
         return true;
       }
@@ -120,21 +121,28 @@ export function Step4Offers() {
     if (selectedType === 'bundle') {
       config.bundle_category_names = bundleCategories;
       // Build detailed selection per category
-      const bundleSelection: Record<string, { items: string[]; options?: string[] }> = {};
+      const bundleSelection: Record<
+        string,
+        { excluded_items: string[]; excluded_options: Record<string, string[]> }
+      > = {};
       for (const catName of bundleCategories) {
         const cat = state.categories.find((c) => c.name === catName);
         if (!cat) continue;
-        const selectedIds = bundleItems[catName] || cat.items.map((i) => i.id);
-        const selectedNames = selectedIds
+        const excludedItemNames = (bundleExcludedItems[catName] || [])
           .map((id) => cat.items.find((i) => i.id === id)?.name)
           .filter(Boolean) as string[];
-        const entry: { items: string[]; options?: string[] } = { items: selectedNames };
-        // Include selected options if category has option groups
-        const optNames = bundleOptions[catName];
-        if (optNames && optNames.length > 0) {
-          entry.options = optNames;
+        // Build per-item excluded options
+        const excludedOpts: Record<string, string[]> = {};
+        for (const item of cat.items) {
+          const excl = bundleExcludedOptions[item.id];
+          if (excl && excl.length > 0) {
+            excludedOpts[item.name] = excl;
+          }
         }
-        bundleSelection[catName] = entry;
+        bundleSelection[catName] = {
+          excluded_items: excludedItemNames,
+          excluded_options: excludedOpts,
+        };
       }
       config.bundle_selection = bundleSelection;
     }
@@ -152,9 +160,10 @@ export function Step4Offers() {
     setOfferName('');
     setOfferConfig({});
     setBundleCategories([]);
-    setBundleItems({});
-    setBundleOptions({});
+    setBundleExcludedItems({});
+    setBundleExcludedOptions({});
     setExpandedCategories([]);
+    setExpandedItems([]);
   };
 
   const handleAddAnother = () => {
@@ -263,11 +272,11 @@ export function Step4Offers() {
                     {state.categories.map((cat) => {
                       const isCatSelected = bundleCategories.includes(cat.name);
                       const isExpanded = expandedCategories.includes(cat.name);
-                      const selectedItemIds = bundleItems[cat.name] || cat.items.map((i) => i.id);
+                      const excluded = bundleExcludedItems[cat.name] || [];
+                      const eligibleCount = cat.items.length - excluded.length;
                       const allOptionGroups = cat.optionGroups.filter(
                         (og) => og.options.length > 0
                       );
-                      const selectedOpts = bundleOptions[cat.name];
 
                       const toggleCategory = () => {
                         if (isCatSelected) {
@@ -275,18 +284,7 @@ export function Step4Offers() {
                           setExpandedCategories((prev) => prev.filter((c) => c !== cat.name));
                         } else {
                           setBundleCategories((prev) => [...prev, cat.name]);
-                          // Default: all items selected
-                          setBundleItems((prev) => ({
-                            ...prev,
-                            [cat.name]: cat.items.map((i) => i.id),
-                          }));
-                          // Default: all options selected
-                          if (allOptionGroups.length > 0) {
-                            const allOpts = allOptionGroups.flatMap((og) =>
-                              og.options.map((o) => o.name)
-                            );
-                            setBundleOptions((prev) => ({ ...prev, [cat.name]: allOpts }));
-                          }
+                          setBundleExcludedItems((prev) => ({ ...prev, [cat.name]: [] }));
                           setExpandedCategories((prev) => [...prev, cat.name]);
                         }
                       };
@@ -298,26 +296,35 @@ export function Step4Offers() {
                         );
                       };
 
-                      const toggleItem = (itemId: string) => {
-                        setBundleItems((prev) => {
-                          const current = prev[cat.name] || cat.items.map((i) => i.id);
+                      const toggleExcludeItem = (itemId: string) => {
+                        setBundleExcludedItems((prev) => {
+                          const current = prev[cat.name] || [];
                           const next = current.includes(itemId)
                             ? current.filter((id) => id !== itemId)
                             : [...current, itemId];
                           return { ...prev, [cat.name]: next };
                         });
+                        // Collapse item options if excluding
+                        if (!(bundleExcludedItems[cat.name] || []).includes(itemId)) {
+                          setExpandedItems((prev) => prev.filter((id) => id !== itemId));
+                        }
                       };
 
-                      const toggleOption = (optName: string) => {
-                        setBundleOptions((prev) => {
-                          const allOpts = allOptionGroups.flatMap((og) =>
-                            og.options.map((o) => o.name)
-                          );
-                          const current = prev[cat.name] || allOpts;
+                      const toggleItemExpand = (itemId: string) => {
+                        setExpandedItems((prev) =>
+                          prev.includes(itemId)
+                            ? prev.filter((id) => id !== itemId)
+                            : [...prev, itemId]
+                        );
+                      };
+
+                      const toggleExcludeOption = (itemId: string, optName: string) => {
+                        setBundleExcludedOptions((prev) => {
+                          const current = prev[itemId] || [];
                           const next = current.includes(optName)
                             ? current.filter((n) => n !== optName)
                             : [...current, optName];
-                          return { ...prev, [cat.name]: next };
+                          return { ...prev, [itemId]: next };
                         });
                       };
 
@@ -354,7 +361,7 @@ export function Step4Offers() {
                               </span>
                               <span className="flex items-center gap-1.5 text-sm text-gray-500">
                                 {isCatSelected
-                                  ? `${selectedItemIds.length}/${cat.items.length}`
+                                  ? `${eligibleCount}/${cat.items.length}`
                                   : `${cat.items.length} article${cat.items.length > 1 ? 's' : ''}`}
                                 {isCatSelected && (
                                   <ChevronDown
@@ -365,85 +372,102 @@ export function Step4Offers() {
                             </button>
                           </div>
 
-                          {/* Expanded: items + options */}
+                          {/* Expanded: items with per-item options */}
                           {isCatSelected && isExpanded && (
-                            <div className="ml-4 mt-1 mb-2 space-y-1">
-                              {/* Items */}
-                              <p className="text-xs font-medium text-gray-500 mt-2 mb-1">
-                                Articles éligibles
-                              </p>
+                            <div className="ml-4 mt-1 mb-2 space-y-0.5">
                               {cat.items.map((item) => {
-                                const isItemSelected = selectedItemIds.includes(item.id);
+                                const isExcluded = excluded.includes(item.id);
+                                const isItemExpanded = expandedItems.includes(item.id);
                                 const price =
                                   item.prices['base'] || Object.values(item.prices)[0] || 0;
+                                const itemExcludedOpts = bundleExcludedOptions[item.id] || [];
+                                const hasOptions = allOptionGroups.length > 0;
+                                const totalOpts = allOptionGroups.reduce(
+                                  (sum, og) => sum + og.options.length,
+                                  0
+                                );
+                                const excludedOptsCount = itemExcludedOpts.length;
+
                                 return (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => toggleItem(item.id)}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                                  >
-                                    <div
-                                      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                        isItemSelected
-                                          ? 'bg-primary-500 border-primary-500'
-                                          : 'border-gray-300'
-                                      }`}
-                                    >
-                                      {isItemSelected && (
-                                        <Check className="w-2.5 h-2.5 text-white" />
+                                  <div key={item.id}>
+                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExcludeItem(item.id)}
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                          !isExcluded
+                                            ? 'bg-primary-500 border-primary-500'
+                                            : 'border-gray-300'
+                                        }`}
+                                      >
+                                        {!isExcluded && (
+                                          <Check className="w-2.5 h-2.5 text-white" />
+                                        )}
+                                      </button>
+                                      <span
+                                        className={`flex-1 text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                                      >
+                                        {item.name}
+                                      </span>
+                                      <span className="text-xs text-gray-400">
+                                        {Number(price).toFixed(2)}€
+                                      </span>
+                                      {hasOptions && !isExcluded && (
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleItemExpand(item.id)}
+                                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 px-1"
+                                        >
+                                          {excludedOptsCount > 0 && (
+                                            <span className="text-amber-500">
+                                              {totalOpts - excludedOptsCount}/{totalOpts}
+                                            </span>
+                                          )}
+                                          <ChevronDown
+                                            className={`w-3 h-3 transition-transform ${isItemExpanded ? 'rotate-180' : ''}`}
+                                          />
+                                        </button>
                                       )}
                                     </div>
-                                    <span
-                                      className={`flex-1 text-sm text-left ${isItemSelected ? 'text-gray-900' : 'text-gray-400 line-through'}`}
-                                    >
-                                      {item.name}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                      {price.toFixed(2)}€
-                                    </span>
-                                  </button>
+                                    {/* Per-item options */}
+                                    {hasOptions && !isExcluded && isItemExpanded && (
+                                      <div className="ml-9 mb-2 space-y-2">
+                                        {allOptionGroups.map((og) => (
+                                          <div key={og.id}>
+                                            <p className="text-xs text-gray-400 mb-1">{og.name}</p>
+                                            <div className="flex flex-wrap gap-1.5">
+                                              {og.options.map((opt) => {
+                                                const isOptExcluded = itemExcludedOpts.includes(
+                                                  opt.name
+                                                );
+                                                return (
+                                                  <button
+                                                    key={opt.name}
+                                                    type="button"
+                                                    onClick={() =>
+                                                      toggleExcludeOption(item.id, opt.name)
+                                                    }
+                                                    className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
+                                                      !isOptExcluded
+                                                        ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                                        : 'border-gray-200 text-gray-400 line-through'
+                                                    }`}
+                                                  >
+                                                    {opt.name}
+                                                    {opt.priceModifier
+                                                      ? ` (+${(opt.priceModifier / 100).toFixed(2)}€)`
+                                                      : ''}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                 );
                               })}
-
-                              {/* Option groups (sizes, etc.) */}
-                              {allOptionGroups.length > 0 && (
-                                <>
-                                  {allOptionGroups.map((og) => (
-                                    <div key={og.id}>
-                                      <p className="text-xs font-medium text-gray-500 mt-3 mb-1">
-                                        {og.name}{' '}
-                                        <span className="font-normal text-gray-400">
-                                          ({og.type === 'size' ? 'taille' : 'supplément'})
-                                        </span>
-                                      </p>
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {og.options.map((opt) => {
-                                          const isOptSelected =
-                                            selectedOpts?.includes(opt.name) ?? true;
-                                          return (
-                                            <button
-                                              key={opt.name}
-                                              type="button"
-                                              onClick={() => toggleOption(opt.name)}
-                                              className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
-                                                isOptSelected
-                                                  ? 'border-primary-300 bg-primary-50 text-primary-700'
-                                                  : 'border-gray-200 text-gray-400 line-through'
-                                              }`}
-                                            >
-                                              {opt.name}
-                                              {opt.priceModifier
-                                                ? ` (+${(opt.priceModifier / 100).toFixed(2)}€)`
-                                                : ''}
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                              )}
                             </div>
                           )}
                         </div>
@@ -493,23 +517,11 @@ export function Step4Offers() {
                   {bundleCategories.map((catName) => {
                     const cat = state.categories.find((c) => c.name === catName);
                     if (!cat) return null;
-                    const selectedIds = bundleItems[catName] || cat.items.map((i) => i.id);
-                    const isAllItems = selectedIds.length === cat.items.length;
-                    const selectedOptNames = bundleOptions[catName];
-                    const allOpts = cat.optionGroups
-                      .filter((og) => og.options.length > 0)
-                      .flatMap((og) => og.options.map((o) => o.name));
-                    const isAllOpts =
-                      !selectedOptNames || selectedOptNames.length === allOpts.length;
-                    if (isAllItems && isAllOpts) return null;
+                    const excludedCount = (bundleExcludedItems[catName] || []).length;
+                    if (excludedCount === 0) return null;
                     return (
                       <p key={catName} className="text-xs text-blue-600">
-                        {catName} :{' '}
-                        {!isAllItems && `${selectedIds.length}/${cat.items.length} articles`}
-                        {!isAllItems && !isAllOpts && ' · '}
-                        {!isAllOpts &&
-                          selectedOptNames &&
-                          `${selectedOptNames.length}/${allOpts.length} options`}
+                        {catName} : {cat.items.length - excludedCount}/{cat.items.length} articles
                       </p>
                     );
                   })}
