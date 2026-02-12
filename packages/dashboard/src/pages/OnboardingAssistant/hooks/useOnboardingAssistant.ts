@@ -576,318 +576,332 @@ export function useOnboardingAssistant() {
   }, [foodtruck, state.categories]);
 
   // Save offers to database (delete-then-insert to avoid duplicates on retry)
-  const saveOffers = useCallback(async () => {
-    if (!foodtruck || state.offers.length === 0) return;
+  const saveOffers = useCallback(
+    async (offersOverride?: OnboardingOffer[]) => {
+      if (!foodtruck) return;
+      const offersToSave = offersOverride !== undefined ? offersOverride : state.offers;
 
-    // Remove existing offers created during onboarding
-    const { error: deleteError } = await supabase
-      .from('offers')
-      .delete()
-      .eq('foodtruck_id', foodtruck.id);
-    if (deleteError) throw deleteError;
+      // When called without override and no offers, skip entirely
+      if (offersOverride === undefined && offersToSave.length === 0) return;
 
-    // Pre-fetch categories (with option groups) and items from DB for bundle offers
-    const { data: dbCategories } = await supabase
-      .from('categories')
-      .select('id, name, category_option_groups(id, name, is_required, category_options(id, name))')
-      .eq('foodtruck_id', foodtruck.id);
-    const { data: dbItems } = await supabase
-      .from('menu_items')
-      .select('id, name, category_id')
-      .eq('foodtruck_id', foodtruck.id);
+      // Remove existing offers created during onboarding
+      const { error: deleteError } = await supabase
+        .from('offers')
+        .delete()
+        .eq('foodtruck_id', foodtruck.id);
+      if (deleteError) throw deleteError;
 
-    for (const offer of state.offers) {
-      let config: Json = {};
+      // Nothing to insert (all offers were deleted)
+      if (offersToSave.length === 0) return;
 
-      switch (offer.type) {
-        case 'bundle':
-          config = {
-            fixed_price: Math.round(Number(offer.config.fixed_price) * 100),
-          };
-          break;
-        case 'buy_x_get_y':
-          config = {
-            trigger_quantity: Number(offer.config.trigger_quantity),
-            reward_quantity: Number(offer.config.reward_quantity),
-            reward_type: 'free',
-          };
-          break;
-        case 'promo_code':
-          config = {
-            code: String(offer.config.code).toUpperCase(),
-            discount_type: String(offer.config.discount_type),
-            discount_value:
-              offer.config.discount_type === 'fixed'
-                ? Math.round(Number(offer.config.discount_value) * 100)
-                : Number(offer.config.discount_value),
-          };
-          break;
-        case 'threshold_discount':
-          config = {
-            min_amount: Math.round(Number(offer.config.min_amount) * 100),
-            discount_type: String(offer.config.discount_type),
-            discount_value:
-              offer.config.discount_type === 'fixed'
-                ? Math.round(Number(offer.config.discount_value) * 100)
-                : Number(offer.config.discount_value),
-          };
-          break;
-      }
+      // Pre-fetch categories (with option groups) and items from DB for bundle offers
+      const { data: dbCategories } = await supabase
+        .from('categories')
+        .select(
+          'id, name, category_option_groups(id, name, is_required, category_options(id, name))'
+        )
+        .eq('foodtruck_id', foodtruck.id);
+      const { data: dbItems } = await supabase
+        .from('menu_items')
+        .select('id, name, category_id')
+        .eq('foodtruck_id', foodtruck.id);
 
-      // Build bundle category_choice config with real IDs
-      if (offer.type === 'bundle' && offer.config.bundle_category_names) {
-        const catNames = offer.config.bundle_category_names as string[];
-        const catIdMap = (offer.config.bundle_category_ids || {}) as Record<string, string>;
-        const selection = (offer.config.bundle_selection || {}) as Record<
-          string,
-          {
-            excluded_items?: string[];
-            excluded_options?: Record<string, string[]>;
-            item_deltas?: Record<string, number>;
+      for (const offer of offersToSave) {
+        let config: Json = {};
+
+        switch (offer.type) {
+          case 'bundle':
+            config = {
+              fixed_price: Math.round(Number(offer.config.fixed_price) * 100),
+            };
+            break;
+          case 'buy_x_get_y':
+            config = {
+              trigger_quantity: Number(offer.config.trigger_quantity),
+              reward_quantity: Number(offer.config.reward_quantity),
+              reward_type: 'free',
+            };
+            break;
+          case 'promo_code':
+            config = {
+              code: String(offer.config.code).toUpperCase(),
+              discount_type: String(offer.config.discount_type),
+              discount_value:
+                offer.config.discount_type === 'fixed'
+                  ? Math.round(Number(offer.config.discount_value) * 100)
+                  : Number(offer.config.discount_value),
+            };
+            break;
+          case 'threshold_discount':
+            config = {
+              min_amount: Math.round(Number(offer.config.min_amount) * 100),
+              discount_type: String(offer.config.discount_type),
+              discount_value:
+                offer.config.discount_type === 'fixed'
+                  ? Math.round(Number(offer.config.discount_value) * 100)
+                  : Number(offer.config.discount_value),
+            };
+            break;
+        }
+
+        // Build bundle category_choice config with real IDs
+        if (offer.type === 'bundle' && offer.config.bundle_category_names) {
+          const catNames = offer.config.bundle_category_names as string[];
+          const catIdMap = (offer.config.bundle_category_ids || {}) as Record<string, string>;
+          const selection = (offer.config.bundle_selection || {}) as Record<
+            string,
+            {
+              excluded_items?: string[];
+              excluded_options?: Record<string, string[]>;
+              item_deltas?: Record<string, number>;
+            }
+          >;
+          const bundleCats: Json[] = [];
+
+          for (const catName of catNames) {
+            // Try by name first, then fall back to snapshotted ID
+            const dbCat =
+              dbCategories?.find((c) => c.name === catName) ||
+              (catIdMap[catName]
+                ? dbCategories?.find((c) => c.id === catIdMap[catName])
+                : undefined);
+            if (!dbCat) continue;
+            const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+            const sel = selection[catName] || {};
+            const excludedItemIds = (sel.excluded_items || [])
+              .map((name) => catItems.find((i) => i.name === name)?.id)
+              .filter(Boolean) as string[];
+
+            // Build a sizeName→categoryOptionId lookup for this category
+            const sizeNameToId: Record<string, string> = {};
+            const dbCatFull = dbCat as any;
+            if (dbCatFull.category_option_groups) {
+              for (const og of dbCatFull.category_option_groups) {
+                if (og.is_required && og.category_options) {
+                  for (const opt of og.category_options) {
+                    sizeNameToId[opt.name] = opt.id;
+                  }
+                }
+              }
+            }
+
+            // Map excluded_options (per item name → option names) to excluded_sizes (per item ID → option UUIDs)
+            const excludedSizes: Record<string, string[]> = {};
+            if (sel.excluded_options) {
+              for (const [itemName, optNames] of Object.entries(sel.excluded_options)) {
+                const dbItem = catItems.find((i) => i.name === itemName);
+                if (dbItem && optNames.length > 0) {
+                  // Map option names to category_option UUIDs
+                  const optIds = optNames
+                    .map((name) => sizeNameToId[name])
+                    .filter(Boolean) as string[];
+                  if (optIds.length > 0) {
+                    excludedSizes[dbItem.id] = optIds;
+                  }
+                }
+              }
+            }
+
+            // Map item_deltas (name-based keys) to supplements (itemId or itemId:categoryOptionId keys)
+            const supplements: Record<string, number> = {};
+            if (sel.item_deltas) {
+              for (const [key, delta] of Object.entries(sel.item_deltas)) {
+                const colonIdx = key.indexOf(':');
+                if (colonIdx > 0) {
+                  // Per-size delta: "itemName:sizeName" → "itemId:categoryOptionId"
+                  const itemName = key.substring(0, colonIdx);
+                  const sizeName = key.substring(colonIdx + 1);
+                  const dbItem = catItems.find((i) => i.name === itemName);
+                  const optionId = sizeNameToId[sizeName];
+                  if (dbItem && optionId && delta > 0) {
+                    supplements[`${dbItem.id}:${optionId}`] = delta;
+                  }
+                } else {
+                  // Flat delta: "itemName" → "itemId"
+                  const dbItem = catItems.find((i) => i.name === key);
+                  if (dbItem && delta > 0) {
+                    supplements[dbItem.id] = delta;
+                  }
+                }
+              }
+            }
+
+            bundleCats.push({
+              category_ids: [dbCat.id],
+              quantity: 1,
+              label: catName,
+              excluded_items: excludedItemIds.length > 0 ? excludedItemIds : undefined,
+              excluded_sizes: Object.keys(excludedSizes).length > 0 ? excludedSizes : undefined,
+              supplements: Object.keys(supplements).length > 0 ? supplements : undefined,
+            });
           }
-        >;
-        const bundleCats: Json[] = [];
 
-        for (const catName of catNames) {
-          // Try by name first, then fall back to snapshotted ID
-          const dbCat =
-            dbCategories?.find((c) => c.name === catName) ||
-            (catIdMap[catName] ? dbCategories?.find((c) => c.id === catIdMap[catName]) : undefined);
-          if (!dbCat) continue;
-          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
-          const sel = selection[catName] || {};
-          const excludedItemIds = (sel.excluded_items || [])
-            .map((name) => catItems.find((i) => i.name === name)?.id)
+          config = {
+            ...(config as Record<string, unknown>),
+            type: 'category_choice',
+            bundle_categories: bundleCats,
+          };
+        }
+
+        // Build buy_x_get_y config with real category IDs (must be BEFORE insert)
+        let triggerCatIds: string[] = [];
+        let rewardCatIds: string[] = [];
+        const triggerExcludedIds: string[] = [];
+        const rewardExcludedIds: string[] = [];
+        if (offer.type === 'buy_x_get_y' && offer.config.trigger_category_names) {
+          const triggerCatNames = offer.config.trigger_category_names as string[];
+          const rewardCatNames = (offer.config.reward_category_names || []) as string[];
+          triggerCatIds = triggerCatNames
+            .map((name) => dbCategories?.find((c) => c.name === name)?.id)
+            .filter(Boolean) as string[];
+          rewardCatIds = rewardCatNames
+            .map((name) => dbCategories?.find((c) => c.name === name)?.id)
             .filter(Boolean) as string[];
 
-          // Build a sizeName→categoryOptionId lookup for this category
-          const sizeNameToId: Record<string, string> = {};
-          const dbCatFull = dbCat as any;
-          if (dbCatFull.category_option_groups) {
-            for (const og of dbCatFull.category_option_groups) {
-              if (og.is_required && og.category_options) {
-                for (const opt of og.category_options) {
-                  sizeNameToId[opt.name] = opt.id;
-                }
+          // Map excluded items (names → IDs)
+          const triggerExcluded = (offer.config.trigger_excluded || {}) as Record<string, string[]>;
+          for (const [catName, itemNames] of Object.entries(triggerExcluded)) {
+            const dbCat = dbCategories?.find((c) => c.name === catName);
+            if (!dbCat) continue;
+            const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+            for (const name of itemNames) {
+              const item = catItems.find((i) => i.name === name);
+              if (item) triggerExcludedIds.push(item.id);
+            }
+          }
+          const rewardExcluded = (offer.config.reward_excluded || {}) as Record<string, string[]>;
+          for (const [catName, itemNames] of Object.entries(rewardExcluded)) {
+            const dbCat = dbCategories?.find((c) => c.name === catName);
+            if (!dbCat) continue;
+            const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+            for (const name of itemNames) {
+              const item = catItems.find((i) => i.name === name);
+              if (item) rewardExcludedIds.push(item.id);
+            }
+          }
+
+          config = {
+            ...(config as Record<string, unknown>),
+            trigger_category_ids: triggerCatIds,
+            trigger_excluded_items: triggerExcludedIds.length > 0 ? triggerExcludedIds : undefined,
+            reward_category_ids: rewardCatIds,
+            reward_excluded_items: rewardExcludedIds.length > 0 ? rewardExcludedIds : undefined,
+          };
+        }
+
+        const { data: offerData, error } = await supabase
+          .from('offers')
+          .insert({
+            foodtruck_id: foodtruck.id,
+            name: offer.name,
+            description: offer.config.description ? String(offer.config.description) : null,
+            offer_type: offer.type,
+            config: config,
+            is_active: true,
+            start_date: offer.config.start_date
+              ? new Date(String(offer.config.start_date)).toISOString()
+              : null,
+            end_date: offer.config.end_date
+              ? new Date(String(offer.config.end_date)).toISOString()
+              : null,
+            time_start: offer.config.time_start ? String(offer.config.time_start) : null,
+            time_end: offer.config.time_end ? String(offer.config.time_end) : null,
+          })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+
+        // Insert offer_items for buy_x_get_y (needs offerData.id, so must be after insert)
+        if (offer.type === 'buy_x_get_y' && offerData && triggerCatIds.length > 0) {
+          const offerItems: {
+            offer_id: string;
+            menu_item_id: string;
+            role: string;
+            quantity: number;
+          }[] = [];
+          for (const catId of triggerCatIds) {
+            const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
+            for (const item of catItems) {
+              if (!triggerExcludedIds.includes(item.id)) {
+                offerItems.push({
+                  offer_id: offerData.id,
+                  menu_item_id: item.id,
+                  role: 'trigger',
+                  quantity: 1,
+                });
+              }
+            }
+          }
+          for (const catId of rewardCatIds) {
+            const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
+            for (const item of catItems) {
+              if (!rewardExcludedIds.includes(item.id)) {
+                offerItems.push({
+                  offer_id: offerData.id,
+                  menu_item_id: item.id,
+                  role: 'reward',
+                  quantity: 1,
+                });
+              }
+            }
+          }
+          if (offerItems.length > 0) {
+            const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
+              offerItems
+            );
+            if (itemsError) throw itemsError;
+          }
+        }
+
+        // Insert offer_items for bundles (all non-excluded items)
+        if (offer.type === 'bundle' && offerData && offer.config.bundle_category_names) {
+          const catNames = offer.config.bundle_category_names as string[];
+          const catIdMap2 = (offer.config.bundle_category_ids || {}) as Record<string, string>;
+          const selection = (offer.config.bundle_selection || {}) as Record<
+            string,
+            { excluded_items?: string[] }
+          >;
+          const offerItems: {
+            offer_id: string;
+            menu_item_id: string;
+            role: string;
+            quantity: number;
+          }[] = [];
+
+          for (const catName of catNames) {
+            const dbCat =
+              dbCategories?.find((c) => c.name === catName) ||
+              (catIdMap2[catName]
+                ? dbCategories?.find((c) => c.id === catIdMap2[catName])
+                : undefined);
+            if (!dbCat) continue;
+            const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+            const excludedNames = selection[catName]?.excluded_items || [];
+
+            for (const item of catItems) {
+              if (!excludedNames.includes(item.name)) {
+                offerItems.push({
+                  offer_id: offerData.id,
+                  menu_item_id: item.id,
+                  role: 'bundle_item',
+                  quantity: 1,
+                });
               }
             }
           }
 
-          // Map excluded_options (per item name → option names) to excluded_sizes (per item ID → option UUIDs)
-          const excludedSizes: Record<string, string[]> = {};
-          if (sel.excluded_options) {
-            for (const [itemName, optNames] of Object.entries(sel.excluded_options)) {
-              const dbItem = catItems.find((i) => i.name === itemName);
-              if (dbItem && optNames.length > 0) {
-                // Map option names to category_option UUIDs
-                const optIds = optNames
-                  .map((name) => sizeNameToId[name])
-                  .filter(Boolean) as string[];
-                if (optIds.length > 0) {
-                  excludedSizes[dbItem.id] = optIds;
-                }
-              }
-            }
+          if (offerItems.length > 0) {
+            const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
+              offerItems
+            );
+            if (itemsError) throw itemsError;
           }
-
-          // Map item_deltas (name-based keys) to supplements (itemId or itemId:categoryOptionId keys)
-          const supplements: Record<string, number> = {};
-          if (sel.item_deltas) {
-            for (const [key, delta] of Object.entries(sel.item_deltas)) {
-              const colonIdx = key.indexOf(':');
-              if (colonIdx > 0) {
-                // Per-size delta: "itemName:sizeName" → "itemId:categoryOptionId"
-                const itemName = key.substring(0, colonIdx);
-                const sizeName = key.substring(colonIdx + 1);
-                const dbItem = catItems.find((i) => i.name === itemName);
-                const optionId = sizeNameToId[sizeName];
-                if (dbItem && optionId && delta > 0) {
-                  supplements[`${dbItem.id}:${optionId}`] = delta;
-                }
-              } else {
-                // Flat delta: "itemName" → "itemId"
-                const dbItem = catItems.find((i) => i.name === key);
-                if (dbItem && delta > 0) {
-                  supplements[dbItem.id] = delta;
-                }
-              }
-            }
-          }
-
-          bundleCats.push({
-            category_ids: [dbCat.id],
-            quantity: 1,
-            label: catName,
-            excluded_items: excludedItemIds.length > 0 ? excludedItemIds : undefined,
-            excluded_sizes: Object.keys(excludedSizes).length > 0 ? excludedSizes : undefined,
-            supplements: Object.keys(supplements).length > 0 ? supplements : undefined,
-          });
-        }
-
-        config = {
-          ...(config as Record<string, unknown>),
-          type: 'category_choice',
-          bundle_categories: bundleCats,
-        };
-      }
-
-      // Build buy_x_get_y config with real category IDs (must be BEFORE insert)
-      let triggerCatIds: string[] = [];
-      let rewardCatIds: string[] = [];
-      const triggerExcludedIds: string[] = [];
-      const rewardExcludedIds: string[] = [];
-      if (offer.type === 'buy_x_get_y' && offer.config.trigger_category_names) {
-        const triggerCatNames = offer.config.trigger_category_names as string[];
-        const rewardCatNames = (offer.config.reward_category_names || []) as string[];
-        triggerCatIds = triggerCatNames
-          .map((name) => dbCategories?.find((c) => c.name === name)?.id)
-          .filter(Boolean) as string[];
-        rewardCatIds = rewardCatNames
-          .map((name) => dbCategories?.find((c) => c.name === name)?.id)
-          .filter(Boolean) as string[];
-
-        // Map excluded items (names → IDs)
-        const triggerExcluded = (offer.config.trigger_excluded || {}) as Record<string, string[]>;
-        for (const [catName, itemNames] of Object.entries(triggerExcluded)) {
-          const dbCat = dbCategories?.find((c) => c.name === catName);
-          if (!dbCat) continue;
-          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
-          for (const name of itemNames) {
-            const item = catItems.find((i) => i.name === name);
-            if (item) triggerExcludedIds.push(item.id);
-          }
-        }
-        const rewardExcluded = (offer.config.reward_excluded || {}) as Record<string, string[]>;
-        for (const [catName, itemNames] of Object.entries(rewardExcluded)) {
-          const dbCat = dbCategories?.find((c) => c.name === catName);
-          if (!dbCat) continue;
-          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
-          for (const name of itemNames) {
-            const item = catItems.find((i) => i.name === name);
-            if (item) rewardExcludedIds.push(item.id);
-          }
-        }
-
-        config = {
-          ...(config as Record<string, unknown>),
-          trigger_category_ids: triggerCatIds,
-          trigger_excluded_items: triggerExcludedIds.length > 0 ? triggerExcludedIds : undefined,
-          reward_category_ids: rewardCatIds,
-          reward_excluded_items: rewardExcludedIds.length > 0 ? rewardExcludedIds : undefined,
-        };
-      }
-
-      const { data: offerData, error } = await supabase
-        .from('offers')
-        .insert({
-          foodtruck_id: foodtruck.id,
-          name: offer.name,
-          description: offer.config.description ? String(offer.config.description) : null,
-          offer_type: offer.type,
-          config: config,
-          is_active: true,
-          start_date: offer.config.start_date
-            ? new Date(String(offer.config.start_date)).toISOString()
-            : null,
-          end_date: offer.config.end_date
-            ? new Date(String(offer.config.end_date)).toISOString()
-            : null,
-          time_start: offer.config.time_start ? String(offer.config.time_start) : null,
-          time_end: offer.config.time_end ? String(offer.config.time_end) : null,
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      // Insert offer_items for buy_x_get_y (needs offerData.id, so must be after insert)
-      if (offer.type === 'buy_x_get_y' && offerData && triggerCatIds.length > 0) {
-        const offerItems: {
-          offer_id: string;
-          menu_item_id: string;
-          role: string;
-          quantity: number;
-        }[] = [];
-        for (const catId of triggerCatIds) {
-          const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
-          for (const item of catItems) {
-            if (!triggerExcludedIds.includes(item.id)) {
-              offerItems.push({
-                offer_id: offerData.id,
-                menu_item_id: item.id,
-                role: 'trigger',
-                quantity: 1,
-              });
-            }
-          }
-        }
-        for (const catId of rewardCatIds) {
-          const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
-          for (const item of catItems) {
-            if (!rewardExcludedIds.includes(item.id)) {
-              offerItems.push({
-                offer_id: offerData.id,
-                menu_item_id: item.id,
-                role: 'reward',
-                quantity: 1,
-              });
-            }
-          }
-        }
-        if (offerItems.length > 0) {
-          const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
-            offerItems
-          );
-          if (itemsError) throw itemsError;
         }
       }
-
-      // Insert offer_items for bundles (all non-excluded items)
-      if (offer.type === 'bundle' && offerData && offer.config.bundle_category_names) {
-        const catNames = offer.config.bundle_category_names as string[];
-        const catIdMap2 = (offer.config.bundle_category_ids || {}) as Record<string, string>;
-        const selection = (offer.config.bundle_selection || {}) as Record<
-          string,
-          { excluded_items?: string[] }
-        >;
-        const offerItems: {
-          offer_id: string;
-          menu_item_id: string;
-          role: string;
-          quantity: number;
-        }[] = [];
-
-        for (const catName of catNames) {
-          const dbCat =
-            dbCategories?.find((c) => c.name === catName) ||
-            (catIdMap2[catName]
-              ? dbCategories?.find((c) => c.id === catIdMap2[catName])
-              : undefined);
-          if (!dbCat) continue;
-          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
-          const excludedNames = selection[catName]?.excluded_items || [];
-
-          for (const item of catItems) {
-            if (!excludedNames.includes(item.name)) {
-              offerItems.push({
-                offer_id: offerData.id,
-                menu_item_id: item.id,
-                role: 'bundle_item',
-                quantity: 1,
-              });
-            }
-          }
-        }
-
-        if (offerItems.length > 0) {
-          const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
-            offerItems
-          );
-          if (itemsError) throw itemsError;
-        }
-      }
-    }
-  }, [foodtruck, state.offers]);
+    },
+    [foodtruck, state.offers, state.categories]
+  );
 
   // Save settings to database
   const saveSettings = useCallback(async () => {

@@ -39,9 +39,13 @@ const OFFER_TYPES = [
   },
 ];
 
-export function Step4Offers() {
+interface Step4OffersProps {
+  saveOffers: (offers: import('../OnboardingContext').OnboardingOffer[]) => Promise<void>;
+}
+
+export function Step4Offers({ saveOffers }: Step4OffersProps) {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
-  const { toast, hideToast, showSuccess } = useToast();
+  const { toast, hideToast, showSuccess, showError } = useToast();
   const confirmDialog = useConfirmDialog();
   // Sub-step from context (persisted via sessionStorage)
   const subStep = state.offerSubStep;
@@ -220,7 +224,9 @@ export function Step4Offers() {
     }
   };
 
-  const handleSaveOffer = () => {
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveOffer = async () => {
     if (!selectedType || !isConfigValid()) return;
 
     const config: Record<string, unknown> = { ...offerConfig };
@@ -344,15 +350,26 @@ export function Step4Offers() {
       config,
     };
 
+    // Build the new offers array for immediate DB save
+    let newOffers: OnboardingOffer[];
     if (editingOfferIndex !== null) {
-      // Replace existing offer
-      const updated = [...state.offers];
-      updated[editingOfferIndex] = offer;
-      dispatch({ type: 'SET_OFFERS', offers: updated });
-      showSuccess('Offre modifiée !');
+      newOffers = state.offers.map((o, i) => (i === editingOfferIndex ? offer : o));
     } else {
-      dispatch({ type: 'ADD_OFFER', offer });
-      showSuccess('Offre créée !');
+      newOffers = [...state.offers, offer];
+    }
+
+    // Update state
+    dispatch({ type: 'SET_OFFERS', offers: newOffers });
+
+    // Save to DB immediately
+    setSaving(true);
+    try {
+      await saveOffers(newOffers);
+      showSuccess(editingOfferIndex !== null ? 'Offre modifiée !' : 'Offre créée !');
+    } catch {
+      showError("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
     }
 
     setSubStep('done');
@@ -552,7 +569,15 @@ export function Step4Offers() {
     const updated = state.offers.filter((_, i) => i !== index);
     dispatch({ type: 'SET_OFFERS', offers: updated });
     confirmDialog.closeDialog();
-    showSuccess('Offre supprimée');
+
+    // Save to DB immediately
+    try {
+      await saveOffers(updated);
+      showSuccess('Offre supprimée');
+    } catch {
+      showError('Erreur lors de la suppression');
+    }
+
     if (updated.length === 0) {
       dispatch({ type: 'SET_WANTS_OFFERS', wants: null });
       setSubStep('ask');
@@ -646,6 +671,7 @@ export function Step4Offers() {
         onNext={handleSaveOffer}
         nextLabel={editingOfferIndex !== null ? "Modifier l'offre" : "Créer l'offre"}
         nextDisabled={!isConfigValid()}
+        nextLoading={saving}
       >
         <div className="space-y-6">
           <AssistantBubble message={`Configurez votre offre "${typeInfo?.label}"`} emoji="⚙️" />

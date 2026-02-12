@@ -108,7 +108,7 @@ function OnboardingAssistantContent() {
       case 3:
         return <Step3Menu />;
       case 4:
-        return <Step4Offers />;
+        return <Step4Offers saveOffers={saveOffers} />;
       case 5:
         return <Step5Settings />;
       case 6:
