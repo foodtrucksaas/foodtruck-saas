@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { Plus, Check, Ruler, CircleDot, X, ChevronRight, Trash2, Pencil } from 'lucide-react';
+import {
+  Plus,
+  Check,
+  Ruler,
+  CircleDot,
+  X,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Trash2,
+  Pencil,
+} from 'lucide-react';
 import {
   useOnboarding,
   OnboardingCategory,
@@ -13,6 +24,9 @@ import {
   OptionCard,
   QuickSuggestions,
 } from '../components';
+import { useToast, Toast } from '../../../components/Alert';
+import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
+import { ConfirmDialog } from '../../../components/ConfirmDialog';
 
 const CATEGORY_SUGGESTIONS = [
   'Entrées',
@@ -42,6 +56,8 @@ function generateId(): string {
 
 export function Step3Menu() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
+  const { toast, hideToast, showSuccess } = useToast();
+  const confirmDialog = useConfirmDialog();
   const [categoryName, setCategoryName] = useState('');
   const [selectedOptionType, setSelectedOptionType] = useState<
     'size' | 'supplement' | 'other' | null
@@ -51,6 +67,7 @@ export function Step3Menu() {
   const [optionPrices, setOptionPrices] = useState<Record<string, string>>({});
   const [newOptionValue, setNewOptionValue] = useState('');
   const [itemName, setItemName] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingOptionGroupId, setEditingOptionGroupId] = useState<string | null>(null);
@@ -149,6 +166,7 @@ export function Step3Menu() {
       });
     }
 
+    showSuccess('Options enregistrées !');
     // Reset form
     setSelectedOptionType(null);
     setEditingOptionGroupId(null);
@@ -179,25 +197,30 @@ export function Step3Menu() {
       prices['base'] = Math.round(parseFloat(basePrice) * 100);
     }
 
+    const desc = itemDescription.trim() || undefined;
+
     if (editingItemId) {
       // Update existing item
       dispatch({
         type: 'UPDATE_ITEM_IN_CATEGORY',
         categoryId: state.currentCategory.id,
-        item: { id: editingItemId, name: itemName.trim(), prices },
+        item: { id: editingItemId, name: itemName.trim(), description: desc, prices },
       });
       setEditingItemId(null);
+      showSuccess('Article modifié !');
     } else {
       // Add new item
       dispatch({
         type: 'ADD_ITEM_TO_CATEGORY',
         categoryId: state.currentCategory.id,
-        item: { id: generateId(), name: itemName.trim(), prices },
+        item: { id: generateId(), name: itemName.trim(), description: desc, prices },
       });
+      showSuccess('Article ajouté !');
     }
 
     // Reset form & collapse
     setItemName('');
+    setItemDescription('');
     setItemPrices({});
     setShowItemForm(false);
   };
@@ -206,6 +229,7 @@ export function Step3Menu() {
     setEditingItemId(item.id);
     setShowItemForm(true);
     setItemName(item.name);
+    setItemDescription(item.description || '');
     // Convert prices from cents back to display format
     const displayPrices: Record<string, string> = {};
     if (hasSizeOptions && item.prices['base'] && !sizeOptions.some((o) => o.name in item.prices)) {
@@ -222,13 +246,22 @@ export function Step3Menu() {
     setItemPrices(displayPrices);
   };
 
-  const handleRemoveItem = (itemId: string) => {
+  const handleRemoveItem = async (itemId: string) => {
     if (!state.currentCategory) return;
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cet article ?',
+      message: 'Cette action est irréversible.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     dispatch({
       type: 'REMOVE_ITEM_FROM_CATEGORY',
       categoryId: state.currentCategory.id,
       itemId,
     });
+    confirmDialog.closeDialog();
+    showSuccess('Article supprimé');
   };
 
   const handleEditCategory = (cat: OnboardingCategory) => {
@@ -245,8 +278,25 @@ export function Step3Menu() {
     });
   };
 
-  const handleRemoveCategory = (categoryId: string) => {
+  const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= state.categories.length) return;
+    const reordered = [...state.categories];
+    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
+    dispatch({ type: 'SET_CATEGORIES', categories: reordered });
+  };
+
+  const handleRemoveCategory = async (categoryId: string) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cette catégorie ?',
+      message: 'Tous les articles de cette catégorie seront aussi supprimés.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     dispatch({ type: 'REMOVE_CATEGORY', categoryId });
+    confirmDialog.closeDialog();
+    showSuccess('Catégorie supprimée');
   };
 
   const handleAddAnotherCategory = () => {
@@ -273,6 +323,19 @@ export function Step3Menu() {
         />
       ))}
     </div>
+  );
+
+  const toastAndDialog = (
+    <>
+      <Toast {...toast} onDismiss={hideToast} />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        loading={confirmDialog.loading}
+        {...confirmDialog.options}
+      />
+    </>
   );
 
   // Sub-step: Create category
@@ -557,6 +620,7 @@ export function Step3Menu() {
                         });
                       }}
                       className="ml-1 hover:text-primary-900"
+                      aria-label={`Retirer ${value}`}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -566,6 +630,7 @@ export function Step3Menu() {
             </div>
           )}
         </div>
+        {toastAndDialog}
       </StepContainer>
     );
   }
@@ -719,9 +784,18 @@ export function Step3Menu() {
                 )}
               </div>
 
+              {/* Description (optional) */}
+              <textarea
+                value={itemDescription}
+                onChange={(e) => setItemDescription(e.target.value)}
+                className="input text-sm w-full resize-none"
+                placeholder="Description (optionnel) — visible par vos clients"
+                rows={2}
+              />
+
               {/* Size prices (separate row when sizes exist) */}
               {hasSizeOptions && (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {sizeOptions.map((option) => (
                     <div key={option.name} className="relative">
                       <label className="block text-xs text-gray-500 mb-1">{option.name}</label>
@@ -749,6 +823,7 @@ export function Step3Menu() {
                     onClick={() => {
                       setEditingItemId(null);
                       setItemName('');
+                      setItemDescription('');
                       setItemPrices({});
                       setShowItemForm(false);
                     }}
@@ -773,6 +848,7 @@ export function Step3Menu() {
             </button>
           )}
         </div>
+        {toastAndDialog}
       </StepContainer>
     );
   }
@@ -796,17 +872,40 @@ export function Step3Menu() {
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700">Votre menu</p>
             <div className="space-y-2">
-              {state.categories.map((cat) => (
+              {state.categories.map((cat, index) => (
                 <div
                   key={cat.id}
                   onClick={() => handleEditCategory(cat)}
                   className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-card cursor-pointer hover:border-primary-200 transition-all"
                 >
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-success-500" />
-                    <span className="font-medium text-gray-900">{cat.name}</span>
+                  {/* Reorder arrows */}
+                  {state.categories.length > 1 && (
+                    <div className="flex flex-col mr-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(index, 'up')}
+                        disabled={index === 0}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                        aria-label={`Monter ${cat.name}`}
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(index, 'down')}
+                        disabled={index === state.categories.length - 1}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                        aria-label={`Descendre ${cat.name}`}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Check className="w-4 h-4 text-success-500 flex-shrink-0" />
+                    <span className="font-medium text-gray-900 truncate">{cat.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-sm text-gray-500">
                       {cat.items.length} article{cat.items.length > 1 ? 's' : ''}
                     </span>
@@ -843,6 +942,7 @@ export function Step3Menu() {
             </ActionButton>
           </div>
         </div>
+        {toastAndDialog}
       </StepContainer>
     );
   }

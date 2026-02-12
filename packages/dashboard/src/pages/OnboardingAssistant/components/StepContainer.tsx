@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
 interface StepContainerProps {
@@ -22,8 +22,23 @@ export function StepContainer({
   showBack = true,
   hideActions = false,
 }: StepContainerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top and focus first interactive element on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    containerRef.current?.scrollTo(0, 0);
+    // Focus first focusable element inside content
+    const firstInput = containerRef.current?.querySelector<HTMLElement>(
+      'input, select, textarea, button[type="button"]:not([disabled])'
+    );
+    if (firstInput && firstInput.getAttribute('autoFocus') !== null) {
+      firstInput.focus();
+    }
+  }, []);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" ref={containerRef}>
       {/* Content */}
       <div className="flex-1 px-4 sm:px-6 pb-4">
         <div className="space-y-6 py-4">{children}</div>

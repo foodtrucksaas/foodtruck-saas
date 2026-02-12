@@ -8,6 +8,9 @@ import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton } from '../components';
 import { supabase } from '../../../lib/supabase';
 import { useFoodtruck } from '../../../contexts/FoodtruckContext';
+import { useToast, Toast } from '../../../components/Alert';
+import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
+import { ConfirmDialog } from '../../../components/ConfirmDialog';
 
 export function Step1Locations() {
   const { state, dispatch, nextStep } = useOnboarding();
@@ -16,6 +19,8 @@ export function Step1Locations() {
   const [error, setError] = useState<string | null>(null);
   // Track whether the user explicitly clicked "add another"
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const { toast, hideToast, showSuccess, showError } = useToast();
+  const confirmDialog = useConfirmDialog();
 
   const handlePlaceSelect = (place: PlaceResult) => {
     dispatch({
@@ -56,15 +61,25 @@ export function Step1Locations() {
         location: { ...state.currentLocation, id: data.id },
       });
       setIsAddingNew(false);
+      showSuccess('Emplacement enregistré !');
     } catch (err) {
       console.error('Error saving location:', err);
       setError("Erreur lors de l'enregistrement. Veuillez réessayer.");
+      showError("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteLocation = async (locationId: string | undefined, index: number) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cet emplacement ?',
+      message: 'Cette action est irréversible.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
     // Delete from DB if it has an ID
     if (locationId) {
       try {
@@ -76,6 +91,8 @@ export function Step1Locations() {
     // Remove from state
     const newLocations = state.locations.filter((_, i) => i !== index);
     dispatch({ type: 'SET_LOCATIONS', locations: newLocations });
+    confirmDialog.closeDialog();
+    showSuccess('Emplacement supprimé');
     // If no locations left, show the form
     if (newLocations.length === 0) {
       setIsAddingNew(true);
@@ -148,6 +165,14 @@ export function Step1Locations() {
             </ActionButton>
           </div>
         </div>
+        <Toast {...toast} onDismiss={hideToast} />
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={confirmDialog.handleClose}
+          onConfirm={confirmDialog.handleConfirm}
+          loading={confirmDialog.loading}
+          {...confirmDialog.options}
+        />
       </StepContainer>
     );
   }
@@ -256,6 +281,7 @@ export function Step1Locations() {
           </div>
         )}
       </div>
+      <Toast {...toast} onDismiss={hideToast} />
     </StepContainer>
   );
 }

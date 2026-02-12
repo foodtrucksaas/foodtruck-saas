@@ -13,7 +13,7 @@ const DAYS_OF_WEEK = [
   { value: 0, label: 'Dimanche', short: 'Dim' },
 ];
 
-type ScheduleSubStep = 'select-days' | 'configure-days' | 'calendar-info';
+type ScheduleSubStep = 'select-days' | 'configure-days';
 
 export function Step2Schedule() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
@@ -81,7 +81,8 @@ export function Step2Schedule() {
 
     // Move to next day or finish — pre-fill next day with current config
     if (isLastDay) {
-      setSubStep('calendar-info');
+      nextStep();
+      return;
     } else {
       dispatch({ type: 'SET_CURRENT_DAY_INDEX', index: state.currentDayIndex + 1 });
       // Keep current config for the next day (pre-fill)
@@ -97,10 +98,6 @@ export function Step2Schedule() {
       end_time: currentDayConfig.end_time,
     }));
     dispatch({ type: 'SET_SCHEDULES', schedules: newSchedules });
-    setSubStep('calendar-info');
-  };
-
-  const handleFinish = () => {
     nextStep();
   };
 
@@ -257,6 +254,14 @@ export function Step2Schedule() {
             </p>
           )}
 
+          {/* Info about exceptions */}
+          {isLastDay && (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-800">
+              <span className="font-medium">Bon à savoir :</span> Pour les exceptions (vacances,
+              jours fériés), vous pourrez les gérer depuis le calendrier de votre tableau de bord.
+            </div>
+          )}
+
           {/* Copy to all remaining days button */}
           {sortedSelectedDays.length > 1 && !isLastDay && (
             <button
@@ -273,100 +278,5 @@ export function Step2Schedule() {
     );
   }
 
-  // Step: Calendar info
-  return (
-    <StepContainer onNext={handleFinish} nextLabel="J'ai compris" showBack={false}>
-      <div className="space-y-6">
-        <AssistantBubble message="Bon à savoir !" emoji="💡" variant="tip" />
-
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-4 shadow-card">
-          <p className="text-gray-800">
-            Votre planning est maintenant configuré pour chaque semaine.
-          </p>
-
-          {/* Mini calendar preview */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Aperçu</span>
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs">
-              {['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'].map((day, index) => (
-                <div key={index} className="text-gray-500 py-1">
-                  {day}
-                </div>
-              ))}
-              {[1, 2, 3, 4, 5, 6, 0].map((dayValue) => {
-                const isWorking = state.selectedDays.includes(dayValue);
-                const schedule = state.schedules.find((s) => s.day_of_week === dayValue);
-                return (
-                  <div
-                    key={dayValue}
-                    className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center ${
-                      isWorking ? 'bg-success-500 text-white' : 'bg-gray-200 text-gray-400'
-                    }`}
-                    title={schedule ? `${schedule.start_time} - ${schedule.end_time}` : undefined}
-                  >
-                    <span className="sr-only">{isWorking ? 'Travail' : 'Repos'}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Show configured schedules */}
-            {state.schedules.length > 0 && (
-              <div className="mt-3 space-y-1">
-                {state.schedules
-                  .sort((a, b) => {
-                    const orderA = a.day_of_week === 0 ? 7 : a.day_of_week;
-                    const orderB = b.day_of_week === 0 ? 7 : b.day_of_week;
-                    return orderA - orderB;
-                  })
-                  .map((s) => {
-                    const day = DAYS_OF_WEEK.find((d) => d.value === s.day_of_week);
-                    const loc = state.locations.find(
-                      (l) => l.id === s.location_id || l.name === s.location_id
-                    );
-                    return (
-                      <div
-                        key={s.day_of_week}
-                        className="flex items-center justify-between text-xs text-gray-600"
-                      >
-                        <span className="font-medium">{day?.short}</span>
-                        <span>
-                          {s.start_time} - {s.end_time}
-                          {loc ? ` · ${loc.name}` : ''}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <AssistantBubble
-          message="Pour gérer les exceptions (vacances, jours fériés, changements ponctuels), vous pourrez cliquer sur n'importe quel jour dans le calendrier de votre tableau de bord."
-          variant="info"
-        />
-
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Types d'exceptions</h4>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-              Fermeture exceptionnelle
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-amber-500 rounded-full"></span>
-              Horaires ou lieu différent
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-              Vacances
-            </li>
-          </ul>
-        </div>
-      </div>
-    </StepContainer>
-  );
+  return null;
 }

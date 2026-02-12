@@ -64,7 +64,7 @@ export function ProgressBar({
         })}
       </div>
 
-      {/* Mobile version - compact bar */}
+      {/* Mobile version - tappable dots */}
       <div className="sm:hidden">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-900">
@@ -72,11 +72,32 @@ export function ProgressBar({
           </span>
           <span className="text-sm text-gray-500">{labels[currentStep - 1]}</span>
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary-500 rounded-full transition-all duration-500"
-            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          />
+        <div className="flex items-center gap-1.5">
+          {labels.map((label, index) => {
+            const stepNumber = index + 1;
+            const isCompleted = completedSteps.includes(stepNumber);
+            const isCurrent = currentStep === stepNumber;
+            const isPast = currentStep > stepNumber;
+            const isClickable = onStepClick && (isCompleted || isPast) && !isCurrent;
+
+            return (
+              <button
+                key={index}
+                type="button"
+                onClick={() => isClickable && onStepClick(stepNumber)}
+                disabled={!isClickable}
+                className={`h-2 rounded-full transition-all flex-1 ${
+                  isCurrent
+                    ? 'bg-primary-500'
+                    : isCompleted || isPast
+                      ? 'bg-success-500'
+                      : 'bg-gray-200'
+                } ${isClickable ? 'cursor-pointer active:scale-95' : ''}`}
+                aria-label={isClickable ? `Aller à ${label}` : undefined}
+                title={label}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

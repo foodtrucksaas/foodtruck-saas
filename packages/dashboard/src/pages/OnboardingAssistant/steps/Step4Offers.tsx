@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Gift, Package, Tag, TrendingUp, ChevronDown, Check, Pencil, Trash2 } from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
+import { useToast, Toast } from '../../../components/Alert';
+import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
+import { ConfirmDialog } from '../../../components/ConfirmDialog';
 
 type OfferSubStep = 'ask' | 'select-type' | 'configure' | 'done';
 
@@ -38,6 +41,8 @@ const OFFER_TYPES = [
 
 export function Step4Offers() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
+  const { toast, hideToast, showSuccess } = useToast();
+  const confirmDialog = useConfirmDialog();
   const [subStep, setSubStep] = useState<OfferSubStep>(state.offers.length > 0 ? 'done' : 'ask');
   const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(null);
   const [offerName, setOfferName] = useState('');
@@ -121,6 +126,13 @@ export function Step4Offers() {
     const config: Record<string, unknown> = { ...offerConfig };
     if (selectedType === 'bundle') {
       config.bundle_category_names = bundleCategories;
+      // Snapshot category IDs for safety (in case categories get renamed before save)
+      const catIdMap: Record<string, string> = {};
+      for (const catName of bundleCategories) {
+        const cat = state.categories.find((c) => c.name === catName);
+        if (cat) catIdMap[catName] = cat.id;
+      }
+      config.bundle_category_ids = catIdMap;
       // Build detailed selection per category
       const bundleSelection: Record<
         string,
@@ -159,8 +171,10 @@ export function Step4Offers() {
       const updated = [...state.offers];
       updated[editingOfferIndex] = offer;
       dispatch({ type: 'SET_OFFERS', offers: updated });
+      showSuccess('Offre modifiée !');
     } else {
       dispatch({ type: 'ADD_OFFER', offer });
+      showSuccess('Offre créée !');
     }
 
     setSubStep('done');
@@ -241,9 +255,18 @@ export function Step4Offers() {
     setSubStep('configure');
   };
 
-  const handleDeleteOffer = (index: number) => {
+  const handleDeleteOffer = async (index: number) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cette offre ?',
+      message: 'Cette action est irréversible.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     const updated = state.offers.filter((_, i) => i !== index);
     dispatch({ type: 'SET_OFFERS', offers: updated });
+    confirmDialog.closeDialog();
+    showSuccess('Offre supprimée');
     if (updated.length === 0) {
       dispatch({ type: 'SET_WANTS_OFFERS', wants: null });
       setSubStep('ask');
@@ -258,6 +281,19 @@ export function Step4Offers() {
   const handleFinish = () => {
     nextStep();
   };
+
+  const toastAndDialog = (
+    <>
+      <Toast {...toast} onDismiss={hideToast} />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        loading={confirmDialog.loading}
+        {...confirmDialog.options}
+      />
+    </>
+  );
 
   // Step: Ask if they want offers
   if (subStep === 'ask') {
@@ -426,6 +462,7 @@ export function Step4Offers() {
                             <button
                               type="button"
                               onClick={toggleCategory}
+                              aria-label={`${isCatSelected ? 'Retirer' : 'Inclure'} ${cat.name}`}
                               className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
                                 isCatSelected
                                   ? 'bg-primary-500 border-primary-500'
@@ -459,7 +496,7 @@ export function Step4Offers() {
 
                           {/* Expanded: items with per-item options */}
                           {isCatSelected && isExpanded && (
-                            <div className="ml-4 mt-1 mb-2 space-y-0.5">
+                            <div className="ml-2 sm:ml-4 mt-1 mb-2 space-y-0.5">
                               {cat.items.map((item) => {
                                 const isExcluded = excluded.includes(item.id);
                                 const isItemExpanded = expandedItems.includes(item.id);
@@ -479,6 +516,7 @@ export function Step4Offers() {
                                       <button
                                         type="button"
                                         onClick={() => toggleExcludeItem(item.id)}
+                                        aria-label={`${isExcluded ? 'Inclure' : 'Exclure'} ${item.name}`}
                                         className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
                                           !isExcluded
                                             ? 'bg-primary-500 border-primary-500'
@@ -516,7 +554,7 @@ export function Step4Offers() {
                                     </div>
                                     {/* Per-item options */}
                                     {hasOptions && !isExcluded && isItemExpanded && (
-                                      <div className="ml-9 mb-2 space-y-2">
+                                      <div className="ml-6 sm:ml-9 mb-2 space-y-2">
                                         {allOptionGroups.map((og) => (
                                           <div key={og.id}>
                                             <p className="text-xs text-gray-400 mb-1">{og.name}</p>
@@ -775,7 +813,38 @@ export function Step4Offers() {
               </div>
             </div>
           )}
+
+          {/* Optional validity dates */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">Validité (optionnel)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Date de début</label>
+                <input
+                  type="date"
+                  value={String(offerConfig.start_date || '')}
+                  onChange={(e) => setOfferConfig({ ...offerConfig, start_date: e.target.value })}
+                  className="input min-h-[44px] text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Date de fin</label>
+                <input
+                  type="date"
+                  value={String(offerConfig.end_date || '')}
+                  onChange={(e) => setOfferConfig({ ...offerConfig, end_date: e.target.value })}
+                  className="input min-h-[44px] text-sm"
+                />
+              </div>
+            </div>
+            {!offerConfig.start_date && !offerConfig.end_date && (
+              <p className="text-xs text-gray-400">
+                Sans dates, l'offre sera active immédiatement et sans limite.
+              </p>
+            )}
+          </div>
         </div>
+        {toastAndDialog}
       </StepContainer>
     );
   }
@@ -835,6 +904,7 @@ export function Step4Offers() {
             Ajouter une offre
           </ActionButton>
         </div>
+        {toastAndDialog}
       </StepContainer>
     );
   }

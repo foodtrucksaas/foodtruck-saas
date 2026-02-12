@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Smartphone, Ticket, Clock, Check } from 'lucide-react';
+import { Banknote, CreditCard, Smartphone, Ticket, Clock, Check, Heart } from 'lucide-react';
 import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer } from '../components';
 
@@ -128,6 +128,68 @@ export function Step5Settings() {
               ...
             </p>
           </div>
+        </div>
+
+        {/* Description */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Description</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Présentez votre foodtruck à vos clients. Visible sur votre page.
+            </p>
+          </div>
+          <textarea
+            value={state.settings.description}
+            onChange={(e) =>
+              dispatch({ type: 'UPDATE_SETTINGS', settings: { description: e.target.value } })
+            }
+            className="input text-base w-full resize-none"
+            placeholder="Ex: Cuisine thaï maison, produits frais et locaux..."
+            rows={3}
+          />
+        </div>
+
+        {/* Loyalty */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Programme de fidélité</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Récompensez vos clients réguliers. Configurable en détail plus tard.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              dispatch({
+                type: 'UPDATE_SETTINGS',
+                settings: { loyalty_enabled: !state.settings.loyalty_enabled },
+              })
+            }
+            className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all active:scale-[0.98] ${
+              state.settings.loyalty_enabled
+                ? 'border-primary-500 bg-primary-50 shadow-md'
+                : 'border-gray-200 hover:border-gray-300 shadow-card'
+            }`}
+          >
+            <Heart
+              className={`w-6 h-6 ${state.settings.loyalty_enabled ? 'text-primary-600' : 'text-gray-400'}`}
+            />
+            <div className="flex-1 text-left">
+              <span
+                className={`font-medium ${state.settings.loyalty_enabled ? 'text-primary-700' : 'text-gray-700'}`}
+              >
+                Activer la fidélité
+              </span>
+              <p className="text-xs text-gray-500 mt-0.5">
+                1 point par euro dépensé, récompense à 50 points
+              </p>
+            </div>
+            {state.settings.loyalty_enabled && (
+              <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </button>
         </div>
       </div>
     </StepContainer>

@@ -11,6 +11,11 @@ import {
   ExternalLink,
   QrCode,
   LayoutDashboard,
+  Download,
+  FileText,
+  Heart,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { useOnboarding } from '../OnboardingContext';
 import { ConfettiCelebration, ActionButton } from '../components';
@@ -20,8 +25,13 @@ export function StepComplete() {
   const { state } = useOnboarding();
   const [showConfetti, setShowConfetti] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [qrLoading, setQrLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   const foodtruckUrl = state.foodtruck?.slug ? `https://${state.foodtruck.slug}.onmange.app` : '';
+  const qrCodeUrl = foodtruckUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(foodtruckUrl)}&format=png&margin=10`
+    : '';
 
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 3000);
@@ -37,6 +47,27 @@ export function StepComplete() {
 
   const handleGoToDashboard = () => {
     navigate('/');
+  };
+
+  const handleDownloadQR = async () => {
+    if (!qrCodeUrl || downloading) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qrcode-${state.foodtruck?.name?.replace(/\s+/g, '-').toLowerCase() || 'foodtruck'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Silent fail
+    } finally {
+      setDownloading(false);
+    }
   };
 
   // Calculate stats
@@ -151,14 +182,83 @@ export function StepComplete() {
           </a>
         </div>
 
-        {/* QR Code button */}
-        <ActionButton
-          onClick={() => navigate('/settings')}
-          variant="secondary"
-          icon={<QrCode className="w-5 h-5" />}
-        >
-          Générer mon QR Code
-        </ActionButton>
+        {/* QR Code inline */}
+        {qrCodeUrl && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
+            <div className="flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-primary-500" />
+              <h3 className="font-semibold text-gray-900">Votre QR Code</h3>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <div
+                className="relative bg-white p-3 rounded-lg border border-gray-200"
+                style={{ minWidth: 182, minHeight: 182 }}
+              >
+                {qrLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
+                  </div>
+                )}
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code"
+                  style={{ width: 150, height: 150 }}
+                  className={`block transition-opacity ${qrLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setQrLoading(false)}
+                  onError={() => setQrLoading(false)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadQR}
+                disabled={downloading}
+                className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-xl text-sm font-medium transition-colors active:scale-95"
+              >
+                <Download className="w-4 h-4" />
+                {downloading ? 'Téléchargement...' : 'Télécharger'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Next steps checklist */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3 shadow-card">
+          <h3 className="font-semibold text-gray-900">Prochaines étapes</h3>
+          <p className="text-sm text-gray-500">
+            Complétez votre profil pour attirer plus de clients.
+          </p>
+          <div className="space-y-2">
+            {[
+              {
+                icon: FileText,
+                label: 'Ajoutez une description à votre foodtruck',
+                to: '/settings',
+              },
+              {
+                icon: UtensilsCrossed,
+                label: 'Ajoutez des descriptions à vos articles',
+                to: '/menu',
+              },
+              { icon: Heart, label: 'Configurez votre programme de fidélité', to: '/settings' },
+              { icon: QrCode, label: 'Téléchargez votre QR code', to: '/settings' },
+            ].map(({ icon: Icon, label, to }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => navigate(to)}
+                className="flex items-center gap-3 w-full p-3 bg-gray-50 hover:bg-primary-50 rounded-xl text-left transition-colors group"
+              >
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 group-hover:border-primary-200 flex-shrink-0">
+                  <Icon className="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+                </div>
+                <span className="text-sm text-gray-700 group-hover:text-primary-700 flex-1">
+                  {label}
+                </span>
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary-400 flex-shrink-0" />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Fixed footer */}

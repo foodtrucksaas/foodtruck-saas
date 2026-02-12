@@ -100,7 +100,7 @@ export function useOnboardingAssistant() {
             optionGroups: (cat.category_option_groups || []).map((og: any) => ({
               id: og.id,
               name: og.name,
-              type: og.is_required ? 'size' : 'supplement',
+              type: og.is_required ? 'size' : og.is_multiple ? 'supplement' : 'other',
               options: (og.category_options || []).map((opt: any) => ({
                 name: opt.name,
                 priceModifier: opt.price_modifier,
@@ -109,6 +109,7 @@ export function useOnboardingAssistant() {
             items: (cat.menu_items || []).map((item: any) => ({
               id: item.id,
               name: item.name,
+              description: item.description || undefined,
               prices: { base: item.price },
             })),
           }));
@@ -363,6 +364,7 @@ export function useOnboardingAssistant() {
           foodtruck_id: foodtruck.id,
           category_id: categoryId,
           name: item.name,
+          description: item.description || null,
           price: basePrice,
           display_order: itemIndex,
           is_available: true,
@@ -435,6 +437,7 @@ export function useOnboardingAssistant() {
       // Build bundle category_choice config with real IDs
       if (offer.type === 'bundle' && offer.config.bundle_category_names) {
         const catNames = offer.config.bundle_category_names as string[];
+        const catIdMap = (offer.config.bundle_category_ids || {}) as Record<string, string>;
         const selection = (offer.config.bundle_selection || {}) as Record<
           string,
           { excluded_items?: string[]; excluded_options?: Record<string, string[]> }
@@ -442,7 +445,10 @@ export function useOnboardingAssistant() {
         const bundleCats: Json[] = [];
 
         for (const catName of catNames) {
-          const dbCat = dbCategories?.find((c) => c.name === catName);
+          // Try by name first, then fall back to snapshotted ID
+          const dbCat =
+            dbCategories?.find((c) => c.name === catName) ||
+            (catIdMap[catName] ? dbCategories?.find((c) => c.id === catIdMap[catName]) : undefined);
           if (!dbCat) continue;
           const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
           const sel = selection[catName] || {};
@@ -485,6 +491,12 @@ export function useOnboardingAssistant() {
           offer_type: offer.type,
           config: config,
           is_active: true,
+          start_date: offer.config.start_date
+            ? new Date(String(offer.config.start_date)).toISOString()
+            : null,
+          end_date: offer.config.end_date
+            ? new Date(String(offer.config.end_date)).toISOString()
+            : null,
         })
         .select('id')
         .single();
@@ -494,6 +506,7 @@ export function useOnboardingAssistant() {
       // Insert offer_items for bundles (all non-excluded items)
       if (offer.type === 'bundle' && offerData && offer.config.bundle_category_names) {
         const catNames = offer.config.bundle_category_names as string[];
+        const catIdMap2 = (offer.config.bundle_category_ids || {}) as Record<string, string>;
         const selection = (offer.config.bundle_selection || {}) as Record<
           string,
           { excluded_items?: string[] }
@@ -506,7 +519,11 @@ export function useOnboardingAssistant() {
         }[] = [];
 
         for (const catName of catNames) {
-          const dbCat = dbCategories?.find((c) => c.name === catName);
+          const dbCat =
+            dbCategories?.find((c) => c.name === catName) ||
+            (catIdMap2[catName]
+              ? dbCategories?.find((c) => c.id === catIdMap2[catName])
+              : undefined);
           if (!dbCat) continue;
           const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
           const excludedNames = selection[catName]?.excluded_items || [];
@@ -542,6 +559,8 @@ export function useOnboardingAssistant() {
       .update({
         payment_methods: state.settings.payment_methods,
         pickup_slot_interval: state.settings.pickup_slot_interval,
+        description: state.settings.description || null,
+        loyalty_enabled: state.settings.loyalty_enabled,
         onboarding_completed_at: new Date().toISOString(),
         onboarding_step: 6, // Completed
       })

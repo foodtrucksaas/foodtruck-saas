@@ -509,6 +509,615 @@ describe('OnboardingContext', () => {
       expect(result.current.state.locations).toEqual([]);
     });
   });
+
+  describe('Replace Option Group in Category', () => {
+    it('should replace existing option group by id', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [
+          {
+            id: 'og-1',
+            name: 'Taille',
+            type: 'size' as const,
+            options: [{ name: 'S' }, { name: 'M' }],
+          },
+        ],
+        items: [],
+      };
+      const updatedGroup = {
+        id: 'og-1-new',
+        name: 'Taille',
+        type: 'size' as const,
+        options: [{ name: 'S' }, { name: 'M' }, { name: 'L' }],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
+          categoryId: 'cat-1',
+          oldGroupId: 'og-1',
+          optionGroup: updatedGroup,
+        });
+      });
+
+      expect(result.current.state.categories[0].optionGroups).toHaveLength(1);
+      expect(result.current.state.categories[0].optionGroups[0]).toEqual(updatedGroup);
+      expect(result.current.state.currentCategory?.optionGroups[0]).toEqual(updatedGroup);
+    });
+
+    it('should not affect other option groups', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [
+          { id: 'og-1', name: 'Taille', type: 'size' as const, options: [{ name: 'S' }] },
+          {
+            id: 'og-2',
+            name: 'Supplements',
+            type: 'supplement' as const,
+            options: [{ name: 'Fromage' }],
+          },
+        ],
+        items: [],
+      };
+      const updatedGroup = {
+        id: 'og-1-new',
+        name: 'Taille',
+        type: 'size' as const,
+        options: [{ name: 'S' }, { name: 'M' }, { name: 'L' }],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
+          categoryId: 'cat-1',
+          oldGroupId: 'og-1',
+          optionGroup: updatedGroup,
+        });
+      });
+
+      expect(result.current.state.categories[0].optionGroups).toHaveLength(2);
+      expect(result.current.state.categories[0].optionGroups[0]).toEqual(updatedGroup);
+      expect(result.current.state.categories[0].optionGroups[1].id).toBe('og-2');
+    });
+
+    it('should not affect other categories', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const cat1 = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [
+          { id: 'og-1', name: 'Taille', type: 'size' as const, options: [{ name: 'S' }] },
+        ],
+        items: [],
+      };
+      const cat2 = {
+        id: 'cat-2',
+        name: 'Boissons',
+        optionGroups: [
+          { id: 'og-2', name: 'Taille', type: 'size' as const, options: [{ name: '33cl' }] },
+        ],
+        items: [],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category: cat1 });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+        result.current.dispatch({ type: 'ADD_CATEGORY', category: cat2 });
+        result.current.dispatch({
+          type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
+          categoryId: 'cat-1',
+          oldGroupId: 'og-1',
+          optionGroup: {
+            id: 'og-1-new',
+            name: 'Taille',
+            type: 'size' as const,
+            options: [{ name: 'S' }, { name: 'M' }],
+          },
+        });
+      });
+
+      // cat-2 should be untouched
+      expect(result.current.state.categories[1].optionGroups[0].options).toHaveLength(1);
+      expect(result.current.state.categories[1].optionGroups[0].options[0].name).toBe('33cl');
+    });
+  });
+
+  describe('Update Item in Category', () => {
+    it('should update item by id in categories and currentCategory', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [],
+        items: [
+          { id: 'item-1', name: 'Margherita', prices: { base: 1000 } },
+          { id: 'item-2', name: 'Napoli', prices: { base: 1200 } },
+        ],
+      };
+      const updatedItem = {
+        id: 'item-1',
+        name: 'Margherita XL',
+        prices: { S: 1000, M: 1200, L: 1500 },
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'UPDATE_ITEM_IN_CATEGORY',
+          categoryId: 'cat-1',
+          item: updatedItem,
+        });
+      });
+
+      expect(result.current.state.categories[0].items[0]).toEqual(updatedItem);
+      expect(result.current.state.categories[0].items[1].name).toBe('Napoli');
+      expect(result.current.state.currentCategory?.items[0]).toEqual(updatedItem);
+    });
+
+    it('should not update items in other categories', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const cat1 = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [],
+        items: [{ id: 'item-1', name: 'Margherita', prices: { base: 1000 } }],
+      };
+      const cat2 = {
+        id: 'cat-2',
+        name: 'Desserts',
+        optionGroups: [],
+        items: [{ id: 'item-2', name: 'Tiramisu', prices: { base: 600 } }],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category: cat1 });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+        result.current.dispatch({ type: 'ADD_CATEGORY', category: cat2 });
+        result.current.dispatch({
+          type: 'UPDATE_ITEM_IN_CATEGORY',
+          categoryId: 'cat-1',
+          item: { id: 'item-1', name: 'Margherita XXL', prices: { base: 2000 } },
+        });
+      });
+
+      expect(result.current.state.categories[0].items[0].name).toBe('Margherita XXL');
+      expect(result.current.state.categories[1].items[0].name).toBe('Tiramisu');
+    });
+  });
+
+  describe('Remove Item from Category', () => {
+    it('should remove item by id from categories and currentCategory', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [],
+        items: [
+          { id: 'item-1', name: 'Margherita', prices: { base: 1000 } },
+          { id: 'item-2', name: 'Napoli', prices: { base: 1200 } },
+        ],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'REMOVE_ITEM_FROM_CATEGORY',
+          categoryId: 'cat-1',
+          itemId: 'item-1',
+        });
+      });
+
+      expect(result.current.state.categories[0].items).toHaveLength(1);
+      expect(result.current.state.categories[0].items[0].id).toBe('item-2');
+      expect(result.current.state.currentCategory?.items).toHaveLength(1);
+    });
+
+    it('should handle removing last item', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [],
+        items: [{ id: 'item-1', name: 'Margherita', prices: { base: 1000 } }],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'REMOVE_ITEM_FROM_CATEGORY',
+          categoryId: 'cat-1',
+          itemId: 'item-1',
+        });
+      });
+
+      expect(result.current.state.categories[0].items).toHaveLength(0);
+    });
+  });
+
+  describe('Remove Category', () => {
+    it('should remove category by id', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-2', name: 'Desserts', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+        result.current.dispatch({ type: 'REMOVE_CATEGORY', categoryId: 'cat-1' });
+      });
+
+      expect(result.current.state.categories).toHaveLength(1);
+      expect(result.current.state.categories[0].id).toBe('cat-2');
+    });
+
+    it('should clear currentCategory if removed category is current', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'REMOVE_CATEGORY', categoryId: 'cat-1' });
+      });
+
+      expect(result.current.state.currentCategory).toBeNull();
+      expect(result.current.state.categories).toHaveLength(0);
+    });
+
+    it('should not affect currentCategory if different category is removed', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-2', name: 'Desserts', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'REMOVE_CATEGORY', categoryId: 'cat-1' });
+      });
+
+      expect(result.current.state.currentCategory?.id).toBe('cat-2');
+    });
+  });
+
+  describe('Set Current Category', () => {
+    it('should set current category', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] };
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_CURRENT_CATEGORY', category });
+      });
+
+      expect(result.current.state.currentCategory).toEqual(category);
+    });
+
+    it('should set current category to null', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
+      });
+
+      expect(result.current.state.currentCategory).toBeNull();
+    });
+  });
+
+  describe('Option Groups with Price Modifiers', () => {
+    it('should preserve priceModifier on options', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [],
+        items: [],
+      };
+      const optionGroup = {
+        id: 'og-1',
+        name: 'Supplements',
+        type: 'supplement' as const,
+        options: [
+          { name: 'Fromage', priceModifier: 150 },
+          { name: 'Jambon', priceModifier: 200 },
+          { name: 'Olives', priceModifier: 100 },
+        ],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'ADD_OPTION_GROUP_TO_CATEGORY',
+          categoryId: 'cat-1',
+          optionGroup,
+        });
+      });
+
+      const options = result.current.state.categories[0].optionGroups[0].options;
+      expect(options[0].priceModifier).toBe(150);
+      expect(options[1].priceModifier).toBe(200);
+      expect(options[2].priceModifier).toBe(100);
+    });
+
+    it('should preserve priceModifier when replacing option group', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const category = {
+        id: 'cat-1',
+        name: 'Pizzas',
+        optionGroups: [
+          {
+            id: 'og-1',
+            name: 'Supplements',
+            type: 'supplement' as const,
+            options: [{ name: 'Fromage', priceModifier: 150 }],
+          },
+        ],
+        items: [],
+      };
+      const updatedGroup = {
+        id: 'og-1-new',
+        name: 'Supplements',
+        type: 'supplement' as const,
+        options: [
+          { name: 'Fromage', priceModifier: 150 },
+          { name: 'Jambon', priceModifier: 200 },
+        ],
+      };
+
+      act(() => {
+        result.current.dispatch({ type: 'ADD_CATEGORY', category });
+        result.current.dispatch({
+          type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
+          categoryId: 'cat-1',
+          oldGroupId: 'og-1',
+          optionGroup: updatedGroup,
+        });
+      });
+
+      const options = result.current.state.categories[0].optionGroups[0].options;
+      expect(options).toHaveLength(2);
+      expect(options[0].priceModifier).toBe(150);
+      expect(options[1].priceModifier).toBe(200);
+    });
+  });
+
+  describe('Finalize Category - Update Path', () => {
+    it('should update existing category when finalizing', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+      });
+
+      // Modify current category
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_ITEM_TO_CATEGORY',
+          categoryId: 'cat-1',
+          item: { id: 'item-1', name: 'Margherita', prices: { base: 1000 } },
+        });
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+      });
+
+      expect(result.current.state.categories).toHaveLength(1);
+      expect(result.current.state.categories[0].items).toHaveLength(1);
+      expect(result.current.state.currentCategory).toBeNull();
+      expect(result.current.state.menuSubStep).toBe('done');
+    });
+
+    it('should do nothing when no currentCategory', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+      });
+
+      expect(result.current.state.categories).toHaveLength(0);
+      expect(result.current.state.currentCategory).toBeNull();
+    });
+  });
+
+  describe('Update Current Category with null', () => {
+    it('should set currentCategory to null when category is null', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+        result.current.dispatch({ type: 'UPDATE_CURRENT_CATEGORY', category: null });
+      });
+
+      expect(result.current.state.currentCategory).toBeNull();
+    });
+
+    it('should set currentCategory to null when no current category exists', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({ type: 'UPDATE_CURRENT_CATEGORY', category: { name: 'Test' } });
+      });
+
+      // When currentCategory is null and action.category is not null, it should remain null
+      expect(result.current.state.currentCategory).toBeNull();
+    });
+  });
+
+  describe('Set Categories', () => {
+    it('should replace all categories', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+      const categories = [
+        { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        { id: 'cat-2', name: 'Desserts', optionGroups: [], items: [] },
+        { id: 'cat-3', name: 'Boissons', optionGroups: [], items: [] },
+      ];
+
+      act(() => {
+        // Add some initial categories
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'old', name: 'Old', optionGroups: [], items: [] },
+        });
+        // Then replace all
+        result.current.dispatch({ type: 'SET_CATEGORIES', categories });
+      });
+
+      expect(result.current.state.categories).toHaveLength(3);
+      expect(result.current.state.categories).toEqual(categories);
+    });
+  });
+
+  describe('Multiple Locations', () => {
+    it('should add multiple locations sequentially', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_LOCATION',
+          location: {
+            name: 'Marche 1',
+            address: 'Addr 1',
+            latitude: 48.8,
+            longitude: 2.3,
+            google_place_id: 'p1',
+          },
+        });
+        result.current.dispatch({
+          type: 'ADD_LOCATION',
+          location: {
+            name: 'Marche 2',
+            address: 'Addr 2',
+            latitude: 48.9,
+            longitude: 2.4,
+            google_place_id: 'p2',
+          },
+        });
+      });
+
+      expect(result.current.state.locations).toHaveLength(2);
+      expect(result.current.state.locations[0].name).toBe('Marche 1');
+      expect(result.current.state.locations[1].name).toBe('Marche 2');
+    });
+  });
+
+  describe('Complex Workflows', () => {
+    it('should handle full menu creation workflow', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      act(() => {
+        // Create category
+        result.current.dispatch({
+          type: 'ADD_CATEGORY',
+          category: { id: 'cat-1', name: 'Pizzas', optionGroups: [], items: [] },
+        });
+
+        // Add size option group
+        result.current.dispatch({
+          type: 'ADD_OPTION_GROUP_TO_CATEGORY',
+          categoryId: 'cat-1',
+          optionGroup: {
+            id: 'og-1',
+            name: 'Taille',
+            type: 'size',
+            options: [{ name: 'S' }, { name: 'M' }, { name: 'L' }],
+          },
+        });
+
+        // Add supplement option group
+        result.current.dispatch({
+          type: 'ADD_OPTION_GROUP_TO_CATEGORY',
+          categoryId: 'cat-1',
+          optionGroup: {
+            id: 'og-2',
+            name: 'Supplements',
+            type: 'supplement',
+            options: [
+              { name: 'Fromage', priceModifier: 150 },
+              { name: 'Jambon', priceModifier: 200 },
+            ],
+          },
+        });
+
+        // Add items
+        result.current.dispatch({
+          type: 'ADD_ITEM_TO_CATEGORY',
+          categoryId: 'cat-1',
+          item: { id: 'item-1', name: 'Margherita', prices: { S: 800, M: 1000, L: 1200 } },
+        });
+        result.current.dispatch({
+          type: 'ADD_ITEM_TO_CATEGORY',
+          categoryId: 'cat-1',
+          item: { id: 'item-2', name: 'Napoli', prices: { S: 900, M: 1100, L: 1300 } },
+        });
+
+        // Finalize
+        result.current.dispatch({ type: 'FINALIZE_CATEGORY' });
+      });
+
+      expect(result.current.state.categories).toHaveLength(1);
+      expect(result.current.state.categories[0].optionGroups).toHaveLength(2);
+      expect(result.current.state.categories[0].items).toHaveLength(2);
+      expect(result.current.state.currentCategory).toBeNull();
+      expect(result.current.state.menuSubStep).toBe('done');
+    });
+
+    it('should handle full step navigation workflow', () => {
+      const { result } = renderHook(() => useOnboarding(), { wrapper });
+
+      // Navigate through all 5 steps
+      act(() => {
+        result.current.nextStep();
+      }); // 1 → 2
+      act(() => {
+        result.current.nextStep();
+      }); // 2 → 3
+      act(() => {
+        result.current.nextStep();
+      }); // 3 → 4
+      act(() => {
+        result.current.nextStep();
+      }); // 4 → 5
+      act(() => {
+        result.current.nextStep();
+      }); // 5 → 6 (complete)
+
+      expect(result.current.state.currentStep).toBe(6);
+      expect(result.current.state.completedSteps).toEqual([1, 2, 3, 4, 5]);
+
+      // Go back to step 3
+      act(() => {
+        result.current.goToStep(3);
+      });
+
+      expect(result.current.state.currentStep).toBe(3);
+      // Completed steps should still include all previously completed
+      expect(result.current.state.completedSteps).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
 });
 
 describe('useOnboarding without provider', () => {

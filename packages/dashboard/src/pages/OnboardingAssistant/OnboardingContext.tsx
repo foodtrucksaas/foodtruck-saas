@@ -37,6 +37,7 @@ export interface OnboardingOptionGroup {
 export interface OnboardingItem {
   id: string;
   name: string;
+  description?: string;
   prices: Record<string, number>; // optionName -> price (for size options) OR 'base' -> basePrice
 }
 
@@ -56,6 +57,8 @@ export interface OnboardingOffer {
 export interface OnboardingSettings {
   payment_methods: string[];
   pickup_slot_interval: number;
+  description: string;
+  loyalty_enabled: boolean;
 }
 
 export interface OnboardingState {
@@ -165,6 +168,8 @@ const initialState: OnboardingState = {
   settings: {
     payment_methods: ['cash', 'card'],
     pickup_slot_interval: 15,
+    description: '',
+    loyalty_enabled: false,
   },
 };
 
