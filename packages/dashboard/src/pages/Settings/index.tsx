@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Store,
   Share2,
@@ -11,6 +12,7 @@ import {
   User,
   Link2,
   Code2,
+  Wand2,
 } from 'lucide-react';
 import { useSettings } from './useSettings';
 import { ProfileSection } from './ProfileSection';
@@ -36,6 +38,7 @@ const SECTIONS = [
   { id: 'orders', label: 'Commandes', icon: ShoppingBag },
   { id: 'offers', label: 'Offres', icon: Tag },
   { id: 'theme', label: 'Thème', icon: Palette },
+  { id: 'assistant', label: 'Assistant', icon: Wand2 },
   { id: 'account', label: 'Compte', icon: User },
 ] as const;
 
@@ -65,6 +68,7 @@ export default function Settings() {
     removeCover,
   } = useSettings();
 
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<SectionId>('link');
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const navRef = useRef<HTMLDivElement>(null);
@@ -369,6 +373,30 @@ export default function Settings() {
         className="scroll-mt-36"
       >
         <ThemeSection />
+      </div>
+
+      {/* Assistant Section */}
+      <div
+        ref={(el) => {
+          sectionRefs.current['assistant'] = el;
+        }}
+        className="scroll-mt-36"
+      >
+        <section className="card p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Assistant de configuration</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Relancez l'assistant pour modifier vos emplacements, horaires, menu et offres en mode
+            guidé.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/onboarding-assistant')}
+            className="flex items-center gap-2 px-4 py-3 min-h-[44px] bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-xl text-sm font-medium transition-colors active:scale-95"
+          >
+            <Wand2 className="w-5 h-5" />
+            Lancer l'assistant
+          </button>
+        </section>
       </div>
 
       {/* Account Section */}
