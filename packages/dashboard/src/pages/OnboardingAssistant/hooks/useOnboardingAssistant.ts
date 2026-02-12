@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useFoodtruck } from '../../../contexts/FoodtruckContext';
 import {
@@ -6,6 +6,8 @@ import {
   OnboardingCategory,
   OnboardingLocation,
   OnboardingSchedule,
+  hasOnboardingSession,
+  clearOnboardingSession,
 } from '../OnboardingContext';
 import type { Json } from '@foodtruck/shared';
 
@@ -15,6 +17,7 @@ export function useOnboardingAssistant() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const initialLoadDone = useRef(false);
 
   // Initialize foodtruck in state when available
   useEffect(() => {
@@ -30,11 +33,19 @@ export function useOnboardingAssistant() {
     }
   }, [foodtruck, state.foodtruck, dispatch]);
 
-  // Load existing data from database
+  // Load existing data — only once, and skip if sessionStorage already has state
   useEffect(() => {
-    const loadExistingData = async () => {
-      if (!foodtruck) return;
+    if (!foodtruck || initialLoadDone.current) return;
+    initialLoadDone.current = true;
 
+    // Session has state → reducer already restored it, no DB round-trip needed
+    if (hasOnboardingSession()) {
+      setLoaded(true);
+      return;
+    }
+
+    // First visit (or cleared browser) — load from DB
+    const loadExistingData = async () => {
       try {
         // Load locations
         const { data: locationsData } = await supabase
@@ -110,7 +121,8 @@ export function useOnboardingAssistant() {
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
         }
-        // Restore step progress from database (query fresh value, context may be stale)
+
+        // Restore step progress from database
         const { data: ftData } = await supabase
           .from('foodtrucks')
           .select('onboarding_step')
@@ -394,6 +406,7 @@ export function useOnboardingAssistant() {
 
       // Refresh foodtruck context
       await refresh();
+      clearOnboardingSession();
 
       return true;
     } catch (err) {

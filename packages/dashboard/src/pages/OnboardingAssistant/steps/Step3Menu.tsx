@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Check, Ruler, CircleDot, X, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import {
   useOnboarding,
@@ -53,13 +53,12 @@ export function Step3Menu() {
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-  // When entering Step 3 with existing categories, show the "done" summary instead of "create category"
-  // Watches categories.length to handle async DB loading (categories may arrive after mount)
-  useEffect(() => {
-    if (state.categories.length > 0 && state.menuSubStep === 'category' && !state.currentCategory) {
-      dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
-    }
-  }, [state.categories.length, state.menuSubStep, state.currentCategory, dispatch]);
+  // If categories exist but sub-step is 'category' with no active edit, show summary instead
+  // (handles DB first-load where menuSubStep defaults to 'category')
+  const effectiveSubStep =
+    state.menuSubStep === 'category' && state.categories.length > 0 && !state.currentCategory
+      ? 'done'
+      : state.menuSubStep;
 
   // Get size options for current category (if any)
   const sizeOptions =
@@ -212,7 +211,7 @@ export function Step3Menu() {
   };
 
   const SUB_STEPS = ['category', 'options', 'items', 'done'] as const;
-  const currentSubStepIndex = SUB_STEPS.indexOf(state.menuSubStep as (typeof SUB_STEPS)[number]);
+  const currentSubStepIndex = SUB_STEPS.indexOf(effectiveSubStep as (typeof SUB_STEPS)[number]);
 
   const SubStepProgress = () => (
     <div className="flex items-center justify-center gap-1.5">
@@ -228,7 +227,7 @@ export function Step3Menu() {
   );
 
   // Sub-step: Create category
-  if (state.menuSubStep === 'category') {
+  if (effectiveSubStep === 'category') {
     const handleBackFromCategory = () => {
       if (state.categories.length > 0) {
         dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
@@ -305,7 +304,7 @@ export function Step3Menu() {
   }
 
   // Sub-step: Options
-  if (state.menuSubStep === 'options' && state.currentCategory) {
+  if (effectiveSubStep === 'options' && state.currentCategory) {
     // Option type selection
     if (!selectedOptionType) {
       return (
@@ -488,7 +487,7 @@ export function Step3Menu() {
   }
 
   // Sub-step: Items
-  if (state.menuSubStep === 'items' && state.currentCategory) {
+  if (effectiveSubStep === 'items' && state.currentCategory) {
     const isItemValid =
       itemName.trim() &&
       (hasSizeOptions
@@ -660,7 +659,7 @@ export function Step3Menu() {
   }
 
   // Sub-step: Done (asking for another category)
-  if (state.menuSubStep === 'done') {
+  if (effectiveSubStep === 'done') {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">

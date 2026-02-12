@@ -118,6 +118,15 @@ function OnboardingAssistantContent() {
     }
   };
 
+  // Show loader until data is ready (prevents flash of wrong step)
+  if (!loaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex flex-col">
       {/* Header */}

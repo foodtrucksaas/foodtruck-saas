@@ -1,4 +1,44 @@
-import { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+
+const SESSION_KEY = 'onboarding-state';
+
+function getStoredState(fallback: OnboardingState): OnboardingState {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Validate basic shape
+      if (parsed && typeof parsed.currentStep === 'number') {
+        return { ...fallback, ...parsed };
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return fallback;
+}
+
+export function hasOnboardingSession(): boolean {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (!saved) return false;
+    const parsed = JSON.parse(saved);
+    return !!(
+      parsed &&
+      (parsed.currentStep > 1 || parsed.locations?.length > 0 || parsed.categories?.length > 0)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function clearOnboardingSession() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Ignore
+  }
+}
 
 // Types for onboarding state
 export interface OnboardingLocation {
@@ -386,7 +426,16 @@ interface OnboardingContextType {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (init) => getStoredState(init));
+
+  // Persist every state change to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [state]);
 
   const nextStep = useCallback(() => {
     dispatch({ type: 'COMPLETE_STEP', step: state.currentStep });
