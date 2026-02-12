@@ -366,14 +366,14 @@ export function useOnboardingAssistant() {
       // Save menu items
       for (let itemIndex = 0; itemIndex < cat.items.length; itemIndex++) {
         const item = cat.items[itemIndex];
-        const basePrice = item.prices['base'] || Object.values(item.prices)[0] || 0;
+        const basePriceCents = item.prices['base'] || Object.values(item.prices)[0] || 0;
 
         const { error: itemError } = await supabase.from('menu_items').insert({
           foodtruck_id: foodtruck.id,
           category_id: categoryId,
           name: item.name,
           description: item.description || null,
-          price: basePrice,
+          price: basePriceCents / 100,
           display_order: itemIndex,
           is_available: true,
         });

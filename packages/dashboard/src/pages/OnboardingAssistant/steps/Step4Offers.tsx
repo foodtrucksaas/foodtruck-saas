@@ -43,7 +43,9 @@ export function Step4Offers() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
   const { toast, hideToast, showSuccess } = useToast();
   const confirmDialog = useConfirmDialog();
-  const [subStep, setSubStep] = useState<OfferSubStep>(state.offers.length > 0 ? 'done' : 'ask');
+  const [subStep, setSubStep] = useState<OfferSubStep>(
+    state.offers.length > 0 ? 'done' : state.wantsOffers === true ? 'select-type' : 'ask'
+  );
   const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(null);
   const [offerName, setOfferName] = useState('');
   const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>({});
