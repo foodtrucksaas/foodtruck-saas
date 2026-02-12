@@ -64,10 +64,10 @@ export function Step5Settings() {
                   key={id}
                   type="button"
                   onClick={() => togglePaymentMethod(id)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all active:scale-95 ${
+                  className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all active:scale-95 ${
                     isSelected
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary-500 bg-primary-50 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 shadow-card'
                   }`}
                 >
                   <Icon
@@ -117,9 +117,15 @@ export function Step5Settings() {
             <p className="text-sm text-blue-800">
               <span className="font-medium">Exemple :</span> Avec un intervalle de{' '}
               {state.settings.pickup_slot_interval} minutes, vos clients pourront choisir des
-              créneaux comme 12h00, 12h
-              {state.settings.pickup_slot_interval.toString().padStart(2, '0')}, 12h
-              {(state.settings.pickup_slot_interval * 2).toString().padStart(2, '0')}...
+              créneaux comme 12h00,{' '}
+              {(() => {
+                const m1 = state.settings.pickup_slot_interval;
+                const m2 = m1 * 2;
+                const h1 = Math.floor(m1 / 60);
+                const h2 = Math.floor(m2 / 60);
+                return `${12 + h1}h${(m1 % 60).toString().padStart(2, '0')}, ${12 + h2}h${(m2 % 60).toString().padStart(2, '0')}`;
+              })()}
+              ...
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Plus, Check, ArrowRight } from 'lucide-react';
+import { MapPin, Plus, Check, ArrowRight, Trash2 } from 'lucide-react';
 import {
   GooglePlacesAutocomplete,
   PlaceResult,
@@ -13,6 +13,7 @@ export function Step1Locations() {
   const { state, dispatch, nextStep } = useOnboarding();
   const { foodtruck } = useFoodtruck();
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   // Track whether the user explicitly clicked "add another"
   const [isAddingNew, setIsAddingNew] = useState(false);
 
@@ -32,9 +33,10 @@ export function Step1Locations() {
     if (!state.currentLocation.name.trim() || !foodtruck) return;
 
     setSaving(true);
+    setError(null);
     try {
       // Save to database immediately so it persists if user navigates away
-      const { data, error } = await supabase
+      const { data, error: saveError } = await supabase
         .from('locations')
         .insert({
           foodtruck_id: foodtruck.id,
@@ -47,7 +49,7 @@ export function Step1Locations() {
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (saveError) throw saveError;
 
       dispatch({
         type: 'ADD_LOCATION',
@@ -56,8 +58,27 @@ export function Step1Locations() {
       setIsAddingNew(false);
     } catch (err) {
       console.error('Error saving location:', err);
+      setError("Erreur lors de l'enregistrement. Veuillez réessayer.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteLocation = async (locationId: string | undefined, index: number) => {
+    // Delete from DB if it has an ID
+    if (locationId) {
+      try {
+        await supabase.from('locations').delete().eq('id', locationId);
+      } catch (err) {
+        console.error('Error deleting location:', err);
+      }
+    }
+    // Remove from state
+    const newLocations = state.locations.filter((_, i) => i !== index);
+    dispatch({ type: 'SET_LOCATIONS', locations: newLocations });
+    // If no locations left, show the form
+    if (newLocations.length === 0) {
+      setIsAddingNew(true);
     }
   };
 
@@ -87,7 +108,10 @@ export function Step1Locations() {
           {/* Display all locations */}
           <div className="space-y-2">
             {state.locations.map((loc, index) => (
-              <div key={loc.id || index} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div
+                key={loc.id || index}
+                className="bg-white border border-gray-100 rounded-2xl p-4 shadow-card"
+              >
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5 text-primary-600" />
@@ -96,7 +120,14 @@ export function Step1Locations() {
                     <p className="font-medium text-gray-900">{loc.name}</p>
                     <p className="text-sm text-gray-500 mt-0.5">{loc.address}</p>
                   </div>
-                  <Check className="w-5 h-5 text-success-500 flex-shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteLocation(loc.id, index)}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                    aria-label={`Supprimer ${loc.name}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -190,8 +221,15 @@ export function Step1Locations() {
           </div>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Quick suggestions for common location names */}
-        {state.locations.length === 0 && !state.currentLocation.name && (
+        {state.locations.length === 0 && (
           <div>
             <p className="text-xs text-gray-500 mb-2">Suggestions rapides :</p>
             <div className="flex flex-wrap gap-2">
@@ -205,7 +243,11 @@ export function Step1Locations() {
                       location: { name: suggestion },
                     })
                   }
-                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${
+                    state.currentLocation.name === suggestion
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
                 >
                   {suggestion}
                 </button>

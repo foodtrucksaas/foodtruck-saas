@@ -7,7 +7,7 @@ interface AssistantBubbleProps {
 }
 
 const variantStyles = {
-  default: 'bg-white border-gray-200',
+  default: 'bg-white border-gray-100 shadow-card',
   success: 'bg-success-50 border-success-200',
   info: 'bg-blue-50 border-blue-200',
   tip: 'bg-amber-50 border-amber-200',
@@ -29,7 +29,7 @@ export function AssistantBubble({ message, emoji, variant = 'default' }: Assista
         {emoji ? <span className="text-lg">{emoji}</span> : <Bot className="w-5 h-5" />}
       </div>
       <div
-        className={`flex-1 rounded-2xl rounded-tl-md px-4 py-3 border shadow-sm ${variantStyles[variant]}`}
+        className={`flex-1 rounded-2xl rounded-tl-md px-4 py-3 border ${variantStyles[variant]}`}
       >
         <p className="text-gray-800 text-base leading-relaxed">{message}</p>
       </div>

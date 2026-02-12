@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, Ruler, CircleDot, X, ChevronRight, FolderPlus } from 'lucide-react';
+import { Plus, Check, Ruler, CircleDot, X, ChevronRight, FolderPlus, Trash2 } from 'lucide-react';
 import {
   useOnboarding,
   OnboardingCategory,
@@ -159,6 +159,19 @@ export function Step3Menu() {
     setItemPrices({});
   };
 
+  const handleRemoveItem = (itemId: string) => {
+    if (!state.currentCategory) return;
+    dispatch({
+      type: 'REMOVE_ITEM_FROM_CATEGORY',
+      categoryId: state.currentCategory.id,
+      itemId,
+    });
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    dispatch({ type: 'REMOVE_CATEGORY', categoryId });
+  };
+
   const handleAddAnotherCategory = () => {
     dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
     dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'category' });
@@ -167,6 +180,22 @@ export function Step3Menu() {
   const handleFinishMenu = () => {
     nextStep();
   };
+
+  const SUB_STEPS = ['category', 'options', 'items', 'done'] as const;
+  const currentSubStepIndex = SUB_STEPS.indexOf(state.menuSubStep as (typeof SUB_STEPS)[number]);
+
+  const SubStepProgress = () => (
+    <div className="flex items-center justify-center gap-1.5">
+      {SUB_STEPS.map((_, index) => (
+        <div
+          key={index}
+          className={`h-1.5 rounded-full transition-all ${
+            index <= currentSubStepIndex ? 'w-6 bg-primary-500' : 'w-1.5 bg-gray-200'
+          }`}
+        />
+      ))}
+    </div>
+  );
 
   // Sub-step: Create category
   if (state.menuSubStep === 'category') {
@@ -178,6 +207,7 @@ export function Step3Menu() {
         nextDisabled={!categoryName.trim()}
       >
         <div className="space-y-6">
+          <SubStepProgress />
           <AssistantBubble
             message={
               state.categories.length === 0
@@ -243,6 +273,7 @@ export function Step3Menu() {
       return (
         <StepContainer hideActions>
           <div className="space-y-6">
+            <SubStepProgress />
             <AssistantBubble
               message={`Vos ${state.currentCategory.name} ont-elles des particularités ?`}
               emoji="🎯"
@@ -272,7 +303,7 @@ export function Step3Menu() {
                   {state.currentCategory.optionGroups.map((og) => (
                     <div
                       key={og.id}
-                      className="flex items-center gap-2 p-3 bg-success-50 rounded-lg text-sm"
+                      className="flex items-center gap-2 p-3 bg-success-50 rounded-xl text-sm"
                     >
                       <Check className="w-4 h-4 text-success-600" />
                       <span className="font-medium text-success-700">{og.name}</span>
@@ -308,10 +339,11 @@ export function Step3Menu() {
           setNewOptionValue('');
         }}
         onNext={handleSaveOptionGroup}
-        nextLabel="Ajouter"
+        nextLabel="Valider"
         nextDisabled={optionValues.length === 0}
       >
         <div className="space-y-6">
+          <SubStepProgress />
           <AssistantBubble
             message={
               selectedOptionType === 'size'
@@ -372,7 +404,7 @@ export function Step3Menu() {
                 type="button"
                 onClick={handleAddOptionValue}
                 disabled={!newOptionValue.trim()}
-                className="px-4 py-3 min-h-[48px] bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl transition-colors"
+                className="px-4 py-3 min-h-[48px] bg-primary-50 hover:bg-primary-100 text-primary-600 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl transition-colors"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -426,6 +458,15 @@ export function Step3Menu() {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
+          <SubStepProgress />
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
+            className="text-sm text-primary-500 hover:text-primary-700 font-medium transition-colors"
+          >
+            ← Retour aux particularités
+          </button>
+
           <AssistantBubble message={`Ajoutez vos ${state.currentCategory.name}`} emoji="🍕" />
 
           {/* Item name */}
@@ -463,7 +504,7 @@ export function Step3Menu() {
                           setItemPrices({ ...itemPrices, [option.name]: e.target.value })
                         }
                         className="input min-h-[48px] text-base pr-8"
-                        placeholder="0.00"
+                        placeholder="Ex: 8.50"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                         €
@@ -484,7 +525,7 @@ export function Step3Menu() {
                   value={itemPrices['base'] || ''}
                   onChange={(e) => setItemPrices({ ...itemPrices, base: e.target.value })}
                   className="input min-h-[48px] text-base pr-8"
-                  placeholder="0.00"
+                  placeholder="Ex: 8.50"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
               </div>
@@ -507,16 +548,26 @@ export function Step3Menu() {
                 {state.currentCategory.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-card"
                   >
                     <span className="font-medium text-gray-900">{item.name}</span>
-                    <span className="text-sm text-gray-600">
-                      {hasSizeOptions
-                        ? Object.entries(item.prices)
-                            .map(([size, price]) => `${size}: ${(price / 100).toFixed(2)}€`)
-                            .join(' | ')
-                        : `${(item.prices['base'] / 100).toFixed(2)}€`}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        {hasSizeOptions
+                          ? Object.entries(item.prices)
+                              .map(([size, price]) => `${size}: ${(price / 100).toFixed(2)}€`)
+                              .join(' | ')
+                          : `${(item.prices['base'] / 100).toFixed(2)}€`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label={`Supprimer ${item.name}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -552,6 +603,7 @@ export function Step3Menu() {
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
+          <SubStepProgress />
           <AssistantBubble message="Catégorie ajoutée !" emoji="✅" variant="success" />
 
           {/* Summary of categories */}
@@ -561,15 +613,25 @@ export function Step3Menu() {
               {state.categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-card"
                 >
                   <div className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-success-500" />
                     <span className="font-medium text-gray-900">{cat.name}</span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {cat.items.length} article{cat.items.length > 1 ? 's' : ''}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">
+                      {cat.items.length} article{cat.items.length > 1 ? 's' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(cat.id)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label={`Supprimer ${cat.name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

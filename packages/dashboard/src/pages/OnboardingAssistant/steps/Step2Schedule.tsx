@@ -58,6 +58,8 @@ export function Step2Schedule() {
     setSubStep('configure-days');
   };
 
+  const isTimeValid = currentDayConfig.start_time < currentDayConfig.end_time;
+
   const handleSaveDay = () => {
     // Save schedule for current day
     const schedule = {
@@ -77,11 +79,12 @@ export function Step2Schedule() {
       dispatch({ type: 'ADD_SCHEDULE', schedule });
     }
 
-    // Move to next day or finish
+    // Move to next day or finish — pre-fill next day with current config
     if (isLastDay) {
       setSubStep('calendar-info');
     } else {
       dispatch({ type: 'SET_CURRENT_DAY_INDEX', index: state.currentDayIndex + 1 });
+      // Keep current config for the next day (pre-fill)
     }
   };
 
@@ -124,10 +127,10 @@ export function Step2Schedule() {
                   key={day.value}
                   type="button"
                   onClick={() => toggleDay(day.value)}
-                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border-2 transition-all active:scale-95 ${
+                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition-all active:scale-95 ${
                     isSelected
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600 shadow-card'
                   }`}
                 >
                   <span className="text-sm font-medium">{day.short}</span>
@@ -161,6 +164,7 @@ export function Step2Schedule() {
         }}
         onNext={handleSaveDay}
         nextLabel={isLastDay ? 'Terminer' : 'Jour suivant'}
+        nextDisabled={!isTimeValid}
       >
         <div className="space-y-6">
           <AssistantBubble
@@ -181,9 +185,12 @@ export function Step2Schedule() {
           </div>
 
           {/* Day header */}
-          <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 text-center">
-            <Calendar className="w-8 h-8 text-primary-600 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold text-primary-700">{currentDay.label}</h3>
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 text-center shadow-card">
+            <Calendar className="w-8 h-8 text-primary-500 mx-auto mb-2" />
+            <h3 className="text-lg font-bold text-gray-900">{currentDay.label}</h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Jour {state.currentDayIndex + 1} sur {sortedSelectedDays.length}
+            </p>
           </div>
 
           {/* Location selector */}
@@ -241,15 +248,22 @@ export function Step2Schedule() {
             </div>
           </div>
 
-          {/* Copy to all button (only on first day if multiple days) */}
-          {state.currentDayIndex === 0 && sortedSelectedDays.length > 1 && (
+          {/* Time validation warning */}
+          {!isTimeValid && currentDayConfig.start_time && currentDayConfig.end_time && (
+            <p className="text-sm text-red-500">
+              L'heure de départ doit être après l'heure d'arrivée.
+            </p>
+          )}
+
+          {/* Copy to all remaining days button */}
+          {sortedSelectedDays.length > 1 && !isLastDay && (
             <button
               type="button"
               onClick={handleCopyToAll}
-              className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-2xl text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors font-medium"
             >
               <Copy className="w-4 h-4" />
-              Appliquer à tous les jours
+              Appliquer aux jours restants
             </button>
           )}
         </div>
@@ -263,7 +277,7 @@ export function Step2Schedule() {
       <div className="space-y-6">
         <AssistantBubble message="Bon à savoir !" emoji="💡" variant="tip" />
 
-        <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-4 shadow-card">
           <p className="text-gray-800">
             Votre planning est maintenant configuré pour chaque semaine.
           </p>
@@ -274,25 +288,57 @@ export function Step2Schedule() {
               <span className="text-sm font-medium text-gray-700">Aperçu</span>
             </div>
             <div className="grid grid-cols-7 gap-1 text-center text-xs">
-              {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, index) => (
+              {['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'].map((day, index) => (
                 <div key={index} className="text-gray-500 py-1">
                   {day}
                 </div>
               ))}
               {[1, 2, 3, 4, 5, 6, 0].map((dayValue) => {
                 const isWorking = state.selectedDays.includes(dayValue);
+                const schedule = state.schedules.find((s) => s.day_of_week === dayValue);
                 return (
                   <div
                     key={dayValue}
                     className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center ${
                       isWorking ? 'bg-success-500 text-white' : 'bg-gray-200 text-gray-400'
                     }`}
+                    title={schedule ? `${schedule.start_time} - ${schedule.end_time}` : undefined}
                   >
                     <span className="sr-only">{isWorking ? 'Travail' : 'Repos'}</span>
                   </div>
                 );
               })}
             </div>
+
+            {/* Show configured schedules */}
+            {state.schedules.length > 0 && (
+              <div className="mt-3 space-y-1">
+                {state.schedules
+                  .sort((a, b) => {
+                    const orderA = a.day_of_week === 0 ? 7 : a.day_of_week;
+                    const orderB = b.day_of_week === 0 ? 7 : b.day_of_week;
+                    return orderA - orderB;
+                  })
+                  .map((s) => {
+                    const day = DAYS_OF_WEEK.find((d) => d.value === s.day_of_week);
+                    const loc = state.locations.find(
+                      (l) => l.id === s.location_id || l.name === s.location_id
+                    );
+                    return (
+                      <div
+                        key={s.day_of_week}
+                        className="flex items-center justify-between text-xs text-gray-600"
+                      >
+                        <span className="font-medium">{day?.short}</span>
+                        <span>
+                          {s.start_time} - {s.end_time}
+                          {loc ? ` · ${loc.name}` : ''}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         </div>
 

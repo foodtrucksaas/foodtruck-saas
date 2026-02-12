@@ -58,11 +58,11 @@ export function StepComplete() {
         </div>
 
         {/* Stats summary */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3">
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3 shadow-card">
           <h3 className="font-semibold text-gray-900">Récapitulatif</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-blue-600" />
               </div>
               <div>
@@ -73,7 +73,7 @@ export function StepComplete() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-green-600" />
               </div>
               <div>
@@ -82,7 +82,7 @@ export function StepComplete() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
                 <UtensilsCrossed className="w-5 h-5 text-orange-600" />
               </div>
               <div>
@@ -93,7 +93,7 @@ export function StepComplete() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                 <Gift className="w-5 h-5 text-purple-600" />
               </div>
               <div>
@@ -108,7 +108,7 @@ export function StepComplete() {
         </div>
 
         {/* Share link */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
           <div>
             <h3 className="font-semibold text-gray-900">Partagez votre lien</h3>
             <p className="text-sm text-gray-500 mt-1">Vos clients peuvent commander via ce lien.</p>
@@ -162,7 +162,7 @@ export function StepComplete() {
       </div>
 
       {/* Fixed footer */}
-      <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-4 sm:px-6 py-3 safe-area-bottom">
+      <div className="sticky bottom-0 z-10 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 sm:px-6 py-3 safe-area-bottom">
         <ActionButton onClick={handleGoToDashboard} icon={<LayoutDashboard className="w-5 h-5" />}>
           Accéder au tableau de bord
         </ActionButton>

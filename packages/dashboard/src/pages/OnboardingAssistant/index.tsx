@@ -14,7 +14,7 @@ import {
 import { useOnboardingAssistant } from './hooks/useOnboardingAssistant';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 
-const STEP_LABELS = ['Emplacements', 'Planning', 'Menu', 'Offres', 'Parametres'];
+const STEP_LABELS = ['Emplacements', 'Planning', 'Menu', 'Offres', 'Paramètres'];
 const TOTAL_STEPS = 5;
 
 function OnboardingAssistantContent() {
@@ -48,6 +48,16 @@ function OnboardingAssistantContent() {
 
   // Save whatever data has been entered so far before leaving
   const handleSkip = async () => {
+    const hasData =
+      state.locations.length > 0 ||
+      state.schedules.length > 0 ||
+      state.categories.length > 0 ||
+      state.offers.length > 0;
+
+    if (hasData && !window.confirm("Vos données seront sauvegardées. Quitter l'assistant ?")) {
+      return;
+    }
+
     setSkipping(true);
     try {
       if (state.locations.length > 0) {
