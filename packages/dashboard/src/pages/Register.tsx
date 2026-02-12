@@ -3,6 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Lock, Loader2, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+function translateAuthError(message: string): string {
+  const translations: Record<string, string> = {
+    'Invalid login credentials': 'Email ou mot de passe incorrect',
+    'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
+    'User not found': 'Aucun compte trouvé avec cet email',
+    'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
+    'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+    'User already registered': 'Un compte existe déjà avec cet email',
+    'Password should be at least 6 characters':
+      'Le mot de passe doit contenir au moins 6 caractères',
+    'Signups not allowed for this instance': 'Les inscriptions sont désactivées',
+  };
+  return translations[message] || message;
+}
+
 export default function Register() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
@@ -33,7 +48,7 @@ export default function Register() {
     const { error: signUpError } = await signUp(email, password);
 
     if (signUpError) {
-      setError(signUpError.message);
+      setError(translateAuthError(signUpError.message));
     } else {
       setSuccess('Compte créé ! Vérifiez votre email pour confirmer.');
       setTimeout(() => navigate('/login'), 2000);

@@ -19,7 +19,12 @@ export default function ForgotPassword() {
     const { error: resetError } = await resetPassword(email);
 
     if (resetError) {
-      setError(resetError.message);
+      const translations: Record<string, string> = {
+        'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
+        'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+        'User not found': 'Aucun compte trouvé avec cet email',
+      };
+      setError(translations[resetError.message] || resetError.message);
     } else {
       setSent(true);
     }

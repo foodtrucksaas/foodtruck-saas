@@ -3,6 +3,21 @@ import { Link } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+function translateAuthError(message: string): string {
+  const translations: Record<string, string> = {
+    'Invalid login credentials': 'Email ou mot de passe incorrect',
+    'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
+    'User not found': 'Aucun compte trouvé avec cet email',
+    'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
+    'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+    'User already registered': 'Un compte existe déjà avec cet email',
+    'Password should be at least 6 characters':
+      'Le mot de passe doit contenir au moins 6 caractères',
+    'Signups not allowed for this instance': 'Les inscriptions sont désactivées',
+  };
+  return translations[message] || message;
+}
+
 export default function Login() {
   const { signIn, signInWithMagicLink } = useAuth();
   const [email, setEmail] = useState('');
@@ -20,7 +35,7 @@ export default function Login() {
     const { error: signInError } = await signIn(email, password);
 
     if (signInError) {
-      setError(signInError.message);
+      setError(translateAuthError(signInError.message));
     }
 
     setLoading(false);
@@ -37,7 +52,7 @@ export default function Login() {
     const { error: magicLinkError } = await signInWithMagicLink(email);
 
     if (magicLinkError) {
-      setError(magicLinkError.message);
+      setError(translateAuthError(magicLinkError.message));
     } else {
       setMagicLinkSent(true);
     }
