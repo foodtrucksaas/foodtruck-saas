@@ -208,8 +208,16 @@ export function Step3Menu() {
     setItemName(item.name);
     // Convert prices from cents back to display format
     const displayPrices: Record<string, string> = {};
-    for (const [key, value] of Object.entries(item.prices)) {
-      displayPrices[key] = (value / 100).toFixed(2);
+    if (hasSizeOptions && item.prices['base'] && !sizeOptions.some((o) => o.name in item.prices)) {
+      // Item was created with base price before sizes were added — pre-fill all sizes
+      const baseDisplay = (item.prices['base'] / 100).toFixed(2);
+      for (const option of sizeOptions) {
+        displayPrices[option.name] = baseDisplay;
+      }
+    } else {
+      for (const [key, value] of Object.entries(item.prices)) {
+        displayPrices[key] = (value / 100).toFixed(2);
+      }
     }
     setItemPrices(displayPrices);
   };
