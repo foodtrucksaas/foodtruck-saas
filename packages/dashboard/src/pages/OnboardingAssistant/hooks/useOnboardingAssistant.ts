@@ -110,12 +110,34 @@ export function useOnboardingAssistant() {
                 priceModifier: opt.price_modifier,
               })),
             })),
-            items: (cat.menu_items || []).map((item: any) => ({
-              id: item.id,
-              name: item.name,
-              description: item.description || undefined,
-              prices: { base: Math.round((item.price || 0) * 100) },
-            })),
+            items: (cat.menu_items || []).map((item: any) => {
+              // DB stores price in cents (INTEGER). Onboarding state also uses cents.
+              const optionPrices = (item.option_prices || {}) as Record<string, number>;
+              // If item has option_prices, map option UUIDs back to option names
+              const sizeGroup = (cat.category_option_groups || []).find(
+                (og: any) => og.is_required
+              );
+              const prices: Record<string, number> = {};
+              if (sizeGroup && Object.keys(optionPrices).length > 0) {
+                const sizeOptions = sizeGroup.category_options || [];
+                for (const opt of sizeOptions) {
+                  const optPrice = optionPrices[opt.id];
+                  if (optPrice !== undefined) {
+                    prices[opt.name] = optPrice; // Already in cents
+                  }
+                }
+              }
+              // Fallback to base price if no size-specific prices found
+              if (Object.keys(prices).length === 0) {
+                prices.base = item.price || 0; // Already in cents
+              }
+              return {
+                id: item.id,
+                name: item.name,
+                description: item.description || undefined,
+                prices,
+              };
+            }),
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
           dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
@@ -332,6 +354,9 @@ export function useOnboardingAssistant() {
       }
 
       // Save option groups (category-level)
+      // Build name→UUID mapping for size options so we can populate option_prices on items
+      const optionNameToId: Record<string, string> = {};
+
       for (let ogIndex = 0; ogIndex < cat.optionGroups.length; ogIndex++) {
         const og = cat.optionGroups[ogIndex];
         const { data: newOg, error: ogError } = await supabase
@@ -348,7 +373,7 @@ export function useOnboardingAssistant() {
 
         if (ogError) throw ogError;
 
-        // Save options
+        // Save options and capture returned IDs
         if (newOg && og.options.length > 0) {
           const optionsToInsert = og.options.map((opt, optIndex) => ({
             option_group_id: newOg.id,
@@ -357,26 +382,50 @@ export function useOnboardingAssistant() {
             display_order: optIndex,
           }));
 
-          const { error: optError } = await supabase
+          const { data: insertedOptions, error: optError } = await supabase
             .from('category_options')
-            .insert(optionsToInsert);
+            .insert(optionsToInsert)
+            .select('id, name');
           if (optError) throw optError;
+
+          // For size groups, map option name → UUID for building option_prices
+          if (og.type === 'size' && insertedOptions) {
+            for (const opt of insertedOptions) {
+              optionNameToId[opt.name] = opt.id;
+            }
+          }
         }
       }
 
       // Save menu items
       for (let itemIndex = 0; itemIndex < cat.items.length; itemIndex++) {
         const item = cat.items[itemIndex];
+        const hasBase = 'base' in item.prices;
         const basePriceCents = item.prices['base'] || Object.values(item.prices)[0] || 0;
+
+        // Build option_prices JSONB for items with size-specific prices
+        let optionPrices: Record<string, number> | null = null;
+        if (!hasBase && Object.keys(optionNameToId).length > 0) {
+          optionPrices = {};
+          for (const [optName, price] of Object.entries(item.prices)) {
+            const optId = optionNameToId[optName];
+            if (optId) {
+              optionPrices[optId] = price; // Already in cents
+            }
+          }
+        }
 
         const { error: itemError } = await supabase.from('menu_items').insert({
           foodtruck_id: foodtruck.id,
           category_id: categoryId,
           name: item.name,
           description: item.description || null,
-          price: basePriceCents / 100,
+          price: basePriceCents, // DB stores cents (INTEGER), no conversion needed
           display_order: itemIndex,
           is_available: true,
+          ...(optionPrices && Object.keys(optionPrices).length > 0
+            ? { option_prices: optionPrices }
+            : {}),
         });
 
         if (itemError) throw itemError;

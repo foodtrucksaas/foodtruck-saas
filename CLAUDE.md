@@ -225,7 +225,7 @@ menu_items (
   category_id UUID REFERENCES categories(id),
   name TEXT NOT NULL,
   description TEXT,
-  price DECIMAL(10,2) NOT NULL,
+  price INTEGER NOT NULL CHECK (price > 0),  -- Price in cents (800 = 8€)
   photo_url TEXT,
   allergens TEXT[],
   is_available BOOLEAN DEFAULT true,
