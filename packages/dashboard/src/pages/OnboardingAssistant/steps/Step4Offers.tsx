@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Gift,
-  Package,
-  Tag,
-  TrendingUp,
-  ChevronDown,
-  Check,
-  Pencil,
-  Trash2,
-  Plus,
-  X,
-} from 'lucide-react';
+import { Gift, Package, Tag, TrendingUp, ChevronDown, Check, Pencil, Trash2 } from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
 import { useToast, Toast } from '../../../components/Alert';
@@ -74,16 +63,8 @@ export function Step4Offers() {
   const [bundleExcludedOptions, setBundleExcludedOptions] = useState<Record<string, string[]>>({});
   // Track which categories are expanded for article detail
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  // Track which items are expanded for option detail
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  // Per-item custom supplements (itemId → supplements)
-  const [bundleItemSupplements, setBundleItemSupplements] = useState<
-    Record<string, { name: string; price: number }[]>
-  >({});
-  // Which item currently has the add-supplement form open
-  const [addingSupplementFor, setAddingSupplementFor] = useState<string | null>(null);
-  const [newSupName, setNewSupName] = useState('');
-  const [newSupPrice, setNewSupPrice] = useState('');
+  // Per-item price delta in the bundle (itemId → cents)
+  const [bundleItemDeltas, setBundleItemDeltas] = useState<Record<string, number>>({});
   // Buy X Get Y: trigger & reward selection
   const [buyXTriggerCategories, setBuyXTriggerCategories] = useState<string[]>([]);
   const [buyXTriggerExcludedItems, setBuyXTriggerExcludedItems] = useState<
@@ -123,10 +104,8 @@ export function Step4Offers() {
     setBundleCategories([]);
     setBundleExcludedItems({});
     setBundleExcludedOptions({});
-    setBundleItemSupplements({});
+    setBundleItemDeltas({});
     setExpandedCategories([]);
-    setExpandedItems([]);
-    setAddingSupplementFor(null);
     setBuyXTriggerCategories([]);
     setBuyXTriggerExcludedItems({});
     setBuyXRewardCategories([]);
@@ -196,7 +175,7 @@ export function Step4Offers() {
         {
           excluded_items: string[];
           excluded_options: Record<string, string[]>;
-          item_supplements: Record<string, { name: string; price: number }[]>;
+          item_deltas: Record<string, number>;
         }
       > = {};
       for (const catName of bundleCategories) {
@@ -207,22 +186,22 @@ export function Step4Offers() {
           .filter(Boolean) as string[];
         // Build per-item excluded options
         const excludedOpts: Record<string, string[]> = {};
-        // Build per-item custom supplements
-        const itemSupplements: Record<string, { name: string; price: number }[]> = {};
+        // Build per-item price deltas (in cents)
+        const itemDeltas: Record<string, number> = {};
         for (const item of cat.items) {
           const excl = bundleExcludedOptions[item.id];
           if (excl && excl.length > 0) {
             excludedOpts[item.name] = excl;
           }
-          const sups = bundleItemSupplements[item.id];
-          if (sups && sups.length > 0) {
-            itemSupplements[item.name] = sups;
+          const delta = bundleItemDeltas[item.id];
+          if (delta && delta > 0) {
+            itemDeltas[item.name] = delta;
           }
         }
         bundleSelection[catName] = {
           excluded_items: excludedItemNames,
           excluded_options: excludedOpts,
-          item_supplements: itemSupplements,
+          item_deltas: itemDeltas,
         };
       }
       config.bundle_selection = bundleSelection;
@@ -282,10 +261,8 @@ export function Step4Offers() {
     setBundleCategories([]);
     setBundleExcludedItems({});
     setBundleExcludedOptions({});
-    setBundleItemSupplements({});
+    setBundleItemDeltas({});
     setExpandedCategories([]);
-    setExpandedItems([]);
-    setAddingSupplementFor(null);
     setBuyXTriggerCategories([]);
     setBuyXTriggerExcludedItems({});
     setBuyXRewardCategories([]);
@@ -314,18 +291,13 @@ export function Step4Offers() {
         setOfferConfig({ fixed_price: cfg.fixed_price || '', ...sharedFields });
         const catNames: string[] = cfg.bundle_category_names || [];
         setBundleCategories(catNames);
-        // Auto-expand all selected categories and their items
+        // Auto-expand all selected categories
         setExpandedCategories([...catNames]);
-        const allItemIds = catNames.flatMap((catName: string) => {
-          const cat = state.categories.find((c) => c.name === catName);
-          return cat ? cat.items.map((i) => i.id) : [];
-        });
-        setExpandedItems(allItemIds);
         // Restore excluded items/options from bundle_selection
         if (cfg.bundle_selection) {
           const excItems: Record<string, string[]> = {};
           const excOpts: Record<string, string[]> = {};
-          const itemSups: Record<string, { name: string; price: number }[]> = {};
+          const deltas: Record<string, number> = {};
           for (const [catName, sel] of Object.entries(
             cfg.bundle_selection as Record<string, any>
           )) {
@@ -347,21 +319,21 @@ export function Step4Offers() {
                 }
               }
             }
-            // Restore per-item custom supplements
-            if (sel.item_supplements) {
-              for (const [itemName, sups] of Object.entries(
-                sel.item_supplements as Record<string, { name: string; price: number }[]>
+            // Restore per-item price deltas
+            if (sel.item_deltas) {
+              for (const [itemName, delta] of Object.entries(
+                sel.item_deltas as Record<string, number>
               )) {
                 const item = cat.items.find((i) => i.name === itemName);
-                if (item && sups.length > 0) {
-                  itemSups[item.id] = sups;
+                if (item && delta > 0) {
+                  deltas[item.id] = delta;
                 }
               }
             }
           }
           setBundleExcludedItems(excItems);
           setBundleExcludedOptions(excOpts);
-          setBundleItemSupplements(itemSups);
+          setBundleItemDeltas(deltas);
         }
         break;
       }
@@ -576,43 +548,23 @@ export function Step4Offers() {
                       const isExpanded = expandedCategories.includes(cat.name);
                       const excluded = bundleExcludedItems[cat.name] || [];
                       const eligibleCount = cat.items.length - excluded.length;
-                      const allOptionGroups = cat.optionGroups.filter(
-                        (og) => og.options.length > 0
-                      );
 
                       const toggleCategory = () => {
                         if (isCatSelected) {
                           setBundleCategories((prev) => prev.filter((c) => c !== cat.name));
                           setExpandedCategories((prev) => prev.filter((c) => c !== cat.name));
-                          // Collapse all items from this category
-                          const itemIds = cat.items.map((i) => i.id);
-                          setExpandedItems((prev) => prev.filter((id) => !itemIds.includes(id)));
                         } else {
                           setBundleCategories((prev) => [...prev, cat.name]);
                           setBundleExcludedItems((prev) => ({ ...prev, [cat.name]: [] }));
                           setExpandedCategories((prev) => [...prev, cat.name]);
-                          // Auto-expand all items from this category
-                          const itemIds = cat.items.map((i) => i.id);
-                          setExpandedItems((prev) => [
-                            ...prev,
-                            ...itemIds.filter((id) => !prev.includes(id)),
-                          ]);
                         }
                       };
 
                       const toggleExpand = () => {
                         if (!isCatSelected) return;
-                        if (isExpanded) {
-                          setExpandedCategories((prev) => prev.filter((c) => c !== cat.name));
-                        } else {
-                          setExpandedCategories((prev) => [...prev, cat.name]);
-                          // Auto-expand all items when re-expanding category
-                          const itemIds = cat.items.map((i) => i.id);
-                          setExpandedItems((prev) => [
-                            ...prev,
-                            ...itemIds.filter((id) => !prev.includes(id)),
-                          ]);
-                        }
+                        setExpandedCategories((prev) =>
+                          isExpanded ? prev.filter((c) => c !== cat.name) : [...prev, cat.name]
+                        );
                       };
 
                       const toggleExcludeItem = (itemId: string) => {
@@ -622,28 +574,6 @@ export function Step4Offers() {
                             ? current.filter((id) => id !== itemId)
                             : [...current, itemId];
                           return { ...prev, [cat.name]: next };
-                        });
-                        // Collapse item options if excluding
-                        if (!(bundleExcludedItems[cat.name] || []).includes(itemId)) {
-                          setExpandedItems((prev) => prev.filter((id) => id !== itemId));
-                        }
-                      };
-
-                      const toggleItemExpand = (itemId: string) => {
-                        setExpandedItems((prev) =>
-                          prev.includes(itemId)
-                            ? prev.filter((id) => id !== itemId)
-                            : [...prev, itemId]
-                        );
-                      };
-
-                      const toggleExcludeOption = (itemId: string, optName: string) => {
-                        setBundleExcludedOptions((prev) => {
-                          const current = prev[itemId] || [];
-                          const next = current.includes(optName)
-                            ? current.filter((n) => n !== optName)
-                            : [...current, optName];
-                          return { ...prev, [itemId]: next };
                         });
                       };
 
@@ -697,211 +627,54 @@ export function Step4Offers() {
                             <div className="ml-2 sm:ml-4 mt-1 mb-2 space-y-0.5">
                               {cat.items.map((item) => {
                                 const isExcluded = excluded.includes(item.id);
-                                const isItemExpanded = expandedItems.includes(item.id);
-                                const price =
-                                  item.prices['base'] || Object.values(item.prices)[0] || 0;
-                                const itemExcludedOpts = bundleExcludedOptions[item.id] || [];
-                                const totalOpts = allOptionGroups.reduce(
-                                  (sum, og) => sum + og.options.length,
-                                  0
-                                );
-                                const excludedOptsCount = itemExcludedOpts.length;
+                                const delta = bundleItemDeltas[item.id] || 0;
 
                                 return (
-                                  <div key={item.id}>
-                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleExcludeItem(item.id)}
-                                        aria-label={`${isExcluded ? 'Inclure' : 'Exclure'} ${item.name}`}
-                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                          !isExcluded
-                                            ? 'bg-primary-500 border-primary-500'
-                                            : 'border-gray-300'
-                                        }`}
-                                      >
-                                        {!isExcluded && (
-                                          <Check className="w-2.5 h-2.5 text-white" />
-                                        )}
-                                      </button>
-                                      <span
-                                        className={`flex-1 text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}
-                                      >
-                                        {item.name}
-                                      </span>
-                                      <span className="text-xs text-gray-400">
-                                        {Number(price).toFixed(2)}€
-                                      </span>
-                                      {!isExcluded && (
-                                        <button
-                                          type="button"
-                                          onClick={() => toggleItemExpand(item.id)}
-                                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 px-1"
-                                        >
-                                          {excludedOptsCount > 0 && (
-                                            <span className="text-amber-500">
-                                              {totalOpts - excludedOptsCount}/{totalOpts}
-                                            </span>
-                                          )}
-                                          {(bundleItemSupplements[item.id] || []).length > 0 && (
-                                            <span className="text-green-500">
-                                              +{(bundleItemSupplements[item.id] || []).length} sup.
-                                            </span>
-                                          )}
-                                          <ChevronDown
-                                            className={`w-3 h-3 transition-transform ${isItemExpanded ? 'rotate-180' : ''}`}
-                                          />
-                                        </button>
-                                      )}
-                                    </div>
-                                    {/* Per-item options + supplements */}
-                                    {!isExcluded && isItemExpanded && (
-                                      <div className="ml-6 sm:ml-9 mb-2 space-y-2">
-                                        {/* Existing option groups (sizes, supplements from category) */}
-                                        {allOptionGroups.map((og) => (
-                                          <div key={og.id}>
-                                            <p className="text-xs text-gray-400 mb-1">{og.name}</p>
-                                            <div className="flex flex-wrap gap-1.5">
-                                              {og.options.map((opt) => {
-                                                const isOptExcluded = itemExcludedOpts.includes(
-                                                  opt.name
-                                                );
-                                                return (
-                                                  <button
-                                                    key={opt.name}
-                                                    type="button"
-                                                    onClick={() =>
-                                                      toggleExcludeOption(item.id, opt.name)
-                                                    }
-                                                    className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
-                                                      !isOptExcluded
-                                                        ? 'border-primary-300 bg-primary-50 text-primary-700'
-                                                        : 'border-gray-200 text-gray-400 line-through'
-                                                    }`}
-                                                  >
-                                                    {opt.name}
-                                                    {opt.priceModifier
-                                                      ? ` (+${(opt.priceModifier / 100).toFixed(2)}€)`
-                                                      : ''}
-                                                  </button>
-                                                );
-                                              })}
-                                            </div>
-                                          </div>
-                                        ))}
-
-                                        {/* Custom per-item supplements */}
-                                        {(bundleItemSupplements[item.id] || []).length > 0 && (
-                                          <div>
-                                            <p className="text-xs text-gray-400 mb-1">
-                                              Suppléments
-                                            </p>
-                                            <div className="flex flex-wrap gap-1.5">
-                                              {(bundleItemSupplements[item.id] || []).map(
-                                                (sup, si) => (
-                                                  <span
-                                                    key={si}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-green-300 bg-green-50 text-green-700"
-                                                  >
-                                                    {sup.name}
-                                                    {sup.price > 0 &&
-                                                      ` (+${sup.price.toFixed(2)}€)`}
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => {
-                                                        setBundleItemSupplements((prev) => ({
-                                                          ...prev,
-                                                          [item.id]: (prev[item.id] || []).filter(
-                                                            (_, idx) => idx !== si
-                                                          ),
-                                                        }));
-                                                      }}
-                                                      className="text-green-500 hover:text-red-500 ml-0.5"
-                                                    >
-                                                      <X className="w-3 h-3" />
-                                                    </button>
-                                                  </span>
-                                                )
-                                              )}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Add supplement form */}
-                                        {addingSupplementFor === item.id ? (
-                                          <div className="flex items-end gap-2">
-                                            <div className="flex-1">
-                                              <input
-                                                type="text"
-                                                value={newSupName}
-                                                onChange={(e) => setNewSupName(e.target.value)}
-                                                placeholder="Fromage, Bacon..."
-                                                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                                autoFocus
-                                              />
-                                            </div>
-                                            <div className="w-20">
-                                              <div className="relative">
-                                                <input
-                                                  type="number"
-                                                  step="0.01"
-                                                  min="0"
-                                                  value={newSupPrice}
-                                                  onChange={(e) => setNewSupPrice(e.target.value)}
-                                                  placeholder="0.00"
-                                                  className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 pr-5"
-                                                />
-                                                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">
-                                                  €
-                                                </span>
-                                              </div>
-                                            </div>
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                if (!newSupName.trim()) return;
-                                                const price = parseFloat(newSupPrice) || 0;
-                                                setBundleItemSupplements((prev) => ({
-                                                  ...prev,
-                                                  [item.id]: [
-                                                    ...(prev[item.id] || []),
-                                                    { name: newSupName.trim(), price },
-                                                  ],
-                                                }));
-                                                setNewSupName('');
-                                                setNewSupPrice('');
-                                              }}
-                                              disabled={!newSupName.trim()}
-                                              className="px-2 py-1.5 text-xs bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed"
-                                            >
-                                              <Check className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                setAddingSupplementFor(null);
-                                                setNewSupName('');
-                                                setNewSupPrice('');
-                                              }}
-                                              className="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600"
-                                            >
-                                              <X className="w-3.5 h-3.5" />
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setAddingSupplementFor(item.id);
-                                              setNewSupName('');
-                                              setNewSupPrice('');
-                                            }}
-                                            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 transition-colors"
-                                          >
-                                            <Plus className="w-3 h-3" />
-                                            Supplément
-                                          </button>
-                                        )}
+                                  <div
+                                    key={item.id}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleExcludeItem(item.id)}
+                                      aria-label={`${isExcluded ? 'Inclure' : 'Exclure'} ${item.name}`}
+                                      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                        !isExcluded
+                                          ? 'bg-primary-500 border-primary-500'
+                                          : 'border-gray-300'
+                                      }`}
+                                    >
+                                      {!isExcluded && <Check className="w-2.5 h-2.5 text-white" />}
+                                    </button>
+                                    <span
+                                      className={`flex-1 text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                                    >
+                                      {item.name}
+                                    </span>
+                                    {!isExcluded && (
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-gray-400">+</span>
+                                        <input
+                                          type="number"
+                                          step="0.5"
+                                          min="0"
+                                          value={delta ? (delta / 100).toString() : ''}
+                                          onChange={(e) => {
+                                            const val = parseFloat(e.target.value);
+                                            setBundleItemDeltas((prev) => {
+                                              const next = { ...prev };
+                                              if (isNaN(val) || val === 0) {
+                                                delete next[item.id];
+                                              } else {
+                                                next[item.id] = Math.round(val * 100);
+                                              }
+                                              return next;
+                                            });
+                                          }}
+                                          onWheel={(e) => e.currentTarget.blur()}
+                                          className="w-14 text-xs px-1.5 py-1 border border-gray-200 rounded text-right"
+                                          placeholder="0€"
+                                        />
                                       </div>
                                     )}
                                   </div>
