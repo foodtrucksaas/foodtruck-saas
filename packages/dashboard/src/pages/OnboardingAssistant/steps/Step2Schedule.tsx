@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Copy, Check } from 'lucide-react';
 import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer } from '../components';
@@ -17,17 +17,10 @@ type ScheduleSubStep = 'select-days' | 'configure-days';
 
 export function Step2Schedule() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
-  const [subStep, setSubStep] = useState<ScheduleSubStep>('select-days');
-  const [currentDayConfig, setCurrentDayConfig] = useState({
-    location_id: state.locations[0]?.id || '',
-    start_time: '11:00',
-    end_time: '14:00',
-  });
 
-  // Sort selected days in order (Mon-Sun)
+  // Sort selected days in order (Mon-Sun) — computed first so init fns can use it
   const sortedSelectedDays = useMemo(() => {
     return [...state.selectedDays].sort((a, b) => {
-      // Monday (1) first, Sunday (0) last
       const orderA = a === 0 ? 7 : a;
       const orderB = b === 0 ? 7 : b;
       return orderA - orderB;
@@ -35,6 +28,36 @@ export function Step2Schedule() {
   }, [state.selectedDays]);
 
   const currentDayValue = sortedSelectedDays[state.currentDayIndex];
+
+  // Restore sub-step if days were already selected
+  const [subStep, setSubStep] = useState<ScheduleSubStep>(() => {
+    if (state.selectedDays.length > 0 && state.schedules.length > 0) {
+      return 'configure-days';
+    }
+    return 'select-days';
+  });
+
+  // Initialize config from saved schedule for current day (or defaults)
+  const [currentDayConfig, setCurrentDayConfig] = useState(() => {
+    const saved = state.schedules.find((s) => s.day_of_week === currentDayValue);
+    return saved
+      ? { location_id: saved.location_id, start_time: saved.start_time, end_time: saved.end_time }
+      : { location_id: state.locations[0]?.id || '', start_time: '11:00', end_time: '14:00' };
+  });
+
+  // Sync config when navigating between days
+  useEffect(() => {
+    if (currentDayValue == null) return;
+    const saved = state.schedules.find((s) => s.day_of_week === currentDayValue);
+    if (saved) {
+      setCurrentDayConfig({
+        location_id: saved.location_id,
+        start_time: saved.start_time,
+        end_time: saved.end_time,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDayValue]);
   const currentDay = DAYS_OF_WEEK.find((d) => d.value === currentDayValue);
   const isLastDay = state.currentDayIndex === sortedSelectedDays.length - 1;
 
