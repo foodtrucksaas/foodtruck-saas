@@ -444,10 +444,10 @@ export function useOnboardingAssistant() {
       .eq('foodtruck_id', foodtruck.id);
     if (deleteError) throw deleteError;
 
-    // Pre-fetch categories and items from DB for bundle offers
+    // Pre-fetch categories (with option groups) and items from DB for bundle offers
     const { data: dbCategories } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('id, name, category_option_groups(id, name, is_required, category_options(id, name))')
       .eq('foodtruck_id', foodtruck.id);
     const { data: dbItems } = await supabase
       .from('menu_items')
@@ -498,7 +498,11 @@ export function useOnboardingAssistant() {
         const catIdMap = (offer.config.bundle_category_ids || {}) as Record<string, string>;
         const selection = (offer.config.bundle_selection || {}) as Record<
           string,
-          { excluded_items?: string[]; excluded_options?: Record<string, string[]> }
+          {
+            excluded_items?: string[];
+            excluded_options?: Record<string, string[]>;
+            item_deltas?: Record<string, number>;
+          }
         >;
         const bundleCats: Json[] = [];
 
@@ -514,13 +518,56 @@ export function useOnboardingAssistant() {
             .map((name) => catItems.find((i) => i.name === name)?.id)
             .filter(Boolean) as string[];
 
-          // Map excluded_options (per item name → option names) to excluded_sizes (per item ID → option names)
+          // Build a sizeName→categoryOptionId lookup for this category
+          const sizeNameToId: Record<string, string> = {};
+          const dbCatFull = dbCat as any;
+          if (dbCatFull.category_option_groups) {
+            for (const og of dbCatFull.category_option_groups) {
+              if (og.is_required && og.category_options) {
+                for (const opt of og.category_options) {
+                  sizeNameToId[opt.name] = opt.id;
+                }
+              }
+            }
+          }
+
+          // Map excluded_options (per item name → option names) to excluded_sizes (per item ID → option UUIDs)
           const excludedSizes: Record<string, string[]> = {};
           if (sel.excluded_options) {
             for (const [itemName, optNames] of Object.entries(sel.excluded_options)) {
               const dbItem = catItems.find((i) => i.name === itemName);
               if (dbItem && optNames.length > 0) {
-                excludedSizes[dbItem.id] = optNames;
+                // Map option names to category_option UUIDs
+                const optIds = optNames
+                  .map((name) => sizeNameToId[name])
+                  .filter(Boolean) as string[];
+                if (optIds.length > 0) {
+                  excludedSizes[dbItem.id] = optIds;
+                }
+              }
+            }
+          }
+
+          // Map item_deltas (name-based keys) to supplements (itemId or itemId:categoryOptionId keys)
+          const supplements: Record<string, number> = {};
+          if (sel.item_deltas) {
+            for (const [key, delta] of Object.entries(sel.item_deltas)) {
+              const colonIdx = key.indexOf(':');
+              if (colonIdx > 0) {
+                // Per-size delta: "itemName:sizeName" → "itemId:categoryOptionId"
+                const itemName = key.substring(0, colonIdx);
+                const sizeName = key.substring(colonIdx + 1);
+                const dbItem = catItems.find((i) => i.name === itemName);
+                const optionId = sizeNameToId[sizeName];
+                if (dbItem && optionId && delta > 0) {
+                  supplements[`${dbItem.id}:${optionId}`] = delta;
+                }
+              } else {
+                // Flat delta: "itemName" → "itemId"
+                const dbItem = catItems.find((i) => i.name === key);
+                if (dbItem && delta > 0) {
+                  supplements[dbItem.id] = delta;
+                }
               }
             }
           }
@@ -531,6 +578,7 @@ export function useOnboardingAssistant() {
             label: catName,
             excluded_items: excludedItemIds.length > 0 ? excludedItemIds : undefined,
             excluded_sizes: Object.keys(excludedSizes).length > 0 ? excludedSizes : undefined,
+            supplements: Object.keys(supplements).length > 0 ? supplements : undefined,
           });
         }
 

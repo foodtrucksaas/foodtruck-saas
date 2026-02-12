@@ -196,15 +196,27 @@ export function Step4Offers() {
         // Build per-item excluded options
         const excludedOpts: Record<string, string[]> = {};
         // Build per-item price deltas (in cents)
+        const sizeGroup = cat.optionGroups.find((og) => og.type === 'size');
         const itemDeltas: Record<string, number> = {};
         for (const item of cat.items) {
           const excl = bundleExcludedOptions[item.id];
           if (excl && excl.length > 0) {
             excludedOpts[item.name] = excl;
           }
-          const delta = bundleItemDeltas[item.id];
-          if (delta && delta > 0) {
-            itemDeltas[item.name] = delta;
+          if (sizeGroup) {
+            // Per-size deltas: key = "itemName:sizeName"
+            for (const opt of sizeGroup.options) {
+              const d = bundleItemDeltas[`${item.id}:${opt.name}`];
+              if (d && d > 0) {
+                itemDeltas[`${item.name}:${opt.name}`] = d;
+              }
+            }
+          } else {
+            // Flat delta: key = "itemName"
+            const d = bundleItemDeltas[item.id];
+            if (d && d > 0) {
+              itemDeltas[item.name] = d;
+            }
           }
         }
         bundleSelection[catName] = {
@@ -358,14 +370,26 @@ export function Step4Offers() {
                 }
               }
             }
-            // Restore per-item price deltas
+            // Restore per-item price deltas (flat or per-size composite keys)
             if (sel.item_deltas) {
-              for (const [itemName, delta] of Object.entries(
+              for (const [key, delta] of Object.entries(
                 sel.item_deltas as Record<string, number>
               )) {
-                const item = cat.items.find((i) => i.name === itemName);
-                if (item && delta > 0) {
-                  deltas[item.id] = delta;
+                const colonIdx = key.indexOf(':');
+                if (colonIdx > 0) {
+                  // Per-size delta: "itemName:sizeName"
+                  const itemName = key.substring(0, colonIdx);
+                  const sizeName = key.substring(colonIdx + 1);
+                  const item = cat.items.find((i) => i.name === itemName);
+                  if (item && delta > 0) {
+                    deltas[`${item.id}:${sizeName}`] = delta;
+                  }
+                } else {
+                  // Flat delta: "itemName"
+                  const item = cat.items.find((i) => i.name === key);
+                  if (item && delta > 0) {
+                    deltas[item.id] = delta;
+                  }
                 }
               }
             }
@@ -748,32 +772,63 @@ export function Step4Offers() {
                                         </div>
                                       )}
                                     </div>
-                                    {/* Size/option chips per item */}
+                                    {/* Size/option chips with per-size delta inputs */}
                                     {!isExcluded && sizeGroup && (
-                                      <div className="ml-8 flex flex-wrap gap-1.5 px-3 pb-1.5">
+                                      <div className="ml-8 space-y-1 px-3 pb-1.5">
                                         {sizeGroup.options.map((opt) => {
                                           const isOptExcluded = excludedOpts.includes(opt.name);
+                                          const deltaKey = `${item.id}:${opt.name}`;
+                                          const sizeDelta = bundleItemDeltas[deltaKey] || 0;
                                           return (
-                                            <button
-                                              key={opt.name}
-                                              type="button"
-                                              onClick={() => {
-                                                setBundleExcludedOptions((prev) => {
-                                                  const current = prev[item.id] || [];
-                                                  const next = isOptExcluded
-                                                    ? current.filter((n) => n !== opt.name)
-                                                    : [...current, opt.name];
-                                                  return { ...prev, [item.id]: next };
-                                                });
-                                              }}
-                                              className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
-                                                !isOptExcluded
-                                                  ? 'border-primary-300 bg-primary-50 text-primary-700'
-                                                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
-                                              }`}
-                                            >
-                                              {opt.name}
-                                            </button>
+                                            <div key={opt.name} className="flex items-center gap-2">
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  setBundleExcludedOptions((prev) => {
+                                                    const current = prev[item.id] || [];
+                                                    const next = isOptExcluded
+                                                      ? current.filter((n) => n !== opt.name)
+                                                      : [...current, opt.name];
+                                                    return { ...prev, [item.id]: next };
+                                                  });
+                                                }}
+                                                className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                                  !isOptExcluded
+                                                    ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                                    : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                                }`}
+                                              >
+                                                {opt.name}
+                                              </button>
+                                              {!isOptExcluded && (
+                                                <div className="flex items-center gap-1">
+                                                  <span className="text-xs text-gray-400">+</span>
+                                                  <input
+                                                    type="number"
+                                                    step="0.5"
+                                                    min="0"
+                                                    value={
+                                                      sizeDelta ? (sizeDelta / 100).toString() : ''
+                                                    }
+                                                    onChange={(e) => {
+                                                      const val = parseFloat(e.target.value);
+                                                      setBundleItemDeltas((prev) => {
+                                                        const next = { ...prev };
+                                                        if (isNaN(val) || val === 0) {
+                                                          delete next[deltaKey];
+                                                        } else {
+                                                          next[deltaKey] = Math.round(val * 100);
+                                                        }
+                                                        return next;
+                                                      });
+                                                    }}
+                                                    onWheel={(e) => e.currentTarget.blur()}
+                                                    className="w-14 text-xs px-1.5 py-0.5 border border-gray-200 rounded text-right"
+                                                    placeholder="0€"
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
                                           );
                                         })}
                                       </div>
