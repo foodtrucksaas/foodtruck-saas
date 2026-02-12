@@ -92,6 +92,12 @@ export interface OnboardingState {
   // Step 4: Offers
   offers: OnboardingOffer[];
   wantsOffers: boolean | null;
+  offerSubStep: 'ask' | 'select-type' | 'configure' | 'done';
+  currentOfferDraft: {
+    type: OnboardingOffer['type'];
+    name: string;
+    config: Record<string, unknown>;
+  } | null;
 
   // Step 5: Settings
   settings: OnboardingSettings;
@@ -135,6 +141,8 @@ type OnboardingAction =
   | { type: 'SET_WANTS_OFFERS'; wants: boolean | null }
   | { type: 'ADD_OFFER'; offer: OnboardingOffer }
   | { type: 'SET_OFFERS'; offers: OnboardingOffer[] }
+  | { type: 'SET_OFFER_SUB_STEP'; subStep: OnboardingState['offerSubStep'] }
+  | { type: 'SET_CURRENT_OFFER_DRAFT'; draft: OnboardingState['currentOfferDraft'] }
   // Settings
   | { type: 'UPDATE_SETTINGS'; settings: Partial<OnboardingSettings> }
   // Reset
@@ -165,6 +173,8 @@ const initialState: OnboardingState = {
   menuSubStep: 'category',
   offers: [],
   wantsOffers: null,
+  offerSubStep: 'ask',
+  currentOfferDraft: null,
   settings: {
     payment_methods: ['cash', 'card'],
     pickup_slot_interval: 15,
@@ -400,6 +410,12 @@ function reducer(state: OnboardingState, action: OnboardingAction): OnboardingSt
 
     case 'SET_OFFERS':
       return { ...state, offers: action.offers };
+
+    case 'SET_OFFER_SUB_STEP':
+      return { ...state, offerSubStep: action.subStep };
+
+    case 'SET_CURRENT_OFFER_DRAFT':
+      return { ...state, currentOfferDraft: action.draft };
 
     // Settings
     case 'UPDATE_SETTINGS':

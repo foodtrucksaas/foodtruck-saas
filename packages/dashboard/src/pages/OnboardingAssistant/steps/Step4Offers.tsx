@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Gift, Package, Tag, TrendingUp, ChevronDown, Check, Pencil, Trash2 } from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
@@ -43,12 +43,19 @@ export function Step4Offers() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
   const { toast, hideToast, showSuccess } = useToast();
   const confirmDialog = useConfirmDialog();
-  const [subStep, setSubStep] = useState<OfferSubStep>(
-    state.offers.length > 0 ? 'done' : state.wantsOffers === true ? 'select-type' : 'ask'
+  // Sub-step from context (persisted via sessionStorage)
+  const subStep = state.offerSubStep;
+  const setSubStep = (s: OfferSubStep) => dispatch({ type: 'SET_OFFER_SUB_STEP', subStep: s });
+
+  // Restore draft from context if available
+  const draft = state.currentOfferDraft;
+  const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(
+    draft?.type || null
   );
-  const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(null);
-  const [offerName, setOfferName] = useState('');
-  const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>({});
+  const [offerName, setOfferName] = useState(draft?.name || '');
+  const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>(
+    (draft?.config as Record<string, string | number>) || {}
+  );
   const [bundleCategories, setBundleCategories] = useState<string[]>([]);
   // Track excluded items per category (category name → excluded item IDs)
   const [bundleExcludedItems, setBundleExcludedItems] = useState<Record<string, string[]>>({});
@@ -59,6 +66,16 @@ export function Step4Offers() {
   // Track which items are expanded for option detail
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
+
+  // Sync draft to context so it persists across navigation
+  useEffect(() => {
+    if (selectedType && subStep === 'configure') {
+      dispatch({
+        type: 'SET_CURRENT_OFFER_DRAFT',
+        draft: { type: selectedType, name: offerName, config: offerConfig },
+      });
+    }
+  }, [selectedType, offerName, offerConfig, subStep, dispatch]);
 
   const handleWantsOffers = (wants: boolean) => {
     dispatch({ type: 'SET_WANTS_OFFERS', wants });
@@ -180,7 +197,8 @@ export function Step4Offers() {
     }
 
     setSubStep('done');
-    // Reset form
+    // Reset form & clear draft
+    dispatch({ type: 'SET_CURRENT_OFFER_DRAFT', draft: null });
     setEditingOfferIndex(null);
     setSelectedType(null);
     setOfferName('');

@@ -173,6 +173,7 @@ export function useOnboardingAssistant() {
           });
           dispatch({ type: 'SET_OFFERS', offers });
           dispatch({ type: 'SET_WANTS_OFFERS', wants: true });
+          dispatch({ type: 'SET_OFFER_SUB_STEP', subStep: 'done' });
         }
 
         // Restore step progress from database
