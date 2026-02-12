@@ -134,7 +134,9 @@ export function Step2Schedule() {
                   }`}
                 >
                   <span className="text-sm font-medium">{day.short}</span>
-                  {isSelected && <Check className="w-4 h-4 mt-1 text-primary-500" />}
+                  <Check
+                    className={`w-4 h-4 mt-1 transition-opacity ${isSelected ? 'text-primary-500 opacity-100' : 'opacity-0'}`}
+                  />
                 </button>
               );
             })}

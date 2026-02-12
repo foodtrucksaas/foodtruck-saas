@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Check, Ruler, CircleDot, X, ChevronRight, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Check, Ruler, CircleDot, X, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import {
   useOnboarding,
   OnboardingCategory,
@@ -52,6 +52,13 @@ export function Step3Menu() {
   const [itemName, setItemName] = useState('');
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // When entering Step 3 with existing categories, show the "done" summary instead of "create category"
+  useEffect(() => {
+    if (state.categories.length > 0 && state.menuSubStep === 'category' && !state.currentCategory) {
+      dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
+    }
+  }, []); // Only on mount
 
   // Get size options for current category (if any)
   const sizeOptions =
@@ -185,6 +192,11 @@ export function Step3Menu() {
     });
   };
 
+  const handleEditCategory = (cat: OnboardingCategory) => {
+    dispatch({ type: 'SET_CURRENT_CATEGORY', category: cat });
+    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'items' });
+  };
+
   const handleRemoveCategory = (categoryId: string) => {
     dispatch({ type: 'REMOVE_CATEGORY', categoryId });
   };
@@ -216,9 +228,17 @@ export function Step3Menu() {
 
   // Sub-step: Create category
   if (state.menuSubStep === 'category') {
+    const handleBackFromCategory = () => {
+      if (state.categories.length > 0) {
+        dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
+      } else {
+        prevStep();
+      }
+    };
+
     return (
       <StepContainer
-        onBack={prevStep}
+        onBack={handleBackFromCategory}
         onNext={handleCreateCategory}
         nextLabel="Continuer"
         nextDisabled={!categoryName.trim()}
@@ -481,10 +501,13 @@ export function Step3Menu() {
           <SubStepProgress />
           <button
             type="button"
-            onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
+            onClick={() => {
+              dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
+              dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
+            }}
             className="text-sm text-primary-500 hover:text-primary-700 font-medium transition-colors"
           >
-            ← Retour aux particularités
+            ← Retour au menu
           </button>
 
           <AssistantBubble message={`Ajoutez vos ${state.currentCategory.name}`} emoji="🍕" />
@@ -617,7 +640,10 @@ export function Step3Menu() {
               {/* Done with this category */}
               <div className="pt-3 border-t border-gray-100">
                 <ActionButton
-                  onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' })}
+                  onClick={() => {
+                    // Finalize the current category (sync changes to categories array)
+                    dispatch({ type: 'FINALIZE_CATEGORY' });
+                  }}
                   icon={<Check className="w-5 h-5" />}
                 >
                   Catégorie terminée
@@ -636,7 +662,14 @@ export function Step3Menu() {
       <StepContainer hideActions>
         <div className="space-y-6">
           <SubStepProgress />
-          <AssistantBubble message="Catégorie ajoutée !" emoji="✅" variant="success" />
+          <AssistantBubble
+            message={
+              state.categories.length > 0
+                ? 'Voici vos catégories. Cliquez pour modifier ou ajoutez-en une nouvelle.'
+                : 'Créons votre menu !'
+            }
+            emoji="📋"
+          />
 
           {/* Summary of categories */}
           <div className="space-y-2">
@@ -645,7 +678,8 @@ export function Step3Menu() {
               {state.categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-card"
+                  onClick={() => handleEditCategory(cat)}
+                  className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-card cursor-pointer hover:border-primary-200 transition-all"
                 >
                   <div className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-success-500" />
@@ -655,9 +689,13 @@ export function Step3Menu() {
                     <span className="text-sm text-gray-500">
                       {cat.items.length} article{cat.items.length > 1 ? 's' : ''}
                     </span>
+                    <Pencil className="w-3.5 h-3.5 text-primary-400" />
                     <button
                       type="button"
-                      onClick={() => handleRemoveCategory(cat.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveCategory(cat.id);
+                      }}
                       className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                       aria-label={`Supprimer ${cat.name}`}
                     >
