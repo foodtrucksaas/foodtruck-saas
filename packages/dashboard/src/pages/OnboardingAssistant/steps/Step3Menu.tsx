@@ -54,11 +54,12 @@ export function Step3Menu() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // When entering Step 3 with existing categories, show the "done" summary instead of "create category"
+  // Watches categories.length to handle async DB loading (categories may arrive after mount)
   useEffect(() => {
     if (state.categories.length > 0 && state.menuSubStep === 'category' && !state.currentCategory) {
       dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
     }
-  }, []); // Only on mount
+  }, [state.categories.length, state.menuSubStep, state.currentCategory, dispatch]);
 
   // Get size options for current category (if any)
   const sizeOptions =
