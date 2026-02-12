@@ -74,6 +74,13 @@ export function Step4Offers() {
   const [buyXRewardExcludedItems, setBuyXRewardExcludedItems] = useState<Record<string, string[]>>(
     {}
   );
+  // Track excluded options per item for buy_x_get_y (itemId → excluded option names)
+  const [buyXTriggerExcludedOptions, setBuyXTriggerExcludedOptions] = useState<
+    Record<string, string[]>
+  >({});
+  const [buyXRewardExcludedOptions, setBuyXRewardExcludedOptions] = useState<
+    Record<string, string[]>
+  >({});
   const [showTriggerDetails, setShowTriggerDetails] = useState(false);
   const [showRewardDetails, setShowRewardDetails] = useState(false);
   const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
@@ -108,8 +115,10 @@ export function Step4Offers() {
     setExpandedCategories([]);
     setBuyXTriggerCategories([]);
     setBuyXTriggerExcludedItems({});
+    setBuyXTriggerExcludedOptions({});
     setBuyXRewardCategories([]);
     setBuyXRewardExcludedItems({});
+    setBuyXRewardExcludedOptions({});
     setShowTriggerDetails(false);
     setShowRewardDetails(false);
     // Set default config
@@ -232,6 +241,34 @@ export function Step4Offers() {
         if (excluded.length > 0) rewardExcluded[catName] = excluded;
       }
       if (Object.keys(rewardExcluded).length > 0) config.reward_excluded = rewardExcluded;
+
+      // Save excluded options (sizes) for trigger and reward items
+      const triggerExclOpts: Record<string, string[]> = {};
+      for (const catName of buyXTriggerCategories) {
+        const cat = state.categories.find((c) => c.name === catName);
+        if (!cat) continue;
+        for (const item of cat.items) {
+          const excl = buyXTriggerExcludedOptions[item.id];
+          if (excl && excl.length > 0) {
+            triggerExclOpts[item.name] = excl;
+          }
+        }
+      }
+      if (Object.keys(triggerExclOpts).length > 0)
+        config.trigger_excluded_options = triggerExclOpts;
+
+      const rewardExclOpts: Record<string, string[]> = {};
+      for (const catName of buyXRewardCategories) {
+        const cat = state.categories.find((c) => c.name === catName);
+        if (!cat) continue;
+        for (const item of cat.items) {
+          const excl = buyXRewardExcludedOptions[item.id];
+          if (excl && excl.length > 0) {
+            rewardExclOpts[item.name] = excl;
+          }
+        }
+      }
+      if (Object.keys(rewardExclOpts).length > 0) config.reward_excluded_options = rewardExclOpts;
     }
 
     const offer: OnboardingOffer = {
@@ -265,8 +302,10 @@ export function Step4Offers() {
     setExpandedCategories([]);
     setBuyXTriggerCategories([]);
     setBuyXTriggerExcludedItems({});
+    setBuyXTriggerExcludedOptions({});
     setBuyXRewardCategories([]);
     setBuyXRewardExcludedItems({});
+    setBuyXRewardExcludedOptions({});
     setShowTriggerDetails(false);
     setShowRewardDetails(false);
   };
@@ -371,6 +410,35 @@ export function Step4Offers() {
               .filter(Boolean) as string[];
           }
           setBuyXRewardExcludedItems(excl);
+        }
+        // Restore excluded options (sizes) for trigger/reward
+        if (cfg.trigger_excluded_options) {
+          const opts: Record<string, string[]> = {};
+          for (const catName of cfg.trigger_category_names || []) {
+            const cat = state.categories.find((c) => c.name === catName);
+            if (!cat) continue;
+            for (const [itemName, optNames] of Object.entries(
+              cfg.trigger_excluded_options as Record<string, string[]>
+            )) {
+              const item = cat.items.find((i) => i.name === itemName);
+              if (item && optNames.length > 0) opts[item.id] = optNames;
+            }
+          }
+          setBuyXTriggerExcludedOptions(opts);
+        }
+        if (cfg.reward_excluded_options) {
+          const opts: Record<string, string[]> = {};
+          for (const catName of cfg.reward_category_names || []) {
+            const cat = state.categories.find((c) => c.name === catName);
+            if (!cat) continue;
+            for (const [itemName, optNames] of Object.entries(
+              cfg.reward_excluded_options as Record<string, string[]>
+            )) {
+              const item = cat.items.find((i) => i.name === itemName);
+              if (item && optNames.length > 0) opts[item.id] = optNames;
+            }
+          }
+          setBuyXRewardExcludedOptions(opts);
         }
         break;
       }
@@ -548,6 +616,7 @@ export function Step4Offers() {
                       const isExpanded = expandedCategories.includes(cat.name);
                       const excluded = bundleExcludedItems[cat.name] || [];
                       const eligibleCount = cat.items.length - excluded.length;
+                      const sizeGroup = cat.optionGroups.find((og) => og.type === 'size');
 
                       const toggleCategory = () => {
                         if (isCatSelected) {
@@ -628,53 +697,85 @@ export function Step4Offers() {
                               {cat.items.map((item) => {
                                 const isExcluded = excluded.includes(item.id);
                                 const delta = bundleItemDeltas[item.id] || 0;
+                                const excludedOpts = bundleExcludedOptions[item.id] || [];
 
                                 return (
-                                  <div
-                                    key={item.id}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleExcludeItem(item.id)}
-                                      aria-label={`${isExcluded ? 'Inclure' : 'Exclure'} ${item.name}`}
-                                      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                        !isExcluded
-                                          ? 'bg-primary-500 border-primary-500'
-                                          : 'border-gray-300'
-                                      }`}
-                                    >
-                                      {!isExcluded && <Check className="w-2.5 h-2.5 text-white" />}
-                                    </button>
-                                    <span
-                                      className={`flex-1 text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}
-                                    >
-                                      {item.name}
-                                    </span>
-                                    {!isExcluded && (
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-gray-400">+</span>
-                                        <input
-                                          type="number"
-                                          step="0.5"
-                                          min="0"
-                                          value={delta ? (delta / 100).toString() : ''}
-                                          onChange={(e) => {
-                                            const val = parseFloat(e.target.value);
-                                            setBundleItemDeltas((prev) => {
-                                              const next = { ...prev };
-                                              if (isNaN(val) || val === 0) {
-                                                delete next[item.id];
-                                              } else {
-                                                next[item.id] = Math.round(val * 100);
-                                              }
-                                              return next;
-                                            });
-                                          }}
-                                          onWheel={(e) => e.currentTarget.blur()}
-                                          className="w-14 text-xs px-1.5 py-1 border border-gray-200 rounded text-right"
-                                          placeholder="0€"
-                                        />
+                                  <div key={item.id}>
+                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExcludeItem(item.id)}
+                                        aria-label={`${isExcluded ? 'Inclure' : 'Exclure'} ${item.name}`}
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                          !isExcluded
+                                            ? 'bg-primary-500 border-primary-500'
+                                            : 'border-gray-300'
+                                        }`}
+                                      >
+                                        {!isExcluded && (
+                                          <Check className="w-2.5 h-2.5 text-white" />
+                                        )}
+                                      </button>
+                                      <span
+                                        className={`flex-1 text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                                      >
+                                        {item.name}
+                                      </span>
+                                      {!isExcluded && !sizeGroup && (
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-gray-400">+</span>
+                                          <input
+                                            type="number"
+                                            step="0.5"
+                                            min="0"
+                                            value={delta ? (delta / 100).toString() : ''}
+                                            onChange={(e) => {
+                                              const val = parseFloat(e.target.value);
+                                              setBundleItemDeltas((prev) => {
+                                                const next = { ...prev };
+                                                if (isNaN(val) || val === 0) {
+                                                  delete next[item.id];
+                                                } else {
+                                                  next[item.id] = Math.round(val * 100);
+                                                }
+                                                return next;
+                                              });
+                                            }}
+                                            onWheel={(e) => e.currentTarget.blur()}
+                                            className="w-14 text-xs px-1.5 py-1 border border-gray-200 rounded text-right"
+                                            placeholder="0€"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                    {/* Size/option chips per item */}
+                                    {!isExcluded && sizeGroup && (
+                                      <div className="ml-8 flex flex-wrap gap-1.5 px-3 pb-1.5">
+                                        {sizeGroup.options.map((opt) => {
+                                          const isOptExcluded = excludedOpts.includes(opt.name);
+                                          return (
+                                            <button
+                                              key={opt.name}
+                                              type="button"
+                                              onClick={() => {
+                                                setBundleExcludedOptions((prev) => {
+                                                  const current = prev[item.id] || [];
+                                                  const next = isOptExcluded
+                                                    ? current.filter((n) => n !== opt.name)
+                                                    : [...current, opt.name];
+                                                  return { ...prev, [item.id]: next };
+                                                });
+                                              }}
+                                              className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                                !isOptExcluded
+                                                  ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                              }`}
+                                            >
+                                              {opt.name}
+                                            </button>
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>
@@ -855,38 +956,76 @@ export function Step4Offers() {
                                   const isExcluded = (
                                     buyXTriggerExcludedItems[item.catName] || []
                                   ).includes(item.id);
+                                  const cat = state.categories.find((c) => c.name === item.catName);
+                                  const itemSizeGroup = cat?.optionGroups.find(
+                                    (og) => og.type === 'size'
+                                  );
+                                  const excludedOpts = buyXTriggerExcludedOptions[item.id] || [];
                                   return (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setBuyXTriggerExcludedItems((prev) => {
-                                          const current = prev[item.catName] || [];
-                                          const next = isExcluded
-                                            ? current.filter((id) => id !== item.id)
-                                            : [...current, item.id];
-                                          return { ...prev, [item.catName]: next };
-                                        });
-                                      }}
-                                      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
-                                    >
-                                      <span
-                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                          !isExcluded
-                                            ? 'bg-primary-500 border-primary-500'
-                                            : 'border-gray-300'
-                                        }`}
+                                    <div key={item.id}>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setBuyXTriggerExcludedItems((prev) => {
+                                            const current = prev[item.catName] || [];
+                                            const next = isExcluded
+                                              ? current.filter((id) => id !== item.id)
+                                              : [...current, item.id];
+                                            return { ...prev, [item.catName]: next };
+                                          });
+                                        }}
+                                        className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
                                       >
-                                        {!isExcluded && (
-                                          <Check className="w-2.5 h-2.5 text-white" />
-                                        )}
-                                      </span>
-                                      <span
-                                        className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
-                                      >
-                                        {item.name}
-                                      </span>
-                                    </button>
+                                        <span
+                                          className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                            !isExcluded
+                                              ? 'bg-primary-500 border-primary-500'
+                                              : 'border-gray-300'
+                                          }`}
+                                        >
+                                          {!isExcluded && (
+                                            <Check className="w-2.5 h-2.5 text-white" />
+                                          )}
+                                        </span>
+                                        <span
+                                          className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                                        >
+                                          {item.name}
+                                        </span>
+                                      </button>
+                                      {!isExcluded && itemSizeGroup && (
+                                        <div className="ml-8 flex flex-wrap gap-1.5 px-3 pb-1">
+                                          {itemSizeGroup.options.map((opt) => {
+                                            const isOptExcluded = excludedOpts.includes(opt.name);
+                                            return (
+                                              <button
+                                                key={opt.name}
+                                                type="button"
+                                                onClick={() => {
+                                                  setBuyXTriggerExcludedOptions((prev) => {
+                                                    const current = prev[item.id] || [];
+                                                    const next = isOptExcluded
+                                                      ? current.filter((n) => n !== opt.name)
+                                                      : [...current, opt.name];
+                                                    return {
+                                                      ...prev,
+                                                      [item.id]: next,
+                                                    };
+                                                  });
+                                                }}
+                                                className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                                  !isOptExcluded
+                                                    ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                                    : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                                }`}
+                                              >
+                                                {opt.name}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 })}
                               </div>
@@ -968,38 +1107,76 @@ export function Step4Offers() {
                                   const isExcluded = (
                                     buyXRewardExcludedItems[item.catName] || []
                                   ).includes(item.id);
+                                  const cat = state.categories.find((c) => c.name === item.catName);
+                                  const itemSizeGroup = cat?.optionGroups.find(
+                                    (og) => og.type === 'size'
+                                  );
+                                  const excludedOpts = buyXRewardExcludedOptions[item.id] || [];
                                   return (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setBuyXRewardExcludedItems((prev) => {
-                                          const current = prev[item.catName] || [];
-                                          const next = isExcluded
-                                            ? current.filter((id) => id !== item.id)
-                                            : [...current, item.id];
-                                          return { ...prev, [item.catName]: next };
-                                        });
-                                      }}
-                                      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
-                                    >
-                                      <span
-                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                          !isExcluded
-                                            ? 'bg-green-500 border-green-500'
-                                            : 'border-gray-300'
-                                        }`}
+                                    <div key={item.id}>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setBuyXRewardExcludedItems((prev) => {
+                                            const current = prev[item.catName] || [];
+                                            const next = isExcluded
+                                              ? current.filter((id) => id !== item.id)
+                                              : [...current, item.id];
+                                            return { ...prev, [item.catName]: next };
+                                          });
+                                        }}
+                                        className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
                                       >
-                                        {!isExcluded && (
-                                          <Check className="w-2.5 h-2.5 text-white" />
-                                        )}
-                                      </span>
-                                      <span
-                                        className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
-                                      >
-                                        {item.name}
-                                      </span>
-                                    </button>
+                                        <span
+                                          className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                            !isExcluded
+                                              ? 'bg-green-500 border-green-500'
+                                              : 'border-gray-300'
+                                          }`}
+                                        >
+                                          {!isExcluded && (
+                                            <Check className="w-2.5 h-2.5 text-white" />
+                                          )}
+                                        </span>
+                                        <span
+                                          className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                                        >
+                                          {item.name}
+                                        </span>
+                                      </button>
+                                      {!isExcluded && itemSizeGroup && (
+                                        <div className="ml-8 flex flex-wrap gap-1.5 px-3 pb-1">
+                                          {itemSizeGroup.options.map((opt) => {
+                                            const isOptExcluded = excludedOpts.includes(opt.name);
+                                            return (
+                                              <button
+                                                key={opt.name}
+                                                type="button"
+                                                onClick={() => {
+                                                  setBuyXRewardExcludedOptions((prev) => {
+                                                    const current = prev[item.id] || [];
+                                                    const next = isOptExcluded
+                                                      ? current.filter((n) => n !== opt.name)
+                                                      : [...current, opt.name];
+                                                    return {
+                                                      ...prev,
+                                                      [item.id]: next,
+                                                    };
+                                                  });
+                                                }}
+                                                className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                                  !isOptExcluded
+                                                    ? 'border-green-300 bg-green-50 text-green-700'
+                                                    : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                                }`}
+                                              >
+                                                {opt.name}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 })}
                               </div>
