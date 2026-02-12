@@ -9,7 +9,16 @@ function getStoredState(fallback: OnboardingState): OnboardingState {
       const parsed = JSON.parse(saved);
       // Validate basic shape
       if (parsed && typeof parsed.currentStep === 'number') {
-        return { ...fallback, ...parsed };
+        const state = { ...fallback, ...parsed };
+
+        // Normalize transient sub-steps: if the user left during category
+        // creation or item editing, restore to the summary instead
+        if (state.categories.length > 0 && state.menuSubStep !== 'done') {
+          state.menuSubStep = 'done';
+          state.currentCategory = null;
+        }
+
+        return state;
       }
     }
   } catch {
