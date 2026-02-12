@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2, ArrowRight, Truck } from 'lucide-react';
+import { UtensilsCrossed, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import { generateSlug } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,13 +11,11 @@ export default function Onboarding() {
   const { user } = useAuth();
   const { refresh } = useFoodtruck();
 
-  // Form state
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-
-  // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const slug = name.trim() ? generateSlug(name.trim()) : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +30,6 @@ export default function Onboarding() {
     setLoading(true);
 
     try {
-      // Generate slug and check uniqueness
       const baseSlug = generateSlug(name.trim());
 
       const { data: existingSlug } = await supabase
@@ -45,14 +42,12 @@ export default function Onboarding() {
         ? `${baseSlug}-${Date.now().toString(36).slice(-4)}`
         : baseSlug;
 
-      // Create the foodtruck
       const { error: foodtruckError } = await supabase
         .from('foodtrucks')
         .insert({
           user_id: user.id,
           name: name.trim(),
           slug: finalSlug,
-          description: description.trim() || null,
           email: user.email,
         })
         .select()
@@ -62,9 +57,7 @@ export default function Onboarding() {
         throw new Error('Erreur lors de la création du food truck');
       }
 
-      // Don't create default categories - the onboarding assistant will handle menu creation
       await refresh();
-      // Redirect to onboarding assistant for guided setup
       navigate('/onboarding-assistant');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -76,90 +69,79 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
               <UtensilsCrossed className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-gray-900">MonTruck</span>
+            <span className="font-semibold text-gray-900">OnMange</span>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Icon & Title */}
+        <div className="w-full max-w-sm">
+          {/* Welcome */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Truck className="w-10 h-10 text-primary-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Créez votre food truck</h1>
-            <p className="text-gray-600">Un assistant va vous guider pour tout configurer</p>
+            <div className="text-5xl mb-4">🚚</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Comment s'appelle votre food truck ?
+            </h1>
+            <p className="text-gray-500 text-sm">C'est le nom que vos clients verront</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 bg-error-50 border border-error-200 rounded-xl text-error-700 text-sm">
+              <div className="p-3 bg-error-50 border border-error-200 rounded-xl text-error-700 text-sm">
                 {error}
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
-              <div>
-                <label htmlFor="name" className="label text-base">
-                  Nom de votre food truck
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="input text-lg"
-                  placeholder="Ex: Le Gourmet Roulant"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="label text-base">
-                  Description <span className="text-gray-400 font-normal">(optionnelle)</span>
-                </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="input min-h-[100px] resize-none"
-                  placeholder="Décrivez votre cuisine, ce qui vous rend unique..."
-                />
-              </div>
+            <div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input text-center text-xl font-medium py-4 w-full"
+                placeholder="Le Gourmet Roulant"
+                autoFocus
+                required
+              />
             </div>
+
+            {/* Slug preview */}
+            {slug && (
+              <p className="text-center text-sm text-gray-400">
+                <span className="font-mono">{slug}.onmange.app</span>
+              </p>
+            )}
 
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="w-full btn-primary justify-center text-lg py-4"
+              className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold py-4 rounded-2xl text-lg transition-all active:scale-[0.98] shadow-lg shadow-primary-500/25"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Création en cours...
+                  Création...
                 </>
               ) : (
                 <>
-                  Commencer la configuration
+                  C'est parti
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            L'assistant vous guidera pour configurer emplacements, horaires et menu
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-400">
+            <Sparkles className="w-4 h-4" />
+            <span>L'assistant vous guide ensuite pas à pas</span>
+          </div>
         </div>
       </div>
     </div>
