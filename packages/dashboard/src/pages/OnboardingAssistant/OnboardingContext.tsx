@@ -2,45 +2,6 @@ import { createContext, useContext, useReducer, useEffect, ReactNode, useCallbac
 
 const SESSION_KEY = 'onboarding-state';
 
-function getStoredState(fallback: OnboardingState): OnboardingState {
-  try {
-    const saved = sessionStorage.getItem(SESSION_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Validate basic shape
-      if (parsed && typeof parsed.currentStep === 'number') {
-        const state = { ...fallback, ...parsed };
-
-        // Normalize transient sub-steps: if the user left during category
-        // creation or item editing, restore to the summary instead
-        if (state.categories.length > 0 && state.menuSubStep !== 'done') {
-          state.menuSubStep = 'done';
-          state.currentCategory = null;
-        }
-
-        return state;
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return fallback;
-}
-
-export function hasOnboardingSession(): boolean {
-  try {
-    const saved = sessionStorage.getItem(SESSION_KEY);
-    if (!saved) return false;
-    const parsed = JSON.parse(saved);
-    return !!(
-      parsed &&
-      (parsed.currentStep > 1 || parsed.locations?.length > 0 || parsed.categories?.length > 0)
-    );
-  } catch {
-    return false;
-  }
-}
-
 export function clearOnboardingSession() {
   try {
     sessionStorage.removeItem(SESSION_KEY);
@@ -435,16 +396,14 @@ interface OnboardingContextType {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState, (init) => getStoredState(init));
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Persist every state change to sessionStorage
+  // Clear sessionStorage when leaving the assistant so next visit loads fresh from DB
   useEffect(() => {
-    try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
-    } catch {
-      // Ignore quota errors
-    }
-  }, [state]);
+    return () => {
+      clearOnboardingSession();
+    };
+  }, []);
 
   const nextStep = useCallback(() => {
     dispatch({ type: 'COMPLETE_STEP', step: state.currentStep });

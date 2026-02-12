@@ -7,7 +7,6 @@ import {
   OnboardingLocation,
   OnboardingOffer,
   OnboardingSchedule,
-  hasOnboardingSession,
   clearOnboardingSession,
 } from '../OnboardingContext';
 import type { Json } from '@foodtruck/shared';
@@ -34,18 +33,11 @@ export function useOnboardingAssistant() {
     }
   }, [foodtruck, state.foodtruck, dispatch]);
 
-  // Load existing data — only once, and skip if sessionStorage already has state
+  // Load existing data from DB — only once per mount
   useEffect(() => {
     if (!foodtruck || initialLoadDone.current) return;
     initialLoadDone.current = true;
 
-    // Session has state → reducer already restored it, no DB round-trip needed
-    if (hasOnboardingSession()) {
-      setLoaded(true);
-      return;
-    }
-
-    // First visit (or cleared browser) — load from DB
     const loadExistingData = async () => {
       try {
         // Load locations
