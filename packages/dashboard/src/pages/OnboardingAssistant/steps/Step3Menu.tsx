@@ -449,9 +449,11 @@ export function Step3Menu() {
           </div>
 
           {/* Quick suggestions for sizes */}
-          {selectedOptionType === 'size' && optionValues.length === 0 && (
+          {selectedOptionType === 'size' && (
             <QuickSuggestions
-              suggestions={['S', 'M', 'L', 'XL', 'Junior', 'Senior']}
+              suggestions={['S', 'M', 'L', 'XL', 'Junior', 'Senior'].filter(
+                (s) => !optionValues.includes(s)
+              )}
               onSelect={(s) => setOptionValues([...optionValues, s])}
             />
           )}
