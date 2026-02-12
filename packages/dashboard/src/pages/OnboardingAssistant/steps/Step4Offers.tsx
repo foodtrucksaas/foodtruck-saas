@@ -38,7 +38,7 @@ const OFFER_TYPES = [
 
 export function Step4Offers() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
-  const [subStep, setSubStep] = useState<OfferSubStep>('ask');
+  const [subStep, setSubStep] = useState<OfferSubStep>(state.offers.length > 0 ? 'done' : 'ask');
   const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(null);
   const [offerName, setOfferName] = useState('');
   const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>({});

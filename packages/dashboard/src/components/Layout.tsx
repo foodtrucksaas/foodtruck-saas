@@ -11,6 +11,7 @@ import {
   Sparkles,
   Gift,
   Settings,
+  Wand2,
   Menu,
   X,
   LogOut,
@@ -51,8 +52,9 @@ const navigation: NavItem[] = [
   { type: 'link', name: 'Clients', href: '/customers', icon: Users },
   { type: 'link', name: 'Fidélité', href: '/loyalty', icon: Gift },
   { type: 'link', name: 'Campagnes', href: '/campaigns', icon: Send },
-  // Paramètres seul en bas
+  // Paramètres en bas
   { type: 'separator', label: '' },
+  { type: 'link', name: 'Assistant', href: '/onboarding-assistant', icon: Wand2 },
   { type: 'link', name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 

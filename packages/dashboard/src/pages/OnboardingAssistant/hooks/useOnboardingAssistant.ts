@@ -5,6 +5,7 @@ import {
   useOnboarding,
   OnboardingCategory,
   OnboardingLocation,
+  OnboardingOffer,
   OnboardingSchedule,
   hasOnboardingSession,
   clearOnboardingSession,
@@ -121,6 +122,60 @@ export function useOnboardingAssistant() {
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
           dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
+        }
+
+        // Load offers
+        const { data: offersData } = await supabase
+          .from('offers')
+          .select('*')
+          .eq('foodtruck_id', foodtruck.id)
+          .eq('is_active', true);
+
+        if (offersData && offersData.length > 0) {
+          const offers: OnboardingOffer[] = offersData.map((o: any) => {
+            const cfg = (o.config || {}) as Record<string, any>;
+            let config: Record<string, unknown> = {};
+
+            switch (o.offer_type) {
+              case 'bundle':
+                config = { fixed_price: (cfg.fixed_price || 0) / 100 };
+                break;
+              case 'buy_x_get_y':
+                config = {
+                  trigger_quantity: cfg.trigger_quantity || 0,
+                  reward_quantity: cfg.reward_quantity || 0,
+                };
+                break;
+              case 'promo_code':
+                config = {
+                  code: cfg.code || '',
+                  discount_type: cfg.discount_type || 'percentage',
+                  discount_value:
+                    cfg.discount_type === 'fixed'
+                      ? (cfg.discount_value || 0) / 100
+                      : cfg.discount_value || 0,
+                };
+                break;
+              case 'threshold_discount':
+                config = {
+                  min_amount: (cfg.min_amount || 0) / 100,
+                  discount_type: cfg.discount_type || 'fixed',
+                  discount_value:
+                    cfg.discount_type === 'fixed'
+                      ? (cfg.discount_value || 0) / 100
+                      : cfg.discount_value || 0,
+                };
+                break;
+            }
+
+            return {
+              type: o.offer_type as OnboardingOffer['type'],
+              name: o.name,
+              config,
+            };
+          });
+          dispatch({ type: 'SET_OFFERS', offers });
+          dispatch({ type: 'SET_WANTS_OFFERS', wants: true });
         }
 
         // Restore step progress from database
@@ -321,9 +376,16 @@ export function useOnboardingAssistant() {
     }
   }, [foodtruck, state.categories]);
 
-  // Save offers to database
+  // Save offers to database (delete-then-insert to avoid duplicates on retry)
   const saveOffers = useCallback(async () => {
     if (!foodtruck || state.offers.length === 0) return;
+
+    // Remove existing offers created during onboarding
+    const { error: deleteError } = await supabase
+      .from('offers')
+      .delete()
+      .eq('foodtruck_id', foodtruck.id);
+    if (deleteError) throw deleteError;
 
     for (const offer of state.offers) {
       let config: Json = {};
