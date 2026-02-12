@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Gift, Package, Tag, TrendingUp, ChevronDown, Check } from 'lucide-react';
+import { Gift, Package, Tag, TrendingUp, ChevronDown, Check, Pencil, Trash2 } from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
 
@@ -51,6 +51,7 @@ export function Step4Offers() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   // Track which items are expanded for option detail
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
 
   const handleWantsOffers = (wants: boolean) => {
     dispatch({ type: 'SET_WANTS_OFFERS', wants });
@@ -153,9 +154,18 @@ export function Step4Offers() {
       config,
     };
 
-    dispatch({ type: 'ADD_OFFER', offer });
+    if (editingOfferIndex !== null) {
+      // Replace existing offer
+      const updated = [...state.offers];
+      updated[editingOfferIndex] = offer;
+      dispatch({ type: 'SET_OFFERS', offers: updated });
+    } else {
+      dispatch({ type: 'ADD_OFFER', offer });
+    }
+
     setSubStep('done');
     // Reset form
+    setEditingOfferIndex(null);
     setSelectedType(null);
     setOfferName('');
     setOfferConfig({});
@@ -166,7 +176,82 @@ export function Step4Offers() {
     setExpandedItems([]);
   };
 
+  const handleEditOffer = (index: number) => {
+    const offer = state.offers[index];
+    setEditingOfferIndex(index);
+    setSelectedType(offer.type);
+    setOfferName(offer.name);
+
+    const cfg = offer.config as Record<string, any>;
+    switch (offer.type) {
+      case 'bundle':
+        setOfferConfig({ fixed_price: cfg.fixed_price || '' });
+        setBundleCategories(cfg.bundle_category_names || []);
+        // Restore excluded items/options from bundle_selection
+        if (cfg.bundle_selection) {
+          const excItems: Record<string, string[]> = {};
+          const excOpts: Record<string, string[]> = {};
+          for (const [catName, sel] of Object.entries(
+            cfg.bundle_selection as Record<string, any>
+          )) {
+            const cat = state.categories.find((c) => c.name === catName);
+            if (!cat) continue;
+            // Map excluded item names back to IDs
+            if (sel.excluded_items?.length) {
+              excItems[catName] = sel.excluded_items
+                .map((name: string) => cat.items.find((i) => i.name === name)?.id)
+                .filter(Boolean) as string[];
+            }
+            if (sel.excluded_options) {
+              for (const [itemName, opts] of Object.entries(
+                sel.excluded_options as Record<string, string[]>
+              )) {
+                const item = cat.items.find((i) => i.name === itemName);
+                if (item && opts.length > 0) {
+                  excOpts[item.id] = opts;
+                }
+              }
+            }
+          }
+          setBundleExcludedItems(excItems);
+          setBundleExcludedOptions(excOpts);
+        }
+        break;
+      case 'buy_x_get_y':
+        setOfferConfig({
+          trigger_quantity: cfg.trigger_quantity || 3,
+          reward_quantity: cfg.reward_quantity || 1,
+        });
+        break;
+      case 'promo_code':
+        setOfferConfig({
+          code: cfg.code || '',
+          discount_type: cfg.discount_type || 'percentage',
+          discount_value: cfg.discount_value || 10,
+        });
+        break;
+      case 'threshold_discount':
+        setOfferConfig({
+          min_amount: cfg.min_amount || 25,
+          discount_type: cfg.discount_type || 'fixed',
+          discount_value: cfg.discount_value || 5,
+        });
+        break;
+    }
+    setSubStep('configure');
+  };
+
+  const handleDeleteOffer = (index: number) => {
+    const updated = state.offers.filter((_, i) => i !== index);
+    dispatch({ type: 'SET_OFFERS', offers: updated });
+    if (updated.length === 0) {
+      dispatch({ type: 'SET_WANTS_OFFERS', wants: null });
+      setSubStep('ask');
+    }
+  };
+
   const handleAddAnother = () => {
+    setEditingOfferIndex(null);
     setSubStep('select-type');
   };
 
@@ -712,16 +797,29 @@ export function Step4Offers() {
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-card"
+                    onClick={() => handleEditOffer(index)}
+                    className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-card cursor-pointer hover:border-primary-200 transition-all"
                   >
-                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Icon className="w-5 h-5 text-primary-600" />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{offer.name}</p>
-                      {offer.name !== typeInfo?.label && (
-                        <p className="text-xs text-gray-500">{typeInfo?.label}</p>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{offer.name}</p>
+                      <p className="text-xs text-gray-500">{typeInfo?.label}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Pencil className="w-3.5 h-3.5 text-primary-400" />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteOffer(index);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label={`Supprimer ${offer.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );
