@@ -1,38 +1,35 @@
-import { Bot } from 'lucide-react';
-
 interface AssistantBubbleProps {
   message: string;
   emoji?: string;
   variant?: 'default' | 'success' | 'info' | 'tip';
 }
 
-const variantStyles = {
-  default: 'bg-white border-gray-100 shadow-card',
-  success: 'bg-success-50 border-success-200',
-  info: 'bg-blue-50 border-blue-200',
-  tip: 'bg-amber-50 border-amber-200',
-};
-
-const avatarStyles = {
-  default: 'bg-primary-100 text-primary-600',
-  success: 'bg-success-100 text-success-600',
-  info: 'bg-blue-100 text-blue-600',
-  tip: 'bg-amber-100 text-amber-600',
-};
-
 export function AssistantBubble({ message, emoji, variant = 'default' }: AssistantBubbleProps) {
+  const isDefault = variant === 'default';
+
+  // Non-default variants: subtle colored banner
+  if (!isDefault) {
+    const bannerStyles = {
+      success: 'bg-success-50 text-success-700 border-success-100',
+      info: 'bg-blue-50 text-blue-700 border-blue-100',
+      tip: 'bg-amber-50 text-amber-700 border-amber-100',
+    };
+
+    return (
+      <div
+        className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl border ${bannerStyles[variant]} animate-fade-in-up`}
+      >
+        {emoji && <span className="text-lg flex-shrink-0">{emoji}</span>}
+        <p className="text-sm font-medium leading-relaxed">{message}</p>
+      </div>
+    );
+  }
+
+  // Default: centered title pattern (matches Onboarding page 1)
   return (
-    <div className="flex items-start gap-3 animate-fade-in-up">
-      <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${avatarStyles[variant]}`}
-      >
-        {emoji ? <span className="text-lg">{emoji}</span> : <Bot className="w-5 h-5" />}
-      </div>
-      <div
-        className={`flex-1 rounded-2xl rounded-tl-md px-4 py-3 border ${variantStyles[variant]}`}
-      >
-        <p className="text-gray-800 text-base leading-relaxed">{message}</p>
-      </div>
+    <div className="text-center animate-fade-in-up">
+      {emoji && <div className="text-4xl mb-3">{emoji}</div>}
+      <p className="text-lg font-semibold text-gray-900 leading-relaxed">{message}</p>
     </div>
   );
 }

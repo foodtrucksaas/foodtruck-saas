@@ -138,7 +138,7 @@ function OnboardingAssistantContent() {
                 <UtensilsCrossed className="w-5 h-5 text-white" />
               </div>
               <div>
-                <span className="font-semibold text-gray-900">MonTruck</span>
+                <span className="font-semibold text-gray-900">OnMange</span>
                 {foodtruck && <p className="text-xs text-gray-500">{foodtruck.name}</p>}
               </div>
             </div>
