@@ -828,7 +828,7 @@ export function Step3Menu() {
                     Annuler
                   </button>
                 ) : null}
-                <ActionButton onClick={handleAddItem} disabled={!isItemValid}>
+                <ActionButton onClick={handleAddItem} disabled={!isItemValid} variant="secondary">
                   {editingItemId ? 'Modifier' : 'Ajouter'}
                 </ActionButton>
               </div>
