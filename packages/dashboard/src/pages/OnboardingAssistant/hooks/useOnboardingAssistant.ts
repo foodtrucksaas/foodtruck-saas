@@ -114,7 +114,7 @@ export function useOnboardingAssistant() {
               id: item.id,
               name: item.name,
               description: item.description || undefined,
-              prices: { base: item.price },
+              prices: { base: Math.round((item.price || 0) * 100) },
             })),
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
