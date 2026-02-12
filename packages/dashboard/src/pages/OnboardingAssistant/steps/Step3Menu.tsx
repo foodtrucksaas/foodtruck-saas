@@ -379,16 +379,19 @@ export function Step3Menu() {
                 <p className="text-sm font-medium text-gray-700">Particularités ajoutées :</p>
                 <div className="space-y-2">
                   {state.currentCategory.optionGroups.map((og) => (
-                    <div
+                    <button
                       key={og.id}
-                      className="flex items-center gap-2 p-3 bg-success-50 rounded-xl text-sm"
+                      type="button"
+                      onClick={() => handleSelectOptionType(og.type)}
+                      className="flex items-center gap-2 p-3 bg-success-50 rounded-xl text-sm w-full text-left hover:bg-success-100 transition-colors"
                     >
-                      <Check className="w-4 h-4 text-success-600" />
+                      <Check className="w-4 h-4 text-success-600 flex-shrink-0" />
                       <span className="font-medium text-success-700">{og.name}</span>
                       <span className="text-success-600">
                         ({og.options.map((o) => o.name).join(', ')})
                       </span>
-                    </div>
+                      <Pencil className="w-3 h-3 text-success-400 ml-auto flex-shrink-0" />
+                    </button>
                   ))}
                 </div>
               </div>
