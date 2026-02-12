@@ -14,6 +14,7 @@ export function useOnboardingAssistant() {
   const { state, dispatch } = useOnboarding();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   // Initialize foodtruck in state when available
   useEffect(() => {
@@ -125,6 +126,8 @@ export function useOnboardingAssistant() {
         }
       } catch (err) {
         console.error('Error loading existing data:', err);
+      } finally {
+        setLoaded(true);
       }
     };
 
@@ -461,6 +464,7 @@ export function useOnboardingAssistant() {
   return {
     saving,
     error,
+    loaded,
     saveAllData,
     updateProgress,
     saveStepData,

@@ -28,6 +28,7 @@ function OnboardingAssistantContent() {
     saveSchedules,
     saveMenu,
     saveOffers,
+    loaded,
   } = useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
   const [skipping, setSkipping] = useState(false);
@@ -47,20 +48,24 @@ function OnboardingAssistantContent() {
   }, [state.currentStep, saveAllData]);
 
   // Progressive save: when step increases, save the completed step's data
+  // Only after initial load to avoid overwriting DB with default state
   useEffect(() => {
+    if (!loaded) return;
     const prev = prevStepRef.current;
     if (state.currentStep > prev && prev <= TOTAL_STEPS) {
       saveStepData(prev);
     }
     prevStepRef.current = state.currentStep;
-  }, [state.currentStep, saveStepData]);
+  }, [state.currentStep, saveStepData, loaded]);
 
   // Update progress in database when step changes
+  // Only after initial load to avoid overwriting saved step with 1
   useEffect(() => {
+    if (!loaded) return;
     if (state.currentStep <= TOTAL_STEPS) {
       updateProgress(state.currentStep);
     }
-  }, [state.currentStep, updateProgress]);
+  }, [state.currentStep, updateProgress, loaded]);
 
   // Save whatever data has been entered so far before leaving
   const handleSkip = async () => {
