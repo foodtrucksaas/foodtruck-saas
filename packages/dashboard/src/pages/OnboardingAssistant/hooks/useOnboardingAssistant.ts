@@ -7,12 +7,11 @@ import {
   OnboardingLocation,
   OnboardingOffer,
   OnboardingSchedule,
-  clearOnboardingSession,
 } from '../OnboardingContext';
 import type { Json } from '@foodtruck/shared';
 
 export function useOnboardingAssistant() {
-  const { foodtruck, refresh } = useFoodtruck();
+  const { foodtruck } = useFoodtruck();
   const { state, dispatch } = useOnboarding();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -582,10 +581,6 @@ export function useOnboardingAssistant() {
       await saveOffers();
       await saveSettings();
 
-      // Refresh foodtruck context
-      await refresh();
-      clearOnboardingSession();
-
       return true;
     } catch (err) {
       console.error('Error saving onboarding data:', err);
@@ -594,7 +589,7 @@ export function useOnboardingAssistant() {
     } finally {
       setSaving(false);
     }
-  }, [saveLocations, saveSchedules, saveMenu, saveOffers, saveSettings, refresh]);
+  }, [saveLocations, saveSchedules, saveMenu, saveOffers, saveSettings]);
 
   // Save data for a specific completed step
   const saveStepData = useCallback(
