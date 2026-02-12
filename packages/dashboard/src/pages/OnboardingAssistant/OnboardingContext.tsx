@@ -119,6 +119,12 @@ type OnboardingAction =
   | { type: 'UPDATE_ITEM_IN_CATEGORY'; categoryId: string; item: OnboardingItem }
   | { type: 'REMOVE_ITEM_FROM_CATEGORY'; categoryId: string; itemId: string }
   | { type: 'ADD_OPTION_GROUP_TO_CATEGORY'; categoryId: string; optionGroup: OnboardingOptionGroup }
+  | {
+      type: 'REPLACE_OPTION_GROUP_IN_CATEGORY';
+      categoryId: string;
+      oldGroupId: string;
+      optionGroup: OnboardingOptionGroup;
+    }
   | { type: 'REMOVE_CATEGORY'; categoryId: string }
   | { type: 'FINALIZE_CATEGORY' }
   | { type: 'SET_CATEGORIES'; categories: OnboardingCategory[] }
@@ -317,6 +323,27 @@ function reducer(state: OnboardingState, action: OnboardingAction): OnboardingSt
               ...state.currentCategory,
               optionGroups: [...state.currentCategory.optionGroups, action.optionGroup],
             }
+          : state.currentCategory;
+      return {
+        ...state,
+        categories: updatedCategories,
+        currentCategory: updatedCurrentCategory,
+      };
+    }
+
+    case 'REPLACE_OPTION_GROUP_IN_CATEGORY': {
+      const replaceGroup = (cat: OnboardingCategory) => ({
+        ...cat,
+        optionGroups: cat.optionGroups.map((og) =>
+          og.id === action.oldGroupId ? action.optionGroup : og
+        ),
+      });
+      const updatedCategories = state.categories.map((cat) =>
+        cat.id === action.categoryId ? replaceGroup(cat) : cat
+      );
+      const updatedCurrentCategory =
+        state.currentCategory?.id === action.categoryId
+          ? replaceGroup(state.currentCategory)
           : state.currentCategory;
       return {
         ...state,

@@ -53,6 +53,7 @@ export function Step3Menu() {
   const [itemName, setItemName] = useState('');
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingOptionGroupId, setEditingOptionGroupId] = useState<string | null>(null);
 
   // Get size options for current category (if any)
   const sizeOptions =
@@ -80,14 +81,31 @@ export function Step3Menu() {
 
   const handleSelectOptionType = (type: 'size' | 'supplement' | 'other') => {
     setSelectedOptionType(type);
-    setOptionPrices({});
-    // Set default name based on type
-    if (type === 'size') {
-      setOptionGroupName('Taille');
-    } else if (type === 'supplement') {
-      setOptionGroupName('Suppléments');
+
+    // Check if a group of this type already exists → edit it
+    const existingGroup = state.currentCategory?.optionGroups.find((og) => og.type === type);
+    if (existingGroup) {
+      setEditingOptionGroupId(existingGroup.id);
+      setOptionGroupName(existingGroup.name);
+      setOptionValues(existingGroup.options.map((o) => o.name));
+      const prices: Record<string, string> = {};
+      for (const o of existingGroup.options) {
+        if (o.priceModifier) {
+          prices[o.name] = (o.priceModifier / 100).toFixed(2);
+        }
+      }
+      setOptionPrices(prices);
     } else {
-      setOptionGroupName('');
+      setEditingOptionGroupId(null);
+      setOptionPrices({});
+      // Set default name based on type
+      if (type === 'size') {
+        setOptionGroupName('Taille');
+      } else if (type === 'supplement') {
+        setOptionGroupName('Suppléments');
+      } else {
+        setOptionGroupName('');
+      }
     }
   };
 
@@ -105,7 +123,7 @@ export function Step3Menu() {
     if (!state.currentCategory || !selectedOptionType || optionValues.length === 0) return;
 
     const optionGroup: OnboardingOptionGroup = {
-      id: generateId(),
+      id: editingOptionGroupId || generateId(),
       name: optionGroupName || selectedOptionType,
       type: selectedOptionType,
       options: optionValues.map((name) => ({
@@ -116,14 +134,24 @@ export function Step3Menu() {
       })),
     };
 
-    dispatch({
-      type: 'ADD_OPTION_GROUP_TO_CATEGORY',
-      categoryId: state.currentCategory.id,
-      optionGroup,
-    });
+    if (editingOptionGroupId) {
+      dispatch({
+        type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
+        categoryId: state.currentCategory.id,
+        oldGroupId: editingOptionGroupId,
+        optionGroup,
+      });
+    } else {
+      dispatch({
+        type: 'ADD_OPTION_GROUP_TO_CATEGORY',
+        categoryId: state.currentCategory.id,
+        optionGroup,
+      });
+    }
 
     // Reset form
     setSelectedOptionType(null);
+    setEditingOptionGroupId(null);
     setOptionGroupName('');
     setOptionValues([]);
     setOptionPrices({});
@@ -382,7 +410,9 @@ export function Step3Menu() {
       <StepContainer
         onBack={() => {
           setSelectedOptionType(null);
+          setEditingOptionGroupId(null);
           setOptionValues([]);
+          setOptionPrices({});
           setNewOptionValue('');
         }}
         onNext={handleSaveOptionGroup}
