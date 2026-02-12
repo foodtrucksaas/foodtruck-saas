@@ -58,7 +58,7 @@ export function Step3Menu() {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
   const { toast, hideToast, showSuccess } = useToast();
   const confirmDialog = useConfirmDialog();
-  const [categoryName, setCategoryName] = useState('');
+  const [categoryName, setCategoryName] = useState(state.currentCategory?.name || '');
   const [selectedOptionType, setSelectedOptionType] = useState<
     'size' | 'supplement' | 'other' | null
   >(null);
@@ -509,25 +509,21 @@ export function Step3Menu() {
             emoji="📝"
           />
 
-          {/* Option group name (optional for size/supplement) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nom du groupe d'options
-            </label>
-            <input
-              type="text"
-              value={optionGroupName}
-              onChange={(e) => setOptionGroupName(e.target.value)}
-              className="input min-h-[48px] text-base"
-              placeholder={
-                selectedOptionType === 'size'
-                  ? 'Taille'
-                  : selectedOptionType === 'supplement'
-                    ? 'Suppléments'
-                    : 'Ex: Cuisson, Sauce...'
-              }
-            />
-          </div>
+          {/* Option group name — only shown for "other" type */}
+          {selectedOptionType === 'other' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Nom du groupe d'options
+              </label>
+              <input
+                type="text"
+                value={optionGroupName}
+                onChange={(e) => setOptionGroupName(e.target.value)}
+                className="input min-h-[48px] text-base"
+                placeholder="Ex: Cuisson, Sauce..."
+              />
+            </div>
+          )}
 
           {/* Add option values */}
           <div>
