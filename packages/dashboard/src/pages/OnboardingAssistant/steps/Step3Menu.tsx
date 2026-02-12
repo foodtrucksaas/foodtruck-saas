@@ -54,6 +54,7 @@ export function Step3Menu() {
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingOptionGroupId, setEditingOptionGroupId] = useState<string | null>(null);
+  const [showItemForm, setShowItemForm] = useState(false);
 
   // Get size options for current category (if any)
   const sizeOptions =
@@ -195,13 +196,15 @@ export function Step3Menu() {
       });
     }
 
-    // Reset form
+    // Reset form & collapse
     setItemName('');
     setItemPrices({});
+    setShowItemForm(false);
   };
 
   const handleEditItem = (item: OnboardingItem) => {
     setEditingItemId(item.id);
+    setShowItemForm(true);
     setItemName(item.name);
     // Convert prices from cents back to display format
     const displayPrices: Record<string, string> = {};
@@ -565,180 +568,69 @@ export function Step3Menu() {
         : itemPrices['base'] && parseFloat(itemPrices['base']) > 0);
 
     const hasItems = state.currentCategory.items.length > 0;
+    // Auto-show form when no items yet
+    const isFormVisible = showItemForm || !hasItems;
 
-    // Item add form
+    const handleFinalizeCategory = () => {
+      dispatch({ type: 'FINALIZE_CATEGORY' });
+    };
+
     return (
-      <StepContainer hideActions>
-        <div className="space-y-6">
+      <StepContainer
+        onBack={() => {
+          dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
+          dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
+        }}
+        onNext={hasItems ? handleFinalizeCategory : undefined}
+        nextLabel="Catégorie terminée"
+      >
+        <div className="space-y-4">
           <SubStepProgress />
-          <button
-            type="button"
-            onClick={() => {
-              dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
-              dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
-            }}
-            className="text-sm text-primary-500 hover:text-primary-700 font-medium transition-colors"
-          >
-            ← Retour au menu
-          </button>
 
-          <AssistantBubble message={`Configurez "${state.currentCategory.name}"`} emoji="🍕" />
-
-          {/* Category name (editable) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nom de la catégorie
-            </label>
+          {/* Inline editable category header */}
+          <div className="flex items-center gap-2">
             <input
               type="text"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               onBlur={handleUpdateCategoryName}
-              className="input min-h-[48px] text-base"
+              className="text-lg font-semibold text-gray-900 bg-transparent border-none outline-none focus:ring-0 p-0 flex-1 min-w-0"
               placeholder="Nom de la catégorie"
             />
+            <Pencil className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
           </div>
 
-          {/* Option groups summary */}
-          {state.currentCategory.optionGroups.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700">Options</p>
-                <button
-                  type="button"
-                  onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
-                  className="text-xs text-primary-500 hover:text-primary-700 font-medium"
-                >
-                  Modifier
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                {state.currentCategory.optionGroups.map((og) => (
-                  <div
-                    key={og.id}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-sm"
-                  >
-                    <span className="font-medium text-gray-700">{og.name}</span>
-                    <span className="text-gray-500">
-                      {og.options
-                        .map(
-                          (o) =>
-                            o.name +
-                            (o.priceModifier ? ` (+${(o.priceModifier / 100).toFixed(2)}€)` : '')
-                        )
-                        .join(', ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {state.currentCategory.optionGroups.length === 0 && (
+          {/* Option groups summary (compact) */}
+          {state.currentCategory.optionGroups.length > 0 ? (
             <button
               type="button"
               onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
-              className="w-full p-3 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-colors"
+              className="flex items-center gap-2 text-xs text-gray-500 hover:text-primary-600 transition-colors"
             >
-              <Plus className="w-4 h-4 inline mr-1" />
+              {state.currentCategory.optionGroups
+                .map((og) => `${og.name}: ${og.options.map((o) => o.name).join(', ')}`)
+                .join(' · ')}
+              <Pencil className="w-3 h-3" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-500 transition-colors"
+            >
+              <Plus className="w-3 h-3" />
               Ajouter des options (tailles, suppléments...)
             </button>
           )}
 
-          {/* Separator */}
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Articles</p>
-          </div>
-
-          {/* Item name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nom de l'article
-            </label>
-            <input
-              type="text"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              className="input min-h-[48px] text-base"
-              placeholder="Ex: Margherita, Burger Classic..."
-              autoFocus
-            />
-          </div>
-
-          {/* Prices */}
-          {hasSizeOptions ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Prix par taille
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {sizeOptions.map((option) => (
-                  <div key={option.name}>
-                    <label className="block text-xs text-gray-500 mb-1">{option.name}</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={itemPrices[option.name] || ''}
-                        onChange={(e) =>
-                          setItemPrices({ ...itemPrices, [option.name]: e.target.value })
-                        }
-                        className="input min-h-[48px] text-base pr-8"
-                        placeholder="Ex: 8.50"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        €
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Prix</label>
-              <div className="relative w-40">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={itemPrices['base'] || ''}
-                  onChange={(e) => setItemPrices({ ...itemPrices, base: e.target.value })}
-                  className="input min-h-[48px] text-base pr-8"
-                  placeholder="Ex: 8.50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
-              </div>
-            </div>
-          )}
-
-          {editingItemId && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingItemId(null);
-                setItemName('');
-                setItemPrices({});
-              }}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Annuler la modification
-            </button>
-          )}
-
-          <ActionButton onClick={handleAddItem} disabled={!isItemValid}>
-            {editingItemId ? 'Modifier cet article' : 'Ajouter cet article'}
-          </ActionButton>
-
-          {/* Added items */}
+          {/* Item list */}
           {hasItems && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700">
-                  {state.currentCategory.name} ({state.currentCategory.items.length})
-                </p>
-              </div>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-500">
+                {state.currentCategory.items.length} article
+                {state.currentCategory.items.length > 1 ? 's' : ''}
+              </p>
+              <div className="space-y-1.5">
                 {state.currentCategory.items.map((item) => (
                   <div
                     key={item.id}
@@ -773,20 +665,101 @@ export function Step3Menu() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
 
-              {/* Done with this category */}
-              <div className="pt-3 border-t border-gray-100">
-                <ActionButton
-                  onClick={() => {
-                    // Finalize the current category (sync changes to categories array)
-                    dispatch({ type: 'FINALIZE_CATEGORY' });
-                  }}
-                  icon={<Check className="w-5 h-5" />}
-                >
-                  Catégorie terminée
+          {/* Add item form (collapsible) */}
+          {isFormVisible ? (
+            <div className="space-y-4 pt-2">
+              {hasItems && (
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-sm font-medium text-gray-700">
+                    {editingItemId ? "Modifier l'article" : 'Nouvel article'}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    className="input min-h-[48px] text-base w-full"
+                    placeholder="Nom de l'article"
+                    autoFocus
+                  />
+                </div>
+                {!hasSizeOptions && (
+                  <div className="relative w-28">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={itemPrices['base'] || ''}
+                      onChange={(e) => setItemPrices({ ...itemPrices, base: e.target.value })}
+                      className="input min-h-[48px] text-base pr-7 w-full"
+                      placeholder="Prix"
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                      €
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Size prices (separate row when sizes exist) */}
+              {hasSizeOptions && (
+                <div className="grid grid-cols-3 gap-2">
+                  {sizeOptions.map((option) => (
+                    <div key={option.name} className="relative">
+                      <label className="block text-xs text-gray-500 mb-1">{option.name}</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={itemPrices[option.name] || ''}
+                        onChange={(e) =>
+                          setItemPrices({ ...itemPrices, [option.name]: e.target.value })
+                        }
+                        className="input min-h-[44px] text-sm pr-7 w-full"
+                        placeholder="0.00"
+                      />
+                      <span className="absolute right-2.5 bottom-3 text-gray-400 text-sm">€</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {editingItemId || hasItems ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingItemId(null);
+                      setItemName('');
+                      setItemPrices({});
+                      setShowItemForm(false);
+                    }}
+                    className="px-4 py-3 min-h-[48px] text-gray-500 hover:bg-gray-100 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    Annuler
+                  </button>
+                ) : null}
+                <ActionButton onClick={handleAddItem} disabled={!isItemValid}>
+                  {editingItemId ? 'Modifier' : 'Ajouter'}
                 </ActionButton>
               </div>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowItemForm(true)}
+              className="w-full p-3 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              Ajouter un article
+            </button>
           )}
         </div>
       </StepContainer>
