@@ -197,9 +197,17 @@ export function Step4Offers() {
     setOfferName(offer.name);
 
     const cfg = offer.config as Record<string, any>;
+    // Shared fields across all offer types
+    const sharedFields = {
+      description: cfg.description || '',
+      start_date: cfg.start_date || '',
+      end_date: cfg.end_date || '',
+      time_start: cfg.time_start || '',
+      time_end: cfg.time_end || '',
+    };
     switch (offer.type) {
       case 'bundle':
-        setOfferConfig({ fixed_price: cfg.fixed_price || '' });
+        setOfferConfig({ fixed_price: cfg.fixed_price || '', ...sharedFields });
         setBundleCategories(cfg.bundle_category_names || []);
         // Restore excluded items/options from bundle_selection
         if (cfg.bundle_selection) {
@@ -235,6 +243,7 @@ export function Step4Offers() {
         setOfferConfig({
           trigger_quantity: cfg.trigger_quantity || 3,
           reward_quantity: cfg.reward_quantity || 1,
+          ...sharedFields,
         });
         break;
       case 'promo_code':
@@ -242,6 +251,7 @@ export function Step4Offers() {
           code: cfg.code || '',
           discount_type: cfg.discount_type || 'percentage',
           discount_value: cfg.discount_value || 10,
+          ...sharedFields,
         });
         break;
       case 'threshold_discount':
@@ -249,6 +259,7 @@ export function Step4Offers() {
           min_amount: cfg.min_amount || 25,
           discount_type: cfg.discount_type || 'fixed',
           discount_value: cfg.discount_value || 5,
+          ...sharedFields,
         });
         break;
     }
@@ -373,6 +384,20 @@ export function Step4Offers() {
               onChange={(e) => setOfferName(e.target.value)}
               className="input min-h-[48px] text-base"
               placeholder="Ex: Menu Midi, Code Bienvenue..."
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Description (optionnel)
+            </label>
+            <textarea
+              value={String(offerConfig.description || '')}
+              onChange={(e) => setOfferConfig({ ...offerConfig, description: e.target.value })}
+              className="input text-sm resize-none"
+              rows={2}
+              placeholder="Description visible par vos clients..."
             />
           </div>
 
@@ -602,7 +627,7 @@ export function Step4Offers() {
                     Aucune catégorie créée. Retournez à l'étape Menu pour en ajouter.
                   </p>
                 )}
-                {bundleCategories.length > 0 && bundleCategories.length < 2 && (
+                {bundleCategories.length < 2 && (
                   <p className="text-xs text-amber-600 mt-2">
                     Sélectionnez au moins 2 catégories pour créer une formule.
                   </p>
@@ -814,7 +839,7 @@ export function Step4Offers() {
             </div>
           )}
 
-          {/* Optional validity dates */}
+          {/* Optional validity dates & times */}
           <div className="space-y-3">
             <p className="text-sm font-medium text-gray-700">Validité (optionnel)</p>
             <div className="grid grid-cols-2 gap-3">
@@ -837,11 +862,36 @@ export function Step4Offers() {
                 />
               </div>
             </div>
-            {!offerConfig.start_date && !offerConfig.end_date && (
-              <p className="text-xs text-gray-400">
-                Sans dates, l'offre sera active immédiatement et sans limite.
-              </p>
-            )}
+
+            {/* Time slots */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Créneaux horaires</label>
+              <p className="text-xs text-gray-400 mb-2">Ex: Menu midi disponible de 12h à 15h</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={String(offerConfig.time_start || '')}
+                  onChange={(e) => setOfferConfig({ ...offerConfig, time_start: e.target.value })}
+                  className="input min-h-[44px] text-sm w-28"
+                />
+                <span className="text-gray-400 text-sm">à</span>
+                <input
+                  type="time"
+                  value={String(offerConfig.time_end || '')}
+                  onChange={(e) => setOfferConfig({ ...offerConfig, time_end: e.target.value })}
+                  className="input min-h-[44px] text-sm w-28"
+                />
+              </div>
+            </div>
+
+            {!offerConfig.start_date &&
+              !offerConfig.end_date &&
+              !offerConfig.time_start &&
+              !offerConfig.time_end && (
+                <p className="text-xs text-gray-400">
+                  Sans dates ni horaires, l'offre sera active immédiatement et sans limite.
+                </p>
+              )}
           </div>
         </div>
         {toastAndDialog}
