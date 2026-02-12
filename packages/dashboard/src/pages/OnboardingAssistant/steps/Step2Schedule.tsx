@@ -243,7 +243,7 @@ export function Step2Schedule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 <Clock className="w-4 h-4 inline mr-1" />
-                Arrivée
+                Début
               </label>
               <input
                 type="time"
@@ -257,7 +257,7 @@ export function Step2Schedule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 <Clock className="w-4 h-4 inline mr-1" />
-                Départ
+                Fin
               </label>
               <input
                 type="time"
@@ -272,9 +272,7 @@ export function Step2Schedule() {
 
           {/* Time validation warning */}
           {!isTimeValid && currentDayConfig.start_time && currentDayConfig.end_time && (
-            <p className="text-sm text-red-500">
-              L'heure de départ doit être après l'heure d'arrivée.
-            </p>
+            <p className="text-sm text-red-500">L'heure de fin doit être après l'heure de début.</p>
           )}
 
           {/* Info about exceptions */}
