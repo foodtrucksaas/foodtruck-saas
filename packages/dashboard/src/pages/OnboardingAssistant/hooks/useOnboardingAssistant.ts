@@ -384,6 +384,16 @@ export function useOnboardingAssistant() {
       .eq('foodtruck_id', foodtruck.id);
     if (deleteError) throw deleteError;
 
+    // Pre-fetch categories and items from DB for bundle offers
+    const { data: dbCategories } = await supabase
+      .from('categories')
+      .select('id, name')
+      .eq('foodtruck_id', foodtruck.id);
+    const { data: dbItems } = await supabase
+      .from('menu_items')
+      .select('id, name, category_id')
+      .eq('foodtruck_id', foodtruck.id);
+
     for (const offer of state.offers) {
       let config: Json = {};
 
@@ -422,15 +432,104 @@ export function useOnboardingAssistant() {
           break;
       }
 
-      const { error } = await supabase.from('offers').insert({
-        foodtruck_id: foodtruck.id,
-        name: offer.name,
-        offer_type: offer.type,
-        config: config,
-        is_active: true,
-      });
+      // Build bundle category_choice config with real IDs
+      if (offer.type === 'bundle' && offer.config.bundle_category_names) {
+        const catNames = offer.config.bundle_category_names as string[];
+        const selection = (offer.config.bundle_selection || {}) as Record<
+          string,
+          { excluded_items?: string[]; excluded_options?: Record<string, string[]> }
+        >;
+        const bundleCats: Json[] = [];
+
+        for (const catName of catNames) {
+          const dbCat = dbCategories?.find((c) => c.name === catName);
+          if (!dbCat) continue;
+          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+          const sel = selection[catName] || {};
+          const excludedItemIds = (sel.excluded_items || [])
+            .map((name) => catItems.find((i) => i.name === name)?.id)
+            .filter(Boolean) as string[];
+
+          // Map excluded_options (per item name → option names) to excluded_sizes (per item ID → option names)
+          const excludedSizes: Record<string, string[]> = {};
+          if (sel.excluded_options) {
+            for (const [itemName, optNames] of Object.entries(sel.excluded_options)) {
+              const dbItem = catItems.find((i) => i.name === itemName);
+              if (dbItem && optNames.length > 0) {
+                excludedSizes[dbItem.id] = optNames;
+              }
+            }
+          }
+
+          bundleCats.push({
+            category_ids: [dbCat.id],
+            quantity: 1,
+            label: catName,
+            excluded_items: excludedItemIds.length > 0 ? excludedItemIds : undefined,
+            excluded_sizes: Object.keys(excludedSizes).length > 0 ? excludedSizes : undefined,
+          });
+        }
+
+        config = {
+          ...(config as Record<string, unknown>),
+          type: 'category_choice',
+          bundle_categories: bundleCats,
+        };
+      }
+
+      const { data: offerData, error } = await supabase
+        .from('offers')
+        .insert({
+          foodtruck_id: foodtruck.id,
+          name: offer.name,
+          offer_type: offer.type,
+          config: config,
+          is_active: true,
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Insert offer_items for bundles (all non-excluded items)
+      if (offer.type === 'bundle' && offerData && offer.config.bundle_category_names) {
+        const catNames = offer.config.bundle_category_names as string[];
+        const selection = (offer.config.bundle_selection || {}) as Record<
+          string,
+          { excluded_items?: string[] }
+        >;
+        const offerItems: {
+          offer_id: string;
+          menu_item_id: string;
+          role: string;
+          quantity: number;
+        }[] = [];
+
+        for (const catName of catNames) {
+          const dbCat = dbCategories?.find((c) => c.name === catName);
+          if (!dbCat) continue;
+          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+          const excludedNames = selection[catName]?.excluded_items || [];
+
+          for (const item of catItems) {
+            if (!excludedNames.includes(item.name)) {
+              offerItems.push({
+                offer_id: offerData.id,
+                menu_item_id: item.id,
+                role: 'bundle_item',
+                quantity: 1,
+              });
+            }
+          }
+        }
+
+        if (offerItems.length > 0) {
+          const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
+            offerItems
+          );
+          if (itemsError) throw itemsError;
+        }
+      }
     }
   }, [foodtruck, state.offers]);
 
