@@ -47,53 +47,108 @@ export function Step4Offers() {
   const subStep = state.offerSubStep;
   const setSubStep = (s: OfferSubStep) => dispatch({ type: 'SET_OFFER_SUB_STEP', subStep: s });
 
-  // Restore draft from context if available
+  // Restore draft from context if available (including full form state)
   const draft = state.currentOfferDraft;
+  const draftConfig = (draft?.config || {}) as Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { _fs: _draftFS, ...cleanDraftConfig } = draftConfig;
+  const fs = (_draftFS || {}) as Record<string, any>;
+
   const [selectedType, setSelectedType] = useState<OnboardingOffer['type'] | null>(
     draft?.type || null
   );
   const [offerName, setOfferName] = useState(draft?.name || '');
   const [offerConfig, setOfferConfig] = useState<Record<string, string | number>>(
-    (draft?.config as Record<string, string | number>) || {}
+    cleanDraftConfig as Record<string, string | number>
   );
-  const [bundleCategories, setBundleCategories] = useState<string[]>([]);
-  // Track excluded items per category (category name → excluded item IDs)
-  const [bundleExcludedItems, setBundleExcludedItems] = useState<Record<string, string[]>>({});
-  // Track excluded options per item (itemId → excluded option names)
-  const [bundleExcludedOptions, setBundleExcludedOptions] = useState<Record<string, string[]>>({});
-  // Track which categories are expanded for article detail
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  // Per-item price delta in the bundle (itemId → cents)
-  const [bundleItemDeltas, setBundleItemDeltas] = useState<Record<string, number>>({});
-  // Buy X Get Y: trigger & reward selection
-  const [buyXTriggerCategories, setBuyXTriggerCategories] = useState<string[]>([]);
+  const [bundleCategories, setBundleCategories] = useState<string[]>(fs.bundleCategories || []);
+  const [bundleExcludedItems, setBundleExcludedItems] = useState<Record<string, string[]>>(
+    fs.bundleExcludedItems || {}
+  );
+  const [bundleExcludedOptions, setBundleExcludedOptions] = useState<Record<string, string[]>>(
+    fs.bundleExcludedOptions || {}
+  );
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(
+    fs.expandedCategories || []
+  );
+  const [bundleItemDeltas, setBundleItemDeltas] = useState<Record<string, number>>(
+    fs.bundleItemDeltas || {}
+  );
+  const [buyXTriggerCategories, setBuyXTriggerCategories] = useState<string[]>(
+    fs.buyXTriggerCategories || []
+  );
   const [buyXTriggerExcludedItems, setBuyXTriggerExcludedItems] = useState<
     Record<string, string[]>
-  >({});
-  const [buyXRewardCategories, setBuyXRewardCategories] = useState<string[]>([]);
-  const [buyXRewardExcludedItems, setBuyXRewardExcludedItems] = useState<Record<string, string[]>>(
-    {}
+  >(fs.buyXTriggerExcludedItems || {});
+  const [buyXRewardCategories, setBuyXRewardCategories] = useState<string[]>(
+    fs.buyXRewardCategories || []
   );
-  // Track excluded options per item for buy_x_get_y (itemId → excluded option names)
+  const [buyXRewardExcludedItems, setBuyXRewardExcludedItems] = useState<Record<string, string[]>>(
+    fs.buyXRewardExcludedItems || {}
+  );
   const [buyXTriggerExcludedOptions, setBuyXTriggerExcludedOptions] = useState<
     Record<string, string[]>
-  >({});
+  >(fs.buyXTriggerExcludedOptions || {});
   const [buyXRewardExcludedOptions, setBuyXRewardExcludedOptions] = useState<
     Record<string, string[]>
-  >({});
-  const [showTriggerDetails, setShowTriggerDetails] = useState(false);
-  const [showRewardDetails, setShowRewardDetails] = useState(false);
-  const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
+  >(fs.buyXRewardExcludedOptions || {});
+  const [showTriggerDetails, setShowTriggerDetails] = useState(fs.showTriggerDetails || false);
+  const [showRewardDetails, setShowRewardDetails] = useState(fs.showRewardDetails || false);
+  const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(
+    fs.editingOfferIndex ?? null
+  );
 
-  // Sync draft to context so it persists across navigation
+  // Sync ALL form state to context draft so it survives step navigation
   useEffect(() => {
     if (selectedType && subStep === 'configure') {
       dispatch({
         type: 'SET_CURRENT_OFFER_DRAFT',
-        draft: { type: selectedType, name: offerName, config: offerConfig },
+        draft: {
+          type: selectedType,
+          name: offerName,
+          config: {
+            ...offerConfig,
+            _fs: {
+              bundleCategories,
+              bundleExcludedItems,
+              bundleExcludedOptions,
+              bundleItemDeltas,
+              expandedCategories,
+              buyXTriggerCategories,
+              buyXTriggerExcludedItems,
+              buyXTriggerExcludedOptions,
+              buyXRewardCategories,
+              buyXRewardExcludedItems,
+              buyXRewardExcludedOptions,
+              showTriggerDetails,
+              showRewardDetails,
+              editingOfferIndex,
+            },
+          },
+        },
       });
     }
-  }, [selectedType, offerName, offerConfig, subStep, dispatch]);
+  }, [
+    selectedType,
+    offerName,
+    offerConfig,
+    subStep,
+    dispatch,
+    bundleCategories,
+    bundleExcludedItems,
+    bundleExcludedOptions,
+    bundleItemDeltas,
+    expandedCategories,
+    buyXTriggerCategories,
+    buyXTriggerExcludedItems,
+    buyXTriggerExcludedOptions,
+    buyXRewardCategories,
+    buyXRewardExcludedItems,
+    buyXRewardExcludedOptions,
+    showTriggerDetails,
+    showRewardDetails,
+    editingOfferIndex,
+  ]);
 
   const handleWantsOffers = (wants: boolean) => {
     dispatch({ type: 'SET_WANTS_OFFERS', wants });
@@ -589,7 +644,7 @@ export function Step4Offers() {
       <StepContainer
         onBack={() => setSubStep('select-type')}
         onNext={handleSaveOffer}
-        nextLabel="Créer l'offre"
+        nextLabel={editingOfferIndex !== null ? "Modifier l'offre" : "Créer l'offre"}
         nextDisabled={!isConfigValid()}
       >
         <div className="space-y-6">

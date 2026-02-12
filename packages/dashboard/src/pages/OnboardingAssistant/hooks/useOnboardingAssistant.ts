@@ -151,20 +151,160 @@ export function useOnboardingAssistant() {
           .eq('is_active', true);
 
         if (offersData && offersData.length > 0) {
+          // Also load categories for reverse-mapping bundle/buyX data
+          const loadedCategories = categoriesData || [];
+
           const offers: OnboardingOffer[] = offersData.map((o: any) => {
             const cfg = (o.config || {}) as Record<string, any>;
+            // Shared fields from DB columns
+            const sharedConfig: Record<string, unknown> = {
+              description: o.description || '',
+              start_date: o.start_date ? new Date(o.start_date).toISOString().split('T')[0] : '',
+              end_date: o.end_date ? new Date(o.end_date).toISOString().split('T')[0] : '',
+              time_start: o.time_start ? String(o.time_start).slice(0, 5) : '',
+              time_end: o.time_end ? String(o.time_end).slice(0, 5) : '',
+            };
             let config: Record<string, unknown> = {};
 
             switch (o.offer_type) {
-              case 'bundle':
-                config = { fixed_price: (cfg.fixed_price || 0) / 100 };
+              case 'bundle': {
+                config = { fixed_price: (cfg.fixed_price || 0) / 100, ...sharedConfig };
+                // Reverse-map bundle_categories back to category names and selection
+                if (cfg.bundle_categories && Array.isArray(cfg.bundle_categories)) {
+                  const catNames: string[] = [];
+                  const catIdMap: Record<string, string> = {};
+                  const bundleSelection: Record<string, any> = {};
+
+                  for (const bc of cfg.bundle_categories) {
+                    const catId = bc.category_ids?.[0];
+                    const dbCat = loadedCategories.find((c) => c.id === catId);
+                    const catName = bc.label || dbCat?.name || '';
+                    if (!catName) continue;
+                    catNames.push(catName);
+                    if (catId) catIdMap[catName] = catId;
+
+                    // Reverse-map excluded items (IDs → names)
+                    const catItems = dbCat?.menu_items || [];
+                    const excludedItemNames = (bc.excluded_items || [])
+                      .map((id: string) => catItems.find((i: any) => i.id === id)?.name)
+                      .filter(Boolean) as string[];
+
+                    // Reverse-map excluded_sizes (itemId → optionUUIDs → optionNames)
+                    const excludedOptions: Record<string, string[]> = {};
+                    if (bc.excluded_sizes) {
+                      const sizeGroup = (dbCat?.category_option_groups || []).find(
+                        (og: any) => og.is_required
+                      );
+                      const idToName: Record<string, string> = {};
+                      if (sizeGroup) {
+                        for (const opt of sizeGroup.category_options || []) {
+                          idToName[opt.id] = opt.name;
+                        }
+                      }
+                      for (const [itemId, optIds] of Object.entries(
+                        bc.excluded_sizes as Record<string, string[]>
+                      )) {
+                        const item = catItems.find((i: any) => i.id === itemId);
+                        if (item) {
+                          const names = optIds.map((id) => idToName[id]).filter(Boolean);
+                          if (names.length > 0) excludedOptions[item.name] = names;
+                        }
+                      }
+                    }
+
+                    // Reverse-map supplements (itemId or itemId:optionId → names)
+                    const itemDeltas: Record<string, number> = {};
+                    if (bc.supplements) {
+                      const sizeGroup = (dbCat?.category_option_groups || []).find(
+                        (og: any) => og.is_required
+                      );
+                      const optIdToName: Record<string, string> = {};
+                      if (sizeGroup) {
+                        for (const opt of sizeGroup.category_options || []) {
+                          optIdToName[opt.id] = opt.name;
+                        }
+                      }
+                      for (const [key, delta] of Object.entries(
+                        bc.supplements as Record<string, number>
+                      )) {
+                        const colonIdx = key.indexOf(':');
+                        if (colonIdx > 0) {
+                          const itemId = key.substring(0, colonIdx);
+                          const optId = key.substring(colonIdx + 1);
+                          const item = catItems.find((i: any) => i.id === itemId);
+                          const optName = optIdToName[optId];
+                          if (item && optName) itemDeltas[`${item.name}:${optName}`] = delta;
+                        } else {
+                          const item = catItems.find((i: any) => i.id === key);
+                          if (item) itemDeltas[item.name] = delta;
+                        }
+                      }
+                    }
+
+                    bundleSelection[catName] = {
+                      excluded_items: excludedItemNames,
+                      excluded_options: excludedOptions,
+                      item_deltas: itemDeltas,
+                    };
+                  }
+                  config.bundle_category_names = catNames;
+                  config.bundle_category_ids = catIdMap;
+                  config.bundle_selection = bundleSelection;
+                }
                 break;
-              case 'buy_x_get_y':
+              }
+              case 'buy_x_get_y': {
                 config = {
                   trigger_quantity: cfg.trigger_quantity || 0,
                   reward_quantity: cfg.reward_quantity || 0,
+                  ...sharedConfig,
                 };
+                // Reverse-map trigger/reward category IDs to names
+                if (cfg.trigger_category_ids) {
+                  const triggerNames = (cfg.trigger_category_ids as string[])
+                    .map((id) => loadedCategories.find((c) => c.id === id)?.name)
+                    .filter(Boolean) as string[];
+                  config.trigger_category_names = triggerNames;
+
+                  // Reverse-map excluded items
+                  if (cfg.trigger_excluded_items) {
+                    const triggerExcluded: Record<string, string[]> = {};
+                    for (const catName of triggerNames) {
+                      const dbCat = loadedCategories.find((c) => c.name === catName);
+                      if (!dbCat) continue;
+                      const catItems = dbCat.menu_items || [];
+                      const excludedNames = (cfg.trigger_excluded_items as string[])
+                        .map((id) => catItems.find((i: any) => i.id === id)?.name)
+                        .filter(Boolean) as string[];
+                      if (excludedNames.length > 0) triggerExcluded[catName] = excludedNames;
+                    }
+                    if (Object.keys(triggerExcluded).length > 0)
+                      config.trigger_excluded = triggerExcluded;
+                  }
+                }
+                if (cfg.reward_category_ids) {
+                  const rewardNames = (cfg.reward_category_ids as string[])
+                    .map((id) => loadedCategories.find((c) => c.id === id)?.name)
+                    .filter(Boolean) as string[];
+                  config.reward_category_names = rewardNames;
+
+                  if (cfg.reward_excluded_items) {
+                    const rewardExcluded: Record<string, string[]> = {};
+                    for (const catName of rewardNames) {
+                      const dbCat = loadedCategories.find((c) => c.name === catName);
+                      if (!dbCat) continue;
+                      const catItems = dbCat.menu_items || [];
+                      const excludedNames = (cfg.reward_excluded_items as string[])
+                        .map((id) => catItems.find((i: any) => i.id === id)?.name)
+                        .filter(Boolean) as string[];
+                      if (excludedNames.length > 0) rewardExcluded[catName] = excludedNames;
+                    }
+                    if (Object.keys(rewardExcluded).length > 0)
+                      config.reward_excluded = rewardExcluded;
+                  }
+                }
                 break;
+              }
               case 'promo_code':
                 config = {
                   code: cfg.code || '',
@@ -173,6 +313,7 @@ export function useOnboardingAssistant() {
                     cfg.discount_type === 'fixed'
                       ? (cfg.discount_value || 0) / 100
                       : cfg.discount_value || 0,
+                  ...sharedConfig,
                 };
                 break;
               case 'threshold_discount':
@@ -183,6 +324,7 @@ export function useOnboardingAssistant() {
                     cfg.discount_type === 'fixed'
                       ? (cfg.discount_value || 0) / 100
                       : cfg.discount_value || 0,
+                  ...sharedConfig,
                 };
                 break;
             }
@@ -589,11 +731,58 @@ export function useOnboardingAssistant() {
         };
       }
 
+      // Build buy_x_get_y config with real category IDs (must be BEFORE insert)
+      let triggerCatIds: string[] = [];
+      let rewardCatIds: string[] = [];
+      const triggerExcludedIds: string[] = [];
+      const rewardExcludedIds: string[] = [];
+      if (offer.type === 'buy_x_get_y' && offer.config.trigger_category_names) {
+        const triggerCatNames = offer.config.trigger_category_names as string[];
+        const rewardCatNames = (offer.config.reward_category_names || []) as string[];
+        triggerCatIds = triggerCatNames
+          .map((name) => dbCategories?.find((c) => c.name === name)?.id)
+          .filter(Boolean) as string[];
+        rewardCatIds = rewardCatNames
+          .map((name) => dbCategories?.find((c) => c.name === name)?.id)
+          .filter(Boolean) as string[];
+
+        // Map excluded items (names → IDs)
+        const triggerExcluded = (offer.config.trigger_excluded || {}) as Record<string, string[]>;
+        for (const [catName, itemNames] of Object.entries(triggerExcluded)) {
+          const dbCat = dbCategories?.find((c) => c.name === catName);
+          if (!dbCat) continue;
+          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+          for (const name of itemNames) {
+            const item = catItems.find((i) => i.name === name);
+            if (item) triggerExcludedIds.push(item.id);
+          }
+        }
+        const rewardExcluded = (offer.config.reward_excluded || {}) as Record<string, string[]>;
+        for (const [catName, itemNames] of Object.entries(rewardExcluded)) {
+          const dbCat = dbCategories?.find((c) => c.name === catName);
+          if (!dbCat) continue;
+          const catItems = dbItems?.filter((i) => i.category_id === dbCat.id) || [];
+          for (const name of itemNames) {
+            const item = catItems.find((i) => i.name === name);
+            if (item) rewardExcludedIds.push(item.id);
+          }
+        }
+
+        config = {
+          ...(config as Record<string, unknown>),
+          trigger_category_ids: triggerCatIds,
+          trigger_excluded_items: triggerExcludedIds.length > 0 ? triggerExcludedIds : undefined,
+          reward_category_ids: rewardCatIds,
+          reward_excluded_items: rewardExcludedIds.length > 0 ? rewardExcludedIds : undefined,
+        };
+      }
+
       const { data: offerData, error } = await supabase
         .from('offers')
         .insert({
           foodtruck_id: foodtruck.id,
           name: offer.name,
+          description: offer.config.description ? String(offer.config.description) : null,
           offer_type: offer.type,
           config: config,
           is_active: true,
@@ -603,11 +792,55 @@ export function useOnboardingAssistant() {
           end_date: offer.config.end_date
             ? new Date(String(offer.config.end_date)).toISOString()
             : null,
+          time_start: offer.config.time_start ? String(offer.config.time_start) : null,
+          time_end: offer.config.time_end ? String(offer.config.time_end) : null,
         })
         .select('id')
         .single();
 
       if (error) throw error;
+
+      // Insert offer_items for buy_x_get_y (needs offerData.id, so must be after insert)
+      if (offer.type === 'buy_x_get_y' && offerData && triggerCatIds.length > 0) {
+        const offerItems: {
+          offer_id: string;
+          menu_item_id: string;
+          role: string;
+          quantity: number;
+        }[] = [];
+        for (const catId of triggerCatIds) {
+          const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
+          for (const item of catItems) {
+            if (!triggerExcludedIds.includes(item.id)) {
+              offerItems.push({
+                offer_id: offerData.id,
+                menu_item_id: item.id,
+                role: 'trigger',
+                quantity: 1,
+              });
+            }
+          }
+        }
+        for (const catId of rewardCatIds) {
+          const catItems = dbItems?.filter((i) => i.category_id === catId) || [];
+          for (const item of catItems) {
+            if (!rewardExcludedIds.includes(item.id)) {
+              offerItems.push({
+                offer_id: offerData.id,
+                menu_item_id: item.id,
+                role: 'reward',
+                quantity: 1,
+              });
+            }
+          }
+        }
+        if (offerItems.length > 0) {
+          const { error: itemsError } = await (supabase.from('offer_items') as any).insert(
+            offerItems
+          );
+          if (itemsError) throw itemsError;
+        }
+      }
 
       // Insert offer_items for bundles (all non-excluded items)
       if (offer.type === 'bundle' && offerData && offer.config.bundle_category_names) {

@@ -1759,4 +1759,174 @@ describe('useOnboardingAssistant', () => {
       expect(eau!.prices).toEqual({ base: 150 });
     });
   });
+
+  describe('Save Offers - DB Mapping', () => {
+    it('should save description, time_start, time_end to DB columns', async () => {
+      const { result } = renderHook(
+        () => {
+          const assistant = useOnboardingAssistant();
+          const { dispatch } = useOnboarding();
+          return { ...assistant, dispatch };
+        },
+        { wrapper }
+      );
+
+      // Set up an offer with shared fields
+      await act(async () => {
+        result.current.dispatch({
+          type: 'ADD_OFFER',
+          offer: {
+            type: 'promo_code',
+            name: 'Test Promo',
+            config: {
+              code: 'HELLO',
+              discount_type: 'percentage',
+              discount_value: 10,
+              description: 'A test promo',
+              time_start: '12:00',
+              time_end: '15:00',
+              start_date: '2026-03-01',
+              end_date: '2026-03-31',
+            },
+          },
+        });
+      });
+
+      // Track what the insert call receives
+      let insertedData: any = null;
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'offers') {
+          return {
+            delete: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+            select: mockSelect,
+            insert: vi.fn().mockImplementation((data: any) => {
+              insertedData = data;
+              return {
+                select: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({ data: { id: 'offer-1' }, error: null }),
+                }),
+              };
+            }),
+          };
+        }
+        return { select: mockSelect, insert: mockInsert, update: mockUpdate, delete: mockDelete };
+      });
+
+      await act(async () => {
+        await result.current.saveOffers();
+      });
+
+      expect(insertedData).toBeDefined();
+      expect(insertedData.description).toBe('A test promo');
+      expect(insertedData.time_start).toBe('12:00');
+      expect(insertedData.time_end).toBe('15:00');
+      expect(insertedData.start_date).toBeTruthy();
+      expect(insertedData.end_date).toBeTruthy();
+    });
+
+    it('should save buy_x_get_y trigger/reward category IDs to config', async () => {
+      // Setup categories in DB
+      const dbCategories = [
+        { id: 'cat-pizza', name: 'Pizzas', category_option_groups: [] },
+        { id: 'cat-drink', name: 'Boissons', category_option_groups: [] },
+      ];
+      const dbItems = [
+        { id: 'item-marg', name: 'Margarita', category_id: 'cat-pizza' },
+        { id: 'item-cola', name: 'Cola', category_id: 'cat-drink' },
+      ];
+
+      const { result } = renderHook(
+        () => {
+          const assistant = useOnboardingAssistant();
+          const { dispatch } = useOnboarding();
+          return { ...assistant, dispatch };
+        },
+        { wrapper }
+      );
+
+      await act(async () => {
+        result.current.dispatch({
+          type: 'ADD_OFFER',
+          offer: {
+            type: 'buy_x_get_y',
+            name: '3 Pizzas = 1 Boisson',
+            config: {
+              trigger_quantity: 3,
+              reward_quantity: 1,
+              trigger_category_names: ['Pizzas'],
+              reward_category_names: ['Boissons'],
+            },
+          },
+        });
+      });
+
+      let insertedConfig: any = null;
+      let insertedOfferItems: any[] = [];
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'offers') {
+          return {
+            delete: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+            insert: vi.fn().mockImplementation((data: any) => {
+              insertedConfig = data.config;
+              return {
+                select: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({ data: { id: 'offer-bxy' }, error: null }),
+                }),
+              };
+            }),
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+                data: [],
+                error: null,
+              }),
+            }),
+          };
+        }
+        if (table === 'categories') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: dbCategories, error: null }),
+            }),
+          };
+        }
+        if (table === 'menu_items') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: dbItems, error: null }),
+            }),
+          };
+        }
+        if (table === 'offer_items') {
+          return {
+            insert: vi.fn().mockImplementation((items: any) => {
+              insertedOfferItems = items;
+              return { data: null, error: null };
+            }),
+          };
+        }
+        return { select: mockSelect, insert: mockInsert, update: mockUpdate, delete: mockDelete };
+      });
+
+      await act(async () => {
+        await result.current.saveOffers();
+      });
+
+      expect(insertedConfig).toBeDefined();
+      expect(insertedConfig.trigger_category_ids).toEqual(['cat-pizza']);
+      expect(insertedConfig.reward_category_ids).toEqual(['cat-drink']);
+      // Should have inserted offer_items for trigger and reward
+      expect(insertedOfferItems.length).toBe(2);
+      expect(insertedOfferItems.find((i: any) => i.role === 'trigger')?.menu_item_id).toBe(
+        'item-marg'
+      );
+      expect(insertedOfferItems.find((i: any) => i.role === 'reward')?.menu_item_id).toBe(
+        'item-cola'
+      );
+    });
+  });
 });
