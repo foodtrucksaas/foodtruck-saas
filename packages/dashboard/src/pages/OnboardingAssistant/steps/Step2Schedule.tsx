@@ -279,7 +279,7 @@ export function Step2Schedule() {
           {isLastDay && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-800">
               <span className="font-medium">Bon à savoir :</span> Pour les exceptions (vacances,
-              jours fériés), vous pourrez les gérer depuis le calendrier de votre tableau de bord.
+              jours fériés), vous pourrez les gérer depuis la page Planning.
             </div>
           )}
 
