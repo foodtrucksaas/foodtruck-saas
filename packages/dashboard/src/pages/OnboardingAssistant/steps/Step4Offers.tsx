@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Gift, Package, Tag, TrendingUp, ChevronDown, Check, Pencil, Trash2 } from 'lucide-react';
+import {
+  Gift,
+  Package,
+  Tag,
+  TrendingUp,
+  ChevronDown,
+  Check,
+  Pencil,
+  Trash2,
+  Plus,
+  X,
+} from 'lucide-react';
 import { useOnboarding, OnboardingOffer } from '../OnboardingContext';
 import { AssistantBubble, StepContainer, ActionButton, OptionCard } from '../components';
 import { useToast, Toast } from '../../../components/Alert';
@@ -65,6 +76,25 @@ export function Step4Offers() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   // Track which items are expanded for option detail
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  // Per-item custom supplements (itemId → supplements)
+  const [bundleItemSupplements, setBundleItemSupplements] = useState<
+    Record<string, { name: string; price: number }[]>
+  >({});
+  // Which item currently has the add-supplement form open
+  const [addingSupplementFor, setAddingSupplementFor] = useState<string | null>(null);
+  const [newSupName, setNewSupName] = useState('');
+  const [newSupPrice, setNewSupPrice] = useState('');
+  // Buy X Get Y: trigger & reward selection
+  const [buyXTriggerCategories, setBuyXTriggerCategories] = useState<string[]>([]);
+  const [buyXTriggerExcludedItems, setBuyXTriggerExcludedItems] = useState<
+    Record<string, string[]>
+  >({});
+  const [buyXRewardCategories, setBuyXRewardCategories] = useState<string[]>([]);
+  const [buyXRewardExcludedItems, setBuyXRewardExcludedItems] = useState<Record<string, string[]>>(
+    {}
+  );
+  const [showTriggerDetails, setShowTriggerDetails] = useState(false);
+  const [showRewardDetails, setShowRewardDetails] = useState(false);
   const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
 
   // Sync draft to context so it persists across navigation
@@ -93,8 +123,16 @@ export function Step4Offers() {
     setBundleCategories([]);
     setBundleExcludedItems({});
     setBundleExcludedOptions({});
+    setBundleItemSupplements({});
     setExpandedCategories([]);
     setExpandedItems([]);
+    setAddingSupplementFor(null);
+    setBuyXTriggerCategories([]);
+    setBuyXTriggerExcludedItems({});
+    setBuyXRewardCategories([]);
+    setBuyXRewardExcludedItems({});
+    setShowTriggerDetails(false);
+    setShowRewardDetails(false);
     // Set default config
     switch (type) {
       case 'bundle':
@@ -155,7 +193,11 @@ export function Step4Offers() {
       // Build detailed selection per category
       const bundleSelection: Record<
         string,
-        { excluded_items: string[]; excluded_options: Record<string, string[]> }
+        {
+          excluded_items: string[];
+          excluded_options: Record<string, string[]>;
+          item_supplements: Record<string, { name: string; price: number }[]>;
+        }
       > = {};
       for (const catName of bundleCategories) {
         const cat = state.categories.find((c) => c.name === catName);
@@ -165,18 +207,52 @@ export function Step4Offers() {
           .filter(Boolean) as string[];
         // Build per-item excluded options
         const excludedOpts: Record<string, string[]> = {};
+        // Build per-item custom supplements
+        const itemSupplements: Record<string, { name: string; price: number }[]> = {};
         for (const item of cat.items) {
           const excl = bundleExcludedOptions[item.id];
           if (excl && excl.length > 0) {
             excludedOpts[item.name] = excl;
           }
+          const sups = bundleItemSupplements[item.id];
+          if (sups && sups.length > 0) {
+            itemSupplements[item.name] = sups;
+          }
         }
         bundleSelection[catName] = {
           excluded_items: excludedItemNames,
           excluded_options: excludedOpts,
+          item_supplements: itemSupplements,
         };
       }
       config.bundle_selection = bundleSelection;
+    }
+
+    if (selectedType === 'buy_x_get_y') {
+      config.trigger_category_names = buyXTriggerCategories;
+      config.reward_category_names = buyXRewardCategories;
+      // Build excluded items by name for persistence
+      const triggerExcluded: Record<string, string[]> = {};
+      for (const catName of buyXTriggerCategories) {
+        const cat = state.categories.find((c) => c.name === catName);
+        if (!cat) continue;
+        const excluded = (buyXTriggerExcludedItems[catName] || [])
+          .map((id) => cat.items.find((i) => i.id === id)?.name)
+          .filter(Boolean) as string[];
+        if (excluded.length > 0) triggerExcluded[catName] = excluded;
+      }
+      if (Object.keys(triggerExcluded).length > 0) config.trigger_excluded = triggerExcluded;
+
+      const rewardExcluded: Record<string, string[]> = {};
+      for (const catName of buyXRewardCategories) {
+        const cat = state.categories.find((c) => c.name === catName);
+        if (!cat) continue;
+        const excluded = (buyXRewardExcludedItems[catName] || [])
+          .map((id) => cat.items.find((i) => i.id === id)?.name)
+          .filter(Boolean) as string[];
+        if (excluded.length > 0) rewardExcluded[catName] = excluded;
+      }
+      if (Object.keys(rewardExcluded).length > 0) config.reward_excluded = rewardExcluded;
     }
 
     const offer: OnboardingOffer = {
@@ -206,8 +282,16 @@ export function Step4Offers() {
     setBundleCategories([]);
     setBundleExcludedItems({});
     setBundleExcludedOptions({});
+    setBundleItemSupplements({});
     setExpandedCategories([]);
     setExpandedItems([]);
+    setAddingSupplementFor(null);
+    setBuyXTriggerCategories([]);
+    setBuyXTriggerExcludedItems({});
+    setBuyXRewardCategories([]);
+    setBuyXRewardExcludedItems({});
+    setShowTriggerDetails(false);
+    setShowRewardDetails(false);
   };
 
   const handleEditOffer = (index: number) => {
@@ -226,13 +310,22 @@ export function Step4Offers() {
       time_end: cfg.time_end || '',
     };
     switch (offer.type) {
-      case 'bundle':
+      case 'bundle': {
         setOfferConfig({ fixed_price: cfg.fixed_price || '', ...sharedFields });
-        setBundleCategories(cfg.bundle_category_names || []);
+        const catNames: string[] = cfg.bundle_category_names || [];
+        setBundleCategories(catNames);
+        // Auto-expand all selected categories and their items
+        setExpandedCategories([...catNames]);
+        const allItemIds = catNames.flatMap((catName: string) => {
+          const cat = state.categories.find((c) => c.name === catName);
+          return cat ? cat.items.map((i) => i.id) : [];
+        });
+        setExpandedItems(allItemIds);
         // Restore excluded items/options from bundle_selection
         if (cfg.bundle_selection) {
           const excItems: Record<string, string[]> = {};
           const excOpts: Record<string, string[]> = {};
+          const itemSups: Record<string, { name: string; price: number }[]> = {};
           for (const [catName, sel] of Object.entries(
             cfg.bundle_selection as Record<string, any>
           )) {
@@ -254,18 +347,61 @@ export function Step4Offers() {
                 }
               }
             }
+            // Restore per-item custom supplements
+            if (sel.item_supplements) {
+              for (const [itemName, sups] of Object.entries(
+                sel.item_supplements as Record<string, { name: string; price: number }[]>
+              )) {
+                const item = cat.items.find((i) => i.name === itemName);
+                if (item && sups.length > 0) {
+                  itemSups[item.id] = sups;
+                }
+              }
+            }
           }
           setBundleExcludedItems(excItems);
           setBundleExcludedOptions(excOpts);
+          setBundleItemSupplements(itemSups);
         }
         break;
-      case 'buy_x_get_y':
+      }
+      case 'buy_x_get_y': {
         setOfferConfig({
           trigger_quantity: cfg.trigger_quantity || 3,
           reward_quantity: cfg.reward_quantity || 1,
           ...sharedFields,
         });
+        // Restore trigger/reward categories and exclusions
+        setBuyXTriggerCategories(cfg.trigger_category_names || []);
+        setBuyXRewardCategories(cfg.reward_category_names || []);
+        if (cfg.trigger_excluded) {
+          const excl: Record<string, string[]> = {};
+          for (const [catName, names] of Object.entries(
+            cfg.trigger_excluded as Record<string, string[]>
+          )) {
+            const cat = state.categories.find((c) => c.name === catName);
+            if (!cat) continue;
+            excl[catName] = names
+              .map((name: string) => cat.items.find((i) => i.name === name)?.id)
+              .filter(Boolean) as string[];
+          }
+          setBuyXTriggerExcludedItems(excl);
+        }
+        if (cfg.reward_excluded) {
+          const excl: Record<string, string[]> = {};
+          for (const [catName, names] of Object.entries(
+            cfg.reward_excluded as Record<string, string[]>
+          )) {
+            const cat = state.categories.find((c) => c.name === catName);
+            if (!cat) continue;
+            excl[catName] = names
+              .map((name: string) => cat.items.find((i) => i.name === name)?.id)
+              .filter(Boolean) as string[];
+          }
+          setBuyXRewardExcludedItems(excl);
+        }
         break;
+      }
       case 'promo_code':
         setOfferConfig({
           code: cfg.code || '',
@@ -448,18 +584,35 @@ export function Step4Offers() {
                         if (isCatSelected) {
                           setBundleCategories((prev) => prev.filter((c) => c !== cat.name));
                           setExpandedCategories((prev) => prev.filter((c) => c !== cat.name));
+                          // Collapse all items from this category
+                          const itemIds = cat.items.map((i) => i.id);
+                          setExpandedItems((prev) => prev.filter((id) => !itemIds.includes(id)));
                         } else {
                           setBundleCategories((prev) => [...prev, cat.name]);
                           setBundleExcludedItems((prev) => ({ ...prev, [cat.name]: [] }));
                           setExpandedCategories((prev) => [...prev, cat.name]);
+                          // Auto-expand all items from this category
+                          const itemIds = cat.items.map((i) => i.id);
+                          setExpandedItems((prev) => [
+                            ...prev,
+                            ...itemIds.filter((id) => !prev.includes(id)),
+                          ]);
                         }
                       };
 
                       const toggleExpand = () => {
                         if (!isCatSelected) return;
-                        setExpandedCategories((prev) =>
-                          isExpanded ? prev.filter((c) => c !== cat.name) : [...prev, cat.name]
-                        );
+                        if (isExpanded) {
+                          setExpandedCategories((prev) => prev.filter((c) => c !== cat.name));
+                        } else {
+                          setExpandedCategories((prev) => [...prev, cat.name]);
+                          // Auto-expand all items when re-expanding category
+                          const itemIds = cat.items.map((i) => i.id);
+                          setExpandedItems((prev) => [
+                            ...prev,
+                            ...itemIds.filter((id) => !prev.includes(id)),
+                          ]);
+                        }
                       };
 
                       const toggleExcludeItem = (itemId: string) => {
@@ -548,7 +701,6 @@ export function Step4Offers() {
                                 const price =
                                   item.prices['base'] || Object.values(item.prices)[0] || 0;
                                 const itemExcludedOpts = bundleExcludedOptions[item.id] || [];
-                                const hasOptions = allOptionGroups.length > 0;
                                 const totalOpts = allOptionGroups.reduce(
                                   (sum, og) => sum + og.options.length,
                                   0
@@ -580,7 +732,7 @@ export function Step4Offers() {
                                       <span className="text-xs text-gray-400">
                                         {Number(price).toFixed(2)}€
                                       </span>
-                                      {hasOptions && !isExcluded && (
+                                      {!isExcluded && (
                                         <button
                                           type="button"
                                           onClick={() => toggleItemExpand(item.id)}
@@ -591,15 +743,21 @@ export function Step4Offers() {
                                               {totalOpts - excludedOptsCount}/{totalOpts}
                                             </span>
                                           )}
+                                          {(bundleItemSupplements[item.id] || []).length > 0 && (
+                                            <span className="text-green-500">
+                                              +{(bundleItemSupplements[item.id] || []).length} sup.
+                                            </span>
+                                          )}
                                           <ChevronDown
                                             className={`w-3 h-3 transition-transform ${isItemExpanded ? 'rotate-180' : ''}`}
                                           />
                                         </button>
                                       )}
                                     </div>
-                                    {/* Per-item options */}
-                                    {hasOptions && !isExcluded && isItemExpanded && (
+                                    {/* Per-item options + supplements */}
+                                    {!isExcluded && isItemExpanded && (
                                       <div className="ml-6 sm:ml-9 mb-2 space-y-2">
+                                        {/* Existing option groups (sizes, supplements from category) */}
                                         {allOptionGroups.map((og) => (
                                           <div key={og.id}>
                                             <p className="text-xs text-gray-400 mb-1">{og.name}</p>
@@ -631,6 +789,119 @@ export function Step4Offers() {
                                             </div>
                                           </div>
                                         ))}
+
+                                        {/* Custom per-item supplements */}
+                                        {(bundleItemSupplements[item.id] || []).length > 0 && (
+                                          <div>
+                                            <p className="text-xs text-gray-400 mb-1">
+                                              Suppléments
+                                            </p>
+                                            <div className="flex flex-wrap gap-1.5">
+                                              {(bundleItemSupplements[item.id] || []).map(
+                                                (sup, si) => (
+                                                  <span
+                                                    key={si}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-green-300 bg-green-50 text-green-700"
+                                                  >
+                                                    {sup.name}
+                                                    {sup.price > 0 &&
+                                                      ` (+${sup.price.toFixed(2)}€)`}
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        setBundleItemSupplements((prev) => ({
+                                                          ...prev,
+                                                          [item.id]: (prev[item.id] || []).filter(
+                                                            (_, idx) => idx !== si
+                                                          ),
+                                                        }));
+                                                      }}
+                                                      className="text-green-500 hover:text-red-500 ml-0.5"
+                                                    >
+                                                      <X className="w-3 h-3" />
+                                                    </button>
+                                                  </span>
+                                                )
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Add supplement form */}
+                                        {addingSupplementFor === item.id ? (
+                                          <div className="flex items-end gap-2">
+                                            <div className="flex-1">
+                                              <input
+                                                type="text"
+                                                value={newSupName}
+                                                onChange={(e) => setNewSupName(e.target.value)}
+                                                placeholder="Fromage, Bacon..."
+                                                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                                autoFocus
+                                              />
+                                            </div>
+                                            <div className="w-20">
+                                              <div className="relative">
+                                                <input
+                                                  type="number"
+                                                  step="0.01"
+                                                  min="0"
+                                                  value={newSupPrice}
+                                                  onChange={(e) => setNewSupPrice(e.target.value)}
+                                                  placeholder="0.00"
+                                                  className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 pr-5"
+                                                />
+                                                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">
+                                                  €
+                                                </span>
+                                              </div>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                if (!newSupName.trim()) return;
+                                                const price = parseFloat(newSupPrice) || 0;
+                                                setBundleItemSupplements((prev) => ({
+                                                  ...prev,
+                                                  [item.id]: [
+                                                    ...(prev[item.id] || []),
+                                                    { name: newSupName.trim(), price },
+                                                  ],
+                                                }));
+                                                setNewSupName('');
+                                                setNewSupPrice('');
+                                              }}
+                                              disabled={!newSupName.trim()}
+                                              className="px-2 py-1.5 text-xs bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            >
+                                              <Check className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setAddingSupplementFor(null);
+                                                setNewSupName('');
+                                                setNewSupPrice('');
+                                              }}
+                                              className="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600"
+                                            >
+                                              <X className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setAddingSupplementFor(item.id);
+                                              setNewSupName('');
+                                              setNewSupPrice('');
+                                            }}
+                                            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 transition-colors"
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                            Supplément
+                                          </button>
+                                        )}
                                       </div>
                                     )}
                                   </div>
@@ -699,7 +970,7 @@ export function Step4Offers() {
           )}
 
           {selectedType === 'buy_x_get_y' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -736,9 +1007,248 @@ export function Step4Offers() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
-                Vous pourrez configurer les catégories éligibles plus tard.
-              </p>
+
+              {/* Trigger categories */}
+              {state.categories.length > 0 && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Catégories déclencheurs
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Le client doit acheter X articles de ces catégories
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {state.categories.map((cat) => {
+                        const isSelected = buyXTriggerCategories.includes(cat.name);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setBuyXTriggerCategories((prev) =>
+                                  prev.filter((c) => c !== cat.name)
+                                );
+                              } else {
+                                setBuyXTriggerCategories((prev) => [...prev, cat.name]);
+                                setBuyXTriggerExcludedItems((prev) => ({
+                                  ...prev,
+                                  [cat.name]: [],
+                                }));
+                              }
+                            }}
+                            className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                              isSelected
+                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Trigger items detail */}
+                    {buyXTriggerCategories.length > 0 &&
+                      (() => {
+                        const triggerItems = buyXTriggerCategories.flatMap((catName) => {
+                          const cat = state.categories.find((c) => c.name === catName);
+                          return cat ? cat.items.map((i) => ({ ...i, catName })) : [];
+                        });
+                        const excludedCount = triggerItems.filter((i) =>
+                          (buyXTriggerExcludedItems[i.catName] || []).includes(i.id)
+                        ).length;
+                        const eligibleCount = triggerItems.length - excludedCount;
+
+                        return (
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowTriggerDetails(!showTriggerDetails)}
+                              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              <span>
+                                {eligibleCount}/{triggerItems.length} articles éligibles
+                              </span>
+                              <ChevronDown
+                                className={`w-3 h-3 transition-transform ${showTriggerDetails ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+                            {showTriggerDetails && (
+                              <div className="mt-1 space-y-0.5 ml-1">
+                                {triggerItems.map((item) => {
+                                  const isExcluded = (
+                                    buyXTriggerExcludedItems[item.catName] || []
+                                  ).includes(item.id);
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setBuyXTriggerExcludedItems((prev) => {
+                                          const current = prev[item.catName] || [];
+                                          const next = isExcluded
+                                            ? current.filter((id) => id !== item.id)
+                                            : [...current, item.id];
+                                          return { ...prev, [item.catName]: next };
+                                        });
+                                      }}
+                                      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
+                                    >
+                                      <span
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                          !isExcluded
+                                            ? 'bg-primary-500 border-primary-500'
+                                            : 'border-gray-300'
+                                        }`}
+                                      >
+                                        {!isExcluded && (
+                                          <Check className="w-2.5 h-2.5 text-white" />
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                                      >
+                                        {item.name}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                  </div>
+
+                  {/* Reward categories */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Catégories récompenses
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Le client reçoit Y articles offerts de ces catégories
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {state.categories.map((cat) => {
+                        const isSelected = buyXRewardCategories.includes(cat.name);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setBuyXRewardCategories((prev) =>
+                                  prev.filter((c) => c !== cat.name)
+                                );
+                              } else {
+                                setBuyXRewardCategories((prev) => [...prev, cat.name]);
+                                setBuyXRewardExcludedItems((prev) => ({
+                                  ...prev,
+                                  [cat.name]: [],
+                                }));
+                              }
+                            }}
+                            className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                              isSelected
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Reward items detail */}
+                    {buyXRewardCategories.length > 0 &&
+                      (() => {
+                        const rewardItems = buyXRewardCategories.flatMap((catName) => {
+                          const cat = state.categories.find((c) => c.name === catName);
+                          return cat ? cat.items.map((i) => ({ ...i, catName })) : [];
+                        });
+                        const excludedCount = rewardItems.filter((i) =>
+                          (buyXRewardExcludedItems[i.catName] || []).includes(i.id)
+                        ).length;
+                        const eligibleCount = rewardItems.length - excludedCount;
+
+                        return (
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowRewardDetails(!showRewardDetails)}
+                              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              <span>
+                                {eligibleCount}/{rewardItems.length} articles éligibles
+                              </span>
+                              <ChevronDown
+                                className={`w-3 h-3 transition-transform ${showRewardDetails ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+                            {showRewardDetails && (
+                              <div className="mt-1 space-y-0.5 ml-1">
+                                {rewardItems.map((item) => {
+                                  const isExcluded = (
+                                    buyXRewardExcludedItems[item.catName] || []
+                                  ).includes(item.id);
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setBuyXRewardExcludedItems((prev) => {
+                                          const current = prev[item.catName] || [];
+                                          const next = isExcluded
+                                            ? current.filter((id) => id !== item.id)
+                                            : [...current, item.id];
+                                          return { ...prev, [item.catName]: next };
+                                        });
+                                      }}
+                                      className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg hover:bg-gray-50"
+                                    >
+                                      <span
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                          !isExcluded
+                                            ? 'bg-green-500 border-green-500'
+                                            : 'border-gray-300'
+                                        }`}
+                                      >
+                                        {!isExcluded && (
+                                          <Check className="w-2.5 h-2.5 text-white" />
+                                        )}
+                                      </span>
+                                      <span
+                                        className={`text-sm ${isExcluded ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                                      >
+                                        {item.name}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                  </div>
+
+                  {/* Summary preview */}
+                  {buyXTriggerCategories.length > 0 && buyXRewardCategories.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">Aperçu :</span> {offerConfig.trigger_quantity}{' '}
+                        {buyXTriggerCategories.join(' / ')} = {offerConfig.reward_quantity}{' '}
+                        {buyXRewardCategories.join(' / ')} offert
+                        {Number(offerConfig.reward_quantity) > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
