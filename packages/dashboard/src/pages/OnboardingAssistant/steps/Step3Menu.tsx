@@ -72,7 +72,6 @@ export function Step3Menu() {
 
     dispatch({ type: 'ADD_CATEGORY', category: newCategory });
     dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' });
-    setCategoryName('');
   };
 
   const handleSkipOptions = () => {
@@ -240,6 +239,7 @@ export function Step3Menu() {
   };
 
   const handleAddAnotherCategory = () => {
+    setCategoryName('');
     dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
     dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'category' });
   };
