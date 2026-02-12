@@ -54,9 +54,14 @@ function generateId(): string {
   return crypto.randomUUID();
 }
 
-export function Step3Menu() {
+interface Step3MenuProps {
+  saveMenu: () => Promise<void>;
+}
+
+export function Step3Menu({ saveMenu }: Step3MenuProps) {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
   const { toast, hideToast, showSuccess } = useToast();
+  const [savingMenu, setSavingMenu] = useState(false);
   const confirmDialog = useConfirmDialog();
   const [categoryName, setCategoryName] = useState(state.currentCategory?.name || '');
   const [selectedOptionType, setSelectedOptionType] = useState<
@@ -305,7 +310,15 @@ export function Step3Menu() {
     dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'category' });
   };
 
-  const handleFinishMenu = () => {
+  const handleFinishMenu = async () => {
+    setSavingMenu(true);
+    try {
+      await saveMenu();
+    } catch (err) {
+      console.error('Error saving menu:', err);
+    } finally {
+      setSavingMenu(false);
+    }
     nextStep();
   };
 
@@ -933,8 +946,12 @@ export function Step3Menu() {
             >
               Oui, ajouter une catégorie
             </ActionButton>
-            <ActionButton onClick={handleFinishMenu} icon={<ChevronRight className="w-5 h-5" />}>
-              Non, continuer
+            <ActionButton
+              onClick={handleFinishMenu}
+              disabled={savingMenu}
+              icon={<ChevronRight className="w-5 h-5" />}
+            >
+              {savingMenu ? 'Enregistrement...' : 'Non, continuer'}
             </ActionButton>
           </div>
         </div>

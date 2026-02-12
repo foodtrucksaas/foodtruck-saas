@@ -28,6 +28,7 @@ function OnboardingAssistantContent() {
     saveSchedules,
     saveMenu,
     saveOffers,
+    saveSettings,
     loaded,
   } = useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
@@ -104,13 +105,13 @@ function OnboardingAssistantContent() {
       case 1:
         return <Step1Locations />;
       case 2:
-        return <Step2Schedule />;
+        return <Step2Schedule saveSchedules={saveSchedules} />;
       case 3:
-        return <Step3Menu />;
+        return <Step3Menu saveMenu={saveMenu} />;
       case 4:
         return <Step4Offers saveOffers={saveOffers} />;
       case 5:
-        return <Step5Settings />;
+        return <Step5Settings saveSettings={saveSettings} />;
       case 6:
         return <StepComplete />;
       default:

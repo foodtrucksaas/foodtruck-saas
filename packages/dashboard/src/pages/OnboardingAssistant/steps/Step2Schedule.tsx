@@ -3,6 +3,13 @@ import { Calendar, Clock, MapPin, Copy, Check } from 'lucide-react';
 import { useOnboarding } from '../OnboardingContext';
 import { AssistantBubble, StepContainer } from '../components';
 
+interface Step2ScheduleProps {
+  saveSchedules: (
+    locationIds: string[],
+    schedulesOverride?: import('../OnboardingContext').OnboardingSchedule[]
+  ) => Promise<void>;
+}
+
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lundi', short: 'Lun' },
   { value: 2, label: 'Mardi', short: 'Mar' },
@@ -15,8 +22,9 @@ const DAYS_OF_WEEK = [
 
 type ScheduleSubStep = 'select-days' | 'configure-days';
 
-export function Step2Schedule() {
+export function Step2Schedule({ saveSchedules }: Step2ScheduleProps) {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
+  const [saving, setSaving] = useState(false);
 
   // Sort selected days in order (Mon-Sun) — computed first so init fns can use it
   const sortedSelectedDays = useMemo(() => {
@@ -83,7 +91,20 @@ export function Step2Schedule() {
 
   const isTimeValid = currentDayConfig.start_time < currentDayConfig.end_time;
 
-  const handleSaveDay = () => {
+  const doSaveSchedules = async (schedules: typeof state.schedules) => {
+    const locationIds = state.locations.map((l) => l.id).filter(Boolean) as string[];
+    if (locationIds.length === 0) return;
+    setSaving(true);
+    try {
+      await saveSchedules(locationIds, schedules);
+    } catch (err) {
+      console.error('Error saving schedules:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDay = async () => {
     // Save schedule for current day
     const schedule = {
       day_of_week: currentDayValue,
@@ -94,16 +115,18 @@ export function Step2Schedule() {
 
     // Update or add schedule
     const existingIndex = state.schedules.findIndex((s) => s.day_of_week === currentDayValue);
+    let newSchedules: typeof state.schedules;
     if (existingIndex >= 0) {
-      const newSchedules = [...state.schedules];
+      newSchedules = [...state.schedules];
       newSchedules[existingIndex] = schedule;
-      dispatch({ type: 'SET_SCHEDULES', schedules: newSchedules });
     } else {
-      dispatch({ type: 'ADD_SCHEDULE', schedule });
+      newSchedules = [...state.schedules, schedule];
     }
+    dispatch({ type: 'SET_SCHEDULES', schedules: newSchedules });
 
     // Move to next day or finish — pre-fill next day with current config
     if (isLastDay) {
+      await doSaveSchedules(newSchedules);
       nextStep();
       return;
     } else {
@@ -112,7 +135,7 @@ export function Step2Schedule() {
     }
   };
 
-  const handleCopyToAll = () => {
+  const handleCopyToAll = async () => {
     // Copy current config to all remaining days
     const newSchedules = sortedSelectedDays.map((dayValue) => ({
       day_of_week: dayValue,
@@ -121,6 +144,7 @@ export function Step2Schedule() {
       end_time: currentDayConfig.end_time,
     }));
     dispatch({ type: 'SET_SCHEDULES', schedules: newSchedules });
+    await doSaveSchedules(newSchedules);
     nextStep();
   };
 
@@ -187,6 +211,7 @@ export function Step2Schedule() {
         onNext={handleSaveDay}
         nextLabel={isLastDay ? 'Terminer' : 'Jour suivant'}
         nextDisabled={!isTimeValid}
+        nextLoading={saving}
       >
         <div className="space-y-6">
           <AssistantBubble

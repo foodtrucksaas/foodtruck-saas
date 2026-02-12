@@ -402,8 +402,10 @@ export function useOnboardingAssistant() {
 
   // Save schedules to database
   const saveSchedules = useCallback(
-    async (locationIds: string[]) => {
-      if (!foodtruck || state.schedules.length === 0) return;
+    async (locationIds: string[], schedulesOverride?: OnboardingSchedule[]) => {
+      if (!foodtruck) return;
+      const schedulesToSave = schedulesOverride !== undefined ? schedulesOverride : state.schedules;
+      if (schedulesToSave.length === 0) return;
 
       // Build mapping: temp/old ID or name → real DB ID
       const locationIdMap: Record<string, string> = {};
@@ -431,7 +433,7 @@ export function useOnboardingAssistant() {
 
       // Insert new schedules (deduplicate by day_of_week, keep last)
       const deduped = new Map<number, OnboardingSchedule>();
-      for (const s of state.schedules) {
+      for (const s of schedulesToSave) {
         deduped.set(s.day_of_week, s);
       }
       const schedulesToInsert = Array.from(deduped.values()).map((s) => ({

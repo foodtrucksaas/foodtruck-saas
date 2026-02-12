@@ -16,8 +16,15 @@ const SLOT_INTERVALS = [
   { value: 30, label: '30 minutes' },
 ];
 
-export function Step5Settings() {
+import { useState } from 'react';
+
+interface Step5SettingsProps {
+  saveSettings: () => Promise<void>;
+}
+
+export function Step5Settings({ saveSettings }: Step5SettingsProps) {
   const { state, dispatch, nextStep, prevStep } = useOnboarding();
+  const [saving, setSaving] = useState(false);
 
   const togglePaymentMethod = (methodId: string) => {
     const current = state.settings.payment_methods;
@@ -31,7 +38,15 @@ export function Step5Settings() {
     dispatch({ type: 'UPDATE_SETTINGS', settings: { pickup_slot_interval: interval } });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    setSaving(true);
+    try {
+      await saveSettings();
+    } catch (err) {
+      console.error('Error saving settings:', err);
+    } finally {
+      setSaving(false);
+    }
     nextStep();
   };
 
@@ -43,6 +58,7 @@ export function Step5Settings() {
       onNext={handleContinue}
       nextLabel="Terminer"
       nextDisabled={!isValid}
+      nextLoading={saving}
     >
       <div className="space-y-8">
         <AssistantBubble message="Dernières configurations !" emoji="⚙️" />
