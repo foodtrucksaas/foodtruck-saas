@@ -109,12 +109,19 @@ export function useOnboardingAssistant() {
           }));
           dispatch({ type: 'SET_CATEGORIES', categories });
         }
-        // Restore step progress from database
-        if (foodtruck.onboarding_step && foodtruck.onboarding_step > 1) {
-          for (let i = 1; i < foodtruck.onboarding_step; i++) {
+        // Restore step progress from database (query fresh value, context may be stale)
+        const { data: ftData } = await supabase
+          .from('foodtrucks')
+          .select('onboarding_step')
+          .eq('id', foodtruck.id)
+          .single();
+
+        const savedStep = ftData?.onboarding_step;
+        if (savedStep && savedStep > 1) {
+          for (let i = 1; i < savedStep; i++) {
             dispatch({ type: 'COMPLETE_STEP', step: i });
           }
-          dispatch({ type: 'SET_STEP', step: foodtruck.onboarding_step });
+          dispatch({ type: 'SET_STEP', step: savedStep });
         }
       } catch (err) {
         console.error('Error loading existing data:', err);
