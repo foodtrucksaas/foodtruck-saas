@@ -48,6 +48,7 @@ export function Step3Menu() {
   >(null);
   const [optionGroupName, setOptionGroupName] = useState('');
   const [optionValues, setOptionValues] = useState<string[]>([]);
+  const [optionPrices, setOptionPrices] = useState<Record<string, string>>({});
   const [newOptionValue, setNewOptionValue] = useState('');
   const [itemName, setItemName] = useState('');
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
@@ -79,6 +80,7 @@ export function Step3Menu() {
 
   const handleSelectOptionType = (type: 'size' | 'supplement' | 'other') => {
     setSelectedOptionType(type);
+    setOptionPrices({});
     // Set default name based on type
     if (type === 'size') {
       setOptionGroupName('Taille');
@@ -106,7 +108,12 @@ export function Step3Menu() {
       id: generateId(),
       name: optionGroupName || selectedOptionType,
       type: selectedOptionType,
-      options: optionValues.map((name) => ({ name })),
+      options: optionValues.map((name) => ({
+        name,
+        priceModifier: optionPrices[name]
+          ? Math.round(parseFloat(optionPrices[name]) * 100)
+          : undefined,
+      })),
     };
 
     dispatch({
@@ -119,6 +126,7 @@ export function Step3Menu() {
     setSelectedOptionType(null);
     setOptionGroupName('');
     setOptionValues([]);
+    setOptionPrices({});
     setNewOptionValue('');
   };
 
@@ -187,7 +195,16 @@ export function Step3Menu() {
 
   const handleEditCategory = (cat: OnboardingCategory) => {
     dispatch({ type: 'SET_CURRENT_CATEGORY', category: cat });
+    setCategoryName(cat.name);
     dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'items' });
+  };
+
+  const handleUpdateCategoryName = () => {
+    if (!state.currentCategory || !categoryName.trim()) return;
+    dispatch({
+      type: 'UPDATE_CURRENT_CATEGORY',
+      category: { name: categoryName.trim() },
+    });
   };
 
   const handleRemoveCategory = (categoryId: string) => {
@@ -455,16 +472,46 @@ export function Step3Menu() {
           {optionValues.length > 0 && (
             <div>
               <p className="text-sm text-gray-600 mb-2">Options ajoutées :</p>
-              <div className="flex flex-wrap gap-2">
+              <div
+                className={
+                  selectedOptionType === 'supplement' ? 'space-y-2' : 'flex flex-wrap gap-2'
+                }
+              >
                 {optionValues.map((value) => (
                   <div
                     key={value}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-sm"
+                    className={`flex items-center gap-2 bg-primary-50 text-primary-700 rounded-lg text-sm ${
+                      selectedOptionType === 'supplement' ? 'px-3 py-2' : 'px-3 py-1.5'
+                    }`}
                   >
-                    {value}
+                    <span className="font-medium">{value}</span>
+                    {selectedOptionType === 'supplement' && (
+                      <div className="flex items-center gap-1 ml-auto">
+                        <span className="text-xs text-gray-500">+</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={optionPrices[value] || ''}
+                          onChange={(e) =>
+                            setOptionPrices({ ...optionPrices, [value]: e.target.value })
+                          }
+                          className="w-20 px-2 py-1 text-sm border border-primary-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400"
+                          placeholder="0.00"
+                        />
+                        <span className="text-xs text-gray-500">€</span>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => handleRemoveOptionValue(value)}
+                      onClick={() => {
+                        handleRemoveOptionValue(value);
+                        setOptionPrices((prev) => {
+                          const next = { ...prev };
+                          delete next[value];
+                          return next;
+                        });
+                      }}
                       className="ml-1 hover:text-primary-900"
                     >
                       <X className="w-3 h-3" />
@@ -505,7 +552,72 @@ export function Step3Menu() {
             ← Retour au menu
           </button>
 
-          <AssistantBubble message={`Ajoutez vos ${state.currentCategory.name}`} emoji="🍕" />
+          <AssistantBubble message={`Configurez "${state.currentCategory.name}"`} emoji="🍕" />
+
+          {/* Category name (editable) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nom de la catégorie
+            </label>
+            <input
+              type="text"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              onBlur={handleUpdateCategoryName}
+              className="input min-h-[48px] text-base"
+              placeholder="Nom de la catégorie"
+            />
+          </div>
+
+          {/* Option groups summary */}
+          {state.currentCategory.optionGroups.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">Options</p>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
+                  className="text-xs text-primary-500 hover:text-primary-700 font-medium"
+                >
+                  Modifier
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                {state.currentCategory.optionGroups.map((og) => (
+                  <div
+                    key={og.id}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-sm"
+                  >
+                    <span className="font-medium text-gray-700">{og.name}</span>
+                    <span className="text-gray-500">
+                      {og.options
+                        .map(
+                          (o) =>
+                            o.name +
+                            (o.priceModifier ? ` (+${(o.priceModifier / 100).toFixed(2)}€)` : '')
+                        )
+                        .join(', ')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {state.currentCategory.optionGroups.length === 0 && (
+            <button
+              type="button"
+              onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
+              className="w-full p-3 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-colors"
+            >
+              <Plus className="w-4 h-4 inline mr-1" />
+              Ajouter des options (tailles, suppléments...)
+            </button>
+          )}
+
+          {/* Separator */}
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-sm font-medium text-gray-700 mb-3">Articles</p>
+          </div>
 
           {/* Item name */}
           <div>
