@@ -395,6 +395,52 @@ export function useOnboardingAssistant() {
     }
   }, [saveLocations, saveSchedules, saveMenu, saveOffers, saveSettings, refresh]);
 
+  // Save data for a specific completed step
+  const saveStepData = useCallback(
+    async (completedStep: number) => {
+      try {
+        switch (completedStep) {
+          case 1:
+            // Locations are already saved immediately in Step1
+            break;
+          case 2:
+            if (state.schedules.length > 0 && state.locations.length > 0) {
+              const locationIds = state.locations.map((l) => l.id).filter(Boolean) as string[];
+              if (locationIds.length > 0) {
+                await saveSchedules(locationIds);
+              }
+            }
+            break;
+          case 3:
+            if (state.categories.length > 0) {
+              await saveMenu();
+            }
+            break;
+          case 4:
+            if (state.offers.length > 0) {
+              await saveOffers();
+            }
+            break;
+          case 5:
+            await saveSettings();
+            break;
+        }
+      } catch (err) {
+        console.error(`Error saving step ${completedStep} data:`, err);
+      }
+    },
+    [
+      state.schedules,
+      state.locations,
+      state.categories,
+      state.offers,
+      saveSchedules,
+      saveMenu,
+      saveOffers,
+      saveSettings,
+    ]
+  );
+
   // Update onboarding progress in database
   const updateProgress = useCallback(
     async (step: number) => {
@@ -410,6 +456,7 @@ export function useOnboardingAssistant() {
     error,
     saveAllData,
     updateProgress,
+    saveStepData,
     saveLocations,
     saveSchedules,
     saveMenu,

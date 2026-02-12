@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, Ruler, CircleDot, X, ChevronRight, FolderPlus, Trash2 } from 'lucide-react';
+import { Plus, Check, Ruler, CircleDot, X, ChevronRight, Trash2 } from 'lucide-react';
 import {
   useOnboarding,
   OnboardingCategory,
@@ -51,6 +51,7 @@ export function Step3Menu() {
   const [newOptionValue, setNewOptionValue] = useState('');
   const [itemName, setItemName] = useState('');
   const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // Get size options for current category (if any)
   const sizeOptions =
@@ -133,7 +134,7 @@ export function Step3Menu() {
     if (hasSizeOptions) {
       for (const option of sizeOptions) {
         const priceStr = itemPrices[option.name];
-        if (!priceStr) return; // All sizes need prices
+        if (!priceStr) return;
         prices[option.name] = Math.round(parseFloat(priceStr) * 100);
       }
     } else {
@@ -142,21 +143,37 @@ export function Step3Menu() {
       prices['base'] = Math.round(parseFloat(basePrice) * 100);
     }
 
-    const item: OnboardingItem = {
-      id: generateId(),
-      name: itemName.trim(),
-      prices,
-    };
-
-    dispatch({
-      type: 'ADD_ITEM_TO_CATEGORY',
-      categoryId: state.currentCategory.id,
-      item,
-    });
+    if (editingItemId) {
+      // Update existing item
+      dispatch({
+        type: 'UPDATE_ITEM_IN_CATEGORY',
+        categoryId: state.currentCategory.id,
+        item: { id: editingItemId, name: itemName.trim(), prices },
+      });
+      setEditingItemId(null);
+    } else {
+      // Add new item
+      dispatch({
+        type: 'ADD_ITEM_TO_CATEGORY',
+        categoryId: state.currentCategory.id,
+        item: { id: generateId(), name: itemName.trim(), prices },
+      });
+    }
 
     // Reset form
     setItemName('');
     setItemPrices({});
+  };
+
+  const handleEditItem = (item: OnboardingItem) => {
+    setEditingItemId(item.id);
+    setItemName(item.name);
+    // Convert prices from cents back to display format
+    const displayPrices: Record<string, string> = {};
+    for (const [key, value] of Object.entries(item.prices)) {
+      displayPrices[key] = (value / 100).toFixed(2);
+    }
+    setItemPrices(displayPrices);
   };
 
   const handleRemoveItem = (itemId: string) => {
@@ -455,6 +472,9 @@ export function Step3Menu() {
         ? sizeOptions.every((opt) => itemPrices[opt.name] && parseFloat(itemPrices[opt.name]) > 0)
         : itemPrices['base'] && parseFloat(itemPrices['base']) > 0);
 
+    const hasItems = state.currentCategory.items.length > 0;
+
+    // Item add form
     return (
       <StepContainer hideActions>
         <div className="space-y-6">
@@ -532,12 +552,26 @@ export function Step3Menu() {
             </div>
           )}
 
+          {editingItemId && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingItemId(null);
+                setItemName('');
+                setItemPrices({});
+              }}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Annuler la modification
+            </button>
+          )}
+
           <ActionButton onClick={handleAddItem} disabled={!isItemValid}>
-            Ajouter cet article
+            {editingItemId ? 'Modifier cet article' : 'Ajouter cet article'}
           </ActionButton>
 
           {/* Added items */}
-          {state.currentCategory.items.length > 0 && (
+          {hasItems && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700">
@@ -548,7 +582,12 @@ export function Step3Menu() {
                 {state.currentCategory.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-card"
+                    onClick={() => handleEditItem(item)}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                      editingItemId === item.id
+                        ? 'border-primary-500 bg-primary-50 shadow-md'
+                        : 'bg-white border-gray-100 shadow-card hover:border-gray-200'
+                    }`}
                   >
                     <span className="font-medium text-gray-900">{item.name}</span>
                     <div className="flex items-center gap-2">
@@ -561,7 +600,10 @@ export function Step3Menu() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveItem(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveItem(item.id);
+                        }}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                         aria-label={`Supprimer ${item.name}`}
                       >
@@ -571,28 +613,18 @@ export function Step3Menu() {
                   </div>
                 ))}
               </div>
+
+              {/* Done with this category */}
+              <div className="pt-3 border-t border-gray-100">
+                <ActionButton
+                  onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' })}
+                  icon={<Check className="w-5 h-5" />}
+                >
+                  Catégorie terminée
+                </ActionButton>
+              </div>
             </div>
           )}
-
-          {/* Action buttons */}
-          <div className="space-y-3 pt-4 border-t border-gray-100">
-            <ActionButton
-              onClick={handleAddAnotherCategory}
-              variant="secondary"
-              icon={<FolderPlus className="w-5 h-5" />}
-            >
-              Nouvelle catégorie
-            </ActionButton>
-            <ActionButton
-              onClick={handleFinishMenu}
-              disabled={
-                state.categories.length === 0 || state.categories.every((c) => c.items.length === 0)
-              }
-              icon={<ChevronRight className="w-5 h-5" />}
-            >
-              Menu terminé, continuer
-            </ActionButton>
-          </div>
         </div>
       </StepContainer>
     );

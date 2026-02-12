@@ -106,6 +106,7 @@ type OnboardingAction =
   | { type: 'UPDATE_CURRENT_CATEGORY'; category: Partial<OnboardingCategory> | null }
   | { type: 'SET_CURRENT_CATEGORY'; category: OnboardingCategory | null }
   | { type: 'ADD_ITEM_TO_CATEGORY'; categoryId: string; item: OnboardingItem }
+  | { type: 'UPDATE_ITEM_IN_CATEGORY'; categoryId: string; item: OnboardingItem }
   | { type: 'REMOVE_ITEM_FROM_CATEGORY'; categoryId: string; itemId: string }
   | { type: 'ADD_OPTION_GROUP_TO_CATEGORY'; categoryId: string; optionGroup: OnboardingOptionGroup }
   | { type: 'REMOVE_CATEGORY'; categoryId: string }
@@ -238,6 +239,32 @@ function reducer(state: OnboardingState, action: OnboardingAction): OnboardingSt
       const updatedCurrentCategory =
         state.currentCategory?.id === action.categoryId
           ? { ...state.currentCategory, items: [...state.currentCategory.items, action.item] }
+          : state.currentCategory;
+      return {
+        ...state,
+        categories: updatedCategories,
+        currentCategory: updatedCurrentCategory,
+      };
+    }
+
+    case 'UPDATE_ITEM_IN_CATEGORY': {
+      const updatedCategories = state.categories.map((cat) => {
+        if (cat.id === action.categoryId) {
+          return {
+            ...cat,
+            items: cat.items.map((item) => (item.id === action.item.id ? action.item : item)),
+          };
+        }
+        return cat;
+      });
+      const updatedCurrentCategory =
+        state.currentCategory?.id === action.categoryId
+          ? {
+              ...state.currentCategory,
+              items: state.currentCategory.items.map((item) =>
+                item.id === action.item.id ? action.item : item
+              ),
+            }
           : state.currentCategory;
       return {
         ...state,

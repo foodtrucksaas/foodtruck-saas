@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UtensilsCrossed, Loader2 } from 'lucide-react';
 import { OnboardingProvider, useOnboarding } from './OnboardingContext';
@@ -20,10 +20,18 @@ const TOTAL_STEPS = 5;
 function OnboardingAssistantContent() {
   const navigate = useNavigate();
   const { state, goToStep } = useOnboarding();
-  const { saveAllData, updateProgress, saveLocations, saveSchedules, saveMenu, saveOffers } =
-    useOnboardingAssistant();
+  const {
+    saveAllData,
+    saveStepData,
+    updateProgress,
+    saveLocations,
+    saveSchedules,
+    saveMenu,
+    saveOffers,
+  } = useOnboardingAssistant();
   const { foodtruck } = useFoodtruck();
   const [skipping, setSkipping] = useState(false);
+  const prevStepRef = useRef(state.currentStep);
 
   // Save all data when reaching step 6 (complete)
   useEffect(() => {
@@ -31,13 +39,21 @@ function OnboardingAssistantContent() {
       if (state.currentStep === 6) {
         const success = await saveAllData();
         if (!success) {
-          // If save failed, log the error (UI shows it via StepComplete)
           console.error('Failed to save onboarding data');
         }
       }
     };
     save();
   }, [state.currentStep, saveAllData]);
+
+  // Progressive save: when step increases, save the completed step's data
+  useEffect(() => {
+    const prev = prevStepRef.current;
+    if (state.currentStep > prev && prev <= TOTAL_STEPS) {
+      saveStepData(prev);
+    }
+    prevStepRef.current = state.currentStep;
+  }, [state.currentStep, saveStepData]);
 
   // Update progress in database when step changes
   useEffect(() => {
