@@ -178,11 +178,16 @@ export function useOnboardingAssistant() {
           .single();
 
         const savedStep = ftData?.onboarding_step;
-        if (savedStep && savedStep > 1) {
+        if (savedStep && savedStep > 1 && savedStep <= 5) {
           for (let i = 1; i < savedStep; i++) {
             dispatch({ type: 'COMPLETE_STEP', step: i });
           }
           dispatch({ type: 'SET_STEP', step: savedStep });
+        } else if (savedStep === 6) {
+          // Onboarding already completed — start at step 1 for reconfiguration
+          for (let i = 1; i <= 5; i++) {
+            dispatch({ type: 'COMPLETE_STEP', step: i });
+          }
         }
       } catch (err) {
         console.error('Error loading existing data:', err);

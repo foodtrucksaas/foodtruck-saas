@@ -34,17 +34,17 @@ function OnboardingAssistantContent() {
   const [skipping, setSkipping] = useState(false);
   const prevStepRef = useRef(state.currentStep);
 
-  // Save all data when reaching step 6 (complete)
+  // Save all data when reaching step 6 (complete) — only once
+  const hasSavedComplete = useRef(false);
   useEffect(() => {
-    const save = async () => {
-      if (state.currentStep === 6) {
-        const success = await saveAllData();
+    if (state.currentStep === 6 && !hasSavedComplete.current) {
+      hasSavedComplete.current = true;
+      saveAllData().then((success) => {
         if (!success) {
           console.error('Failed to save onboarding data');
         }
-      }
-    };
-    save();
+      });
+    }
   }, [state.currentStep, saveAllData]);
 
   // Progressive save: when step increases, save the completed step's data
