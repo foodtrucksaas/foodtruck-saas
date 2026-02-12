@@ -427,8 +427,29 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
+function loadSavedState(): OnboardingState {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      return { ...initialState, ...JSON.parse(saved) };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return initialState;
+}
+
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, loadSavedState);
+
+  // Persist state to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [state]);
 
   // Clear sessionStorage when leaving the assistant so next visit loads fresh from DB
   useEffect(() => {
