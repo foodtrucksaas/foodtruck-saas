@@ -5,7 +5,6 @@ import {
   MapPin,
   Calendar,
   UtensilsCrossed,
-  Gift,
   Copy,
   Check,
   ExternalLink,
@@ -17,9 +16,22 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { useOnboarding, clearOnboardingSession } from '../OnboardingContext';
-import { useFoodtruck } from '../../../contexts/FoodtruckContext';
+import { supabase } from '../../../lib/supabase';
 import { ConfettiCelebration, ActionButton } from '../components';
+
+interface StepCompleteProps {
+  foodtruck: { id: string; name: string; slug: string };
+  onComplete: () => Promise<void>;
+  onGoToDashboard: () => Promise<void>;
+}
+
+interface Summary {
+  locationCount: number;
+  locationNames: string[];
+  scheduleDays: number[];
+  categoryCount: number;
+  itemCount: number;
+}
 
 const DAYS_OF_WEEK: Record<number, string> = {
   1: 'Lundi',
@@ -31,20 +43,59 @@ const DAYS_OF_WEEK: Record<number, string> = {
   0: 'Dimanche',
 };
 
-export function StepComplete() {
+export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCompleteProps) {
   const navigate = useNavigate();
-  const { state } = useOnboarding();
-  const { refresh } = useFoodtruck();
   const [showConfetti, setShowConfetti] = useState(true);
   const [copied, setCopied] = useState(false);
   const [qrLoading, setQrLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [summary, setSummary] = useState<Summary | null>(null);
 
-  const foodtruckUrl = state.foodtruck?.slug ? `https://${state.foodtruck.slug}.onmange.app` : '';
+  const foodtruckUrl = foodtruck.slug ? `https://${foodtruck.slug}.onmange.app` : '';
   const qrCodeUrl = foodtruckUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(foodtruckUrl)}&format=png&margin=10`
     : '';
+
+  // Mark onboarding as completed + fetch summary
+  useEffect(() => {
+    onComplete();
+
+    const fetchSummary = async () => {
+      const [locsRes, schedsRes, catsRes, itemsRes] = await Promise.all([
+        supabase
+          .from('locations')
+          .select('name')
+          .eq('foodtruck_id', foodtruck.id)
+          .order('created_at'),
+        supabase
+          .from('schedules')
+          .select('day_of_week')
+          .eq('foodtruck_id', foodtruck.id)
+          .eq('is_active', true),
+        supabase.from('categories').select('id').eq('foodtruck_id', foodtruck.id),
+        supabase.from('menu_items').select('id').eq('foodtruck_id', foodtruck.id),
+      ]);
+
+      const locationNames = (locsRes.data || []).map((l) => l.name);
+      const daySet = new Set((schedsRes.data || []).map((s) => s.day_of_week));
+      const sortedDays = [...daySet].sort((a, b) => {
+        const oa = a === 0 ? 7 : a;
+        const ob = b === 0 ? 7 : b;
+        return oa - ob;
+      });
+
+      setSummary({
+        locationCount: locationNames.length,
+        locationNames,
+        scheduleDays: sortedDays,
+        categoryCount: (catsRes.data || []).length,
+        itemCount: (itemsRes.data || []).length,
+      });
+    };
+
+    fetchSummary();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 3000);
@@ -61,12 +112,11 @@ export function StepComplete() {
   const handleGoToDashboard = async () => {
     setLeaving(true);
     try {
-      await refresh();
-      clearOnboardingSession();
+      await onGoToDashboard();
     } catch {
       // Continue anyway
+      navigate('/');
     }
-    navigate('/');
   };
 
   const handleDownloadQR = async () => {
@@ -78,7 +128,7 @@ export function StepComplete() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `qrcode-${state.foodtruck?.name?.replace(/\s+/g, '-').toLowerCase() || 'foodtruck'}.png`;
+      a.download = `qrcode-${foodtruck.name.replace(/\s+/g, '-').toLowerCase()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -89,14 +139,6 @@ export function StepComplete() {
       setDownloading(false);
     }
   };
-
-  // Calculate stats
-  const totalItems = state.categories.reduce((sum, cat) => sum + cat.items.length, 0);
-  const sortedDays = [...state.selectedDays].sort((a, b) => {
-    const oa = a === 0 ? 7 : a;
-    const ob = b === 0 ? 7 : b;
-    return oa - ob;
-  });
 
   return (
     <div className="flex flex-col min-h-full">
@@ -109,136 +151,106 @@ export function StepComplete() {
             <Sparkles className="w-10 h-10 text-success-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Félicitations !</h1>
-          <p className="text-gray-600">{state.foodtruck?.name || 'Votre foodtruck'} est prêt !</p>
+          <p className="text-gray-600">{foodtruck.name} est prêt !</p>
         </div>
 
-        {/* Detailed summary */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
-          <h3 className="font-semibold text-gray-900">Récapitulatif</h3>
+        {/* Summary */}
+        {summary && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
+            <h3 className="font-semibold text-gray-900">Récapitulatif</h3>
 
-          {/* Locations */}
-          {state.locations.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <MapPin className="w-4 h-4 text-blue-500" />
-                {state.locations.length} emplacement{state.locations.length > 1 ? 's' : ''}
-              </div>
-              <div className="ml-6 space-y-1">
-                {state.locations.map((loc, i) => (
-                  <p key={i} className="text-sm text-gray-500">
-                    {loc.name} — {loc.address}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Schedule */}
-          {sortedDays.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <Calendar className="w-4 h-4 text-green-500" />
-                {sortedDays.length} jour{sortedDays.length > 1 ? 's' : ''} / semaine
-              </div>
-              <div className="ml-6 space-y-1">
-                {sortedDays.map((day) => {
-                  const schedule = state.schedules.find((s) => s.day_of_week === day);
-                  const loc = schedule
-                    ? state.locations.find((l) => l.id === schedule.location_id)
-                    : null;
-                  return (
-                    <p key={day} className="text-sm text-gray-500">
-                      {DAYS_OF_WEEK[day]}
-                      {schedule ? ` ${schedule.start_time}–${schedule.end_time}` : ''}
-                      {loc ? ` (${loc.name})` : ''}
+            {summary.locationCount > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4 text-blue-500" />
+                  {summary.locationCount} emplacement{summary.locationCount > 1 ? 's' : ''}
+                </div>
+                <div className="ml-6 space-y-1">
+                  {summary.locationNames.map((name, i) => (
+                    <p key={i} className="text-sm text-gray-500">
+                      {name}
                     </p>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Menu */}
-          {state.categories.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-                {totalItems} produit{totalItems > 1 ? 's' : ''} dans {state.categories.length}{' '}
-                catégorie{state.categories.length > 1 ? 's' : ''}
-              </div>
-              <div className="ml-6 space-y-1">
-                {state.categories.map((cat) => (
-                  <p key={cat.id} className="text-sm text-gray-500">
-                    {cat.name} — {cat.items.map((i) => i.name).join(', ')}
+            {summary.scheduleDays.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Calendar className="w-4 h-4 text-green-500" />
+                  {summary.scheduleDays.length} jour{summary.scheduleDays.length > 1 ? 's' : ''} /
+                  semaine
+                </div>
+                <div className="ml-6">
+                  <p className="text-sm text-gray-500">
+                    {summary.scheduleDays.map((d) => DAYS_OF_WEEK[d]).join(', ')}
                   </p>
-                ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Offers */}
-          {state.offers.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <Gift className="w-4 h-4 text-purple-500" />
-                {state.offers.length} offre{state.offers.length > 1 ? 's' : ''}
+            {summary.categoryCount > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+                  {summary.itemCount} article{summary.itemCount > 1 ? 's' : ''} dans{' '}
+                  {summary.categoryCount} catégorie{summary.categoryCount > 1 ? 's' : ''}
+                </div>
               </div>
-              <div className="ml-6 space-y-1">
-                {state.offers.map((offer, i) => (
-                  <p key={i} className="text-sm text-gray-500">
-                    {offer.name}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Share link */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
-          <div>
-            <h3 className="font-semibold text-gray-900">Partagez votre lien</h3>
-            <p className="text-sm text-gray-500 mt-1">Vos clients peuvent commander via ce lien.</p>
-          </div>
+        {foodtruckUrl && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
+            <div>
+              <h3 className="font-semibold text-gray-900">Partagez votre lien</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Vos clients peuvent commander via ce lien.
+              </p>
+            </div>
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={foodtruckUrl}
-              readOnly
-              className="input flex-1 bg-gray-50 font-mono text-sm"
-            />
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="px-4 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={foodtruckUrl}
+                readOnly
+                className="input flex-1 bg-gray-50 font-mono text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-4 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span className="hidden sm:inline">Copié !</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span className="hidden sm:inline">Copier</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <a
+              href={foodtruckUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700"
             >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span className="hidden sm:inline">Copié !</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  <span className="hidden sm:inline">Copier</span>
-                </>
-              )}
-            </button>
+              <ExternalLink className="w-4 h-4" />
+              Voir ma page
+            </a>
           </div>
+        )}
 
-          <a
-            href={foodtruckUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Voir ma page
-          </a>
-        </div>
-
-        {/* QR Code inline */}
+        {/* QR Code */}
         {qrCodeUrl && (
           <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
             <div className="flex items-center gap-2">

@@ -1,182 +1,150 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2 } from 'lucide-react';
-import { OnboardingProvider, useOnboarding } from './OnboardingContext';
-import { ProgressBar } from './components';
-import {
-  Step1Locations,
-  Step2Schedule,
-  Step3Menu,
-  Step4Offers,
-  Step5Settings,
-  StepComplete,
-} from './steps';
-import { useOnboardingAssistant } from './hooks/useOnboardingAssistant';
+import { Loader2 } from 'lucide-react';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
+import { supabase } from '../../lib/supabase';
+import { ProgressBar } from './components';
+import { Step1Locations, Step2Schedule, Step3Menu, StepComplete } from './steps';
 
-const STEP_LABELS = ['Emplacements', 'Planning', 'Menu', 'Offres', 'Paramètres'];
-const TOTAL_STEPS = 5;
+const STEP_LABELS = ['Emplacements', 'Planning', 'Menu'];
+const TOTAL_STEPS = 3;
 
-function OnboardingAssistantContent() {
+export default function OnboardingAssistant() {
   const navigate = useNavigate();
-  const { state, goToStep } = useOnboarding();
-  const {
-    saveAllData,
-    saveStepData,
-    updateProgress,
-    saveLocations,
-    saveSchedules,
-    saveMenu,
-    saveOffers,
-    saveSettings,
-    loaded,
-  } = useOnboardingAssistant();
-  const { foodtruck } = useFoodtruck();
+  const { foodtruck, refresh } = useFoodtruck();
+  const [currentStep, setCurrentStep] = useState<number | null>(null);
   const [skipping, setSkipping] = useState(false);
-  const prevStepRef = useRef(state.currentStep);
 
-  // Save all data when reaching step 6 (complete) — only once
-  const hasSavedComplete = useRef(false);
+  // Load initial step from DB
   useEffect(() => {
-    if (state.currentStep === 6 && !hasSavedComplete.current) {
-      hasSavedComplete.current = true;
-      saveAllData().then((success) => {
-        if (!success) {
-          console.error('Failed to save onboarding data');
-        }
-      });
+    if (!foodtruck) return;
+    const dbStep = foodtruck.onboarding_step || 1;
+    // Steps 1-3 are wizard steps, anything else → cap to valid range
+    if (dbStep >= 1 && dbStep <= TOTAL_STEPS) {
+      setCurrentStep(dbStep);
+    } else if (dbStep > TOTAL_STEPS) {
+      // Old system step 4-6 or already completed → show complete screen
+      setCurrentStep(TOTAL_STEPS + 1);
+    } else {
+      setCurrentStep(1);
     }
-  }, [state.currentStep, saveAllData]);
+  }, [foodtruck]);
 
-  // Progressive save: when step increases, save the completed step's data
-  // Only after initial load to avoid overwriting DB with default state
-  useEffect(() => {
-    if (!loaded) return;
-    const prev = prevStepRef.current;
-    if (state.currentStep > prev && prev <= TOTAL_STEPS) {
-      saveStepData(prev);
-    }
-    prevStepRef.current = state.currentStep;
-  }, [state.currentStep, saveStepData, loaded]);
+  const updateStepInDB = useCallback(
+    async (step: number) => {
+      if (!foodtruck) return;
+      await supabase.from('foodtrucks').update({ onboarding_step: step }).eq('id', foodtruck.id);
+    },
+    [foodtruck]
+  );
 
-  // Update progress in database when step changes
-  // Only after initial load to avoid overwriting saved step with 1
-  useEffect(() => {
-    if (!loaded) return;
-    if (state.currentStep <= TOTAL_STEPS) {
-      updateProgress(state.currentStep);
-    }
-  }, [state.currentStep, updateProgress, loaded]);
+  const handleNext = useCallback(async () => {
+    if (currentStep === null) return;
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+    await updateStepInDB(nextStep);
+  }, [currentStep, updateStepInDB]);
 
-  // Save whatever data has been entered so far before leaving
+  const handleBack = useCallback(async () => {
+    if (currentStep === null || currentStep <= 1) return;
+    const prevStep = currentStep - 1;
+    setCurrentStep(prevStep);
+    await updateStepInDB(prevStep);
+  }, [currentStep, updateStepInDB]);
+
+  const handleGoToStep = useCallback(
+    async (step: number) => {
+      if (currentStep === null || step >= currentStep) return;
+      setCurrentStep(step);
+      await updateStepInDB(step);
+    },
+    [currentStep, updateStepInDB]
+  );
+
   const handleSkip = async () => {
-    const hasData =
-      state.locations.length > 0 ||
-      state.schedules.length > 0 ||
-      state.categories.length > 0 ||
-      state.offers.length > 0;
-
-    if (hasData && !window.confirm("Vos données seront sauvegardées. Quitter l'assistant ?")) {
-      return;
-    }
-
+    if (!window.confirm("Vos données sont sauvegardées. Quitter l'assistant ?")) return;
     setSkipping(true);
-    try {
-      if (state.locations.length > 0) {
-        const locationIds = await saveLocations();
-        if (state.schedules.length > 0) {
-          await saveSchedules(locationIds);
-        }
-      }
-      if (state.categories.length > 0) {
-        await saveMenu();
-      }
-      if (state.offers.length > 0) {
-        await saveOffers();
-      }
-    } catch (err) {
-      console.error('Error saving partial onboarding data:', err);
-    }
     navigate('/');
   };
 
-  const renderStep = () => {
-    switch (state.currentStep) {
-      case 1:
-        return <Step1Locations />;
-      case 2:
-        return <Step2Schedule saveSchedules={saveSchedules} />;
-      case 3:
-        return <Step3Menu saveMenu={saveMenu} />;
-      case 4:
-        return <Step4Offers saveOffers={saveOffers} />;
-      case 5:
-        return <Step5Settings saveSettings={saveSettings} />;
-      case 6:
-        return <StepComplete />;
-      default:
-        return <Step1Locations />;
-    }
-  };
+  const handleComplete = useCallback(async () => {
+    if (!foodtruck) return;
+    await supabase
+      .from('foodtrucks')
+      .update({
+        onboarding_completed_at: new Date().toISOString(),
+        onboarding_step: TOTAL_STEPS + 1,
+      })
+      .eq('id', foodtruck.id);
+    setCurrentStep(TOTAL_STEPS + 1);
+  }, [foodtruck]);
 
-  // Show loader until data is ready (prevents flash of wrong step)
-  if (!loaded) {
+  const handleGoToDashboard = useCallback(async () => {
+    await refresh();
+    navigate('/');
+  }, [refresh, navigate]);
+
+  // Loading
+  if (!foodtruck || currentStep === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
       </div>
     );
   }
 
+  const isComplete = currentStep > TOTAL_STEPS;
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return <Step1Locations foodtruckId={foodtruck.id} onNext={handleNext} />;
+      case 2:
+        return <Step2Schedule foodtruckId={foodtruck.id} onNext={handleNext} onBack={handleBack} />;
+      case 3:
+        return <Step3Menu foodtruckId={foodtruck.id} onNext={handleNext} onBack={handleBack} />;
+      default:
+        return (
+          <StepComplete
+            foodtruck={foodtruck}
+            onComplete={handleComplete}
+            onGoToDashboard={handleGoToDashboard}
+          />
+        );
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-2xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
-                <UtensilsCrossed className="w-5 h-5 text-white" />
-              </div>
+      {!isComplete && (
+        <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
+          <div className="max-w-2xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <span className="font-semibold text-gray-900">OnMange</span>
-                {foodtruck && <p className="text-xs text-gray-500">{foodtruck.name}</p>}
+                <p className="font-semibold text-gray-900 text-sm">{foodtruck.name}</p>
+                <p className="text-xs text-gray-400">Configuration initiale</p>
               </div>
-            </div>
-            {state.currentStep <= TOTAL_STEPS && (
               <button
                 onClick={handleSkip}
                 disabled={skipping}
                 className="text-sm text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] px-2 disabled:opacity-50"
               >
-                {skipping ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Passer'}
+                {skipping ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Terminer plus tard'}
               </button>
-            )}
-          </div>
-
-          {/* Progress bar - only show during steps, not on complete */}
-          {state.currentStep <= TOTAL_STEPS && (
+            </div>
             <ProgressBar
-              currentStep={state.currentStep}
+              currentStep={currentStep}
               totalSteps={TOTAL_STEPS}
               labels={STEP_LABELS}
-              completedSteps={state.completedSteps}
-              onStepClick={goToStep}
+              onStepClick={handleGoToStep}
             />
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Main content */}
+      {/* Content */}
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">{renderStep()}</div>
     </div>
-  );
-}
-
-export default function OnboardingAssistant() {
-  return (
-    <OnboardingProvider>
-      <OnboardingAssistantContent />
-    </OnboardingProvider>
   );
 }

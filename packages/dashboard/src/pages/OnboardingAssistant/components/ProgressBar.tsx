@@ -2,17 +2,10 @@ interface ProgressBarProps {
   currentStep: number;
   totalSteps: number;
   labels: string[];
-  completedSteps: number[];
   onStepClick?: (step: number) => void;
 }
 
-export function ProgressBar({
-  currentStep,
-  totalSteps,
-  labels,
-  completedSteps,
-  onStepClick,
-}: ProgressBarProps) {
+export function ProgressBar({ currentStep, totalSteps, labels, onStepClick }: ProgressBarProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-2">
@@ -24,10 +17,9 @@ export function ProgressBar({
       <div className="flex items-center gap-1.5">
         {labels.map((label, index) => {
           const stepNumber = index + 1;
-          const isCompleted = completedSteps.includes(stepNumber);
           const isCurrent = currentStep === stepNumber;
           const isPast = currentStep > stepNumber;
-          const isClickable = onStepClick && (isCompleted || isPast) && !isCurrent;
+          const isClickable = onStepClick && isPast && !isCurrent;
 
           return (
             <button
@@ -36,11 +28,7 @@ export function ProgressBar({
               onClick={() => isClickable && onStepClick(stepNumber)}
               disabled={!isClickable}
               className={`h-1.5 rounded-full transition-all flex-1 ${
-                isCurrent
-                  ? 'bg-primary-500'
-                  : isCompleted || isPast
-                    ? 'bg-primary-300'
-                    : 'bg-gray-200'
+                isCurrent ? 'bg-primary-500' : isPast ? 'bg-primary-300' : 'bg-gray-200'
               } ${isClickable ? 'cursor-pointer active:scale-95' : ''}`}
               aria-label={isClickable ? `Aller à ${label}` : undefined}
               title={label}

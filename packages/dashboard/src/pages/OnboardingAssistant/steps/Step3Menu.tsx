@@ -1,35 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus,
-  Check,
-  Ruler,
-  CircleDot,
-  X,
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
   Trash2,
   Pencil,
+  ChevronUp,
+  ChevronDown,
+  ArrowLeft,
+  X,
+  Check,
+  Loader2,
+  Ruler,
+  CircleDot,
 } from 'lucide-react';
-import {
-  useOnboarding,
-  OnboardingCategory,
-  OnboardingOptionGroup,
-  OnboardingItem,
-} from '../OnboardingContext';
-import {
-  AssistantBubble,
-  StepContainer,
-  ActionButton,
-  OptionCard,
-  QuickSuggestions,
-} from '../components';
+import { supabase } from '../../../lib/supabase';
 import { useToast, Toast } from '../../../components/Alert';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
+import { StepContainer, PriceInput, QuickSuggestions } from '../components';
+
+// ---------- Types ----------
+
+interface CategoryOption {
+  id: string;
+  name: string;
+  price_modifier: number;
+  display_order: number;
+}
+
+interface OptionGroup {
+  id: string;
+  name: string;
+  is_required: boolean;
+  is_multiple: boolean;
+  display_order: number;
+  options: CategoryOption[];
+}
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number; // cents
+  option_prices: Record<string, number> | null; // optionUUID → cents
+  display_order: number;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  display_order: number;
+  optionGroups: OptionGroup[];
+  items: MenuItem[];
+}
+
+interface Step3MenuProps {
+  foodtruckId: string;
+  onNext: () => void;
+  onBack: () => void;
+}
 
 const CATEGORY_SUGGESTIONS = [
-  'Entrées',
+  'Entrees',
   'Plats',
   'Desserts',
   'Boissons',
@@ -39,307 +70,325 @@ const CATEGORY_SUGGESTIONS = [
   'Wraps',
 ];
 
-const OPTION_TYPES = [
-  { type: 'size' as const, label: 'Tailles', description: 'S, M, L, XL...', icon: Ruler },
-  {
-    type: 'supplement' as const,
-    label: 'Suppléments',
-    description: 'Fromage, Bacon...',
-    icon: Plus,
-  },
-  { type: 'other' as const, label: 'Autre', description: 'Cuisson, sauce...', icon: CircleDot },
-];
+// ---------- Component ----------
 
-function generateId(): string {
-  return crypto.randomUUID();
-}
-
-interface Step3MenuProps {
-  saveMenu: () => Promise<void>;
-}
-
-export function Step3Menu({ saveMenu }: Step3MenuProps) {
-  const { state, dispatch, nextStep, prevStep } = useOnboarding();
-  const { toast, hideToast, showSuccess } = useToast();
-  const [savingMenu, setSavingMenu] = useState(false);
+export function Step3Menu({ foodtruckId, onNext, onBack }: Step3MenuProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const { toast, hideToast, showSuccess, showError } = useToast();
   const confirmDialog = useConfirmDialog();
-  const [categoryName, setCategoryName] = useState(state.currentCategory?.name || '');
-  const [selectedOptionType, setSelectedOptionType] = useState<
-    'size' | 'supplement' | 'other' | null
-  >(null);
-  const [optionGroupName, setOptionGroupName] = useState('');
-  const [optionValues, setOptionValues] = useState<string[]>([]);
-  const [optionPrices, setOptionPrices] = useState<Record<string, string>>({});
-  const [newOptionValue, setNewOptionValue] = useState('');
-  const [itemName, setItemName] = useState('');
-  const [itemDescription, setItemDescription] = useState('');
-  const [itemPrices, setItemPrices] = useState<Record<string, string>>({});
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [editingOptionGroupId, setEditingOptionGroupId] = useState<string | null>(null);
-  const [showItemForm, setShowItemForm] = useState(false);
 
-  // Get size options for current category (if any)
-  const sizeOptions =
-    state.currentCategory?.optionGroups.find((og) => og.type === 'size')?.options || [];
-  const hasSizeOptions = sizeOptions.length > 0;
+  // Load categories with option groups and items from DB
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('categories')
+        .select(
+          `*,
+          category_option_groups (
+            *,
+            category_options (*)
+          ),
+          menu_items (*)
+        `
+        )
+        .eq('foodtruck_id', foodtruckId)
+        .order('display_order');
 
-  const handleCreateCategory = () => {
-    if (!categoryName.trim()) return;
-
-    const newCategory: OnboardingCategory = {
-      id: generateId(),
-      name: categoryName.trim(),
-      optionGroups: [],
-      items: [],
+      if (data) {
+        setCategories(
+          data.map((cat) => ({
+            id: cat.id,
+            name: cat.name,
+            display_order: cat.display_order || 0,
+            optionGroups: (cat.category_option_groups || [])
+              .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+              .map((og: any) => ({
+                id: og.id,
+                name: og.name,
+                is_required: og.is_required,
+                is_multiple: og.is_multiple,
+                display_order: og.display_order || 0,
+                options: (og.category_options || [])
+                  .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                  .map((opt: any) => ({
+                    id: opt.id,
+                    name: opt.name,
+                    price_modifier: opt.price_modifier || 0,
+                    display_order: opt.display_order || 0,
+                  })),
+              })),
+            items: ((cat.menu_items || []) as any[])
+              .filter((i) => !i.is_archived)
+              .sort(
+                (a, b) =>
+                  (a.display_order ?? 999) - (b.display_order ?? 999) ||
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+              .map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                option_prices: item.option_prices,
+                display_order: item.display_order || 0,
+              })),
+          }))
+        );
+      }
+      setLoading(false);
     };
+    load();
+  }, [foodtruckId]);
 
-    dispatch({ type: 'ADD_CATEGORY', category: newCategory });
-    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' });
-  };
+  // Find the category being edited
+  const editingCategory = editingCategoryId
+    ? categories.find((c) => c.id === editingCategoryId)
+    : null;
 
-  const handleSkipOptions = () => {
-    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'items' });
-  };
+  // --- Category CRUD ---
 
-  const handleSelectOptionType = (type: 'size' | 'supplement' | 'other') => {
-    setSelectedOptionType(type);
-
-    // Check if a group of this type already exists → edit it
-    const existingGroup = state.currentCategory?.optionGroups.find((og) => og.type === type);
-    if (existingGroup) {
-      setEditingOptionGroupId(existingGroup.id);
-      setOptionGroupName(existingGroup.name);
-      setOptionValues(existingGroup.options.map((o) => o.name));
-      const prices: Record<string, string> = {};
-      for (const o of existingGroup.options) {
-        if (o.priceModifier) {
-          prices[o.name] = (o.priceModifier / 100).toFixed(2);
-        }
-      }
-      setOptionPrices(prices);
-    } else {
-      setEditingOptionGroupId(null);
-      setOptionPrices({});
-      // Set default name based on type
-      if (type === 'size') {
-        setOptionGroupName('Taille');
-      } else if (type === 'supplement') {
-        setOptionGroupName('Suppléments');
-      } else {
-        setOptionGroupName('');
-      }
-    }
-  };
-
-  const handleAddOptionValue = () => {
-    if (!newOptionValue.trim() || optionValues.includes(newOptionValue.trim())) return;
-    setOptionValues([...optionValues, newOptionValue.trim()]);
-    setNewOptionValue('');
-  };
-
-  const handleRemoveOptionValue = (value: string) => {
-    setOptionValues(optionValues.filter((v) => v !== value));
-  };
-
-  const handleSaveOptionGroup = () => {
-    if (!state.currentCategory || !selectedOptionType || optionValues.length === 0) return;
-
-    const optionGroup: OnboardingOptionGroup = {
-      id: editingOptionGroupId || generateId(),
-      name: optionGroupName || selectedOptionType,
-      type: selectedOptionType,
-      options: optionValues.map((name) => ({
-        name,
-        priceModifier: optionPrices[name]
-          ? Math.round(parseFloat(optionPrices[name]) * 100)
-          : undefined,
-      })),
-    };
-
-    if (editingOptionGroupId) {
-      dispatch({
-        type: 'REPLACE_OPTION_GROUP_IN_CATEGORY',
-        categoryId: state.currentCategory.id,
-        oldGroupId: editingOptionGroupId,
-        optionGroup,
-      });
-    } else {
-      dispatch({
-        type: 'ADD_OPTION_GROUP_TO_CATEGORY',
-        categoryId: state.currentCategory.id,
-        optionGroup,
-      });
-    }
-
-    showSuccess('Options enregistrées !');
-    // Reset form
-    setSelectedOptionType(null);
-    setEditingOptionGroupId(null);
-    setOptionGroupName('');
-    setOptionValues([]);
-    setOptionPrices({});
-    setNewOptionValue('');
-  };
-
-  const handleFinishOptions = () => {
-    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'items' });
-  };
-
-  const handleAddItem = () => {
-    if (!state.currentCategory || !itemName.trim()) return;
-
-    // Validate prices
-    const prices: Record<string, number> = {};
-    if (hasSizeOptions) {
-      for (const option of sizeOptions) {
-        const priceStr = itemPrices[option.name];
-        if (!priceStr) return;
-        prices[option.name] = Math.round(parseFloat(priceStr) * 100);
-      }
-    } else {
-      const basePrice = itemPrices['base'];
-      if (!basePrice) return;
-      prices['base'] = Math.round(parseFloat(basePrice) * 100);
-    }
-
-    const desc = itemDescription.trim() || undefined;
-
-    if (editingItemId) {
-      // Update existing item
-      dispatch({
-        type: 'UPDATE_ITEM_IN_CATEGORY',
-        categoryId: state.currentCategory.id,
-        item: { id: editingItemId, name: itemName.trim(), description: desc, prices },
-      });
-      setEditingItemId(null);
-      showSuccess('Article modifié !');
-    } else {
-      // Add new item
-      dispatch({
-        type: 'ADD_ITEM_TO_CATEGORY',
-        categoryId: state.currentCategory.id,
-        item: { id: generateId(), name: itemName.trim(), description: desc, prices },
-      });
-      showSuccess('Article ajouté !');
-    }
-
-    // Reset form & collapse
-    setItemName('');
-    setItemDescription('');
-    setItemPrices({});
-    setShowItemForm(false);
-  };
-
-  const handleEditItem = (item: OnboardingItem) => {
-    setEditingItemId(item.id);
-    setShowItemForm(true);
-    setItemName(item.name);
-    setItemDescription(item.description || '');
-    // Convert prices from cents back to display format
-    const displayPrices: Record<string, string> = {};
-    if (hasSizeOptions && item.prices['base'] && !sizeOptions.some((o) => o.name in item.prices)) {
-      // Item was created with base price before sizes were added — pre-fill all sizes
-      const baseDisplay = (item.prices['base'] / 100).toFixed(2);
-      for (const option of sizeOptions) {
-        displayPrices[option.name] = baseDisplay;
-      }
-    } else {
-      for (const [key, value] of Object.entries(item.prices)) {
-        displayPrices[key] = (value / 100).toFixed(2);
-      }
-    }
-    setItemPrices(displayPrices);
-  };
-
-  const handleRemoveItem = async (itemId: string) => {
-    if (!state.currentCategory) return;
-    const confirmed = await confirmDialog.confirm({
-      title: 'Supprimer cet article ?',
-      message: 'Cette action est irréversible.',
-      confirmText: 'Supprimer',
-      variant: 'danger',
-    });
-    if (!confirmed) return;
-    dispatch({
-      type: 'REMOVE_ITEM_FROM_CATEGORY',
-      categoryId: state.currentCategory.id,
-      itemId,
-    });
-    confirmDialog.closeDialog();
-    showSuccess('Article supprimé');
-  };
-
-  const handleEditCategory = (cat: OnboardingCategory) => {
-    dispatch({ type: 'SET_CURRENT_CATEGORY', category: cat });
-    setCategoryName(cat.name);
-    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'items' });
-  };
-
-  const handleUpdateCategoryName = () => {
-    if (!state.currentCategory || !categoryName.trim()) return;
-    dispatch({
-      type: 'UPDATE_CURRENT_CATEGORY',
-      category: { name: categoryName.trim() },
-    });
-  };
-
-  const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= state.categories.length) return;
-    const reordered = [...state.categories];
-    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
-    dispatch({ type: 'SET_CATEGORIES', categories: reordered });
-  };
-
-  const handleRemoveCategory = async (categoryId: string) => {
-    const confirmed = await confirmDialog.confirm({
-      title: 'Supprimer cette catégorie ?',
-      message: 'Tous les articles de cette catégorie seront aussi supprimés.',
-      confirmText: 'Supprimer',
-      variant: 'danger',
-    });
-    if (!confirmed) return;
-    dispatch({ type: 'REMOVE_CATEGORY', categoryId });
-    confirmDialog.closeDialog();
-    showSuccess('Catégorie supprimée');
-  };
-
-  const handleAddAnotherCategory = () => {
-    setCategoryName('');
-    dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
-    dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'category' });
-  };
-
-  const handleFinishMenu = async () => {
-    setSavingMenu(true);
+  const handleAddCategory = async (name: string) => {
+    if (!name.trim()) return;
     try {
-      await saveMenu();
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          foodtruck_id: foodtruckId,
+          name: name.trim(),
+          display_order: categories.length,
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      const newCat: Category = {
+        id: data.id,
+        name: name.trim(),
+        display_order: categories.length,
+        optionGroups: [],
+        items: [],
+      };
+      setCategories((prev) => [...prev, newCat]);
+      setEditingCategoryId(data.id);
+      showSuccess('Categorie creee');
     } catch (err) {
-      console.error('Error saving menu:', err);
-    } finally {
-      setSavingMenu(false);
+      console.error('Error creating category:', err);
+      showError('Erreur lors de la creation');
     }
-    nextStep();
   };
 
-  const SUB_STEPS = ['category', 'options', 'items', 'done'] as const;
-  const currentSubStepIndex = SUB_STEPS.indexOf(state.menuSubStep as (typeof SUB_STEPS)[number]);
+  const handleDeleteCategory = async (categoryId: string) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cette categorie ?',
+      message: 'Tous les articles et options de cette categorie seront supprimes.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
-  const SubStepProgress = () => (
-    <div className="flex items-center justify-center gap-1.5">
-      {SUB_STEPS.map((_, index) => (
-        <div
-          key={index}
-          className={`h-1.5 rounded-full transition-all ${
-            index <= currentSubStepIndex ? 'w-6 bg-primary-500' : 'w-1.5 bg-gray-200'
-          }`}
-        />
-      ))}
-    </div>
-  );
+    try {
+      await supabase.from('categories').delete().eq('id', categoryId);
+      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      if (editingCategoryId === categoryId) setEditingCategoryId(null);
+      confirmDialog.closeDialog();
+      showSuccess('Categorie supprimee');
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      showError('Erreur lors de la suppression');
+      confirmDialog.closeDialog();
+    }
+  };
 
-  const toastAndDialog = (
-    <>
+  const handleMoveCategory = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= categories.length) return;
+
+    const reordered = [...categories];
+    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
+    setCategories(reordered);
+
+    // Update display_order in DB
+    Promise.all(
+      reordered.map((cat, i) =>
+        supabase.from('categories').update({ display_order: i }).eq('id', cat.id)
+      )
+    ).catch((err) => console.error('Error reordering categories:', err));
+  };
+
+  const handleContinue = () => {
+    if (categories.length === 0 || categories.every((c) => c.items.length === 0)) {
+      showError('Ajoutez au moins un article avant de continuer');
+      return;
+    }
+    onNext();
+  };
+
+  // Reload a single category from DB
+  const reloadCategory = async (categoryId: string) => {
+    const { data } = await supabase
+      .from('categories')
+      .select(
+        `*,
+        category_option_groups (
+          *,
+          category_options (*)
+        ),
+        menu_items (*)
+      `
+      )
+      .eq('id', categoryId)
+      .single();
+
+    if (!data) return;
+
+    setCategories((prev) =>
+      prev.map((c) => {
+        if (c.id !== categoryId) return c;
+        return {
+          ...c,
+          name: data.name,
+          optionGroups: (data.category_option_groups || [])
+            .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+            .map((og: any) => ({
+              id: og.id,
+              name: og.name,
+              is_required: og.is_required,
+              is_multiple: og.is_multiple,
+              display_order: og.display_order || 0,
+              options: (og.category_options || [])
+                .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                .map((opt: any) => ({
+                  id: opt.id,
+                  name: opt.name,
+                  price_modifier: opt.price_modifier || 0,
+                  display_order: opt.display_order || 0,
+                })),
+            })),
+          items: ((data.menu_items || []) as any[])
+            .filter((i) => !i.is_archived)
+            .sort(
+              (a, b) =>
+                (a.display_order ?? 999) - (b.display_order ?? 999) ||
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            )
+            .map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              price: item.price,
+              option_prices: item.option_prices,
+              display_order: item.display_order || 0,
+            })),
+        };
+      })
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+      </div>
+    );
+  }
+
+  // --- Category Editor View ---
+  if (editingCategory) {
+    return (
+      <CategoryEditor
+        category={editingCategory}
+        foodtruckId={foodtruckId}
+        onBack={() => setEditingCategoryId(null)}
+        onReload={() => reloadCategory(editingCategory.id)}
+        showSuccess={showSuccess}
+        showError={showError}
+        toast={toast}
+        hideToast={hideToast}
+        confirmDialog={confirmDialog}
+      />
+    );
+  }
+
+  // --- Categories List View ---
+  return (
+    <StepContainer
+      onBack={onBack}
+      onNext={handleContinue}
+      nextLabel="Continuer"
+      nextDisabled={categories.length === 0}
+    >
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Votre menu</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Creez vos categories et ajoutez vos articles.
+          </p>
+        </div>
+
+        {/* Categories list */}
+        {categories.length > 0 && (
+          <div className="space-y-2">
+            {categories.map((cat, index) => (
+              <div
+                key={cat.id}
+                className="bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-200 transition-colors cursor-pointer"
+                onClick={() => setEditingCategoryId(cat.id)}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Reorder */}
+                  {categories.length > 1 && (
+                    <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(index, 'up')}
+                        disabled={index === 0}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(index, 'down')}
+                        disabled={index === categories.length - 1}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 text-sm">{cat.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {cat.items.length} article{cat.items.length !== 1 ? 's' : ''}
+                      {cat.optionGroups.length > 0 &&
+                        ` · ${cat.optionGroups.map((og) => og.name).join(', ')}`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <Pencil className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add category */}
+        <AddCategoryForm existingNames={categories.map((c) => c.name)} onAdd={handleAddCategory} />
+      </div>
+
       <Toast {...toast} onDismiss={hideToast} />
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
@@ -348,617 +397,795 @@ export function Step3Menu({ saveMenu }: Step3MenuProps) {
         loading={confirmDialog.loading}
         {...confirmDialog.options}
       />
-    </>
+    </StepContainer>
+  );
+}
+
+// ---------- AddCategoryForm ----------
+
+function AddCategoryForm({
+  existingNames,
+  onAdd,
+}: {
+  existingNames: string[];
+  onAdd: (name: string) => Promise<void>;
+}) {
+  const [name, setName] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  const handleAdd = async () => {
+    if (!name.trim()) return;
+    setAdding(true);
+    await onAdd(name.trim());
+    setName('');
+    setAdding(false);
+  };
+
+  const availableSuggestions = CATEGORY_SUGGESTIONS.filter(
+    (s) => !existingNames.some((n) => n.toLowerCase() === s.toLowerCase())
   );
 
-  // Sub-step: Create category
-  if (state.menuSubStep === 'category') {
-    const handleBackFromCategory = () => {
-      if (state.categories.length > 0) {
-        dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
-      } else {
-        prevStep();
-      }
-    };
-
-    return (
-      <StepContainer
-        onBack={handleBackFromCategory}
-        onNext={handleCreateCategory}
-        nextLabel="Continuer"
-        nextDisabled={!categoryName.trim()}
-      >
-        <div className="space-y-6">
-          <SubStepProgress />
-          <AssistantBubble
-            message={
-              state.categories.length === 0
-                ? 'Créons votre menu ! Commencez par créer une catégorie.'
-                : 'Ajoutez une nouvelle catégorie.'
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAdd();
             }
-            emoji="🍽️"
+          }}
+          className="input min-h-[44px] text-sm flex-1"
+          placeholder="Nom de la categorie..."
+        />
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!name.trim() || adding}
+          className="px-4 min-h-[44px] bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5"
+        >
+          {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          Ajouter
+        </button>
+      </div>
+
+      {availableSuggestions.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-400 mb-1.5">Suggestions :</p>
+          <QuickSuggestions
+            suggestions={availableSuggestions}
+            onSelect={setName}
+            selectedValue={name}
           />
+        </div>
+      )}
+    </div>
+  );
+}
 
-          {/* Show existing categories */}
-          {state.categories.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">
-                Catégories créées ({state.categories.length})
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {state.categories.map((cat) => (
-                  <div
-                    key={cat.id}
-                    className="px-3 py-1.5 bg-success-50 text-success-700 rounded-lg text-sm flex items-center gap-1"
-                  >
-                    <Check className="w-3 h-3" />
-                    {cat.name} ({cat.items.length})
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+// ---------- CategoryEditor ----------
 
+interface CategoryEditorProps {
+  category: Category;
+  foodtruckId: string;
+  onBack: () => void;
+  onReload: () => Promise<void>;
+  showSuccess: (msg: string) => void;
+  showError: (msg: string) => void;
+  toast: any;
+  hideToast: () => void;
+  confirmDialog: ReturnType<typeof import('../../../hooks/useConfirmDialog').useConfirmDialog>;
+}
+
+function CategoryEditor({
+  category,
+  foodtruckId,
+  onBack,
+  onReload,
+  showSuccess,
+  showError,
+  toast,
+  hideToast,
+  confirmDialog,
+}: CategoryEditorProps) {
+  const [categoryName, setCategoryName] = useState(category.name);
+  const [showOptionForm, setShowOptionForm] = useState(false);
+  const [showItemForm, setShowItemForm] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // Get the size option group (if any)
+  const sizeGroup = category.optionGroups.find((og) => og.is_required && !og.is_multiple);
+  const sizeOptions = sizeGroup?.options || [];
+  const hasSizes = sizeOptions.length > 0;
+
+  // Update category name on blur
+  const handleUpdateName = async () => {
+    if (!categoryName.trim() || categoryName.trim() === category.name) return;
+    try {
+      await supabase.from('categories').update({ name: categoryName.trim() }).eq('id', category.id);
+      await onReload();
+    } catch (err) {
+      console.error('Error updating category name:', err);
+    }
+  };
+
+  // --- Option Group CRUD ---
+
+  const handleDeleteOptionGroup = async (groupId: string) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer ces options ?',
+      message: 'Les prix par taille de vos articles seront aussi supprimes.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      await supabase.from('category_option_groups').delete().eq('id', groupId);
+      confirmDialog.closeDialog();
+      await onReload();
+      showSuccess('Options supprimees');
+    } catch (err) {
+      console.error('Error deleting option group:', err);
+      showError('Erreur lors de la suppression');
+      confirmDialog.closeDialog();
+    }
+  };
+
+  // --- Item CRUD ---
+
+  const handleDeleteItem = async (itemId: string) => {
+    const confirmed = await confirmDialog.confirm({
+      title: 'Supprimer cet article ?',
+      message: 'Cette action est irreversible.',
+      confirmText: 'Supprimer',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      await supabase.from('menu_items').delete().eq('id', itemId);
+      confirmDialog.closeDialog();
+      await onReload();
+      showSuccess('Article supprime');
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      showError('Erreur lors de la suppression');
+      confirmDialog.closeDialog();
+    }
+  };
+
+  // Format price for display
+  const formatItemPrice = (item: MenuItem): string => {
+    if (hasSizes && item.option_prices && Object.keys(item.option_prices).length > 0) {
+      return sizeOptions
+        .map((opt) => {
+          const price = item.option_prices?.[opt.id];
+          return price !== undefined ? `${opt.name}: ${(price / 100).toFixed(2)}€` : null;
+        })
+        .filter(Boolean)
+        .join(' | ');
+    }
+    return `${(item.price / 100).toFixed(2)}€`;
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 px-4 sm:px-6 pb-4">
+        <div className="space-y-6 py-6">
+          {/* Back + Category Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nom de la catégorie
-            </label>
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-3"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour aux categories
+            </button>
             <input
               type="text"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              className="input min-h-[48px] text-base"
-              placeholder="Ex: Pizzas, Burgers, Boissons..."
-              autoFocus
+              onBlur={handleUpdateName}
+              className="text-lg font-semibold text-gray-900 bg-transparent border-none outline-none focus:ring-0 p-0 w-full"
+              placeholder="Nom de la categorie"
             />
           </div>
 
+          {/* Option Groups */}
           <div>
-            <p className="text-xs text-gray-500 mb-2">Suggestions rapides :</p>
-            <QuickSuggestions
-              suggestions={CATEGORY_SUGGESTIONS.filter(
-                (s) => !state.categories.some((c) => c.name.toLowerCase() === s.toLowerCase())
-              )}
-              onSelect={(s) => setCategoryName(s)}
-              selectedValue={categoryName}
-            />
-          </div>
-        </div>
-      </StepContainer>
-    );
-  }
-
-  // Sub-step: Options
-  if (state.menuSubStep === 'options' && state.currentCategory) {
-    // Option type selection
-    if (!selectedOptionType) {
-      return (
-        <StepContainer hideActions>
-          <div className="space-y-6">
-            <SubStepProgress />
-            <AssistantBubble
-              message={`Vos ${state.currentCategory.name} ont-elles des particularités ?`}
-              emoji="🎯"
-            />
-
-            <p className="text-sm text-gray-600">
-              Par exemple : différentes tailles, types de préparation, suppléments...
-            </p>
-
-            <div className="space-y-3">
-              {OPTION_TYPES.map(({ type, label, description, icon: Icon }) => (
-                <OptionCard
-                  key={type}
-                  onClick={() => handleSelectOptionType(type)}
-                  title={label}
-                  description={description}
-                  icon={<Icon className="w-5 h-5" />}
-                />
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-700">Options</p>
             </div>
 
-            {/* Show added option groups */}
-            {state.currentCategory.optionGroups.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">Particularités ajoutées :</p>
-                <div className="space-y-2">
-                  {state.currentCategory.optionGroups.map((og) => (
-                    <button
-                      key={og.id}
-                      type="button"
-                      onClick={() => handleSelectOptionType(og.type)}
-                      className="flex items-center gap-2 p-3 bg-success-50 rounded-xl text-sm w-full text-left hover:bg-success-100 transition-colors"
-                    >
-                      <Check className="w-4 h-4 text-success-600 flex-shrink-0" />
-                      <span className="font-medium text-success-700">{og.name}</span>
-                      <span className="text-success-600">
+            {category.optionGroups.length > 0 ? (
+              <div className="space-y-2 mb-3">
+                {category.optionGroups.map((og) => (
+                  <div
+                    key={og.id}
+                    className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg text-sm"
+                  >
+                    <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
+                      {og.is_required ? (
+                        <Ruler className="w-3.5 h-3.5 text-gray-500" />
+                      ) : (
+                        <CircleDot className="w-3.5 h-3.5 text-gray-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium text-gray-700">{og.name}</span>
+                      <span className="text-gray-500 ml-1.5">
                         ({og.options.map((o) => o.name).join(', ')})
                       </span>
-                      <Pencil className="w-3 h-3 text-success-400 ml-auto flex-shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <ActionButton onClick={handleSkipOptions} variant="outline">
-              {state.currentCategory.optionGroups.length > 0
-                ? 'Continuer sans autre particularité'
-                : 'Non, pas de particularité'}
-            </ActionButton>
-
-            {state.currentCategory.optionGroups.length > 0 && (
-              <ActionButton onClick={handleFinishOptions}>Passer aux articles</ActionButton>
-            )}
-          </div>
-        </StepContainer>
-      );
-    }
-
-    // Option values input
-    return (
-      <StepContainer
-        onBack={() => {
-          setSelectedOptionType(null);
-          setEditingOptionGroupId(null);
-          setOptionValues([]);
-          setOptionPrices({});
-          setNewOptionValue('');
-        }}
-        onNext={handleSaveOptionGroup}
-        nextLabel="Valider"
-        nextDisabled={optionValues.length === 0}
-      >
-        <div className="space-y-6">
-          <SubStepProgress />
-          <AssistantBubble
-            message={
-              selectedOptionType === 'size'
-                ? 'Quelles tailles proposez-vous ?'
-                : selectedOptionType === 'supplement'
-                  ? 'Quels suppléments proposez-vous ?'
-                  : 'Quelles options proposez-vous ?'
-            }
-            emoji="📝"
-          />
-
-          {/* Option group name — only shown for "other" type */}
-          {selectedOptionType === 'other' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Nom du groupe d'options
-              </label>
-              <input
-                type="text"
-                value={optionGroupName}
-                onChange={(e) => setOptionGroupName(e.target.value)}
-                className="input min-h-[48px] text-base"
-                placeholder="Ex: Cuisson, Sauce..."
-              />
-            </div>
-          )}
-
-          {/* Add option values */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Ajoutez les options une par une
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newOptionValue}
-                onChange={(e) => setNewOptionValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddOptionValue();
-                  }
-                }}
-                className="input min-h-[48px] text-base flex-1"
-                placeholder={
-                  selectedOptionType === 'size'
-                    ? 'Ex: S, M, L...'
-                    : selectedOptionType === 'supplement'
-                      ? 'Ex: Fromage, Bacon...'
-                      : 'Ex: Saignant, A point...'
-                }
-              />
-              <button
-                type="button"
-                onClick={handleAddOptionValue}
-                disabled={!newOptionValue.trim()}
-                className="px-4 py-3 min-h-[48px] bg-primary-50 hover:bg-primary-100 text-primary-600 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Quick suggestions for sizes */}
-          {selectedOptionType === 'size' && (
-            <QuickSuggestions
-              suggestions={['S', 'M', 'L', 'XL', 'Junior', 'Senior'].filter(
-                (s) => !optionValues.includes(s)
-              )}
-              onSelect={(s) => setOptionValues([...optionValues, s])}
-            />
-          )}
-
-          {/* Display added values */}
-          {optionValues.length > 0 && (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">Options ajoutées :</p>
-              <div
-                className={
-                  selectedOptionType === 'supplement' ? 'space-y-2' : 'flex flex-wrap gap-2'
-                }
-              >
-                {optionValues.map((value) => (
-                  <div
-                    key={value}
-                    className={`flex items-center gap-2 bg-primary-50 text-primary-700 rounded-lg text-sm ${
-                      selectedOptionType === 'supplement' ? 'px-3 py-2' : 'px-3 py-1.5'
-                    }`}
-                  >
-                    <span className="font-medium">{value}</span>
-                    {selectedOptionType === 'supplement' && (
-                      <div className="flex items-center gap-1 ml-auto">
-                        <span className="text-xs text-gray-500">+</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={optionPrices[value] || ''}
-                          onChange={(e) =>
-                            setOptionPrices({ ...optionPrices, [value]: e.target.value })
-                          }
-                          className="w-20 px-2 py-1 text-sm border border-primary-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400"
-                          placeholder="0.00"
-                        />
-                        <span className="text-xs text-gray-500">€</span>
-                      </div>
-                    )}
+                    </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        handleRemoveOptionValue(value);
-                        setOptionPrices((prev) => {
-                          const next = { ...prev };
-                          delete next[value];
-                          return next;
-                        });
-                      }}
-                      className="ml-1 hover:text-primary-900"
-                      aria-label={`Retirer ${value}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        {toastAndDialog}
-      </StepContainer>
-    );
-  }
-
-  // Sub-step: Items
-  if (state.menuSubStep === 'items' && state.currentCategory) {
-    const isItemValid =
-      itemName.trim() &&
-      (hasSizeOptions
-        ? sizeOptions.every((opt) => itemPrices[opt.name] && parseFloat(itemPrices[opt.name]) > 0)
-        : itemPrices['base'] && parseFloat(itemPrices['base']) > 0);
-
-    const hasItems = state.currentCategory.items.length > 0;
-    // Auto-show form when no items yet
-    const isFormVisible = showItemForm || !hasItems;
-
-    const handleFinalizeCategory = () => {
-      dispatch({ type: 'FINALIZE_CATEGORY' });
-    };
-
-    return (
-      <StepContainer
-        onBack={() => {
-          dispatch({ type: 'SET_CURRENT_CATEGORY', category: null });
-          dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'done' });
-        }}
-        onNext={hasItems ? handleFinalizeCategory : undefined}
-        nextLabel="Catégorie terminée"
-      >
-        <div className="space-y-4">
-          <SubStepProgress />
-
-          {/* Inline editable category header */}
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              onBlur={handleUpdateCategoryName}
-              className="text-lg font-semibold text-gray-900 bg-transparent border-none outline-none focus:ring-0 p-0 flex-1 min-w-0"
-              placeholder="Nom de la catégorie"
-            />
-            <Pencil className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-          </div>
-
-          {/* Option groups summary (compact) */}
-          {state.currentCategory.optionGroups.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
-              className="flex items-center gap-2 text-xs text-gray-500 hover:text-primary-600 transition-colors"
-            >
-              {state.currentCategory.optionGroups
-                .map((og) => `${og.name}: ${og.options.map((o) => o.name).join(', ')}`)
-                .join(' · ')}
-              <Pencil className="w-3 h-3" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'SET_MENU_SUB_STEP', subStep: 'options' })}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-500 transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-              Ajouter des options (tailles, suppléments...)
-            </button>
-          )}
-
-          {/* Item list */}
-          {hasItems && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-500">
-                {state.currentCategory.items.length} article
-                {state.currentCategory.items.length > 1 ? 's' : ''}
-              </p>
-              <div className="space-y-1.5">
-                {state.currentCategory.items.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => handleEditItem(item)}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
-                      editingItemId === item.id
-                        ? 'border-primary-500 bg-primary-50 shadow-md'
-                        : 'bg-white border-gray-100 shadow-card hover:border-gray-200'
-                    }`}
-                  >
-                    <span className="font-medium text-gray-900">{item.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        {hasSizeOptions
-                          ? Object.entries(item.prices)
-                              .map(([size, price]) => `${size}: ${(price / 100).toFixed(2)}€`)
-                              .join(' | ')
-                          : `${(item.prices['base'] / 100).toFixed(2)}€`}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveItem(item.id);
-                        }}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        aria-label={`Supprimer ${item.name}`}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Add item form (collapsible) */}
-          {isFormVisible ? (
-            <div className="space-y-4 pt-2">
-              {hasItems && (
-                <div className="border-t border-gray-100 pt-4">
-                  <p className="text-sm font-medium text-gray-700">
-                    {editingItemId ? "Modifier l'article" : 'Nouvel article'}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={itemName}
-                    onChange={(e) => setItemName(e.target.value)}
-                    className="input min-h-[48px] text-base w-full"
-                    placeholder="Nom de l'article"
-                    autoFocus
-                  />
-                </div>
-                {!hasSizeOptions && (
-                  <div className="relative w-28">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={itemPrices['base'] || ''}
-                      onChange={(e) => setItemPrices({ ...itemPrices, base: e.target.value })}
-                      className="input min-h-[48px] text-base pr-7 w-full"
-                      placeholder="Prix"
-                    />
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                      €
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Description (optional) */}
-              <textarea
-                value={itemDescription}
-                onChange={(e) => setItemDescription(e.target.value)}
-                className="input text-sm w-full resize-none"
-                placeholder="Description (optionnel) — visible par vos clients"
-                rows={2}
-              />
-
-              {/* Size prices (separate row when sizes exist) */}
-              {hasSizeOptions && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {sizeOptions.map((option) => (
-                    <div key={option.name} className="relative">
-                      <label className="block text-xs text-gray-500 mb-1">{option.name}</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={itemPrices[option.name] || ''}
-                        onChange={(e) =>
-                          setItemPrices({ ...itemPrices, [option.name]: e.target.value })
-                        }
-                        className="input min-h-[44px] text-sm pr-7 w-full"
-                        placeholder="0.00"
-                      />
-                      <span className="absolute right-2.5 bottom-3 text-gray-400 text-sm">€</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                {editingItemId || hasItems ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingItemId(null);
-                      setItemName('');
-                      setItemDescription('');
-                      setItemPrices({});
-                      setShowItemForm(false);
-                    }}
-                    className="px-4 py-3 min-h-[48px] text-gray-500 hover:bg-gray-100 rounded-xl text-sm font-medium transition-colors"
-                  >
-                    Annuler
-                  </button>
-                ) : null}
-                <ActionButton onClick={handleAddItem} disabled={!isItemValid} variant="secondary">
-                  {editingItemId ? 'Modifier' : 'Ajouter'}
-                </ActionButton>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowItemForm(true)}
-              className="w-full p-3 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un article
-            </button>
-          )}
-        </div>
-        {toastAndDialog}
-      </StepContainer>
-    );
-  }
-
-  // Sub-step: Done (asking for another category)
-  if (state.menuSubStep === 'done') {
-    return (
-      <StepContainer hideActions>
-        <div className="space-y-6">
-          <SubStepProgress />
-          <AssistantBubble
-            message={
-              state.categories.length > 0
-                ? 'Voici vos catégories. Cliquez pour modifier ou ajoutez-en une nouvelle.'
-                : 'Créons votre menu !'
-            }
-            emoji="📋"
-          />
-
-          {/* Summary of categories */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">Votre menu</p>
-            <div className="space-y-2">
-              {state.categories.map((cat, index) => (
-                <div
-                  key={cat.id}
-                  onClick={() => handleEditCategory(cat)}
-                  className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-card cursor-pointer hover:border-primary-200 transition-all"
-                >
-                  {/* Reorder arrows */}
-                  {state.categories.length > 1 && (
-                    <div className="flex flex-col mr-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveCategory(index, 'up')}
-                        disabled={index === 0}
-                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
-                        aria-label={`Monter ${cat.name}`}
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveCategory(index, 'down')}
-                        disabled={index === state.categories.length - 1}
-                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-20"
-                        aria-label={`Descendre ${cat.name}`}
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Check className="w-4 h-4 text-success-500 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 truncate">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm text-gray-500">
-                      {cat.items.length} article{cat.items.length > 1 ? 's' : ''}
-                    </span>
-                    <Pencil className="w-3.5 h-3.5 text-primary-400" />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveCategory(cat.id);
-                      }}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      aria-label={`Supprimer ${cat.name}`}
+                      onClick={() => handleDeleteOptionGroup(og.id)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mb-3">
+                Aucune option (tailles, choix...) pour cette categorie.
+              </p>
+            )}
+
+            {showOptionForm ? (
+              <AddOptionGroupForm
+                categoryId={category.id}
+                existingGroupNames={category.optionGroups.map((og) => og.name)}
+                onSaved={async () => {
+                  setShowOptionForm(false);
+                  await onReload();
+                  showSuccess('Options ajoutees');
+                }}
+                onCancel={() => setShowOptionForm(false)}
+                showError={showError}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowOptionForm(true)}
+                className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Ajouter des options
+              </button>
+            )}
           </div>
 
-          <AssistantBubble message="Voulez-vous ajouter une autre catégorie ?" />
+          {/* Items */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-700">
+                Articles ({category.items.length})
+              </p>
+            </div>
 
-          <div className="space-y-3">
-            <ActionButton
-              onClick={handleAddAnotherCategory}
-              variant="secondary"
-              icon={<Plus className="w-5 h-5" />}
-            >
-              Oui, ajouter une catégorie
-            </ActionButton>
-            <ActionButton
-              onClick={handleFinishMenu}
-              disabled={savingMenu}
-              icon={<ChevronRight className="w-5 h-5" />}
-            >
-              {savingMenu ? 'Enregistrement...' : 'Non, continuer'}
-            </ActionButton>
+            {category.items.length > 0 && (
+              <div className="space-y-1.5 mb-3">
+                {category.items.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setEditingItemId(item.id);
+                      setShowItemForm(true);
+                    }}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                      editingItemId === item.id
+                        ? 'border-primary-500 bg-primary-50'
+                        : 'bg-white border-gray-100 hover:border-gray-200'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="font-medium text-gray-900 text-sm">{item.name}</span>
+                      {item.description && (
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">{item.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span className="text-xs text-gray-500">{formatItemPrice(item)}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item.id);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showItemForm ? (
+              <AddItemForm
+                categoryId={category.id}
+                foodtruckId={foodtruckId}
+                sizeOptions={sizeOptions}
+                editingItem={
+                  editingItemId ? category.items.find((i) => i.id === editingItemId) || null : null
+                }
+                onSaved={async () => {
+                  setShowItemForm(false);
+                  setEditingItemId(null);
+                  await onReload();
+                }}
+                onCancel={() => {
+                  setShowItemForm(false);
+                  setEditingItemId(null);
+                }}
+                showSuccess={showSuccess}
+                showError={showError}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingItemId(null);
+                  setShowItemForm(true);
+                }}
+                className="w-full p-3 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                Ajouter un article
+              </button>
+            )}
           </div>
         </div>
-        {toastAndDialog}
-      </StepContainer>
+      </div>
+
+      <Toast {...toast} onDismiss={hideToast} />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        loading={confirmDialog.loading}
+        {...confirmDialog.options}
+      />
+    </div>
+  );
+}
+
+// ---------- AddOptionGroupForm ----------
+
+function AddOptionGroupForm({
+  categoryId,
+  existingGroupNames,
+  onSaved,
+  onCancel,
+  showError,
+}: {
+  categoryId: string;
+  existingGroupNames: string[];
+  onSaved: () => Promise<void>;
+  onCancel: () => void;
+  showError: (msg: string) => void;
+}) {
+  const [type, setType] = useState<'size' | 'other' | null>(null);
+  const [groupName, setGroupName] = useState('');
+  const [optionValues, setOptionValues] = useState<string[]>([]);
+  const [newOptionValue, setNewOptionValue] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSelectType = (t: 'size' | 'other') => {
+    setType(t);
+    if (t === 'size') setGroupName('Taille');
+  };
+
+  const handleAddValue = () => {
+    if (!newOptionValue.trim() || optionValues.includes(newOptionValue.trim())) return;
+    setOptionValues((prev) => [...prev, newOptionValue.trim()]);
+    setNewOptionValue('');
+  };
+
+  const handleSave = async () => {
+    if (!type || optionValues.length === 0) return;
+    const finalName = groupName.trim() || (type === 'size' ? 'Taille' : 'Option');
+
+    setSaving(true);
+    try {
+      // Create the option group
+      const { data: ogData, error: ogError } = await supabase
+        .from('category_option_groups')
+        .insert({
+          category_id: categoryId,
+          name: finalName,
+          is_required: type === 'size',
+          is_multiple: false,
+          display_order: existingGroupNames.length,
+        })
+        .select('id')
+        .single();
+
+      if (ogError) throw ogError;
+
+      // Create the options
+      const optionsToInsert = optionValues.map((name, index) => ({
+        option_group_id: ogData.id,
+        name,
+        price_modifier: 0,
+        display_order: index,
+      }));
+
+      const { error: optError } = await supabase.from('category_options').insert(optionsToInsert);
+
+      if (optError) throw optError;
+
+      await onSaved();
+    } catch (err) {
+      console.error('Error saving option group:', err);
+      showError('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Type selection
+  if (!type) {
+    const hasSize = existingGroupNames.some(
+      (n) => n.toLowerCase() === 'taille' || n.toLowerCase() === 'size'
+    );
+    return (
+      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-700">Type d'option</p>
+        <div className="space-y-2">
+          {!hasSize && (
+            <button
+              type="button"
+              onClick={() => handleSelectType('size')}
+              className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Ruler className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Tailles</p>
+                  <p className="text-xs text-gray-500">S, M, L... avec un prix par taille</p>
+                </div>
+              </div>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => handleSelectType('other')}
+            className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CircleDot className="w-4 h-4 text-gray-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Choix</p>
+                <p className="text-xs text-gray-500">Base, cuisson, sauce...</p>
+              </div>
+            </div>
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+      </div>
     );
   }
 
-  return null;
+  // Values input
+  return (
+    <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+      {type === 'other' && (
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Nom du groupe</label>
+          <input
+            type="text"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            className="input text-sm min-h-[40px]"
+            placeholder="Ex: Base, Cuisson..."
+            autoFocus
+          />
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">
+          {type === 'size' ? 'Tailles disponibles' : 'Options disponibles'}
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newOptionValue}
+            onChange={(e) => setNewOptionValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddValue();
+              }
+            }}
+            className="input text-sm min-h-[40px] flex-1"
+            placeholder={type === 'size' ? 'Ex: S, M, L...' : 'Ex: Tomate, Creme...'}
+            autoFocus={type === 'size'}
+          />
+          <button
+            type="button"
+            onClick={handleAddValue}
+            disabled={!newOptionValue.trim()}
+            className="px-3 min-h-[40px] bg-primary-50 hover:bg-primary-100 disabled:bg-gray-100 disabled:text-gray-400 text-primary-600 rounded-xl transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {type === 'size' && optionValues.length === 0 && (
+        <QuickSuggestions
+          suggestions={['S', 'M', 'L', 'XL', 'Moyenne', 'Grande']}
+          onSelect={(s) => setOptionValues((prev) => [...prev, s])}
+        />
+      )}
+
+      {optionValues.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {optionValues.map((value) => (
+            <span
+              key={value}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary-50 text-primary-700 rounded-md text-sm"
+            >
+              {value}
+              <button
+                type="button"
+                onClick={() => setOptionValues((prev) => prev.filter((v) => v !== value))}
+                className="hover:text-primary-900"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={optionValues.length === 0 || saving}
+          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
+        >
+          {saving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Check className="w-3.5 h-3.5" />
+          )}
+          Valider
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- AddItemForm ----------
+
+function AddItemForm({
+  categoryId,
+  foodtruckId,
+  sizeOptions,
+  editingItem,
+  onSaved,
+  onCancel,
+  showSuccess,
+  showError,
+}: {
+  categoryId: string;
+  foodtruckId: string;
+  sizeOptions: CategoryOption[];
+  editingItem: MenuItem | null;
+  onSaved: () => Promise<void>;
+  onCancel: () => void;
+  showSuccess: (msg: string) => void;
+  showError: (msg: string) => void;
+}) {
+  const hasSizes = sizeOptions.length > 0;
+  const [itemName, setItemName] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
+  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  // Initialize form when editing
+  useEffect(() => {
+    if (editingItem) {
+      setItemName(editingItem.name);
+      setItemDescription(editingItem.description || '');
+      const displayPrices: Record<string, string> = {};
+      if (hasSizes && editingItem.option_prices) {
+        for (const opt of sizeOptions) {
+          const p = editingItem.option_prices[opt.id];
+          if (p !== undefined) {
+            displayPrices[opt.id] = (p / 100).toFixed(2);
+          }
+        }
+        // Fallback: if no size prices found, use base price for all
+        if (Object.keys(displayPrices).length === 0 && editingItem.price > 0) {
+          for (const opt of sizeOptions) {
+            displayPrices[opt.id] = (editingItem.price / 100).toFixed(2);
+          }
+        }
+      } else {
+        displayPrices.base = (editingItem.price / 100).toFixed(2);
+      }
+      setPrices(displayPrices);
+    } else {
+      setItemName('');
+      setItemDescription('');
+      setPrices({});
+    }
+  }, [editingItem, hasSizes, sizeOptions]);
+
+  const isValid = (() => {
+    if (!itemName.trim()) return false;
+    if (hasSizes) {
+      return sizeOptions.every((opt) => {
+        const p = prices[opt.id];
+        return p && parseFloat(p) > 0;
+      });
+    }
+    return prices.base && parseFloat(prices.base) > 0;
+  })();
+
+  const handleSave = async () => {
+    if (!isValid) return;
+    setSaving(true);
+
+    try {
+      // Build option_prices and base price
+      let basePriceCents: number;
+      let optionPricesJson: Record<string, number> | null = null;
+
+      if (hasSizes) {
+        optionPricesJson = {};
+        let minPrice = Infinity;
+        for (const opt of sizeOptions) {
+          const cents = Math.round(parseFloat(prices[opt.id]) * 100);
+          if (isNaN(cents) || cents <= 0) return;
+          optionPricesJson[opt.id] = cents;
+          if (cents < minPrice) minPrice = cents;
+        }
+        basePriceCents = minPrice;
+      } else {
+        basePriceCents = Math.round(parseFloat(prices.base) * 100);
+        if (isNaN(basePriceCents) || basePriceCents <= 0) return;
+      }
+
+      if (editingItem) {
+        // Update existing item
+        const { error } = await supabase
+          .from('menu_items')
+          .update({
+            name: itemName.trim(),
+            description: itemDescription.trim() || null,
+            price: basePriceCents,
+            option_prices: optionPricesJson,
+          })
+          .eq('id', editingItem.id);
+
+        if (error) throw error;
+        showSuccess('Article modifie');
+      } else {
+        // Count existing items for display_order
+        const { count } = await supabase
+          .from('menu_items')
+          .select('id', { count: 'exact', head: true })
+          .eq('category_id', categoryId)
+          .eq('foodtruck_id', foodtruckId);
+
+        const { error } = await supabase.from('menu_items').insert({
+          foodtruck_id: foodtruckId,
+          category_id: categoryId,
+          name: itemName.trim(),
+          description: itemDescription.trim() || null,
+          price: basePriceCents,
+          option_prices: optionPricesJson,
+          display_order: count || 0,
+          is_available: true,
+        });
+
+        if (error) throw error;
+        showSuccess('Article ajoute');
+      }
+
+      await onSaved();
+    } catch (err) {
+      console.error('Error saving item:', err);
+      showError("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+      <p className="text-sm font-medium text-gray-700">
+        {editingItem ? "Modifier l'article" : 'Nouvel article'}
+      </p>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={itemName}
+          onChange={(e) => setItemName(e.target.value)}
+          className="input text-sm min-h-[44px] flex-1"
+          placeholder="Nom de l'article"
+          autoFocus
+        />
+        {!hasSizes && (
+          <PriceInput
+            value={prices.base || ''}
+            onChange={(v) => setPrices((prev) => ({ ...prev, base: v }))}
+            className="w-24"
+          />
+        )}
+      </div>
+
+      <textarea
+        value={itemDescription}
+        onChange={(e) => setItemDescription(e.target.value)}
+        className="input text-sm w-full resize-none"
+        placeholder="Description (optionnel)"
+        rows={2}
+      />
+
+      {hasSizes && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {sizeOptions.map((opt) => (
+            <PriceInput
+              key={opt.id}
+              label={opt.name}
+              value={prices[opt.id] || ''}
+              onChange={(v) => setPrices((prev) => ({ ...prev, [opt.id]: v }))}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!isValid || saving}
+          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
+        >
+          {saving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Check className="w-3.5 h-3.5" />
+          )}
+          {editingItem ? 'Modifier' : 'Ajouter'}
+        </button>
+      </div>
+    </div>
+  );
 }
