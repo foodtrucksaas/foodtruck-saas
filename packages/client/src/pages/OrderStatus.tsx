@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Package } from 'lucide-react';
+import { getSubdomain } from '../lib/subdomain';
 import { formatPrice, formatDateTime, formatOrderId } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
@@ -673,7 +674,7 @@ export default function OrderStatus() {
 
         {/* Back to Menu */}
         <Link
-          to={`/${order.foodtruck_id}`}
+          to={getSubdomain() ? '/' : `/${order.foodtruck_id}`}
           className="btn-secondary w-full justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Voir le menu
