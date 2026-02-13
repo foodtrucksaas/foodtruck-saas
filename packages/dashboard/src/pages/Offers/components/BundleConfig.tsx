@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import type { Category } from '@foodtruck/shared';
 import type { WizardFormProps } from './wizardTypes';
 import { getSizeOptions, getItemsForCategories } from './wizardTypes';
 import type { BundleCategoryConfig } from '../useOffers';
@@ -31,14 +32,44 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
     updateForm({ bundleCategories: form.bundleCategories.filter((_, i) => i !== index) });
   };
 
-  const updateChoiceCategory = (index: number, categoryId: string) => {
+  const toggleChoiceCategory = (index: number, categoryId: string) => {
     const newCategories = [...form.bundleCategories];
+    const current = newCategories[index].categoryIds;
+    const isSelected = current.includes(categoryId);
+
+    if (isSelected && current.length <= 1) return; // Keep at least one
+
+    const newIds = isSelected
+      ? current.filter((id) => id !== categoryId)
+      : [...current, categoryId];
+
+    // Remove excluded items/supplements/sizes that belong to removed categories
+    const removedIds = current.filter((id) => !newIds.includes(id));
+    let newExcluded = newCategories[index].excludedItems;
+    let newSupplements = newCategories[index].supplements;
+    let newExcludedSizes = newCategories[index].excludedSizes;
+
+    if (removedIds.length > 0) {
+      const removedItemIds = new Set(
+        menuItems
+          .filter((i) => i.category_id && removedIds.includes(i.category_id))
+          .map((i) => i.id)
+      );
+      newExcluded = newExcluded.filter((id) => !removedItemIds.has(id));
+      newSupplements = Object.fromEntries(
+        Object.entries(newSupplements).filter(([key]) => !removedItemIds.has(key.split(':')[0]))
+      );
+      newExcludedSizes = Object.fromEntries(
+        Object.entries(newExcludedSizes).filter(([key]) => !removedItemIds.has(key))
+      );
+    }
+
     newCategories[index] = {
       ...newCategories[index],
-      categoryIds: [categoryId],
-      excludedItems: [],
-      supplements: {},
-      excludedSizes: {},
+      categoryIds: newIds,
+      excludedItems: newExcluded,
+      supplements: newSupplements,
+      excludedSizes: newExcludedSizes,
     };
     updateForm({ bundleCategories: newCategories });
   };
@@ -113,8 +144,10 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
           <span className="font-medium">
             {form.bundleCategories
               .map((bc) => {
-                const cat = categories.find((c) => c.id === bc.categoryIds[0]);
-                return cat?.name || '';
+                const names = bc.categoryIds
+                  .map((id) => categories.find((c) => c.id === id)?.name)
+                  .filter(Boolean);
+                return names.length > 1 ? `(${names.join(' / ')})` : names[0] || '';
               })
               .filter(Boolean)
               .join(' + ')}
@@ -142,22 +175,14 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                   <span className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {index + 1}
                   </span>
-                  <select
-                    value={choice.categoryIds[0] || ''}
-                    onChange={(e) => updateChoiceCategory(index, e.target.value)}
-                    className="input min-h-[44px] flex-1 text-sm"
-                  >
-                    {categories.map((cat) => {
-                      const isUsedElsewhere = form.bundleCategories.some(
-                        (bc, idx) => idx !== index && bc.categoryIds.includes(cat.id)
-                      );
-                      return (
-                        <option key={cat.id} value={cat.id} disabled={isUsedElsewhere}>
-                          {cat.name}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <CategoryMultiSelect
+                    categories={categories}
+                    selectedIds={choice.categoryIds}
+                    disabledIds={form.bundleCategories
+                      .filter((_, idx) => idx !== index)
+                      .flatMap((bc) => bc.categoryIds)}
+                    onToggle={(catId) => toggleChoiceCategory(index, catId)}
+                  />
                   <button
                     type="button"
                     onClick={() => setExpandedChoice(isExpanded ? null : index)}
@@ -324,6 +349,82 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
         />
         <span className="text-sm text-gray-600">Suppléments/extras gratuits dans la formule</span>
       </label>
+    </div>
+  );
+}
+
+// ---------- CategoryMultiSelect ----------
+
+function CategoryMultiSelect({
+  categories,
+  selectedIds,
+  disabledIds,
+  onToggle,
+}: {
+  categories: Category[];
+  selectedIds: string[];
+  disabledIds: string[];
+  onToggle: (catId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const selectedNames = selectedIds
+    .map((id) => categories.find((c) => c.id === id)?.name)
+    .filter(Boolean);
+
+  return (
+    <div className="relative flex-1" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input min-h-[44px] w-full text-sm text-left flex items-center justify-between gap-2"
+      >
+        <span className="truncate">
+          {selectedNames.length > 1 ? selectedNames.join(' / ') : selectedNames[0] || 'Choisir...'}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+          {categories.map((cat) => {
+            const isSelected = selectedIds.includes(cat.id);
+            const isDisabled = disabledIds.includes(cat.id);
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                disabled={isDisabled}
+                onClick={() => onToggle(cat.id)}
+                className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
+                  isDisabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                    isSelected
+                      ? 'bg-primary-500 border-primary-500 text-white'
+                      : 'border-gray-300 bg-white'
+                  }`}
+                >
+                  {isSelected && <Check className="w-2.5 h-2.5" />}
+                </div>
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
