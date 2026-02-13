@@ -2,6 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Clock, Package, Search, AlertCircle } from 'lucide-react';
 import { formatPrice, formatDateTime, formatOrderId, ORDER_STATUSES } from '@foodtruck/shared';
+
+const STATUS_COLOR_CLASSES: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  confirmed: 'bg-blue-100 text-blue-700',
+  preparing: 'bg-orange-100 text-orange-700',
+  ready: 'bg-green-100 text-green-700',
+  picked_up: 'bg-gray-100 text-gray-700',
+  cancelled: 'bg-red-100 text-red-700',
+  no_show: 'bg-gray-100 text-gray-700',
+};
 import type { Order } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 
@@ -101,10 +111,13 @@ export default function OrderHistory() {
           <div className="flex gap-2">
             <input
               type="email"
+              inputMode="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="vous@exemple.com"
-              className="input flex-1 min-h-[44px]"
+              className="input flex-1 min-h-[44px] text-base"
+              aria-label="Votre email"
             />
             <button
               type="submit"
@@ -159,9 +172,7 @@ export default function OrderHistory() {
                       {order.status &&
                         ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES] && (
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium bg-${
-                              ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color
-                            }-100 text-${ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].color}-700`}
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR_CLASSES[order.status] || 'bg-gray-100 text-gray-700'}`}
                           >
                             {ORDER_STATUSES[order.status as keyof typeof ORDER_STATUSES].label}
                           </span>

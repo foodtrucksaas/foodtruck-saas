@@ -517,7 +517,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' &&
         categories.filter((c) => groupedItems[c.id]?.length > 0).length > 1 && (
-          <div className="sticky top-0 z-10 bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
+          <div className="sticky top-0 z-10 relative bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
             <nav
               className="flex gap-2 overflow-x-auto no-scrollbar"
               aria-label="Categories du menu"
@@ -548,6 +548,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                   );
                 })}
             </nav>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#FAFAFA]/95 to-transparent pointer-events-none sm:hidden" />
           </div>
         )}
 
@@ -717,32 +718,42 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             )}
 
             {/* Categories */}
-            {categories.map((category) =>
-              groupedItems[category.id]?.length > 0 ? (
-                <div
-                  key={category.id}
-                  id={`category-${category.id}`}
-                  data-category-id={category.id}
-                  ref={(el) => {
-                    categoryRefs.current[category.id] = el;
-                  }}
-                  className="scroll-mt-[120px]"
-                >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
-                  <div className="grid gap-3 stagger-children">
-                    {groupedItems[category.id].map((item) => (
-                      <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        hasOptions={!!getCategoryOptions(item.category_id)}
-                        quantity={getItemQuantity(item.id)}
-                        onAdd={() => handleAddItem(item)}
-                        onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
-                      />
-                    ))}
+            {categories.length === 0 ||
+            categories.every((c) => !groupedItems[c.id] || groupedItems[c.id].length === 0) ? (
+              <div className="card p-12 text-center">
+                <p className="text-gray-600 font-medium">Le menu arrive bientôt !</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Le food truck est en train de configurer sa carte
+                </p>
+              </div>
+            ) : (
+              categories.map((category) =>
+                groupedItems[category.id]?.length > 0 ? (
+                  <div
+                    key={category.id}
+                    id={`category-${category.id}`}
+                    data-category-id={category.id}
+                    ref={(el) => {
+                      categoryRefs.current[category.id] = el;
+                    }}
+                    className="scroll-mt-[120px]"
+                  >
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
+                    <div className="grid gap-3 stagger-children">
+                      {groupedItems[category.id].map((item) => (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          hasOptions={!!getCategoryOptions(item.category_id)}
+                          quantity={getItemQuantity(item.id)}
+                          onAdd={() => handleAddItem(item)}
+                          onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null
+                ) : null
+              )
             )}
           </div>
         ) : (
@@ -986,7 +997,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
       {/* Cart Bar */}
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
+        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
             to={checkoutPath}
             className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"

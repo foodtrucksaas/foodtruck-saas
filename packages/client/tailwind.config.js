@@ -94,8 +94,8 @@ export default {
         'slide-out-right': 'slideOutRight 0.2s ease-in',
         'slide-out-left': 'slideOutLeft 0.2s ease-in',
         // Modal animations
-        'modal-in': 'modalIn 0.25s ease-out',
-        'modal-out': 'modalOut 0.2s ease-in',
+        'modal-in': 'modalIn 0.2s ease-out',
+        'modal-out': 'modalOut 0.15s ease-in',
         'sheet-in': 'sheetIn 0.3s ease-out',
         'sheet-out': 'sheetOut 0.2s ease-in',
         'backdrop-in': 'backdropIn 0.2s ease-out',

@@ -160,7 +160,7 @@ export default function Checkout({ slug }: CheckoutProps) {
     if (!isCurrentlyOpen && form.isAsap) {
       setForm((prev) => ({ ...prev, isAsap: false }));
     }
-  }, [isCurrentlyOpen, form.isAsap]);
+  }, [isCurrentlyOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select first available slot
   useEffect(() => {
@@ -488,7 +488,7 @@ export default function Checkout({ slug }: CheckoutProps) {
   return (
     <main className="min-h-screen bg-gray-50 animate-fade-in" id="main-content">
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
+      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 pt-[env(safe-area-inset-top)]">
         <div className="flex items-center gap-3 px-4 py-2">
           <button
             type="button"
@@ -694,7 +694,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="Jean Dupont"
                 required
                 aria-required="true"
@@ -713,7 +713,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="jean@exemple.fr"
                 required
                 aria-required="true"
@@ -732,7 +732,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:bg-white transition-all"
+                className="w-full bg-gray-50 rounded-lg px-3 py-2.5 min-h-[44px] text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
                 placeholder="06 12 34 56 78"
                 autoComplete="tel"
               />
@@ -752,9 +752,8 @@ export default function Checkout({ slug }: CheckoutProps) {
                     id="checkout-notes"
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[60px] resize-none"
+                    className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[60px] resize-none"
                     placeholder="Allergies, instructions spéciales..."
-                    autoFocus
                   />
                 </div>
               ) : (
@@ -780,10 +779,10 @@ export default function Checkout({ slug }: CheckoutProps) {
                   onChange={(e) => setForm({ ...form, emailOptIn: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
+                <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                   {form.emailOptIn && (
                     <svg
-                      className="w-3 h-3 text-white"
+                      className="w-4 h-4 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -805,10 +804,10 @@ export default function Checkout({ slug }: CheckoutProps) {
                     onChange={(e) => setForm({ ...form, smsOptIn: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
+                  <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                     {form.smsOptIn && (
                       <svg
-                        className="w-3 h-3 text-white"
+                        className="w-4 h-4 text-white"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -841,10 +840,10 @@ export default function Checkout({ slug }: CheckoutProps) {
                         onChange={(e) => setForm({ ...form, loyaltyOptIn: e.target.checked })}
                         className="sr-only peer"
                       />
-                      <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
+                      <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                         {form.loyaltyOptIn && (
                           <svg
-                            className="w-3 h-3 text-white"
+                            className="w-4 h-4 text-white"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -873,7 +872,7 @@ export default function Checkout({ slug }: CheckoutProps) {
       </form>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/50 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] z-20">
         <button
           type="submit"
           form="checkout-form"

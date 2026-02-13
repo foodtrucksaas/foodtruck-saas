@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, History, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, History, AlertCircle, RefreshCw, X } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -58,13 +58,24 @@ export default function Home() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
-              type="text"
+              type="search"
+              inputMode="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un food truck..."
               aria-label="Rechercher un food truck"
-              className="w-full pl-12 pr-4 py-3 min-h-[48px] rounded-xl bg-white text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full pl-12 pr-12 py-3 min-h-[48px] rounded-xl bg-white text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600"
+                aria-label="Effacer la recherche"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

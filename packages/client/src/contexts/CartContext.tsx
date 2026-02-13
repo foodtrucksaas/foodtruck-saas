@@ -71,7 +71,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Save cart to localStorage
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, foodtruckId }));
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, foodtruckId }));
+    } catch {
+      // Quota exceeded or private browsing — cart won't persist but app continues
+    }
   }, [items, foodtruckId]);
 
   const getCartKey = (
@@ -218,9 +222,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const setFoodtruck = (id: string) => {
-    if (foodtruckId && foodtruckId !== id) {
-      // Clear cart if switching foodtrucks
-      setItems([]);
+    if (foodtruckId !== id) {
+      // Clear cart if switching foodtrucks (or if foodtruckId was null from fresh load)
+      if (foodtruckId !== null || items.some((item) => item.menuItem.foodtruck_id !== id)) {
+        setItems([]);
+      }
     }
     setFoodtruckId(id);
   };

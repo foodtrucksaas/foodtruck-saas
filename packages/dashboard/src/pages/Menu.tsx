@@ -7,6 +7,7 @@ import {
   Pencil,
   Trash2,
   RotateCcw,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import { useMenuPage } from '../hooks';
@@ -162,6 +163,17 @@ export default function Menu() {
 
       {/* Menu Items */}
       <div className="space-y-4 sm:space-y-6">
+        {categories.length === 0 && (
+          <div className="card p-8 text-center mb-6">
+            <UtensilsCrossed className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              Créez votre première catégorie
+            </h3>
+            <p className="text-sm text-gray-500">
+              Organisez votre menu en catégories comme Entrées, Plats, Desserts
+            </p>
+          </div>
+        )}
         {categories.map((category) => {
           const items = groupedItems[category.id] || [];
           const unavailableCount = items.filter((item) => !item.is_available).length;

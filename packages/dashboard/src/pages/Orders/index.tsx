@@ -1,5 +1,14 @@
 import { useState, useMemo } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight, Calendar, List, Clock } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  List,
+  Clock,
+  ShoppingBag,
+} from 'lucide-react';
 import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 import { OrderDetailModal } from './OrderDetailModal';
@@ -429,8 +438,14 @@ export default function Orders() {
       {viewMode === 'timeline' ? (
         /* Timeline View */
         orders.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-lg">Aucune commande pour le moment</p>
+          <div className="card p-12 text-center">
+            <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <p className="text-lg font-semibold text-gray-900 mb-2">
+              Aucune commande pour le moment
+            </p>
+            <p className="text-sm text-gray-500">
+              Partagez votre lien avec vos clients pour recevoir vos premières commandes
+            </p>
           </div>
         ) : (
           <TimelineView
@@ -463,13 +478,21 @@ export default function Orders() {
         )
       ) : /* List View - grouped by time slot */
       filteredGroupedOrders.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">
-            {orders.length === 0
-              ? 'Aucune commande pour le moment'
-              : 'Aucune commande avec ces filtres'}
-          </p>
-        </div>
+        orders.length === 0 ? (
+          <div className="card p-12 text-center">
+            <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <p className="text-lg font-semibold text-gray-900 mb-2">
+              Aucune commande pour le moment
+            </p>
+            <p className="text-sm text-gray-500">
+              Partagez votre lien avec vos clients pour recevoir vos premières commandes
+            </p>
+          </div>
+        ) : (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-lg">Aucune commande avec ces filtres</p>
+          </div>
+        )
       ) : (
         <div className="space-y-8 mt-4">
           {filteredGroupedOrders.map(({ slot, orders: slotOrders }) => {

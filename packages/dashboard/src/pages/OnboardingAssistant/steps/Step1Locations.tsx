@@ -274,7 +274,7 @@ export function Step1Locations({ foodtruckId, onNext }: Step1LocationsProps) {
         </div>
 
         {/* Quick name suggestions */}
-        {locations.length === 0 && !name && (
+        {!name && (
           <div>
             <p className="text-xs text-gray-400 mb-2">Suggestions :</p>
             <div className="flex flex-wrap gap-2">

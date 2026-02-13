@@ -178,6 +178,9 @@ export default function OptionsModal({
   return (
     <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] shadow-xl animate-sheet-in sm:animate-modal-in flex flex-col overflow-hidden">
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-300" />
+        </div>
         {/* Header */}
         <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-anthracite">{menuItem.name}</h2>
@@ -243,7 +246,7 @@ export default function OptionsModal({
                             {option.name}
                           </span>
                           <span
-                            className={`text-sm font-semibold ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
+                            className={`text-sm font-semibold min-w-[70px] text-right ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
                           >
                             {isTheSizeGroup(group)
                               ? formatPrice(getOptionPrice(group, option.id))

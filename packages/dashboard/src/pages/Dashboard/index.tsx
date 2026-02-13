@@ -98,7 +98,7 @@ function TodayBanner({ status }: { status: TodayStatus }) {
           </div>
           <Link
             to="/schedule"
-            className="text-xs text-white/80 hover:text-white flex-shrink-0 font-medium bg-white/15 px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs text-white/80 hover:text-white flex-shrink-0 font-medium bg-white/15 px-3 py-1.5 rounded-lg transition-colors min-h-[44px] flex items-center"
           >
             Planning →
           </Link>
@@ -205,7 +205,9 @@ export default function Dashboard() {
       <TodayBanner status={todayStatus} />
 
       {/* Section 2: Stats Row */}
-      <div className={`grid gap-3 ${isAutoAccept ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}>
+      <div
+        className={`grid gap-3 ${isAutoAccept ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}
+      >
         {!isAutoAccept && (
           <StatCard
             icon={Clock}

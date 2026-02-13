@@ -117,7 +117,9 @@ const MenuItemCard = memo(function MenuItemCard({
           ) : (
             <>
               <div>
-                {hasOptions && <span className="text-xs text-gray-500 block">À partir de</span>}
+                {hasOptions && (
+                  <span className="text-[13px] leading-tight text-gray-500 block">À partir de</span>
+                )}
                 <span className="font-bold text-gray-900 text-base">{formatPrice(item.price)}</span>
               </div>
               <button

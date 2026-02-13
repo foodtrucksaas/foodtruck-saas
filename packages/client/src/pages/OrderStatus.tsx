@@ -446,7 +446,10 @@ export default function OrderStatus() {
         >
           {isCancelled ? (
             <div className="text-center">
-              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" aria-hidden="true" />
+              <XCircle
+                className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-3"
+                aria-hidden="true"
+              />
               <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
                 Commande annulee
               </h2>
@@ -454,7 +457,7 @@ export default function OrderStatus() {
           ) : isPending ? (
             <div className="text-center">
               <Clock
-                className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-status-pulse"
+                className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mx-auto mb-3 animate-status-pulse"
                 aria-hidden="true"
               />
               <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
@@ -467,7 +470,7 @@ export default function OrderStatus() {
           ) : isConfirmed ? (
             <div className="text-center">
               <CheckCircle
-                className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in"
+                className="w-12 h-12 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 animate-bounce-in"
                 aria-hidden="true"
               />
               <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">
@@ -487,7 +490,7 @@ export default function OrderStatus() {
           ) : (
             <div className="text-center">
               <CheckCircle
-                className="w-16 h-16 text-green-500 mx-auto mb-4 animate-bounce-in"
+                className="w-12 h-12 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 animate-bounce-in"
                 aria-hidden="true"
               />
               <h2 id="order-status-heading" className="text-xl font-bold text-gray-900">

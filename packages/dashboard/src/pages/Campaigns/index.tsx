@@ -52,7 +52,8 @@ export default function Campaigns() {
           <Send className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
           <p className="text-gray-500">Aucune campagne</p>
           <p className="text-sm text-gray-400 mt-1">
-            Créez votre première campagne pour fidéliser vos clients
+            Envoyez des emails et SMS à vos clients : promotions, nouveautés, horaires
+            exceptionnels...
           </p>
           <button
             onClick={openNewCampaign}

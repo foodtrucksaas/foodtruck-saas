@@ -187,21 +187,18 @@ serve(async (req) => {
         : 0;
     const dealDiscount = body.deal_discount || 0;
 
-    // Note: Expected total calculation is done in validateOrderTotal if body.expected_total is provided
-
-    // If client sent a total, validate it
-    if (body.expected_total !== undefined) {
-      const { error: totalError } = validateOrderTotal(
-        body.items,
-        menuItems,
-        body.expected_total,
-        discountAmount,
-        dealDiscount,
-        loyaltyDiscount,
-        appliedOffersDiscount
-      );
-      if (totalError) return totalError;
-    }
+    // Always validate total — use client-provided expected_total, or fall back to server-calculated total
+    const expectedTotal = body.expected_total ?? total;
+    const { error: totalError } = validateOrderTotal(
+      body.items,
+      menuItems,
+      expectedTotal,
+      discountAmount,
+      dealDiscount,
+      loyaltyDiscount,
+      appliedOffersDiscount
+    );
+    if (totalError) return totalError;
 
     // Annotate auto-detected bundle items with [OfferName#N] notes and adjust pricing
     // so they display correctly grouped on the dashboard (same as manual BundleBuilder bundles)

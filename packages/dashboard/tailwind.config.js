@@ -102,6 +102,13 @@ export default {
         'scale-in': 'scaleIn 0.2s ease-out',
         'scale-out': 'scaleOut 0.15s ease-in',
         'bounce-in': 'bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        // Sheet animations
+        'sheet-in': 'sheetIn 0.3s ease-out',
+        'sheet-out': 'sheetOut 0.2s ease-in',
+        // Scale animations (additional)
+        'pop': 'pop 0.3s ease-out',
+        // Button press
+        'press': 'press 0.15s ease-in-out',
         // Loading animations
         'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'shimmer': 'shimmer 1.5s infinite',
@@ -194,6 +201,27 @@ export default {
           '50%': { transform: 'scale(1.05)' },
           '70%': { transform: 'scale(0.9)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        // Sheet animations
+        sheetIn: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        sheetOut: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
+        // Pop animation
+        pop: {
+          '0%': { transform: 'scale(0.95)' },
+          '50%': { transform: 'scale(1.02)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        // Button press
+        press: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.97)' },
+          '100%': { transform: 'scale(1)' },
         },
         // Loading animations
         pulseSubtle: {

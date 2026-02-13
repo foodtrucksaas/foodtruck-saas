@@ -279,15 +279,15 @@ export async function validatePrices(
           return errorResponse(`Le prix de l'option "${dbOption.name}" est invalide.`);
         }
 
-        // Check if price is wildly different from expected (more than 10x the default, if default > 0)
-        // This catches obvious tampering while allowing legitimate per-size pricing
-        if (
-          dbOption.price_modifier > 0 &&
-          selectedOpt.price_modifier > dbOption.price_modifier * 10
-        ) {
-          return errorResponse(
-            `Le prix de l'option "${dbOption.name}" est anormalement élevé. Veuillez rafraîchir la page.`
-          );
+        // Check if price is different from expected (more than 3x the default or +2€ above, whichever is greater)
+        // This catches tampering while allowing legitimate per-size pricing
+        if (dbOption.price_modifier > 0) {
+          const maxAllowed = Math.max(dbOption.price_modifier * 3, dbOption.price_modifier + 200);
+          if (selectedOpt.price_modifier > maxAllowed) {
+            return errorResponse(
+              `Le prix de l'option "${dbOption.name}" est anormalement élevé. Veuillez rafraîchir la page.`
+            );
+          }
         }
       }
     }
@@ -854,7 +854,7 @@ export async function createOrder(
 
   // Calculate final amount after discount
   const discountAmount = data.discount_amount || 0;
-  const finalAmount = Math.max(0, total - discountAmount);
+  const finalAmount = Math.max(1, total - discountAmount); // Minimum 1 centime (DB constraint: total_amount > 0)
 
   // Calculate offer discount from applied_offers
   const offerDiscount = data.applied_offers

@@ -231,60 +231,67 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
                     {daySlots.map((slot) => {
                       const isTimeValid = slot.start_time < slot.end_time;
                       return (
-                        <div key={slot.id} className="flex items-center gap-2">
-                          {/* Location */}
-                          {locations.length > 1 && (
-                            <select
-                              value={slot.location_id}
-                              onChange={(e) =>
-                                handleUpdateSlot(slot.id, 'location_id', e.target.value)
-                              }
-                              className="input text-sm min-h-[40px] flex-1 min-w-0"
-                            >
-                              {locations.map((loc) => (
-                                <option key={loc.id} value={loc.id}>
-                                  {loc.name}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                          {locations.length === 1 && (
-                            <div className="flex items-center gap-1.5 text-sm text-gray-600 flex-1 min-w-0">
-                              <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                              <span className="truncate">{locations[0].name}</span>
+                        <div key={slot.id}>
+                          <div className="flex items-center gap-2">
+                            {/* Location */}
+                            {locations.length > 1 && (
+                              <select
+                                value={slot.location_id}
+                                onChange={(e) =>
+                                  handleUpdateSlot(slot.id, 'location_id', e.target.value)
+                                }
+                                className="input text-sm min-h-[40px] flex-1 min-w-0"
+                              >
+                                {locations.map((loc) => (
+                                  <option key={loc.id} value={loc.id}>
+                                    {loc.name}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                            {locations.length === 1 && (
+                              <div className="flex items-center gap-1.5 text-sm text-gray-600 flex-1 min-w-0">
+                                <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                <span className="truncate">{locations[0].name}</span>
+                              </div>
+                            )}
+
+                            {/* Time range */}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <input
+                                type="time"
+                                value={slot.start_time}
+                                onChange={(e) =>
+                                  handleUpdateSlot(slot.id, 'start_time', e.target.value)
+                                }
+                                className={`input text-sm min-h-[40px] w-[100px] ${!isTimeValid ? 'border-red-300' : ''}`}
+                              />
+                              <span className="text-gray-400 text-xs">-</span>
+                              <input
+                                type="time"
+                                value={slot.end_time}
+                                onChange={(e) =>
+                                  handleUpdateSlot(slot.id, 'end_time', e.target.value)
+                                }
+                                className={`input text-sm min-h-[40px] w-[100px] ${!isTimeValid ? 'border-red-300' : ''}`}
+                              />
                             </div>
-                          )}
 
-                          {/* Time range */}
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <input
-                              type="time"
-                              value={slot.start_time}
-                              onChange={(e) =>
-                                handleUpdateSlot(slot.id, 'start_time', e.target.value)
-                              }
-                              className={`input text-sm min-h-[40px] w-[100px] ${!isTimeValid ? 'border-red-300' : ''}`}
-                            />
-                            <span className="text-gray-400 text-xs">-</span>
-                            <input
-                              type="time"
-                              value={slot.end_time}
-                              onChange={(e) =>
-                                handleUpdateSlot(slot.id, 'end_time', e.target.value)
-                              }
-                              className={`input text-sm min-h-[40px] w-[100px] ${!isTimeValid ? 'border-red-300' : ''}`}
-                            />
+                            {/* Delete */}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSlot(slot.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                              aria-label="Supprimer ce creneau"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-
-                          {/* Delete */}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteSlot(slot.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
-                            aria-label="Supprimer ce creneau"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {!isTimeValid && (
+                            <p className="text-xs text-red-600 mt-1">
+                              L'heure de fin doit être après l'heure de début
+                            </p>
+                          )}
                         </div>
                       );
                     })}

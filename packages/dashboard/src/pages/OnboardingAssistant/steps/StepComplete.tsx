@@ -57,7 +57,12 @@ export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCom
     ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(foodtruckUrl)}&format=png&margin=10`
     : '';
 
-  // Fetch summary on mount (onComplete is called when user clicks "Go to dashboard")
+  // Mark onboarding as complete on mount
+  useEffect(() => {
+    onComplete();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch summary on mount
   useEffect(() => {
     const fetchSummary = async () => {
       const [locsRes, schedsRes, catsRes, itemsRes] = await Promise.all([
@@ -110,7 +115,6 @@ export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCom
   const handleGoToDashboard = async () => {
     setLeaving(true);
     try {
-      await onComplete();
       await onGoToDashboard();
     } catch {
       // Continue anyway

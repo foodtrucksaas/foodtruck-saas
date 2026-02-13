@@ -102,7 +102,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center px-6 py-3 min-h-[48px] rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2;
     transition:
       all 0.15s ease-out,
       transform 0.1s ease-out;
@@ -185,7 +185,7 @@
   }
 
   .input {
-    @apply w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder:text-gray-400;
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white placeholder:text-gray-400;
     color: #2d2d2d;
     transition:
       border-color 0.2s ease,
@@ -242,8 +242,8 @@
 
   .badge-primary {
     @apply badge;
-    background-color: #fff5f3;
-    color: #e5634d;
+    background-color: #fff7ed;
+    color: #e55a2b;
   }
 
   /* Order status badges */
