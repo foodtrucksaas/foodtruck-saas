@@ -175,9 +175,9 @@ export default function Checkout({ slug }: CheckoutProps) {
     }
   }, [slots]);
 
-  // Sync loyalty opt-in with stored customer preference
+  // Sync loyalty opt-in with stored customer preference (only for existing customers)
   useEffect(() => {
-    if (loyaltyInfo?.loyalty_opt_in !== undefined) {
+    if (loyaltyInfo?.customer_id) {
       setForm((prev) => ({ ...prev, loyaltyOptIn: !!loyaltyInfo.loyalty_opt_in }));
     }
   }, [loyaltyInfo]);

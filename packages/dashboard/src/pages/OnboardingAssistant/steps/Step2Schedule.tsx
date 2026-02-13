@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MapPin, Plus, Trash2, Copy, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useToast, Toast } from '../../../components/Alert';
 import { StepContainer } from '../components';
@@ -39,7 +39,7 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
-  const { toast, hideToast, showSuccess, showError } = useToast();
+  const { toast, hideToast, showError } = useToast();
 
   // Load locations and schedules from DB
   useEffect(() => {
@@ -158,70 +158,6 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
     } catch (err) {
       console.error('Error deleting slot:', err);
       showError('Erreur lors de la suppression');
-    }
-  };
-
-  const handleCopyToAll = async (sourceDayOfWeek: number) => {
-    const sourceSlots = slotsByDay.get(sourceDayOfWeek);
-    if (!sourceSlots || sourceSlots.length === 0) return;
-
-    setSaving(true);
-    try {
-      // For each day that has no slots yet, copy source slots
-      const daysWithSlots = new Set(slots.map((s) => s.day_of_week));
-      const emptyDays = DAYS_OF_WEEK.filter(
-        (d) => d.value !== sourceDayOfWeek && !daysWithSlots.has(d.value)
-      );
-
-      if (emptyDays.length === 0) {
-        showSuccess('Tous les jours ont deja des creneaux');
-        return;
-      }
-
-      const newSlots: Omit<ScheduleSlot, 'id'>[] = [];
-      for (const day of emptyDays) {
-        for (const source of sourceSlots) {
-          newSlots.push({
-            day_of_week: day.value,
-            location_id: source.location_id,
-            start_time: source.start_time,
-            end_time: source.end_time,
-          });
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('schedules')
-        .insert(
-          newSlots.map((s) => ({
-            foodtruck_id: foodtruckId,
-            ...s,
-            is_active: true,
-          }))
-        )
-        .select('id, day_of_week, location_id, start_time, end_time');
-
-      if (error) throw error;
-
-      if (data) {
-        setSlots((prev) => [
-          ...prev,
-          ...data.map((s) => ({
-            id: s.id,
-            day_of_week: s.day_of_week,
-            location_id: s.location_id,
-            start_time: s.start_time?.slice(0, 5) || '11:00',
-            end_time: s.end_time?.slice(0, 5) || '14:00',
-          })),
-        ]);
-      }
-
-      showSuccess(`Copie sur ${emptyDays.length} jour${emptyDays.length > 1 ? 's' : ''}`);
-    } catch (err) {
-      console.error('Error copying slots:', err);
-      showError('Erreur lors de la copie');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -364,18 +300,6 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
                         <Plus className="w-3.5 h-3.5" />
                         Ajouter un creneau
                       </button>
-
-                      {daySlots.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => handleCopyToAll(day.value)}
-                          disabled={saving}
-                          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors ml-auto disabled:opacity-50"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copier sur les autres jours
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}

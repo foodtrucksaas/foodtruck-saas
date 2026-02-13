@@ -493,6 +493,7 @@ function CategoryEditor({
 }: CategoryEditorProps) {
   const [categoryName, setCategoryName] = useState(category.name);
   const [showOptionForm, setShowOptionForm] = useState(false);
+  const [editingOptionGroup, setEditingOptionGroup] = useState<OptionGroup | null>(null);
   const [showItemForm, setShowItemForm] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
@@ -586,14 +587,17 @@ function CategoryEditor({
               <ArrowLeft className="w-4 h-4" />
               Retour aux categories
             </button>
-            <input
-              type="text"
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              onBlur={handleUpdateName}
-              className="text-lg font-semibold text-gray-900 bg-transparent border-none outline-none focus:ring-0 p-0 w-full"
-              placeholder="Nom de la categorie"
-            />
+            <div className="group flex items-center gap-2">
+              <input
+                type="text"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                onBlur={handleUpdateName}
+                className="text-lg font-semibold text-gray-900 bg-transparent border-b border-dashed border-transparent group-hover:border-gray-300 focus:border-primary-500 outline-none focus:ring-0 p-0 flex-1 transition-colors"
+                placeholder="Nom de la categorie"
+              />
+              <Pencil className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" />
+            </div>
           </div>
 
           {/* Option Groups */}
@@ -607,7 +611,11 @@ function CategoryEditor({
                 {category.optionGroups.map((og) => (
                   <div
                     key={og.id}
-                    className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg text-sm"
+                    onClick={() => {
+                      setEditingOptionGroup(og);
+                      setShowOptionForm(true);
+                    }}
+                    className="flex items-center gap-2 p-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm cursor-pointer transition-colors"
                   >
                     <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
                       {og.is_required ? (
@@ -622,9 +630,13 @@ function CategoryEditor({
                         ({og.options.map((o) => o.name).join(', ')})
                       </span>
                     </div>
+                    <Pencil className="w-3 h-3 text-gray-400 flex-shrink-0" />
                     <button
                       type="button"
-                      onClick={() => handleDeleteOptionGroup(og.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteOptionGroup(og.id);
+                      }}
                       className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -641,19 +653,29 @@ function CategoryEditor({
             {showOptionForm ? (
               <AddOptionGroupForm
                 categoryId={category.id}
-                existingGroupNames={category.optionGroups.map((og) => og.name)}
+                existingGroupNames={category.optionGroups
+                  .filter((og) => og.id !== editingOptionGroup?.id)
+                  .map((og) => og.name)}
+                editingGroup={editingOptionGroup}
                 onSaved={async () => {
                   setShowOptionForm(false);
+                  setEditingOptionGroup(null);
                   await onReload();
-                  showSuccess('Options ajoutees');
+                  showSuccess(editingOptionGroup ? 'Options modifiees' : 'Options ajoutees');
                 }}
-                onCancel={() => setShowOptionForm(false)}
+                onCancel={() => {
+                  setShowOptionForm(false);
+                  setEditingOptionGroup(null);
+                }}
                 showError={showError}
               />
             ) : (
               <button
                 type="button"
-                onClick={() => setShowOptionForm(true)}
+                onClick={() => {
+                  setEditingOptionGroup(null);
+                  setShowOptionForm(true);
+                }}
                 className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -746,6 +768,18 @@ function CategoryEditor({
         </div>
       </div>
 
+      {/* Sticky bottom bar */}
+      <div className="sticky bottom-0 z-10 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 sm:px-6 py-3 safe-area-bottom">
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+        >
+          <Check className="w-4 h-4" />
+          Terminer
+        </button>
+      </div>
+
       <Toast {...toast} onDismiss={hideToast} />
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
@@ -763,19 +797,25 @@ function CategoryEditor({
 function AddOptionGroupForm({
   categoryId,
   existingGroupNames,
+  editingGroup,
   onSaved,
   onCancel,
   showError,
 }: {
   categoryId: string;
   existingGroupNames: string[];
+  editingGroup: OptionGroup | null;
   onSaved: () => Promise<void>;
   onCancel: () => void;
   showError: (msg: string) => void;
 }) {
-  const [type, setType] = useState<'size' | 'other' | null>(null);
-  const [groupName, setGroupName] = useState('');
-  const [optionValues, setOptionValues] = useState<string[]>([]);
+  const [type, setType] = useState<'size' | 'other' | null>(
+    editingGroup ? (editingGroup.is_required ? 'size' : 'other') : null
+  );
+  const [groupName, setGroupName] = useState(editingGroup?.name || '');
+  const [optionValues, setOptionValues] = useState<string[]>(
+    editingGroup ? editingGroup.options.map((o) => o.name) : []
+  );
   const [newOptionValue, setNewOptionValue] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -791,11 +831,21 @@ function AddOptionGroupForm({
   };
 
   const handleSave = async () => {
-    if (!type || optionValues.length === 0) return;
+    // Auto-add any text in the input field before saving
+    const finalValues = [...optionValues];
+    if (newOptionValue.trim() && !finalValues.includes(newOptionValue.trim())) {
+      finalValues.push(newOptionValue.trim());
+    }
+    if (!type || finalValues.length === 0) return;
     const finalName = groupName.trim() || (type === 'size' ? 'Taille' : 'Option');
 
     setSaving(true);
     try {
+      // If editing, delete the old group first (CASCADE deletes options)
+      if (editingGroup) {
+        await supabase.from('category_option_groups').delete().eq('id', editingGroup.id);
+      }
+
       // Create the option group
       const { data: ogData, error: ogError } = await supabase
         .from('category_option_groups')
@@ -812,7 +862,7 @@ function AddOptionGroupForm({
       if (ogError) throw ogError;
 
       // Create the options
-      const optionsToInsert = optionValues.map((name, index) => ({
+      const optionsToInsert = finalValues.map((name, index) => ({
         option_group_id: ogData.id,
         name,
         price_modifier: 0,
@@ -914,7 +964,7 @@ function AddOptionGroupForm({
               }
             }}
             className="input text-sm min-h-[40px] flex-1"
-            placeholder={type === 'size' ? 'Ex: S, M, L...' : 'Ex: Tomate, Creme...'}
+            placeholder={type === 'size' ? 'Ex: M, L, XL...' : 'Ex: Tomate, Creme...'}
             autoFocus={type === 'size'}
           />
           <button
@@ -927,13 +977,6 @@ function AddOptionGroupForm({
           </button>
         </div>
       </div>
-
-      {type === 'size' && optionValues.length === 0 && (
-        <QuickSuggestions
-          suggestions={['S', 'M', 'L', 'XL', 'Moyenne', 'Grande']}
-          onSelect={(s) => setOptionValues((prev) => [...prev, s])}
-        />
-      )}
 
       {optionValues.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -1002,7 +1045,9 @@ function AddItemForm({
   showSuccess: (msg: string) => void;
   showError: (msg: string) => void;
 }) {
-  const hasSizes = sizeOptions.length > 0;
+  const hasSizesInCategory = sizeOptions.length > 0;
+  const [useSinglePrice, setUseSinglePrice] = useState(false);
+  const hasSizes = hasSizesInCategory && !useSinglePrice;
   const [itemName, setItemName] = useState('');
   const [itemDescription, setItemDescription] = useState('');
   const [prices, setPrices] = useState<Record<string, string>>({});
@@ -1014,9 +1059,15 @@ function AddItemForm({
       setItemName(editingItem.name);
       setItemDescription(editingItem.description || '');
       const displayPrices: Record<string, string> = {};
-      if (hasSizes && editingItem.option_prices) {
+      // Check if this item uses size prices
+      const hasOptionPrices =
+        hasSizesInCategory &&
+        editingItem.option_prices &&
+        Object.keys(editingItem.option_prices).length > 0;
+      setUseSinglePrice(hasSizesInCategory && !hasOptionPrices);
+      if (hasOptionPrices) {
         for (const opt of sizeOptions) {
-          const p = editingItem.option_prices[opt.id];
+          const p = editingItem.option_prices![opt.id];
           if (p !== undefined) {
             displayPrices[opt.id] = (p / 100).toFixed(2);
           }
@@ -1034,9 +1085,10 @@ function AddItemForm({
     } else {
       setItemName('');
       setItemDescription('');
+      setUseSinglePrice(false);
       setPrices({});
     }
-  }, [editingItem, hasSizes, sizeOptions]);
+  }, [editingItem, hasSizesInCategory, sizeOptions]);
 
   const isValid = (() => {
     if (!itemName.trim()) return false;
@@ -1150,6 +1202,21 @@ function AddItemForm({
         placeholder="Description (optionnel)"
         rows={2}
       />
+
+      {hasSizesInCategory && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={useSinglePrice}
+            onChange={(e) => {
+              setUseSinglePrice(e.target.checked);
+              setPrices({});
+            }}
+            className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+          />
+          <span className="text-sm text-gray-600">Prix unique (pas de taille)</span>
+        </label>
+      )}
 
       {hasSizes && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
