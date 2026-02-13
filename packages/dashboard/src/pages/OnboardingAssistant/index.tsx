@@ -18,14 +18,14 @@ export default function OnboardingAssistant() {
   // Load initial step from DB
   useEffect(() => {
     if (!foodtruck) return;
-    const dbStep = foodtruck.onboarding_step || 1;
-    // Steps 1-3 are wizard steps, anything else → cap to valid range
-    if (dbStep >= 1 && dbStep <= TOTAL_STEPS) {
-      setCurrentStep(dbStep);
-    } else if (dbStep > TOTAL_STEPS) {
-      // Old system step 4-6 or already completed → show complete screen
+    const dbStep = foodtruck.onboarding_step || 0;
+    // If onboarding was completed, show the complete screen
+    if (foodtruck.onboarding_completed_at) {
       setCurrentStep(TOTAL_STEPS + 1);
+    } else if (dbStep >= 1 && dbStep <= TOTAL_STEPS) {
+      setCurrentStep(dbStep);
     } else {
+      // Step 0 (new), or > TOTAL_STEPS (old 6-step system) → start from 1
       setCurrentStep(1);
     }
   }, [foodtruck]);
