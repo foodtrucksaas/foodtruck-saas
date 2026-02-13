@@ -23,7 +23,8 @@ export default function OnboardingAssistant() {
 
     const dbStep = foodtruck.onboarding_step || 0;
     if (foodtruck.onboarding_completed_at) {
-      setCurrentStep(TOTAL_STEPS + 1);
+      // Already completed — restart from step 1 (user relaunched from settings)
+      setCurrentStep(1);
     } else if (dbStep >= 1 && dbStep <= TOTAL_STEPS) {
       setCurrentStep(dbStep);
     } else {
