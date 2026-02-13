@@ -60,7 +60,9 @@ export default function FAQ() {
     <section id="faq" className="py-16 lg:py-24 bg-white">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-anthracite">Questions fréquentes</h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+            Questions fréquentes
+          </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
             Tout ce que vous devez savoir avant de vous lancer.
           </p>
@@ -74,6 +76,7 @@ export default function FAQ() {
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full flex items-center justify-between py-5 text-left group"
                   aria-expanded={openIndex === i}
+                  aria-controls={`faq-answer-${i}`}
                 >
                   <span className="text-lg font-semibold text-anthracite pr-4 group-hover:text-primary-500 transition-colors flex items-center gap-2.5 flex-wrap">
                     {item.q}
@@ -90,6 +93,8 @@ export default function FAQ() {
                   />
                 </button>
                 <div
+                  id={`faq-answer-${i}`}
+                  role="region"
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
                     openIndex === i ? 'max-h-96 opacity-100 pb-5' : 'max-h-0 opacity-0'
                   }`}

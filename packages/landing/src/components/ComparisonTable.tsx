@@ -79,7 +79,8 @@ const ROWS: Row[] = [
   },
   {
     label: 'Gestion des paiements',
-    onmange: 'Non ✌️',
+    sublabel: 'Vous encaissez directement',
+    onmange: 'Non',
     telephone: 'Non',
     generic: 'Oui (Stripe)',
   },
@@ -106,10 +107,10 @@ function CellContent({ value, isOnMange }: { value: CellValue; isOnMange?: boole
 
 export default function ComparisonTable() {
   return (
-    <section className="py-16 lg:py-24 bg-white">
+    <section id="comparison" className="py-16 lg:py-24 bg-white">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-anthracite">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
             OnMange vs les alternatives
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">

@@ -15,6 +15,7 @@
   <meta property="og:title" content="OnMange — Pré-commandes pour food trucks">
   <meta property="og:description" content="Recevez les commandes de vos clients avant même d'ouvrir votre camion. 0% de commission, 29€/mois.">
   <meta property="og:url" content="https://onmange.app">
+  <meta property="og:image" content="https://onmange.app/og-image.png">
   <meta property="og:locale" content="fr_FR">
   <meta property="og:site_name" content="OnMange">
 
@@ -22,6 +23,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="OnMange — Pré-commandes pour food trucks">
   <meta name="twitter:description" content="Menu digital et pré-commandes par QR code. 29€/mois, 0% commission.">
+  <meta name="twitter:image" content="https://onmange.app/og-image.png">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +37,7 @@
     "@type": "SoftwareApplication",
     "name": "OnMange",
     "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web, iOS, Android",
+    "operatingSystem": "Web",
     "url": "https://onmange.app",
     "offers": {
       "@type": "Offer",
@@ -51,9 +53,9 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {"@type": "Question", "name": "Y a-t-il des commissions sur les ventes ?", "acceptedAnswer": {"@type": "Answer", "text": "Non, jamais. Votre abonnement de 29€/mois est le seul coût. Que vous fassiez 10 ou 100 commandes par jour, le prix ne change pas."}},
-      {"@type": "Question", "name": "Mes clients doivent-ils télécharger une app ?", "acceptedAnswer": {"@type": "Answer", "text": "Non, il n'y a rien à télécharger. Vos clients scannent un QR code et commandent depuis leur navigateur."}},
-      {"@type": "Question", "name": "Les paiements sont-ils gérés par OnMange ?", "acceptedAnswer": {"@type": "Answer", "text": "Non. OnMange gère la commande. Le paiement se fait directement sur place, auprès de vous."}}
+      {"@type": "Question", "name": "Je ne suis pas à l'aise avec la technologie", "acceptedAnswer": {"@type": "Answer", "text": "OnMange a été conçu pour être aussi simple qu'un smartphone. Créez votre menu, partagez votre lien, et c'est parti. On est là pour vous accompagner à chaque étape."}},
+      {"@type": "Question", "name": "Mes clients n'utiliseront pas ça", "acceptedAnswer": {"@type": "Answer", "text": "Rien à télécharger, rien à installer. Vos clients cliquent sur votre lien ou scannent un QR code et commandent depuis leur navigateur en 2 minutes."}},
+      {"@type": "Question", "name": "29€/mois, c'est rentable ?", "acceptedAnswer": {"@type": "Answer", "text": "2 à 3 commandes supplémentaires par semaine suffisent à le rentabiliser. Et c'est 29€ tout inclus : fidélité, CRM, analytics, offres."}}
     ]
   }
   </script>
@@ -78,6 +80,8 @@
   </script>
 </head>
 <body>
+  <a href="#hero" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-primary-500 focus:rounded-lg focus:shadow-lg focus:font-semibold">Aller au contenu</a>
+  <noscript><div style="padding:2rem;text-align:center;font-family:sans-serif"><p>Veuillez activer JavaScript pour utiliser OnMange.</p></div></noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

@@ -20,8 +20,11 @@ export default {
         anthracite: '#2D2D2D',
         success: {
           50: '#ECFDF5',
+          100: '#D1FAE5',
+          200: '#A7F3D0',
           500: '#10B981',
           600: '#059669',
+          700: '#047857',
         },
         error: {
           50: '#FEF2F2',

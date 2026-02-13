@@ -24,7 +24,7 @@ const OPPORTUNITIES = [
 
 export default function PainPoints() {
   return (
-    <section className="py-20 lg:py-28">
+    <section id="pain-points" className="py-20 lg:py-28">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">

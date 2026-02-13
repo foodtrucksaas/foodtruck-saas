@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /client/
+
+Sitemap: https://onmange.app/sitemap.xml

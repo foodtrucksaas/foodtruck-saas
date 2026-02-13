@@ -3,6 +3,52 @@ import { ArrowRight, Check, Mail, Loader2 } from 'lucide-react';
 
 const TRUST_ITEMS = ['0% de commission', 'Sans engagement', 'Prêt en 10 minutes'];
 
+function WaitlistForm({
+  email,
+  setEmail,
+  onSubmit,
+  status,
+  buttonLabel,
+}: {
+  email: string;
+  setEmail: (v: string) => void;
+  onSubmit: (e: FormEvent) => void;
+  status: string;
+  buttonLabel: string;
+}) {
+  return (
+    <div className="bg-white rounded-2xl p-2 shadow-xl ring-1 ring-gray-200/60">
+      <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="email"
+            required
+            placeholder="votre@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 text-base bg-gray-50/80 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 outline-none transition-all placeholder:text-gray-400"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={status === 'loading'}
+          className="flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98] disabled:opacity-70 whitespace-nowrap"
+        >
+          {status === 'loading' ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              {buttonLabel}
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function Hero() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -15,7 +61,6 @@ export default function Hero() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       if (!supabaseUrl || !supabaseKey) {
-        // Fallback for dev without env vars
         await new Promise((r) => setTimeout(r, 800));
         setStatus('success');
         setEmail('');
@@ -52,13 +97,13 @@ export default function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Text content */}
           <div className="max-w-xl">
-            {/* Badge — above headline, prominent */}
+            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100/80 text-primary-700 rounded-full text-sm font-semibold mb-6 animate-fade-in">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500" />
               </span>
-              Lancement en cours — Places limitées
+              Lancement en cours — Inscriptions ouvertes
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-anthracite leading-[1.1] tracking-tight animate-fade-in-up">
@@ -66,14 +111,14 @@ export default function Hero() {
               <span className="relative">
                 <span className="text-primary-500">avant même d'ouvrir</span>
                 <svg
-                  className="absolute -bottom-1 left-0 w-full"
+                  className="absolute -bottom-1 left-0 w-full text-primary-500"
                   height="6"
                   viewBox="0 0 200 6"
                   preserveAspectRatio="none"
                 >
                   <path
                     d="M0 5 Q50 0 100 3 T200 2"
-                    stroke="#F97066"
+                    stroke="currentColor"
                     strokeWidth="2.5"
                     fill="none"
                     opacity="0.4"
@@ -91,8 +136,12 @@ export default function Hero() {
               conduisez ou dormez.
             </p>
 
-            {/* Email capture form — DOMINANT */}
-            <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            {/* Email capture form */}
+            <div
+              id="waitlist"
+              className="mt-8 animate-fade-in-up scroll-mt-24"
+              style={{ animationDelay: '200ms' }}
+            >
               {status === 'success' ? (
                 <div className="flex items-center gap-3 p-5 bg-success-50 border border-success-200 rounded-2xl">
                   <div className="w-11 h-11 bg-success-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -103,66 +152,23 @@ export default function Hero() {
                     <p className="text-sm text-success-600">On vous prévient dès que c'est prêt.</p>
                   </div>
                 </div>
-              ) : status === 'error' ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
-                    <p className="text-sm text-red-600 font-medium">
-                      Une erreur est survenue, veuillez réessayer.
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-2xl p-2 shadow-xl ring-1 ring-gray-200/60">
-                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-                      <div className="relative flex-1">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="email"
-                          required
-                          placeholder="votre@email.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full pl-12 pr-4 py-4 text-base bg-gray-50/80 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 outline-none transition-all placeholder:text-gray-400"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98] disabled:opacity-70 whitespace-nowrap"
-                      >
-                        Réessayer
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </form>
-                  </div>
-                </div>
               ) : (
-                <div className="bg-white rounded-2xl p-2 shadow-xl ring-1 ring-gray-200/60">
-                  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-1">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="votre@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 text-base bg-gray-50/80 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-200 outline-none transition-all placeholder:text-gray-400"
-                      />
+                <>
+                  {status === 'error' && (
+                    <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl mb-3">
+                      <p className="text-sm text-red-600 font-medium">
+                        Une erreur est survenue, veuillez réessayer.
+                      </p>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={status === 'loading'}
-                      className="flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98] disabled:opacity-70 whitespace-nowrap"
-                    >
-                      {status === 'loading' ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          Rejoindre la liste
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </form>
-                </div>
+                  )}
+                  <WaitlistForm
+                    email={email}
+                    setEmail={setEmail}
+                    onSubmit={handleSubmit}
+                    status={status}
+                    buttonLabel={status === 'error' ? 'Réessayer' : 'Rejoindre la liste'}
+                  />
+                </>
               )}
               <p className="mt-3 text-sm text-gray-400">
                 30 jours gratuits à l'ouverture · Pas de spam · Pas de carte bancaire

@@ -68,7 +68,7 @@ export default function Pricing() {
                   <span className="text-primary-200 text-xl font-medium">/mois</span>
                 </div>
                 <p className="text-primary-100/80 text-sm mt-2">
-                  Soit moins de 1€ par jour · 0€ de mise en service
+                  Soit moins de 1€ par jour · 0€ de mise en service · HT
                 </p>
               </div>
 
@@ -90,7 +90,7 @@ export default function Pricing() {
                 </ul>
 
                 <a
-                  href="#hero"
+                  href="#waitlist"
                   className="mt-8 flex items-center justify-center gap-2 w-full py-4 text-base font-bold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
                 >
                   Rejoindre la liste d'attente

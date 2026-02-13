@@ -14,8 +14,7 @@ export default function FinalCTA() {
             Prêt à simplifier votre quotidien ?
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-xl mx-auto">
-            Recevez vos premières commandes cette semaine — via votre lien ou QR code, même quand
-            vous n'êtes pas là.
+            Inscrivez-vous maintenant et soyez parmi les premiers à lancer votre menu digital.
           </p>
 
           <div className="mt-3">
@@ -26,7 +25,7 @@ export default function FinalCTA() {
           </div>
 
           <a
-            href="#hero"
+            href="#waitlist"
             className="mt-8 inline-flex items-center justify-center gap-2 px-10 py-5 text-lg font-bold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
           >
             Rejoindre la liste d'attente
@@ -35,9 +34,7 @@ export default function FinalCTA() {
 
           <div className="mt-5 inline-flex items-center gap-2 text-sm text-gray-500">
             <Users className="w-4 h-4 text-primary-400" />
-            <span>
-              Déjà <strong className="text-anthracite">50+</strong> inscrits sur la liste
-            </span>
+            <span>Rejoignez les premiers food trucks inscrits</span>
           </div>
 
           <p className="mt-3 text-sm text-gray-500">

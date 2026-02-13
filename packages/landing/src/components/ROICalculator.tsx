@@ -25,8 +25,6 @@ export default function ROICalculator() {
     return { currentRevenue, gainedOrders, extraRevenue, onMangeCost, netBenefit };
   }, [ordersPerDay, avgBasket, daysPerWeek]);
 
-  const extraRevenueDisplay = Math.round(results.extraRevenue);
-
   return (
     <section
       id="roi-calculator"
@@ -158,12 +156,16 @@ export default function ROICalculator() {
               </div>
 
               <a
-                href="#hero"
+                href="#waitlist"
                 className="mt-6 flex items-center justify-center gap-2 w-full py-3.5 text-base font-semibold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
               >
-                Gagner {extraRevenueDisplay}€/mois
+                Gagner {formatEur(results.extraRevenue)}/mois
                 <ArrowRight className="w-4 h-4" />
               </a>
+              <p className="mt-3 text-xs text-gray-400 text-center leading-snug">
+                * Estimation basée sur +20% de commandes grâce à la prise de commande en ligne. Les
+                résultats réels peuvent varier.
+              </p>
             </div>
           </div>
         </AnimatedSection>
@@ -206,7 +208,7 @@ function SliderInput({
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full appearance-none h-2 rounded-full bg-gray-200 outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #F97066 0%, #F97066 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`,
+            background: `linear-gradient(to right, var(--color-primary-500, #F97066) 0%, var(--color-primary-500, #F97066) ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`,
           }}
         />
       </div>
