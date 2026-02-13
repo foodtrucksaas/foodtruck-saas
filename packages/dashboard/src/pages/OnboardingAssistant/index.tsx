@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
@@ -14,18 +14,19 @@ export default function OnboardingAssistant() {
   const { foodtruck, refresh } = useFoodtruck();
   const [currentStep, setCurrentStep] = useState<number | null>(null);
   const [skipping, setSkipping] = useState(false);
+  const initializedRef = useRef(false);
 
-  // Load initial step from DB
+  // Load initial step from DB — ONCE only on first load
   useEffect(() => {
-    if (!foodtruck) return;
+    if (!foodtruck || initializedRef.current) return;
+    initializedRef.current = true;
+
     const dbStep = foodtruck.onboarding_step || 0;
-    // If onboarding was completed, show the complete screen
     if (foodtruck.onboarding_completed_at) {
       setCurrentStep(TOTAL_STEPS + 1);
     } else if (dbStep >= 1 && dbStep <= TOTAL_STEPS) {
       setCurrentStep(dbStep);
     } else {
-      // Step 0 (new), or > TOTAL_STEPS (old 6-step system) → start from 1
       setCurrentStep(1);
     }
   }, [foodtruck]);
