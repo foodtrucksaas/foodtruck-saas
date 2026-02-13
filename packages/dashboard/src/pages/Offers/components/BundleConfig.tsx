@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import type { Category } from '@foodtruck/shared';
 import type { WizardFormProps } from './wizardTypes';
-import { getSizeOptions, getItemsForCategories } from './wizardTypes';
+import { getSingleSelectGroups, getItemsForCategories } from './wizardTypes';
 import type { BundleCategoryConfig } from '../useOffers';
 
 export function BundleConfig({ form, categories, menuItems, updateForm }: WizardFormProps) {
@@ -216,7 +216,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                         const isExcluded = choice.excludedItems.includes(item.id);
                         const supplement = choice.supplements[item.id];
                         const itemCategory = categories.find((c) => c.id === item.category_id);
-                        const sizeOptions = getSizeOptions(itemCategory);
+                        const optionGroups = getSingleSelectGroups(itemCategory);
                         const excludedSizesForItem = choice.excludedSizes[item.id] || [];
 
                         return (
@@ -240,7 +240,7 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                               >
                                 {item.name}
                               </span>
-                              {!isExcluded && !sizeOptions && (
+                              {!isExcluded && optionGroups.length === 0 && (
                                 <div className="flex items-center gap-1">
                                   <input
                                     type="number"
@@ -262,53 +262,68 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
                                 </div>
                               )}
                             </div>
-                            {/* Per-size chips with delta inputs */}
-                            {!isExcluded && sizeOptions && (
-                              <div className="ml-7 space-y-1 px-1.5 pb-1">
-                                {sizeOptions.map((opt) => {
-                                  const isOptExcluded = excludedSizesForItem.includes(opt.id);
-                                  const sizeKey = `${item.id}:${opt.id}`;
-                                  const sizeDelta = choice.supplements[sizeKey] || 0;
-                                  return (
-                                    <div key={opt.id} className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleExcludedSize(index, item.id, opt.id)}
-                                        className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
-                                          !isOptExcluded
-                                            ? 'border-primary-300 bg-primary-50 text-primary-700'
-                                            : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
-                                        }`}
-                                      >
-                                        {opt.name}
-                                      </button>
-                                      {!isOptExcluded && (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-xs text-gray-400">+</span>
-                                          <input
-                                            type="number"
-                                            step="0.5"
-                                            min="0"
-                                            value={sizeDelta ? (sizeDelta / 100).toString() : ''}
-                                            onChange={(e) => {
-                                              const val = parseFloat(e.target.value);
-                                              setItemSupplement(
-                                                index,
-                                                sizeKey,
-                                                isNaN(val) || val === 0
-                                                  ? null
-                                                  : Math.round(val * 100)
-                                              );
-                                            }}
-                                            onWheel={(e) => e.currentTarget.blur()}
-                                            className="w-14 text-xs px-1.5 py-0.5 border rounded text-right"
-                                            placeholder="0€"
-                                          />
-                                        </div>
-                                      )}
+                            {/* Per-option chips with delta inputs */}
+                            {!isExcluded && optionGroups.length > 0 && (
+                              <div className="ml-7 space-y-2 px-1.5 pb-1">
+                                {optionGroups.map(({ group, options }) => (
+                                  <div key={group.id}>
+                                    {optionGroups.length > 1 && (
+                                      <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">
+                                        {group.name}
+                                      </p>
+                                    )}
+                                    <div className="space-y-1">
+                                      {options.map((opt) => {
+                                        const isOptExcluded = excludedSizesForItem.includes(opt.id);
+                                        const optKey = `${item.id}:${opt.id}`;
+                                        const optDelta = choice.supplements[optKey] || 0;
+                                        return (
+                                          <div key={opt.id} className="flex items-center gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                toggleExcludedSize(index, item.id, opt.id)
+                                              }
+                                              className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
+                                                !isOptExcluded
+                                                  ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through'
+                                              }`}
+                                            >
+                                              {opt.name}
+                                            </button>
+                                            {!isOptExcluded && (
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs text-gray-400">+</span>
+                                                <input
+                                                  type="number"
+                                                  step="0.5"
+                                                  min="0"
+                                                  value={
+                                                    optDelta ? (optDelta / 100).toString() : ''
+                                                  }
+                                                  onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setItemSupplement(
+                                                      index,
+                                                      optKey,
+                                                      isNaN(val) || val === 0
+                                                        ? null
+                                                        : Math.round(val * 100)
+                                                    );
+                                                  }}
+                                                  onWheel={(e) => e.currentTarget.blur()}
+                                                  className="w-14 text-xs px-1.5 py-0.5 border rounded text-right"
+                                                  placeholder="0€"
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
-                                  );
-                                })}
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>

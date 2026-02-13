@@ -181,8 +181,22 @@ export default function BundleBuilder({
   ) => {
     const bundleCat = bundleCategories[currentStep];
     const entries = Object.values(optionSelections);
-    const sizeEntry = entries.find((e) => e.group.display_order === 0) || entries[0];
-    const supplement = getSupplement(bundleCat, item.id, sizeEntry?.option.id);
+    // Accumulate supplements: sum per-option supplements, fallback to item base
+    let supplement = 0;
+    if (entries.length > 0 && bundleCat.supplements) {
+      const hasPerOptionSupplements = entries.some(
+        (e) => bundleCat.supplements?.[`${item.id}:${e.option.id}`] !== undefined
+      );
+      if (hasPerOptionSupplements) {
+        for (const entry of entries) {
+          supplement += getSupplement(bundleCat, item.id, entry.option.id);
+        }
+      } else {
+        supplement = getSupplement(bundleCat, item.id);
+      }
+    } else {
+      supplement = getSupplement(bundleCat, item.id);
+    }
 
     const selectedOptions: SelectedOption[] = entries.map((e) => ({
       optionId: e.option.id,
