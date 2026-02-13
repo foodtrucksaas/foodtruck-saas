@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import type { Foodtruck, Category, MenuItem } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
@@ -22,6 +22,7 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasLoadedRef = useRef(false);
 
   const fetchFoodtruck = async () => {
     if (!user) {
@@ -29,10 +30,14 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
       setCategories([]);
       setMenuItems([]);
       setLoading(false);
+      hasLoadedRef.current = false;
       return;
     }
 
-    setLoading(true);
+    // Only show loading spinner on first fetch, not on auth token refreshes
+    if (!hasLoadedRef.current) {
+      setLoading(true);
+    }
 
     const { data: foodtruckData } = await supabase
       .from('foodtrucks')
@@ -62,6 +67,7 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
       setMenuItems(menuItemsRes.data || []);
     }
 
+    hasLoadedRef.current = true;
     setLoading(false);
   };
 
