@@ -125,6 +125,9 @@ export interface BundleCartInfo {
   fixedPrice: number; // Bundle base price in cents
   freeOptions: boolean;
   selections: BundleCartSelection[];
+  timeStart?: string | null;
+  timeEnd?: string | null;
+  daysOfWeek?: number[] | null;
 }
 
 export interface CartItem {

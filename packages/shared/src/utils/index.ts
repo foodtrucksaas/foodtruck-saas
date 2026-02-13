@@ -6,3 +6,4 @@ export * from './numbers';
 export * from './theme';
 export * from './slug';
 export * from './pricing';
+export * from './bundleTime';

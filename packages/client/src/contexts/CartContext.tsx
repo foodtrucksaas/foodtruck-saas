@@ -12,6 +12,7 @@ interface CartContextType {
     selectedOptions?: SelectedOption[]
   ) => void;
   addBundleItem: (bundleInfo: BundleCartInfo, quantity: number) => void;
+  decomposeBundleItem: (cartKey: string) => void;
   removeItem: (cartKey: string) => void;
   updateQuantity: (cartKey: string, quantity: number) => void;
   clearCart: () => void;
@@ -167,6 +168,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const decomposeBundleItem = (cartKey: string) => {
+    setItems((prev) => {
+      const bundleItem = prev.find(
+        (item) =>
+          item.bundleInfo && generateCartKey(item.menuItem.id, item.selectedOptions) === cartKey
+      );
+      if (!bundleItem?.bundleInfo) return prev;
+
+      // Remove the bundle item
+      const withoutBundle = prev.filter(
+        (item) => generateCartKey(item.menuItem.id, item.selectedOptions) !== cartKey
+      );
+
+      // Add each selection as an individual item
+      const newItems: CartItem[] = bundleItem.bundleInfo.selections.map((sel) => ({
+        menuItem: sel.menuItem,
+        quantity: bundleItem.quantity,
+        selectedOptions: sel.selectedOptions,
+      }));
+
+      return [...withoutBundle, ...newItems];
+    });
+  };
+
   const removeItem = (cartKey: string) => {
     setItems((prev) =>
       prev.filter((item) => generateCartKey(item.menuItem.id, item.selectedOptions) !== cartKey)
@@ -232,6 +257,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         foodtruckId,
         addItem,
         addBundleItem,
+        decomposeBundleItem,
         removeItem,
         updateQuantity,
         clearCart,

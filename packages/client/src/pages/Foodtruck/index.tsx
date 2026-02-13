@@ -18,7 +18,13 @@ import {
   FileText,
   Building,
 } from 'lucide-react';
-import { formatPrice, formatTime, DAY_NAMES, PAYMENT_METHODS } from '@foodtruck/shared';
+import {
+  formatPrice,
+  formatTime,
+  formatBundleRestrictions,
+  DAY_NAMES,
+  PAYMENT_METHODS,
+} from '@foodtruck/shared';
 import LocationCard from '../../components/LocationCard';
 import { OptimizedImage } from '../../components/OptimizedImage';
 import BundleBuilder from '../../components/BundleBuilder';
@@ -588,6 +594,20 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
                             {categoryNames && (
                               <p className="text-xs text-gray-500 mt-0.5">{categoryNames}</p>
+                            )}
+                            {formatBundleRestrictions(
+                              bundle.time_start,
+                              bundle.time_end,
+                              bundle.days_of_week
+                            ) && (
+                              <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
+                                <Clock className="w-3 h-3 shrink-0" />
+                                {formatBundleRestrictions(
+                                  bundle.time_start,
+                                  bundle.time_end,
+                                  bundle.days_of_week
+                                )}
+                              </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2">

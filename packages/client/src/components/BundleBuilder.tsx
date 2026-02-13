@@ -356,6 +356,9 @@ export default function BundleBuilder({
       fixedPrice: config.fixed_price,
       freeOptions: config.free_options || false,
       selections: bundleSelections,
+      timeStart: bundle.time_start,
+      timeEnd: bundle.time_end,
+      daysOfWeek: bundle.days_of_week,
     };
 
     onAddToCart(bundleInfo, quantity);

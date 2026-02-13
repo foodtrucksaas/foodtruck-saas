@@ -10,7 +10,7 @@ import {
   User,
   MessageSquare,
 } from 'lucide-react';
-import { formatPrice, formatTime, isValidEmail } from '@foodtruck/shared';
+import { formatPrice, formatTime, isValidEmail, isBundleValidForPickup } from '@foodtruck/shared';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
 import OffersBanner from '../components/OffersBanner';
@@ -43,6 +43,7 @@ export default function Checkout({ slug }: CheckoutProps) {
     items,
     updateQuantity,
     removeItem,
+    decomposeBundleItem,
     clearCart,
     total,
     getCartKey,
@@ -110,6 +111,7 @@ export default function Checkout({ slug }: CheckoutProps) {
   const [submitting, setSubmitting] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [bundleDecomposedMsg, setBundleDecomposedMsg] = useState<string | null>(null);
 
   // Custom hooks
   const { loading, allSchedules, exceptions, settings, availableDates, showPromoSection } =
@@ -181,6 +183,54 @@ export default function Checkout({ slug }: CheckoutProps) {
       setForm((prev) => ({ ...prev, loyaltyOptIn: !!loyaltyInfo.loyalty_opt_in }));
     }
   }, [loyaltyInfo]);
+
+  // Validate bundle time restrictions when pickup time/date changes
+  useEffect(() => {
+    if (form.isAsap || !form.pickupTime) return;
+
+    const [pickupTimeStr] = form.pickupTime.split('|');
+    const timeParts = pickupTimeStr.split(':');
+    if (timeParts.length < 2 || isNaN(Number(timeParts[0])) || isNaN(Number(timeParts[1]))) return;
+
+    const [hours, minutes] = timeParts.map(Number);
+    const pickupDate = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      hours,
+      minutes
+    );
+
+    const decomposed: string[] = [];
+    for (const item of items) {
+      if (
+        !item.bundleInfo?.timeStart &&
+        !item.bundleInfo?.timeEnd &&
+        !item.bundleInfo?.daysOfWeek?.length
+      )
+        continue;
+      if (!isBundleValidForPickup(item.bundleInfo!, pickupDate)) {
+        const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
+        decomposed.push(item.bundleInfo!.bundleName);
+        decomposeBundleItem(cartKey);
+      }
+    }
+
+    if (decomposed.length > 0) {
+      setBundleDecomposedMsg(
+        decomposed.length === 1
+          ? `La formule "${decomposed[0]}" a été décomposée car elle n'est pas disponible à cet horaire`
+          : `${decomposed.length} formules ont été décomposées car elles ne sont pas disponibles à cet horaire`
+      );
+    }
+  }, [form.pickupTime, form.isAsap, selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-clear decomposition message
+  useEffect(() => {
+    if (!bundleDecomposedMsg) return;
+    const timer = setTimeout(() => setBundleDecomposedMsg(null), 6000);
+    return () => clearTimeout(timer);
+  }, [bundleDecomposedMsg]);
 
   // Calculate discounts
   const { discount: loyaltyDiscount, rewardCount: loyaltyRewardCount } = calculateLoyaltyDiscount(
@@ -476,6 +526,17 @@ export default function Checkout({ slug }: CheckoutProps) {
             aria-live="assertive"
           >
             {formError}
+          </div>
+        )}
+
+        {/* Bundle decomposition notice */}
+        {bundleDecomposedMsg && (
+          <div
+            className="mx-4 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm animate-fade-in-up flex items-start gap-2"
+            role="status"
+          >
+            <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{bundleDecomposedMsg}</span>
           </div>
         )}
 
