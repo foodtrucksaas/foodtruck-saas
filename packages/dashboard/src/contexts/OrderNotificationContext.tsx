@@ -342,7 +342,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
           console.error('[OrderNotification] Channel error, subscription may not be active');
         }
         if (status === 'TIMED_OUT') {
-          console.warn('[OrderNotification] Subscription timed out, relying on polling');
+          // Subscription timed out, relying on polling
         }
       });
 

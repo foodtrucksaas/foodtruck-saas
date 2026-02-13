@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect, useRef, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   MapPin,
@@ -17,6 +18,8 @@ import {
   Wallet,
   FileText,
   Building,
+  Download,
+  X,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -30,6 +33,7 @@ import { OptimizedImage } from '../../components/OptimizedImage';
 import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection, useDocumentMeta } from '../../hooks';
+import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useFoodtruck, type BundleOffer } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
@@ -48,6 +52,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedBundle, setSelectedBundle] = useState<BundleOffer | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { canInstall, promptInstall, dismiss } = usePwaInstall();
   const {
     // Data
     foodtruck,
@@ -470,6 +475,33 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
               </div>
             </div>
           ) : null}
+        </div>
+      )}
+
+      {/* PWA Install Banner */}
+      {canInstall && (
+        <div className="mx-4 mt-3">
+          <div className="flex items-center justify-between gap-3 bg-primary-50 border border-primary-100 rounded-xl px-4 py-3">
+            <button
+              onClick={promptInstall}
+              className="flex items-center gap-3 flex-1 min-w-0 active:scale-[0.98] transition-transform"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <Download className="w-5 h-5 text-primary-600" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Installer l'app</p>
+                <p className="text-xs text-gray-500 truncate">Accédez plus vite au menu</p>
+              </div>
+            </button>
+            <button
+              onClick={dismiss}
+              className="p-2 -mr-1 text-gray-400 hover:text-gray-600 flex-shrink-0"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -1053,7 +1085,10 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
           bundle={selectedBundle}
           menuItems={menuItems}
           categories={categories}
-          onAddToCart={addBundleItem}
+          onAddToCart={(...args) => {
+            addBundleItem(...args);
+            toast.success('Formule ajoutée au panier');
+          }}
           onClose={() => setSelectedBundle(null)}
         />
       )}

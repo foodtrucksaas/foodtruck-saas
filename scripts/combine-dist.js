@@ -11,10 +11,17 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir, { recursive: true });
 
-// Copy landing page
+// Copy public static assets (fallback)
 const publicDir = path.join(rootDir, 'public');
 if (fs.existsSync(publicDir)) {
   copyDir(publicDir, distDir);
+}
+
+// Copy landing page build (overwrites public/index.html with the React landing page)
+const landingDist = path.join(rootDir, 'packages/landing/dist');
+if (fs.existsSync(landingDist)) {
+  copyDir(landingDist, distDir);
+  console.log('✓ Landing page copied to dist/');
 }
 
 // Copy client build to dist/client
@@ -107,9 +114,15 @@ const config = {
       headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
       continue: true
     },
-    // Cache hashed static assets (immutable - filename changes on content change)
+    // Landing page root index.html - no cache
     {
-      src: "/(?:client|dashboard)/assets/.+\\.[a-f0-9]+\\.(js|css|woff2?|png|jpg|svg|webp)$",
+      src: "/index\\.html$",
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
+      continue: true
+    },
+    // Cache hashed static assets for all apps (immutable - filename changes on content change)
+    {
+      src: "/(?:client/|dashboard/)?assets/.+\\.[a-f0-9]+\\.(js|css|woff2?|png|jpg|svg|webp)$",
       headers: { "Cache-Control": "public, max-age=31536000, immutable" },
       continue: true
     },

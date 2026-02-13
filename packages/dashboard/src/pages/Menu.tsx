@@ -8,9 +8,11 @@ import {
   Trash2,
   RotateCcw,
   UtensilsCrossed,
+  Eye,
 } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import { useMenuPage } from '../hooks';
+import { useFoodtruck } from '../contexts/FoodtruckContext';
 import {
   SortableMenuItemList,
   MenuItemForm,
@@ -79,25 +81,40 @@ export default function Menu() {
     saveCategoryOptionGroups,
   } = useMenuPage();
 
+  const { foodtruck } = useFoodtruck();
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
+
+  const clientUrl = foodtruck?.slug
+    ? window.location.hostname === 'pro.onmange.app'
+      ? `https://${foodtruck.slug}.onmange.app`
+      : `${window.location.protocol}//${window.location.hostname}:5173/${foodtruck.slug}`
+    : null;
 
   return (
     <div className="space-y-6">
       {/* Page header */}
       <div className="hidden lg:flex items-center justify-between">
         <p className="text-gray-600">Gérez les plats de votre food truck</p>
-        <button
-          onClick={() => setShowCategoryManager(!showCategoryManager)}
-          className="btn-secondary"
-        >
-          <FolderOpen className="w-5 h-5 mr-2" />
-          Gérer les catégories
-          {showCategoryManager ? (
-            <ChevronDown className="w-4 h-4 ml-1" />
-          ) : (
-            <ChevronRight className="w-4 h-4 ml-1" />
+        <div className="flex items-center gap-2">
+          {clientUrl && (
+            <a href={clientUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+              <Eye className="w-5 h-5 mr-2" />
+              Aperçu client
+            </a>
           )}
-        </button>
+          <button
+            onClick={() => setShowCategoryManager(!showCategoryManager)}
+            className="btn-secondary"
+          >
+            <FolderOpen className="w-5 h-5 mr-2" />
+            Gérer les catégories
+            {showCategoryManager ? (
+              <ChevronDown className="w-4 h-4 ml-1" />
+            ) : (
+              <ChevronRight className="w-4 h-4 ml-1" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile action buttons */}

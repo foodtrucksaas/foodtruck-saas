@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Clock, Package, Search, AlertCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Clock, Package, Search, AlertCircle, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { formatPrice, formatDateTime, formatOrderId, ORDER_STATUSES } from '@foodtruck/shared';
+import { useCart } from '../contexts/CartContext';
+import { getSubdomain } from '../lib/subdomain';
 
 const STATUS_COLOR_CLASSES: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -16,6 +19,8 @@ import type { Order } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 
 export default function OrderHistory() {
+  const navigate = useNavigate();
+  const { clearCart, setFoodtruck, addItem } = useCart();
   const [email, setEmail] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -48,7 +53,15 @@ export default function OrderHistory() {
       try {
         const { data, error: fetchError } = await supabase
           .from('orders')
-          .select('*')
+          .select(
+            `
+            *,
+            order_items (
+              id, quantity, unit_price, notes,
+              menu_item:menu_items (id, name, price, foodtruck_id, is_available, category_id)
+            )
+          `
+          )
           .eq('customer_email', searchEmail)
           .order('created_at', { ascending: false })
           .limit(20);
@@ -86,6 +99,32 @@ export default function OrderHistory() {
       localStorage.setItem('foodtruck-email', email);
       setSearchEmail(email);
     }
+  };
+
+  const handleReorder = (order: any) => {
+    const items = order.order_items || [];
+    const availableItems = items.filter((oi: any) => oi.menu_item && oi.menu_item.is_available);
+
+    if (availableItems.length === 0) {
+      toast.error('Les articles de cette commande ne sont plus disponibles');
+      return;
+    }
+
+    clearCart();
+    setFoodtruck(order.foodtruck_id);
+
+    for (const oi of availableItems) {
+      addItem(oi.menu_item, oi.quantity);
+    }
+
+    if (availableItems.length < items.length) {
+      toast('Certains articles ne sont plus disponibles', { icon: '⚠️' });
+    } else {
+      toast.success('Panier restauré !');
+    }
+
+    const subdomain = getSubdomain();
+    navigate(subdomain ? '/checkout' : `/${order.foodtruck_id}`);
   };
 
   return (
@@ -187,6 +226,17 @@ export default function OrderHistory() {
                     {formatPrice(order.total_amount)}
                   </span>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleReorder(order);
+                  }}
+                  className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors active:scale-[0.98]"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Recommander
+                </button>
               </Link>
             ))}
           </div>

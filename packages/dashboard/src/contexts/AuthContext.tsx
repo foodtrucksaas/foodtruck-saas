@@ -147,8 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Wrap in try/catch to not block sign out if this fails
       try {
         await removeDeviceToken();
-      } catch (tokenError) {
-        console.warn('Failed to remove device token during sign out:', tokenError);
+      } catch {
         // Continue with sign out even if token removal fails
       }
 

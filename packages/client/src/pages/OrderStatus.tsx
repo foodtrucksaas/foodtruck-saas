@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Package } from 'lucide-react';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Package, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { getSubdomain } from '../lib/subdomain';
 import { formatPrice, formatDateTime, formatOrderId } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
+import { useCart } from '../contexts/CartContext';
 
 interface OfferUse {
   id: string;
@@ -32,6 +34,8 @@ type OrderWithOffers = OrderWithItemsAndOptions & {
 export default function OrderStatus() {
   const { orderId } = useParams<{ orderId: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { clearCart, setFoodtruck, addItem } = useCart();
   const [order, setOrder] = useState<OrderWithOffers | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -342,6 +346,35 @@ export default function OrderStatus() {
       promoOffers: promos,
     };
   }, [orderItems, offerUses]);
+
+  const handleReorder = () => {
+    if (!order) return;
+    const items = order.order_items || [];
+    const availableItems = items.filter(
+      (oi) => oi.menu_item && oi.menu_item.is_available !== false
+    );
+
+    if (availableItems.length === 0) {
+      toast.error('Les articles de cette commande ne sont plus disponibles');
+      return;
+    }
+
+    clearCart();
+    setFoodtruck(order.foodtruck_id);
+
+    for (const oi of availableItems) {
+      addItem(oi.menu_item!, oi.quantity);
+    }
+
+    if (availableItems.length < items.length) {
+      toast('Certains articles ne sont plus disponibles', { icon: '⚠️' });
+    } else {
+      toast.success('Panier restauré !');
+    }
+
+    const subdomain = getSubdomain();
+    navigate(subdomain ? '/' : `/${order.foodtruck_id}`);
+  };
 
   if (loading) {
     return (
@@ -674,6 +707,14 @@ export default function OrderStatus() {
             </p>
           </div>
         </section>
+
+        {/* Reorder */}
+        {order && order.status && ['picked_up', 'ready', 'confirmed'].includes(order.status) && (
+          <button onClick={handleReorder} className="btn-primary w-full justify-center">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Commander à nouveau
+          </button>
+        )}
 
         {/* Back to Menu */}
         <Link

@@ -199,8 +199,8 @@ export function useBundleDetection(
           );
           setBundles(categoryBundles);
         }
-      } catch (err) {
-        console.warn('Bundle detection fetch failed:', err);
+      } catch {
+        // Bundle detection fetch failed silently
       }
       setLoading(false);
     };

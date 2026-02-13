@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>OnMange — Pré-commandes pour food trucks | 0% commission</title>
+  <meta name="description" content="Recevez les commandes de vos clients via QR code. Menu digital, fidélité, analytics. 29€/mois, 0% de commission. Essai gratuit 30 jours.">
+  <meta name="theme-color" content="#F97066">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="canonical" href="https://onmange.app">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="OnMange — Pré-commandes pour food trucks">
+  <meta property="og:description" content="Recevez les commandes de vos clients avant même d'ouvrir votre camion. 0% de commission, 29€/mois.">
+  <meta property="og:url" content="https://onmange.app">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="OnMange">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OnMange — Pré-commandes pour food trucks">
+  <meta name="twitter:description" content="Menu digital et pré-commandes par QR code. 29€/mois, 0% commission.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "OnMange",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, iOS, Android",
+    "url": "https://onmange.app",
+    "offers": {
+      "@type": "Offer",
+      "price": "29",
+      "priceCurrency": "EUR",
+      "name": "Abonnement mensuel tout inclus"
+    },
+    "description": "Application SaaS de pré-commandes pour food trucks. Menu digital, QR code, programme de fidélité, analytics."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Y a-t-il des commissions sur les ventes ?", "acceptedAnswer": {"@type": "Answer", "text": "Non, jamais. Votre abonnement de 29€/mois est le seul coût. Que vous fassiez 10 ou 100 commandes par jour, le prix ne change pas."}},
+      {"@type": "Question", "name": "Mes clients doivent-ils télécharger une app ?", "acceptedAnswer": {"@type": "Answer", "text": "Non, il n'y a rien à télécharger. Vos clients scannent un QR code et commandent depuis leur navigateur."}},
+      {"@type": "Question", "name": "Les paiements sont-ils gérés par OnMange ?", "acceptedAnswer": {"@type": "Answer", "text": "Non. OnMange gère la commande. Le paiement se fait directement sur place, auprès de vous."}}
+    ]
+  }
+  </script>
+
+  <!-- Subdomain auto-routing (preserve existing behavior) -->
+  <script>
+    (function() {
+      var hostname = window.location.hostname;
+      var parts = hostname.split('.');
+      if (parts.length >= 3 && parts.slice(-2).join('.') === 'onmange.app') {
+        var subdomain = parts[0];
+        if (subdomain === 'pro') {
+          window.location.href = '/dashboard/';
+          return;
+        }
+        if (subdomain !== 'www' && subdomain !== 'app' && subdomain !== 'dashboard') {
+          window.location.href = '/client/';
+          return;
+        }
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

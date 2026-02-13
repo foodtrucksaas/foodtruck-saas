@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   Loader2,
@@ -265,6 +266,14 @@ export default function Checkout({ slug }: CheckoutProps) {
         day: 'numeric',
         month: 'short',
       });
+
+  const handleRemoveItem = useCallback(
+    (cartKey: string) => {
+      removeItem(cartKey);
+      toast('Article retiré du panier', { icon: '🗑️' });
+    },
+    [removeItem]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -551,7 +560,7 @@ export default function Checkout({ slug }: CheckoutProps) {
             finalTotal={finalTotal}
             getCartKey={getCartKey}
             onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeItem}
+            onRemoveItem={handleRemoveItem}
             // Loyalty
             loyaltyInfo={loyaltyInfo}
             loyaltyLoading={loyaltyLoading}

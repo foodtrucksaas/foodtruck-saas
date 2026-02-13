@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply text-gray-800 bg-white;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto;
+  }
+
+  /* Custom range slider styling */
+  input[type='range'] {
+    @apply w-full h-2 rounded-full appearance-none cursor-pointer bg-gray-200;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    @apply w-5 h-5 rounded-full appearance-none bg-primary-500 shadow-md cursor-pointer;
+    -webkit-appearance: none;
+  }
+
+  input[type='range']::-moz-range-thumb {
+    @apply w-5 h-5 rounded-full bg-primary-500 shadow-md cursor-pointer border-0;
+  }
+
+  input[type='range']::-webkit-slider-thumb:hover {
+    @apply bg-primary-600;
+  }
+
+  input[type='range']::-moz-range-thumb:hover {
+    @apply bg-primary-600;
+  }
+}

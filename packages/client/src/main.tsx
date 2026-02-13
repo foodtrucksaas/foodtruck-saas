@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './contexts/CartContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initSentry } from './lib/sentry';
@@ -26,6 +27,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       >
         <CartProvider>
           <App />
+          <Toaster
+            position="top-center"
+            toastOptions={{ duration: 2000, style: { fontSize: '14px' } }}
+          />
         </CartProvider>
       </BrowserRouter>
     </ErrorBoundary>

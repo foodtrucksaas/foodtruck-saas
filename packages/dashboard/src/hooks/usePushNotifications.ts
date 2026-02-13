@@ -78,8 +78,8 @@ export function usePushNotifications(options?: UsePushNotificationsOptions) {
         });
 
         // Listen for registration errors
-        await PushNotifications.addListener('registrationError', (err) => {
-          console.warn('Push notification registration failed:', err);
+        await PushNotifications.addListener('registrationError', () => {
+          // Push notification registration failed
         });
 
         // Listen for notification tap (when user clicks on the notification)
@@ -112,8 +112,8 @@ export function usePushNotifications(options?: UsePushNotificationsOptions) {
 
         // Register for push notifications
         await PushNotifications.register();
-      } catch (err) {
-        console.warn('Push notification setup failed:', err);
+      } catch {
+        // Push notification setup failed
       }
     };
 

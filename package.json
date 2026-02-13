@@ -7,6 +7,7 @@
     "dev": "pnpm -r --parallel dev",
     "dev:client": "pnpm --filter @foodtruck/client dev",
     "dev:dashboard": "pnpm --filter @foodtruck/dashboard dev",
+    "dev:landing": "pnpm --filter @foodtruck/landing dev",
     "build": "node scripts/validate-vercel-config.js && pnpm -r build && node scripts/combine-dist.js",
     "build:client": "pnpm --filter @foodtruck/client build",
     "build:dashboard": "pnpm --filter @foodtruck/dashboard build",

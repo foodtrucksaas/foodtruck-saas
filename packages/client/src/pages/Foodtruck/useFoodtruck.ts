@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import type {
   Foodtruck,
   MenuItem,
@@ -315,6 +316,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         setShowOptionsModal(true);
       } else {
         addItem(item, 1);
+        toast.success(`${item.name} ajouté au panier`);
       }
     },
     [getCategoryOptions, addItem]
@@ -324,6 +326,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     (selectedOptions: SelectedOption[], quantity: number, notes?: string) => {
       if (selectedMenuItem) {
         addItem(selectedMenuItem, quantity, notes, selectedOptions);
+        toast.success(`${selectedMenuItem?.name} ajouté au panier`);
         setShowOptionsModal(false);
         setSelectedMenuItem(null);
         setSelectedCategory(null);
