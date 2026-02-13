@@ -109,8 +109,12 @@ export default function BundleBuilder({
     const category = categories.find((c) => c.id === categoryId);
     if (!category?.category_option_groups) return [];
     return category.category_option_groups
-      .filter((g) => g.is_required && !g.is_multiple && g.category_options?.length)
-      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+      .filter((g) => !g.is_multiple && g.category_options?.length)
+      .sort((a, b) => {
+        // Required groups first, then by display_order
+        if (a.is_required !== b.is_required) return a.is_required ? -1 : 1;
+        return (a.display_order ?? 0) - (b.display_order ?? 0);
+      })
       .map((group) => ({
         group,
         options: (group.category_options || [])
