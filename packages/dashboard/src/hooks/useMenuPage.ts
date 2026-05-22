@@ -613,8 +613,8 @@ export function useMenuPage() {
         // Flat list of supplements for backwards compatibility
         const allSupplements = suppGroups.flatMap((g) => g.category_options || []);
         setSelectedCategorySupplements(allSupplements as CategoryOption[]);
-      } catch {
-        console.error('Error fetching category options:', error);
+      } catch (err) {
+        console.error('Error fetching category options:', err);
       }
     };
 
