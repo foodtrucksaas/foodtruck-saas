@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, History, AlertCircle, RefreshCw, X } from 'lucide-react';
 import type { Foodtruck } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
-import { OptimizedImage } from '../components/OptimizedImage';
+import { OptimizedImage } from '@foodtruck/shared';
 
 export default function Home() {
   const [foodtrucks, setFoodtrucks] = useState<Foodtruck[]>([]);
@@ -128,7 +128,7 @@ export default function Home() {
             {filteredFoodtrucks.map((foodtruck) => (
               <Link
                 key={foodtruck.id}
-                to={`/${foodtruck.id}`}
+                to={`/${foodtruck.slug}`}
                 className="card p-4 flex gap-4 active:scale-[0.98] transition-transform"
               >
                 {foodtruck.logo_url ? (

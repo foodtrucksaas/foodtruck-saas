@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import type { MenuItem, Category, CategoryOption, CategoryOptionGroup } from '@foodtruck/shared';
 import { api } from '../lib/api';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
@@ -174,11 +175,8 @@ export function useMenuPage() {
         }
         await refresh();
         resetForm();
-      } catch (error) {
-        console.error(
-          editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création',
-          error
-        );
+      } catch {
+        toast.error(editingItem ? 'Erreur lors de la modification' : 'Erreur lors de la création');
       }
     },
     [foodtruck, formData, editingItem, requiredOptionGroups, refresh, resetForm]
@@ -189,8 +187,8 @@ export function useMenuPage() {
       try {
         await api.menu.toggleAvailability(item.id, !item.is_available);
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors du changement de disponibilité', error);
+      } catch {
+        toast.error('Erreur lors du changement de disponibilité');
       }
     },
     [refresh]
@@ -208,8 +206,8 @@ export function useMenuPage() {
           const archived = await api.menu.getArchivedItems(foodtruck.id);
           setArchivedItems(archived);
         }
-      } catch (error) {
-        console.error('Erreur lors de la suppression', error);
+      } catch {
+        toast.error('Erreur lors de la suppression');
       }
     },
     [refresh, foodtruck]
@@ -241,8 +239,8 @@ export function useMenuPage() {
           const archived = await api.menu.getArchivedItems(foodtruck.id);
           setArchivedItems(archived);
         }
-      } catch (error) {
-        console.error('Erreur lors de la restauration', error);
+      } catch {
+        toast.error('Erreur lors de la restauration');
       }
     },
     [refresh, foodtruck]
@@ -263,8 +261,8 @@ export function useMenuPage() {
           display_order: maxOrder,
         });
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors de la création de la catégorie', error);
+      } catch {
+        toast.error('Erreur lors de la création de la catégorie');
       }
     },
     [foodtruck, categories, refresh]
@@ -278,8 +276,8 @@ export function useMenuPage() {
           display_order: data.display_order,
         });
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors de la modification de la catégorie', error);
+      } catch {
+        toast.error('Erreur lors de la modification de la catégorie');
       }
     },
     [refresh]
@@ -290,7 +288,7 @@ export function useMenuPage() {
       const itemsInCategory = menuItems.filter((item) => item.category_id === category.id);
 
       if (itemsInCategory.length > 0) {
-        console.error(
+        toast.error(
           `Impossible de supprimer : ${itemsInCategory.length} plat(s) dans cette catégorie`
         );
         return;
@@ -301,8 +299,8 @@ export function useMenuPage() {
       try {
         await api.menu.deleteCategory(category.id);
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors de la suppression de la catégorie', error);
+      } catch {
+        toast.error('Erreur lors de la suppression de la catégorie');
       }
     },
     [menuItems, refresh]
@@ -320,8 +318,8 @@ export function useMenuPage() {
           display_order: index,
         }));
         await api.menu.reorderCategories(updates);
-      } catch (error) {
-        console.error('Erreur lors du réordonnancement des catégories', error);
+      } catch {
+        toast.error('Erreur lors du réordonnancement des catégories');
         // Refresh to rollback on error
         await refresh();
       }
@@ -341,8 +339,8 @@ export function useMenuPage() {
           { id: prevItem.id, display_order: index },
         ]);
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors du déplacement du plat', error);
+      } catch {
+        toast.error('Erreur lors du déplacement du plat');
       }
     },
     [refresh]
@@ -359,8 +357,8 @@ export function useMenuPage() {
           { id: nextItem.id, display_order: index },
         ]);
         await refresh();
-      } catch (error) {
-        console.error('Erreur lors du déplacement du plat', error);
+      } catch {
+        toast.error('Erreur lors du déplacement du plat');
       }
     },
     [refresh]
@@ -378,8 +376,8 @@ export function useMenuPage() {
           display_order: index,
         }));
         await api.menu.reorderItems(updates);
-      } catch (error) {
-        console.error('Erreur lors du réordonnancement des plats', error);
+      } catch {
+        toast.error('Erreur lors du réordonnancement des plats');
         // Refresh to rollback on error
         await refresh();
       }
@@ -459,8 +457,8 @@ export function useMenuPage() {
       }
 
       closeOptionsWizard();
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des options', error);
+    } catch {
+      toast.error('Erreur lors de la sauvegarde des options');
     } finally {
       setSavingOptionsWizard(false);
     }
@@ -580,8 +578,8 @@ export function useMenuPage() {
       }
 
       closeCategoryOptionsModal();
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des options', error);
+    } catch {
+      toast.error('Erreur lors de la sauvegarde des options');
     } finally {
       setSavingOptions(false);
     }
@@ -615,7 +613,7 @@ export function useMenuPage() {
         // Flat list of supplements for backwards compatibility
         const allSupplements = suppGroups.flatMap((g) => g.category_options || []);
         setSelectedCategorySupplements(allSupplements as CategoryOption[]);
-      } catch (error) {
+      } catch {
         console.error('Error fetching category options:', error);
       }
     };

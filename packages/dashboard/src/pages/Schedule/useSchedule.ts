@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { Schedule, Location, ScheduleException } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
+import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 
@@ -231,7 +232,7 @@ export function useSchedule() {
 
     // Validate: require location when in override mode
     if (dayModalForm.mode === 'override' && !dayModalForm.location_id) {
-      console.error('Sélectionnez un emplacement');
+      toast.error('Sélectionnez un emplacement');
       return;
     }
 
@@ -305,7 +306,7 @@ export function useSchedule() {
       const lng = locationForm.longitude ? parseFloat(locationForm.longitude) : null;
 
       if ((lat && !lng) || (!lat && lng)) {
-        console.error('Latitude et longitude doivent etre fournies ensemble');
+        toast.error('Latitude et longitude doivent être fournies ensemble');
         return;
       }
 
@@ -320,7 +321,7 @@ export function useSchedule() {
       if (editingLocationId) {
         const { error } = await supabase.from('locations').update(data).eq('id', editingLocationId);
         if (error) {
-          console.error("Erreur lors de la modification de l'emplacement", error);
+          toast.error("Erreur lors de la modification de l'emplacement");
         } else {
           resetLocationForm();
           fetchData();
@@ -330,7 +331,7 @@ export function useSchedule() {
           .from('locations')
           .insert({ ...data, foodtruck_id: foodtruck.id });
         if (error) {
-          console.error("Erreur lors de la creation de l'emplacement", error);
+          toast.error("Erreur lors de la création de l'emplacement");
         } else {
           resetLocationForm();
           fetchData();
@@ -382,7 +383,7 @@ export function useSchedule() {
       if (editingScheduleId) {
         const { error } = await supabase.from('schedules').update(data).eq('id', editingScheduleId);
         if (error) {
-          console.error("Erreur lors de la modification de l'horaire", error);
+          toast.error("Erreur lors de la modification de l'horaire");
         } else {
           resetScheduleForm();
           fetchData();
@@ -392,7 +393,7 @@ export function useSchedule() {
           .from('schedules')
           .insert({ ...data, foodtruck_id: foodtruck.id });
         if (error) {
-          console.error("Erreur lors de la creation de l'horaire", error);
+          toast.error("Erreur lors de la création de l'horaire");
         } else {
           resetScheduleForm();
           fetchData();

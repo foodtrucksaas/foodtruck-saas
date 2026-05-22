@@ -58,7 +58,8 @@ export default function OrderHistory() {
             *,
             order_items (
               id, quantity, unit_price, notes,
-              menu_item:menu_items (id, name, price, foodtruck_id, is_available, category_id)
+              menu_item:menu_items (id, name, price, foodtruck_id, is_available, category_id),
+              order_item_options (option_id, option_name, option_group_name, price_modifier)
             )
           `
           )
@@ -114,7 +115,19 @@ export default function OrderHistory() {
     setFoodtruck(order.foodtruck_id);
 
     for (const oi of availableItems) {
-      addItem(oi.menu_item, oi.quantity);
+      const selectedOptions = (oi.order_item_options || []).map((opt: any) => ({
+        optionId: opt.option_id || '',
+        optionGroupId: '',
+        name: opt.option_name,
+        groupName: opt.option_group_name,
+        priceModifier: opt.price_modifier,
+      }));
+      addItem(
+        oi.menu_item,
+        oi.quantity,
+        oi.notes || undefined,
+        selectedOptions.length > 0 ? selectedOptions : undefined
+      );
     }
 
     if (availableItems.length < items.length) {

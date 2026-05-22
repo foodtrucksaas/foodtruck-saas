@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { formatLocalDate } from '@foodtruck/shared';
 import { supabase } from '../../lib/supabase';
+import toast from 'react-hot-toast';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import { useOrderNotification } from '../../contexts/OrderNotificationContext';
 
@@ -154,11 +155,13 @@ export function useOrders() {
 
       if (error) {
         console.error('Error fetching orders:', error);
+        toast.error('Erreur de chargement des commandes');
       } else if (data) {
         setOrders(data as unknown as OrderWithItemsAndOptions[]);
       }
     } catch (err) {
       console.error('Error fetching orders:', err);
+      toast.error('Erreur de chargement des commandes');
     } finally {
       setLoading(false);
     }
@@ -220,6 +223,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error cancelling order:', error.message);
+        toast.error("Erreur lors de l'annulation");
         return;
       }
 
@@ -244,6 +248,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error marking order as ready:', error.message);
+        toast.error('Erreur de mise à jour du statut');
         return;
       }
 
@@ -268,6 +273,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error marking order as picked up:', error.message);
+        toast.error('Erreur de mise à jour du statut');
         return;
       }
 
@@ -296,6 +302,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error updating pickup time:', error.message);
+        toast.error("Erreur de modification de l'heure");
         return;
       }
 

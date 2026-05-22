@@ -29,7 +29,7 @@ import {
   PAYMENT_METHODS,
 } from '@foodtruck/shared';
 import LocationCard from '../../components/LocationCard';
-import { OptimizedImage } from '../../components/OptimizedImage';
+import { OptimizedImage } from '@foodtruck/shared';
 import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection, useDocumentMeta } from '../../hooks';

@@ -21,97 +21,160 @@ export function useCustomers() {
   const [filterLocation, setFilterLocation] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
+  // Stats loaded once (not paginated)
+  const [stats, setStats] = useState({ total: 0, emailOptIn: 0, smsOptIn: 0, active: 0, loyal: 0 });
+
+  // Load locations and stats once
   useEffect(() => {
     if (!foodtruck) return;
-    setLoading(true);
-    // Optimized select: only fetch needed fields for the customers list view
+
+    // Fetch locations
+    supabase
+      .from('locations')
+      .select('id, name')
+      .eq('foodtruck_id', foodtruck.id)
+      .order('name')
+      .then(({ data }) => {
+        if (data) setLocations(data as Location[]);
+      });
+
+    // Fetch stats via counts (much lighter than loading all customers)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString();
+
     Promise.all([
       supabase
         .from('customers')
-        .select(
-          `
-          id, email, name, phone, total_orders, total_spent, loyalty_points,
-          email_opt_in, sms_opt_in, first_order_at, last_order_at,
-          customer_locations(location_id, order_count, location:locations(id, name))
-        `
-        )
+        .select('id', { count: 'exact', head: true })
+        .eq('foodtruck_id', foodtruck.id),
+      supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
         .eq('foodtruck_id', foodtruck.id)
-        .order('last_order_at', { ascending: false }),
-      supabase.from('locations').select('*').eq('foodtruck_id', foodtruck.id).order('name'),
-    ]).then(([customersRes, locationsRes]) => {
-      if (customersRes.data) setCustomers(customersRes.data as unknown as CustomerWithLocations[]);
-      if (locationsRes.data) setLocations(locationsRes.data);
-      setLoading(false);
+        .eq('email_opt_in', true),
+      supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('foodtruck_id', foodtruck.id)
+        .eq('sms_opt_in', true),
+      supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('foodtruck_id', foodtruck.id)
+        .gte('last_order_at', thirtyDaysAgoStr),
+      supabase
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('foodtruck_id', foodtruck.id)
+        .gte('total_orders', 5),
+    ]).then(([totalRes, emailRes, smsRes, activeRes, loyalRes]) => {
+      setStats({
+        total: totalRes.count ?? 0,
+        emailOptIn: emailRes.count ?? 0,
+        smsOptIn: smsRes.count ?? 0,
+        active: activeRes.count ?? 0,
+        loyal: loyalRes.count ?? 0,
+      });
     });
   }, [foodtruck]);
 
-  const stats = useMemo(() => {
-    const total = customers.length;
-    const emailOptIn = customers.filter((c) => c.email_opt_in).length;
-    const smsOptIn = customers.filter((c) => c.sms_opt_in).length;
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const active = customers.filter(
-      (c) => c.last_order_at && new Date(c.last_order_at) > thirtyDaysAgo
-    ).length;
-    const loyal = customers.filter((c) => c.total_orders >= 5).length;
-    return { total, emailOptIn, smsOptIn, active, loyal };
-  }, [customers]);
+  // Fetch paginated + filtered customers
+  useEffect(() => {
+    if (!foodtruck) return;
+    setLoading(true);
 
-  const filteredCustomers = useMemo(() => {
-    let result = customers;
+    let query = supabase
+      .from('customers')
+      .select(
+        `
+        id, email, name, phone, total_orders, total_spent, loyalty_points,
+        email_opt_in, sms_opt_in, first_order_at, last_order_at,
+        customer_locations(location_id, order_count, location:locations(id, name))
+      `,
+        { count: 'exact' }
+      )
+      .eq('foodtruck_id', foodtruck.id)
+      .order('last_order_at', { ascending: false });
+
+    // Server-side search
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.email.toLowerCase().includes(query) ||
-          c.name?.toLowerCase().includes(query) ||
-          c.phone?.includes(query)
+      query = query.or(
+        `email.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
       );
     }
-    const thirtyDaysAgo = new Date();
+
+    // Server-side segment filters
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const sevenDaysAgo = new Date();
+    const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     switch (filterSegment) {
       case 'opted_in':
-        result = result.filter((c) => c.email_opt_in || c.sms_opt_in);
+        query = query.or('email_opt_in.eq.true,sms_opt_in.eq.true');
         break;
       case 'loyal':
-        result = result.filter((c) => c.total_orders >= 5);
+        query = query.gte('total_orders', 5);
         break;
       case 'inactive':
-        result = result.filter(
-          (c) => !c.last_order_at || new Date(c.last_order_at) < thirtyDaysAgo
-        );
+        query = query.or(`last_order_at.is.null,last_order_at.lt.${thirtyDaysAgo.toISOString()}`);
         break;
       case 'new':
-        result = result.filter(
-          (c) => c.first_order_at && new Date(c.first_order_at) > sevenDaysAgo
-        );
+        query = query.gte('first_order_at', sevenDaysAgo.toISOString());
         break;
     }
-    if (filterLocation)
-      result = result.filter((c) =>
-        c.customer_locations?.some((cl) => cl.location_id === filterLocation)
-      );
-    return result;
-  }, [customers, searchQuery, filterSegment, filterLocation]);
+
+    // Server-side pagination
+    const from = (currentPage - 1) * ITEMS_PER_PAGE;
+    query = query.range(from, from + ITEMS_PER_PAGE - 1);
+
+    query.then(({ data, count }) => {
+      if (data) setCustomers(data as unknown as CustomerWithLocations[]);
+      setTotalCount(count ?? 0);
+      setLoading(false);
+    });
+  }, [foodtruck, searchQuery, filterSegment, currentPage]);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterSegment, filterLocation]);
 
-  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const paginatedCustomers = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredCustomers, currentPage]);
+  // Client-side location filter (location is in nested join, can't easily filter server-side)
+  const displayedCustomers = useMemo(() => {
+    if (!filterLocation) return customers;
+    return customers.filter((c) =>
+      c.customer_locations?.some((cl) => cl.location_id === filterLocation)
+    );
+  }, [customers, filterLocation]);
 
-  const exportCSV = useCallback(() => {
+  const exportCSV = useCallback(async () => {
+    if (!foodtruck) return;
+
+    // For export, fetch all filtered customers (no pagination)
+    let query = supabase
+      .from('customers')
+      .select(
+        'id, email, name, phone, total_orders, total_spent, loyalty_points, email_opt_in, sms_opt_in, last_order_at'
+      )
+      .eq('foodtruck_id', foodtruck.id)
+      .order('last_order_at', { ascending: false });
+
+    if (searchQuery) {
+      query = query.or(
+        `email.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
+      );
+    }
+
+    const { data } = await query;
+    if (!data) return;
+
     const rows = [
       [
         'Email',
@@ -124,7 +187,7 @@ export function useCustomers() {
         'SMS Opt-in',
         'Dernière commande',
       ],
-      ...filteredCustomers.map((c) => [
+      ...data.map((c: any) => [
         c.email,
         c.name || '',
         c.phone || '',
@@ -143,11 +206,11 @@ export function useCustomers() {
     link.href = URL.createObjectURL(blob);
     link.download = `clients-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-  }, [filteredCustomers]);
+  }, [foodtruck, searchQuery]);
 
   return {
-    customers: paginatedCustomers,
-    totalCustomers: filteredCustomers.length,
+    customers: displayedCustomers,
+    totalCustomers: totalCount,
     locations,
     loading,
     stats,

@@ -11,11 +11,15 @@ vi.mock('../lib/supabase', () => ({
   },
 }));
 
-// Mock OptimizedImage
-vi.mock('../components/OptimizedImage', () => ({
-  OptimizedImage: ({ alt, fallback }: { alt: string; fallback?: React.ReactNode }) =>
-    fallback || <img alt={alt} />,
-}));
+// Mock OptimizedImage from shared
+vi.mock('@foodtruck/shared', async () => {
+  const actual = await vi.importActual('@foodtruck/shared');
+  return {
+    ...actual,
+    OptimizedImage: ({ alt, fallback }: { alt: string; fallback?: React.ReactNode }) =>
+      fallback || <img alt={alt} />,
+  };
+});
 
 const renderWithRouter = (component: React.ReactNode) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
@@ -172,7 +176,7 @@ describe('Home Page', () => {
 
   it('should link foodtruck cards to their detail pages', async () => {
     const mockFoodtrucks = [
-      { id: 'ft-123', name: 'Test Truck', cuisine_types: [], is_active: true },
+      { id: 'ft-123', slug: 'test-truck', name: 'Test Truck', cuisine_types: [], is_active: true },
     ];
 
     mockFrom.mockReturnValue({
@@ -190,7 +194,7 @@ describe('Home Page', () => {
     });
 
     const link = screen.getByText('Test Truck').closest('a');
-    expect(link).toHaveAttribute('href', '/ft-123');
+    expect(link).toHaveAttribute('href', '/test-truck');
   });
 
   it('should handle null data gracefully', async () => {

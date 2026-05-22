@@ -3,6 +3,19 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import OrderHistory from './OrderHistory';
 
+// Mock CartContext
+vi.mock('../contexts/CartContext', () => ({
+  useCart: () => ({
+    items: [],
+    foodtruckId: null,
+    addItem: vi.fn(),
+    clearCart: vi.fn(),
+    setFoodtruck: vi.fn(),
+    total: 0,
+    itemCount: 0,
+  }),
+}));
+
 // Mock Supabase
 vi.mock('../lib/supabase', () => ({
   supabase: {

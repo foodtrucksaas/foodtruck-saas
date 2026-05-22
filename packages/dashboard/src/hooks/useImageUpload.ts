@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { compressImage } from '../utils/imageCompression';
 
@@ -30,14 +31,14 @@ export function useImageUpload({
     async (file: File): Promise<string | null> => {
       // Validate file type
       if (!allowedTypes.includes(file.type)) {
-        console.error(`Type de fichier non supporté. Utilisez: ${allowedTypes.map(t => t.split('/')[1]).join(', ')}`);
+        toast.error('Type de fichier non supporté');
         return null;
       }
 
       // Validate file size (before compression)
       const maxSizeBytes = maxSizeMB * 1024 * 1024;
       if (file.size > maxSizeBytes) {
-        console.error(`Le fichier est trop volumineux. Maximum: ${maxSizeMB}MB`);
+        toast.error(`Le fichier est trop volumineux (max ${maxSizeMB}MB)`);
         return null;
       }
 
@@ -65,13 +66,11 @@ export function useImageUpload({
         }
 
         // Get public URL
-        const { data: urlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
 
         return urlData.publicUrl;
-      } catch (error) {
-        console.error('Erreur lors du téléchargement de l\'image:', error);
+      } catch {
+        toast.error("Erreur lors du téléchargement de l'image");
         return null;
       } finally {
         setUploading(false);
@@ -91,17 +90,15 @@ export function useImageUpload({
         }
         const filePath = decodeURIComponent(pathParts[1]);
 
-        const { error } = await supabase.storage
-          .from(bucket)
-          .remove([filePath]);
+        const { error } = await supabase.storage.from(bucket).remove([filePath]);
 
         if (error) {
           throw error;
         }
 
         return true;
-      } catch (error) {
-        console.error('Error deleting image:', error);
+      } catch {
+        toast.error("Erreur lors de la suppression de l'image");
         return false;
       }
     },

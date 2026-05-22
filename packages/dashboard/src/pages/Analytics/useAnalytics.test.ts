@@ -25,10 +25,20 @@ vi.mock('../../contexts/FoodtruckContext', () => ({
 // Import hook after mocks
 import { useAnalytics, DATE_PRESETS, formatDateForInput } from './useAnalytics';
 
+// Helper to get recent dates relative to today (local time, matching formatLocalDate)
+function daysAgo(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 describe('useAnalytics', () => {
   const mockAnalyticsData: AnalyticsData = {
-    startDate: '2024-01-01',
-    endDate: '2024-01-07',
+    startDate: daysAgo(6),
+    endDate: daysAgo(0),
     dayCount: 7,
     orderAmount: 150000, // 1500€
     orderCount: 50,
@@ -39,9 +49,9 @@ describe('useAnalytics', () => {
     previousOrderCount: 40,
     previousAverageOrderValue: 3000,
     amountByDay: [
-      { date: '2024-01-01', amount: 20000, order_count: 8 },
-      { date: '2024-01-02', amount: 25000, order_count: 10 },
-      { date: '2024-01-03', amount: 22000, order_count: 9 },
+      { date: daysAgo(6), amount: 20000, order_count: 8 },
+      { date: daysAgo(5), amount: 25000, order_count: 10 },
+      { date: daysAgo(4), amount: 22000, order_count: 9 },
     ],
     ordersByHour: [
       { hour: 12, order_count: 15, amount: 45000 },
@@ -55,9 +65,21 @@ describe('useAnalytics', () => {
       { day_of_week: 6, order_count: 15, amount: 45000 },
     ],
     topItems: [
-      { menuItemId: 'item-1', menuItemName: 'Burger Classic', quantity: 25, amount: 30000, orderCount: 20 },
+      {
+        menuItemId: 'item-1',
+        menuItemName: 'Burger Classic',
+        quantity: 25,
+        amount: 30000,
+        orderCount: 20,
+      },
       { menuItemId: 'item-2', menuItemName: 'Frites', quantity: 40, amount: 20000, orderCount: 30 },
-      { menuItemId: 'item-3', menuItemName: 'Coca-Cola', quantity: 35, amount: 10500, orderCount: 25 },
+      {
+        menuItemId: 'item-3',
+        menuItemName: 'Coca-Cola',
+        quantity: 35,
+        amount: 10500,
+        orderCount: 25,
+      },
     ],
     amountByLocation: [
       { locationId: 'loc-1', locationName: 'Marché Central', amount: 80000, orderCount: 30 },
@@ -77,14 +99,20 @@ describe('useAnalytics', () => {
   describe('DATE_PRESETS', () => {
     it('should have all expected presets', () => {
       expect(DATE_PRESETS).toHaveLength(7);
-      expect(DATE_PRESETS.map(p => p.key)).toEqual([
-        'today', 'yesterday', 'last7days', 'last30days', 'thisMonth', 'lastMonth', 'custom'
+      expect(DATE_PRESETS.map((p) => p.key)).toEqual([
+        'today',
+        'yesterday',
+        'last7days',
+        'last30days',
+        'thisMonth',
+        'lastMonth',
+        'custom',
       ]);
     });
 
     it('should have French labels', () => {
-      expect(DATE_PRESETS.find(p => p.key === 'today')?.label).toBe("Aujourd'hui");
-      expect(DATE_PRESETS.find(p => p.key === 'last7days')?.label).toBe('7 derniers jours');
+      expect(DATE_PRESETS.find((p) => p.key === 'today')?.label).toBe("Aujourd'hui");
+      expect(DATE_PRESETS.find((p) => p.key === 'last7days')?.label).toBe('7 derniers jours');
     });
   });
 
@@ -112,9 +140,12 @@ describe('useAnalytics', () => {
       renderHook(() => useAnalytics());
 
       await waitFor(() => {
-        expect(mockRpc).toHaveBeenCalledWith('get_analytics', expect.objectContaining({
-          p_foodtruck_id: 'ft-1',
-        }));
+        expect(mockRpc).toHaveBeenCalledWith(
+          'get_analytics',
+          expect.objectContaining({
+            p_foodtruck_id: 'ft-1',
+          })
+        );
       });
     });
 
@@ -162,10 +193,13 @@ describe('useAnalytics', () => {
       });
 
       await waitFor(() => {
-        expect(mockRpc).toHaveBeenCalledWith('get_analytics', expect.objectContaining({
-          p_start_date: '2024-01-01',
-          p_end_date: '2024-01-15',
-        }));
+        expect(mockRpc).toHaveBeenCalledWith(
+          'get_analytics',
+          expect.objectContaining({
+            p_start_date: '2024-01-01',
+            p_end_date: '2024-01-15',
+          })
+        );
       });
     });
   });
@@ -243,13 +277,22 @@ describe('useAnalytics', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.revenueData).toHaveLength(3);
-      expect(result.current.revenueData[0]).toEqual({
+      // revenueData fills all days in the date range (last7days = 7 days)
+      expect(result.current.revenueData).toHaveLength(7);
+
+      // Find the entry for 6 days ago (first day with data)
+      const firstDay = result.current.revenueData.find((d) => d.fullDate === daysAgo(6));
+      expect(firstDay).toEqual({
         date: expect.any(String),
-        fullDate: '2024-01-01',
+        fullDate: daysAgo(6),
         revenue: 200, // 20000 / 100
         orders: 8,
       });
+
+      // Days without data should have 0
+      const emptyDay = result.current.revenueData.find((d) => d.fullDate === daysAgo(0));
+      expect(emptyDay?.revenue).toBe(0);
+      expect(emptyDay?.orders).toBe(0);
     });
 
     it('should transform hourly data correctly', async () => {
@@ -262,7 +305,7 @@ describe('useAnalytics', () => {
       // Should filter hours 10-22 only
       expect(result.current.hourlyData.length).toBe(13); // 10h to 22h
 
-      const hour12 = result.current.hourlyData.find(h => h.hour === 12);
+      const hour12 = result.current.hourlyData.find((h) => h.hour === 12);
       expect(hour12).toEqual({
         hour: 12,
         label: '12h',

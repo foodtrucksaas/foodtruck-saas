@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Disabled due to Supabase type casting requirements for complex queries
 import { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import type {
@@ -172,8 +173,8 @@ export function useOffers() {
       if (offersRes.data) setOffers(offersRes.data as unknown as OfferWithItems[]);
       if (categoriesRes.data) setCategories(categoriesRes.data as CategoryWithOptionGroups[]);
       if (itemsRes.data) setMenuItems(itemsRes.data as MenuItem[]);
-    } catch (error) {
-      console.error('Error loading data:', error);
+    } catch {
+      toast.error('Erreur de chargement des offres');
     } finally {
       setLoading(false);
     }
@@ -328,7 +329,7 @@ export function useOffers() {
 
     const validationError = validateForm();
     if (validationError) {
-      console.error('Form validation error:', validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -426,8 +427,8 @@ export function useOffers() {
 
       await loadData();
       closeWizard();
-    } catch (error: any) {
-      console.error('Error saving offer:', error.message || error);
+    } catch {
+      toast.error("Erreur lors de la sauvegarde de l'offre");
     } finally {
       setSaving(false);
     }
@@ -440,7 +441,7 @@ export function useOffers() {
         .eq('id', offer.id);
 
       if (error) {
-        console.error('Error toggling offer active state:', error);
+        toast.error("Erreur lors du changement d'état");
       } else {
         await loadData();
       }
@@ -454,7 +455,7 @@ export function useOffers() {
 
       const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
       if (error) {
-        console.error('Error deleting offer:', error);
+        toast.error('Erreur lors de la suppression');
       } else {
         await loadData();
       }
@@ -592,8 +593,8 @@ export function useOffers() {
 
           if (error) throw error;
         }
-      } catch (error) {
-        console.error('Error reordering offers:', error);
+      } catch {
+        toast.error('Erreur lors du réordonnancement');
         // Revert on error
         await loadData();
       }

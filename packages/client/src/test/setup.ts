@@ -6,7 +6,9 @@ vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithOtp: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
     from: vi.fn().mockReturnValue({
@@ -66,6 +68,16 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation((callback) => ({
+  observe: vi.fn(() => {
+    // Immediately trigger with isIntersecting: true for tests
+    callback([{ isIntersecting: true }]);
+  }),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));

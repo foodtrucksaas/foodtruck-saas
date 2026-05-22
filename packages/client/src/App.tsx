@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Routes, Route, Link } from 'react-router-dom';
+import { Loader2, Home as HomeIcon } from 'lucide-react';
 import { getSubdomain } from './lib/subdomain';
 
 // Lazy load pages for code splitting
@@ -40,6 +40,25 @@ function PageLoader() {
   );
 }
 
+function NotFound() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="text-center">
+        <p className="text-6xl font-bold text-primary-500 mb-4">404</p>
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Page introuvable</h1>
+        <p className="text-gray-500 mb-6">Cette page n'existe pas ou a été déplacée.</p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-5 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors"
+        >
+          <HomeIcon className="w-4 h-4" />
+          Retour à l'accueil
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // Skip link component for accessibility
 function SkipLink() {
   return (
@@ -68,6 +87,7 @@ export default function App() {
             <Route path="/order/:orderId" element={<OrderStatus />} />
             <Route path="/orders" element={<OrderHistory />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </>
@@ -86,6 +106,7 @@ export default function App() {
           <Route path="/order/:orderId" element={<OrderStatus />} />
           <Route path="/orders" element={<OrderHistory />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>

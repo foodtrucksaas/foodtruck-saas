@@ -42,6 +42,14 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Login link for existing users */}
+            <a
+              href="/dashboard/login"
+              className="hidden sm:inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-primary-500 transition-colors"
+            >
+              Se connecter
+            </a>
+
             {/* CTA - scrolls to hero email form */}
             <a
               href="#waitlist"
@@ -76,6 +84,13 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="/dashboard/login"
+                onClick={() => setMobileOpen(false)}
+                className="text-base font-medium text-primary-500 hover:text-primary-600 transition-colors py-2"
+              >
+                Se connecter
+              </a>
             </div>
           </div>
         )}

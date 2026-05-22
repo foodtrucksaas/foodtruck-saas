@@ -15,7 +15,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: 'hidden',
     // Optimize assets
     assetsInlineLimit: 4096, // Inline assets < 4KB as base64
     rollupOptions: {

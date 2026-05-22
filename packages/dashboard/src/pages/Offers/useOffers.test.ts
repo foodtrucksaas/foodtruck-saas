@@ -26,6 +26,12 @@ vi.mock('../../contexts/FoodtruckContext', () => ({
   }),
 }));
 
+// Mock react-hot-toast
+const mockToastError = vi.fn();
+vi.mock('react-hot-toast', () => ({
+  default: { error: (...args: unknown[]) => mockToastError(...args) },
+}));
+
 // Mock confirm
 global.confirm = vi.fn(() => true);
 
@@ -404,8 +410,6 @@ describe('useOffers', () => {
 
   describe('form validation', () => {
     it('should require name', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -425,14 +429,10 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Form validation error:', 'Le nom est requis');
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith('Le nom est requis');
     });
 
     it('should require promo code for promo_code type', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -452,14 +452,10 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Form validation error:', 'Le code promo est requis');
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith('Le code promo est requis');
     });
 
     it('should require fixed price for bundle type', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -479,14 +475,10 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Form validation error:', 'Le prix fixe est requis');
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith('Le prix fixe est requis');
     });
 
     it('should require min amount for threshold_discount type', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -506,12 +498,7 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Form validation error:',
-        'Le montant minimum est requis'
-      );
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith('Le montant minimum est requis');
     });
   });
 
@@ -704,8 +691,6 @@ describe('useOffers', () => {
 
   describe('buy_x_get_y validation', () => {
     it('should require trigger items for specific_items mode', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -727,17 +712,10 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Form validation error:',
-        'Sélectionnez au moins un article déclencheur'
-      );
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith('Sélectionnez au moins un article déclencheur');
     });
 
     it('should require trigger categories for category_choice mode', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useOffers());
 
       await waitFor(() => {
@@ -759,12 +737,9 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Form validation error:',
+      expect(mockToastError).toHaveBeenCalledWith(
         'Sélectionnez au moins une catégorie déclencheur'
       );
-
-      consoleSpy.mockRestore();
     });
   });
 });

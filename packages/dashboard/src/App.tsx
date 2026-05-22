@@ -4,7 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useFoodtruck } from './contexts/FoodtruckContext';
 import Layout from './components/Layout';
 import Loading from './components/Loading';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from '@foodtruck/shared';
 
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
@@ -66,7 +66,7 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary homeLabel="Retour au tableau de bord">
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route

@@ -75,7 +75,7 @@ describe('FoodtruckContext', () => {
         return {
           select: () => ({
             eq: () => ({
-              single: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
+              maybeSingle: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
             }),
           }),
           update: () => ({
@@ -156,7 +156,7 @@ describe('FoodtruckContext', () => {
           return {
             select: () => ({
               eq: () => ({
-                single: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
               }),
             }),
             update: (data: Record<string, unknown>) => {
@@ -276,7 +276,7 @@ describe('FoodtruckContext', () => {
           return {
             select: () => ({
               eq: () => ({
-                single: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: mockFoodtruck, error: null }),
               }),
             }),
           };

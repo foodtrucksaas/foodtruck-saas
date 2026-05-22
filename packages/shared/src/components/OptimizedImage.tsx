@@ -1,72 +1,144 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 
-interface OptimizedImageProps {
-  src: string | null | undefined;
-  alt: string;
-  className?: string;
-  fallback?: React.ReactNode;
-  width?: number;
-  height?: number;
-  lazy?: boolean;
+// WebP support detection (cached)
+let webpSupportPromise: Promise<boolean> | null = null;
+
+function checkWebPSupport(): Promise<boolean> {
+  if (webpSupportPromise) return webpSupportPromise;
+
+  webpSupportPromise = new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.width > 0 && img.height > 0);
+    img.onerror = () => resolve(false);
+    img.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
+  });
+
+  return webpSupportPromise;
 }
 
-/**
- * Optimized image component with:
- * - Lazy loading via Intersection Observer
- * - Fallback for missing/broken images
- * - Loading state
- * - WebP format support detection
- */
-export function OptimizedImage({
-  src,
-  alt,
-  className = '',
-  fallback,
-  width,
-  height,
-  lazy = true,
-}: OptimizedImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [isVisible, setIsVisible] = useState(!lazy);
-  const imgRef = useRef<HTMLImageElement>(null);
+export function useWebPSupport(): boolean | null {
+  const [supported, setSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!lazy || !imgRef.current) return;
+    checkWebPSupport().then(setSupported);
+  }, []);
+
+  return supported;
+}
+
+function generateSrcSet(src: string, widths: number[]): string {
+  if (src.includes('supabase.co/storage')) {
+    return widths
+      .map((w) => {
+        const separator = src.includes('?') ? '&' : '?';
+        return `${src}${separator}width=${w}&resize=contain ${w}w`;
+      })
+      .join(', ');
+  }
+  return src;
+}
+
+function generatePlaceholderDataUrl(color = '#e5e7eb'): string {
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='${encodeURIComponent(color)}'/%3E%3C/svg%3E`;
+}
+
+export interface OptimizedImageProps {
+  src: string | null | undefined;
+  alt: string;
+  width?: number | string;
+  height?: number | string;
+  className?: string;
+  fallback?: React.ReactNode;
+  placeholderColor?: string;
+  placeholder?: React.ReactNode;
+  showSkeleton?: boolean;
+  sizes?: string;
+  eager?: boolean;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  onLoad?: () => void;
+  onError?: () => void;
+  aspectRatio?: string;
+  blurUp?: boolean;
+}
+
+function OptimizedImageComponent({
+  src,
+  alt,
+  width,
+  height,
+  className = '',
+  fallback,
+  placeholderColor = '#e5e7eb',
+  placeholder,
+  showSkeleton = true,
+  sizes,
+  eager = false,
+  objectFit = 'cover',
+  onLoad,
+  onError,
+  aspectRatio,
+  blurUp = true,
+}: OptimizedImageProps) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [inView, setInView] = useState(eager);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (eager || !containerRef.current) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setInView(true);
+            observer.disconnect();
+          }
+        });
       },
       {
         rootMargin: '50px',
-        threshold: 0.01,
+        threshold: 0,
       }
     );
 
-    observer.observe(imgRef.current);
+    observer.observe(containerRef.current);
 
     return () => observer.disconnect();
-  }, [lazy]);
+  }, [eager]);
 
-  // Reset states when src changes
   useEffect(() => {
-    setIsLoaded(false);
-    setHasError(false);
+    setLoaded(false);
+    setError(false);
   }, [src]);
 
-  if (!src || hasError) {
-    if (fallback) {
-      return <>{fallback}</>;
-    }
+  const handleLoad = useCallback(() => {
+    setLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
 
+  const handleError = useCallback(() => {
+    setError(true);
+    onError?.();
+  }, [onError]);
+
+  if (!src) {
+    if (fallback) return <>{fallback}</>;
+    return null;
+  }
+
+  if (error) {
+    if (fallback) return <>{fallback}</>;
     return (
       <div
         className={`bg-gray-100 flex items-center justify-center ${className}`}
-        style={{ width, height }}
+        style={{
+          width: width ? (typeof width === 'number' ? `${width}px` : width) : undefined,
+          height: height ? (typeof height === 'number' ? `${height}px` : height) : undefined,
+          aspectRatio,
+        }}
+        aria-label={alt}
       >
         <svg
           className="w-1/3 h-1/3 text-gray-300"
@@ -85,94 +157,99 @@ export function OptimizedImage({
     );
   }
 
-  // Convert Supabase storage URLs to optimized format if applicable
-  const optimizedSrc = getOptimizedSrc(src, width);
+  const srcSet = generateSrcSet(src, [320, 480, 640, 768, 1024]);
+  const defaultSizes = sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
+
+  const objectFitClass = {
+    cover: 'object-cover',
+    contain: 'object-contain',
+    fill: 'object-fill',
+    none: 'object-none',
+    'scale-down': 'object-scale-down',
+  }[objectFit];
 
   return (
-    <div className={`relative ${className}`} style={{ width, height }}>
-      {/* Placeholder shown while loading */}
-      {!isLoaded && (
+    <div
+      ref={containerRef}
+      className={`relative overflow-hidden ${className}`}
+      style={{
+        width: width ? (typeof width === 'number' ? `${width}px` : width) : undefined,
+        height: height ? (typeof height === 'number' ? `${height}px` : height) : undefined,
+        aspectRatio,
+      }}
+    >
+      {showSkeleton && !loaded && (
         <div
-          className="absolute inset-0 bg-gray-100 animate-pulse"
-          style={{ width, height }}
+          className="absolute inset-0 bg-gray-200 animate-pulse"
+          style={{ backgroundColor: placeholderColor }}
+          aria-hidden="true"
+        >
+          {placeholder}
+        </div>
+      )}
+
+      {blurUp && !loaded && (
+        <div
+          className="absolute inset-0 scale-110 blur-lg"
+          style={{
+            backgroundImage: `url(${generatePlaceholderDataUrl(placeholderColor)})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          aria-hidden="true"
         />
       )}
 
-      <img
-        ref={imgRef}
-        src={isVisible ? optimizedSrc : undefined}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={lazy ? 'lazy' : 'eager'}
-        decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
-        className={`${className} transition-opacity duration-300 ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{
-          width: width ? `${width}px` : undefined,
-          height: height ? `${height}px` : undefined,
-        }}
-      />
+      {inView && (
+        <img
+          ref={imgRef}
+          src={src}
+          srcSet={srcSet !== src ? srcSet : undefined}
+          sizes={srcSet !== src ? defaultSizes : undefined}
+          alt={alt}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          onLoad={handleLoad}
+          onError={handleError}
+          className={`w-full h-full ${objectFitClass} transition-opacity duration-300 ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            width: '100%',
+            height: '100%',
+          }}
+        />
+      )}
     </div>
   );
 }
 
-/**
- * Get optimized image URL with transformation
- * Works with Supabase Storage or other providers
- */
-function getOptimizedSrc(src: string, width?: number): string {
-  // Supabase Storage image transformation
-  // Format: /render/image/[bucket]/[path]?width=X&format=webp
-  if (src.includes('supabase') && src.includes('/storage/v1/object/')) {
-    // Check if browser supports WebP
-    const supportsWebP = checkWebPSupport();
-    const params = new URLSearchParams();
+export const OptimizedImage = memo(OptimizedImageComponent);
 
-    if (width) {
-      params.set('width', String(width * 2)); // 2x for retina
-    }
-
-    if (supportsWebP) {
-      params.set('format', 'webp');
-    }
-
-    params.set('quality', '80');
-
-    // Transform to render endpoint
-    const renderUrl = src.replace(
-      '/storage/v1/object/public/',
-      '/storage/v1/render/image/public/'
-    );
-
-    return params.toString() ? `${renderUrl}?${params.toString()}` : renderUrl;
-  }
-
-  return src;
+export function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
-// Cached WebP support check
-let webPSupported: boolean | null = null;
+export function useImagePreload(urls: string[]): boolean {
+  const [allLoaded, setAllLoaded] = useState(false);
 
-function checkWebPSupport(): boolean {
-  if (webPSupported !== null) return webPSupported;
+  useEffect(() => {
+    if (urls.length === 0) {
+      setAllLoaded(true);
+      return;
+    }
 
-  if (typeof document === 'undefined') {
-    webPSupported = false;
-    return false;
-  }
+    Promise.all(urls.filter(Boolean).map(preloadImage))
+      .then(() => setAllLoaded(true))
+      .catch(() => setAllLoaded(true));
+  }, [urls]);
 
-  const canvas = document.createElement('canvas');
-  if (canvas.getContext && canvas.getContext('2d')) {
-    webPSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-  } else {
-    webPSupported = false;
-  }
-
-  return webPSupported;
+  return allLoaded;
 }
 
 export default OptimizedImage;

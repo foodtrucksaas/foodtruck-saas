@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
-import { ArrowRight, Check, Mail, Loader2 } from 'lucide-react';
+import { ArrowRight, Check, Mail, Loader2, Star } from 'lucide-react';
 
-const TRUST_ITEMS = ['0% de commission', 'Sans engagement', 'Prêt en 10 minutes'];
+const TRUST_ITEMS = ['0% de commission', 'Sans engagement', 'Prêt en 10 min'];
 
 function WaitlistForm({
   email,
@@ -103,7 +103,7 @@ export default function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500" />
               </span>
-              Lancement en cours — Inscriptions ouvertes
+              Accès anticipé — 30 jours offerts
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-anthracite leading-[1.1] tracking-tight animate-fade-in-up">
@@ -132,8 +132,11 @@ export default function Hero() {
               className="mt-5 text-lg text-gray-600 leading-relaxed animate-fade-in-up"
               style={{ animationDelay: '100ms' }}
             >
-              Vos clients commandent à l'avance via votre lien ou QR code. Même quand vous cuisinez,
-              conduisez ou dormez.
+              Pendant que vous conduisez, cuisinez ou dormez —{' '}
+              <strong className="text-anthracite">
+                vos clients consultent votre menu et commandent.
+              </strong>{' '}
+              Vous arrivez, c'est déjà prêt à préparer.
             </p>
 
             {/* Email capture form */}
@@ -149,7 +152,9 @@ export default function Hero() {
                   </div>
                   <div>
                     <p className="font-bold text-success-700">Vous êtes sur la liste !</p>
-                    <p className="text-sm text-success-600">On vous prévient dès que c'est prêt.</p>
+                    <p className="text-sm text-success-600">
+                      On vous contacte très vite pour activer votre compte.
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -166,12 +171,12 @@ export default function Hero() {
                     setEmail={setEmail}
                     onSubmit={handleSubmit}
                     status={status}
-                    buttonLabel={status === 'error' ? 'Réessayer' : 'Rejoindre la liste'}
+                    buttonLabel={status === 'error' ? 'Réessayer' : 'Essayer gratuitement'}
                   />
                 </>
               )}
               <p className="mt-3 text-sm text-gray-400">
-                30 jours gratuits à l'ouverture · Pas de spam · Pas de carte bancaire
+                30 jours gratuits · Aucune carte bancaire · Annulation en 1 clic
               </p>
             </div>
 
@@ -190,9 +195,36 @@ export default function Hero() {
                 </div>
               ))}
             </div>
+
+            {/* Social proof */}
+            <div
+              className="mt-6 flex items-center gap-3 animate-fade-in-up"
+              style={{ animationDelay: '400ms' }}
+            >
+              <div className="flex -space-x-2">
+                {['bg-orange-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400'].map((bg, i) => (
+                  <div
+                    key={i}
+                    className={`w-8 h-8 ${bg} rounded-full ring-2 ring-white flex items-center justify-center`}
+                  >
+                    <span className="text-[10px] font-bold text-white">
+                      {['BN', 'TG', 'LP', 'MC'][i]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm text-gray-500">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <span className="text-xs">Rejoint par des food trucks partout en France</span>
+              </div>
+            </div>
           </div>
 
-          {/* Right: Product mockup — BIGGER */}
+          {/* Right: Product mockup */}
           <div
             className="relative flex justify-center lg:justify-end animate-fade-in-up"
             style={{ animationDelay: '300ms' }}
@@ -225,14 +257,18 @@ export default function Hero() {
                         {
                           name: 'Le Classic Burger',
                           price: '9,50€',
-                          desc: 'Bœuf, cheddar, salade, tomate',
+                          desc: 'Boeuf, cheddar, salade, tomate',
                         },
                         {
                           name: 'Le Cheese Bacon',
                           price: '11,00€',
-                          desc: 'Double bœuf, bacon, cheddar',
+                          desc: 'Double boeuf, bacon, cheddar',
                         },
-                        { name: 'Le Veggie', price: '9,00€', desc: 'Galette de légumes, avocat' },
+                        {
+                          name: 'Le Veggie',
+                          price: '9,00€',
+                          desc: 'Galette de légumes, avocat',
+                        },
                       ].map((item) => (
                         <div
                           key={item.name}

@@ -4,6 +4,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  homeLabel?: string;
 }
 
 interface ErrorBoundaryState {
@@ -28,6 +29,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ errorInfo });
+
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Component stack:', errorInfo.componentStack);
 
     // Auto-reload on chunk load failures (stale cache after deployment)
     const isChunkError =
@@ -77,8 +81,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-error-50 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-8 h-8 text-error-500" />
+            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
 
             <h1 className="text-xl font-bold text-gray-900 mb-2">
@@ -92,28 +96,27 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
-                <RefreshCw className="w-5 h-5" />
+                <RefreshCw className="w-4 h-4" />
                 Réessayer
               </button>
 
               <button
                 onClick={this.handleGoHome}
-                className="flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
               >
-                <Home className="w-5 h-5" />
-                Retour au tableau de bord
+                <Home className="w-4 h-4" />
+                {this.props.homeLabel || "Retour à l'accueil"}
               </button>
             </div>
 
-            {/* Debug info in development */}
             {import.meta.env.DEV && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">
                   Détails techniques (dev)
                 </summary>
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-error-600 overflow-auto max-h-48">
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-red-600 overflow-auto max-h-48">
                   <p className="font-semibold mb-1">
                     {this.state.error.name}: {this.state.error.message}
                   </p>

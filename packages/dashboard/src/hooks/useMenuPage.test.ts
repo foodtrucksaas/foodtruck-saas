@@ -150,6 +150,12 @@ vi.mock('../contexts/FoodtruckContext', () => ({
   }),
 }));
 
+// Mock react-hot-toast
+const mockToastError = vi.fn();
+vi.mock('react-hot-toast', () => ({
+  default: { error: (...args: unknown[]) => mockToastError(...args) },
+}));
+
 // Mock confirm
 global.confirm = vi.fn(() => true);
 
@@ -320,7 +326,6 @@ describe('useMenuPage', () => {
     });
 
     it('should handle toggle error', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockToggleAvailability.mockRejectedValueOnce(new Error('Toggle error'));
 
       const { result } = renderHook(() => useMenuPage());
@@ -329,8 +334,7 @@ describe('useMenuPage', () => {
         await result.current.toggleAvailability(mockMenuItems[0]);
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalled();
     });
   });
 
@@ -451,8 +455,6 @@ describe('useMenuPage', () => {
     });
 
     it('should not delete category with items', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useMenuPage());
 
       await act(async () => {
@@ -460,9 +462,7 @@ describe('useMenuPage', () => {
       });
 
       expect(mockDeleteCategory).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalled();
     });
   });
 

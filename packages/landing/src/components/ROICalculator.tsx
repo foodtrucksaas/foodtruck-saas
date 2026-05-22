@@ -34,11 +34,15 @@ export default function ROICalculator() {
         <AnimatedSection className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">
             <Calculator className="w-4 h-4" />
-            Simulateur
+            Simulateur de rentabilité
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
-            Calculez combien OnMange vous rapporte
+            OnMange se rentabilise en{' '}
+            <span className="text-primary-500">2 à 3 commandes par semaine</span>
           </h2>
+          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+            Ajustez les curseurs avec vos chiffres réels. Regardez le résultat.
+          </p>
         </AnimatedSection>
 
         <AnimatedSection>
@@ -76,7 +80,9 @@ export default function ROICalculator() {
 
             {/* Results */}
             <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-card border border-gray-100 flex flex-col">
-              <h3 className="text-lg font-bold text-anthracite mb-6">Vos résultats</h3>
+              <h3 className="text-lg font-bold text-anthracite mb-6">
+                Ce que vous gagnez avec OnMange
+              </h3>
               <div className="space-y-3.5 flex-1">
                 <ResultRow
                   label="CA actuel estimé"

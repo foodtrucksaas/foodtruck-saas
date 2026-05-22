@@ -159,11 +159,21 @@ export default function Register() {
           {/* Legal */}
           <p className="text-center text-xs text-gray-400 mt-3">
             En créant un compte, vous acceptez nos{' '}
-            <a href="/cgu" className="underline hover:text-gray-600">
+            <a
+              href="https://onmange.app/cgu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+            >
               CGU
             </a>{' '}
             et notre{' '}
-            <a href="/confidentialite" className="underline hover:text-gray-600">
+            <a
+              href="https://onmange.app/confidentialite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+            >
               politique de confidentialité
             </a>
           </p>

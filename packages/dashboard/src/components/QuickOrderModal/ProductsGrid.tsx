@@ -2,7 +2,7 @@ import { ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { Category } from '@foodtruck/shared';
 import type { MenuItemWithOptions } from './useQuickOrder';
-import { OptimizedImage } from '../OptimizedImage';
+import { OptimizedImage } from '@foodtruck/shared';
 
 interface ProductsGridProps {
   categories: Category[];

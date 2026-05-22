@@ -71,9 +71,11 @@ export function FoodtruckProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
 
+  // Only refetch when user ID changes, not on token refreshes
+  const userId = user?.id;
   useEffect(() => {
     fetchFoodtruck();
-  }, [user]);
+  }, [userId]);
 
   const updateFoodtruck = async (data: Partial<Foodtruck>) => {
     if (!foodtruck) throw new Error('No foodtruck');

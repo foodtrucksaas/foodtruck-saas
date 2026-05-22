@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WifiOff, RefreshCw, MapPin, Clock, Utensils } from 'lucide-react';
-import { OptimizedImage } from '../components/OptimizedImage';
+import { OptimizedImage } from '@foodtruck/shared';
 
 interface CachedFoodtruck {
   id: string;

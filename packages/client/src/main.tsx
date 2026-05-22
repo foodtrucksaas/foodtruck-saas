@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './contexts/CartContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from '@foodtruck/shared';
 import { initSentry } from './lib/sentry';
 import './index.css';
 

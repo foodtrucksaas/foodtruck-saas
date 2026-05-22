@@ -15,9 +15,9 @@ const BENEFITS = [
     icon: Globe,
     iconBg: 'bg-cyan-50',
     iconColor: 'text-cyan-500',
-    title: 'Votre page prête en 10 minutes',
+    title: 'En ligne en 10 minutes',
     description:
-      "Pas besoin d'acheter un nom de domaine ni de configurer quoi que ce soit. Vous obtenez votre lien personnalisé immédiatement.",
+      'Votre lien personnalisé (votrenom.onmange.app) est prêt instantanément. Rien à installer, rien à configurer.',
   },
   {
     icon: Clock,
@@ -25,55 +25,56 @@ const BENEFITS = [
     iconColor: 'text-blue-500',
     title: 'Commandes 24h/24',
     description:
-      'Vos clients commandent à toute heure via votre lien ou QR code. Acceptation automatique ou manuelle, à vous de choisir.',
+      'Vos clients commandent la veille, le matin, pendant le rush. Vous ne ratez plus aucune vente.',
   },
   {
     icon: ShoppingBag,
     iconBg: 'bg-orange-50',
     iconColor: 'text-orange-500',
-    title: 'Prenez les commandes sur site',
-    description: 'Depuis votre tableau de bord, prenez les commandes sans arrêter de cuisiner.',
+    title: 'Commandes sur place aussi',
+    description:
+      "Prise de commande directe depuis votre tableau de bord. Fini les post-it et l'attente au comptoir.",
   },
   {
     icon: MapPin,
     iconBg: 'bg-green-50',
     iconColor: 'text-green-600',
-    title: 'Emplacements & horaires flexibles',
+    title: 'Multi-emplacements en 2 clics',
     description:
-      "Configurez votre planning hebdomadaire une fois, modifiez n'importe quel jour en 2 clics. Vacances ? Fermez votre établissement en un clic.",
+      "Lundi marché, jeudi zone industrielle ? Votre planning s'adapte. Vacances ? Un clic pour fermer.",
   },
   {
     icon: UtensilsCrossed,
     iconBg: 'bg-pink-50',
     iconColor: 'text-pink-500',
-    title: 'Menus et offres configurables',
+    title: 'Menu 100% personnalisable',
     description:
-      'Catégories, options, tailles, suppléments, formules, codes promo, plat du jour — vous configurez tout. Rupture de stock ? Un clic.',
+      'Options, suppléments, formules, plat du jour, codes promo. Rupture de stock ? Désactivez en un clic.',
   },
   {
     icon: Wallet,
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
-    title: 'Vous encaissez comme vous voulez',
+    title: 'Vous gardez 100% de vos paiements',
     description:
-      "OnMange gère les commandes, pas les paiements. Vos clients paient sur place, comme d'habitude.",
+      "Aucune commission, aucun intermédiaire. Vos clients paient sur place, comme d'habitude. C'est vous le patron.",
     highlight: true,
   },
   {
     icon: Mail,
     iconBg: 'bg-indigo-50',
     iconColor: 'text-indigo-500',
-    title: 'Confirmation & rappels par email',
+    title: 'Zéro no-show',
     description:
-      "Le client reçoit un email quand sa commande est acceptée. Si elle a été passée à l'avance, un rappel lui est envoyé avant le retrait. Vous recevez un résumé de chaque commande.",
+      "Confirmation automatique + rappel avant le retrait. Vos clients n'oublient plus de venir chercher leur commande.",
   },
   {
     icon: BarChart3,
     iconBg: 'bg-amber-50',
     iconColor: 'text-amber-500',
-    title: 'Comprenez votre activité',
+    title: 'Décidez avec des données',
     description:
-      'Plats vendus, heures de pointe, fidélité client. Des stats simples pour faire les bons choix.',
+      'Plats stars, heures de pointe, meilleurs emplacements. Arrêtez de deviner, regardez vos chiffres.',
   },
 ];
 
@@ -82,11 +83,14 @@ export default function Benefits() {
     <section id="benefits" className="py-20 lg:py-28 bg-gray-50/70">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
+          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+            La solution
+          </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
             Conçu pour les food trucks. <span className="text-primary-500">Vraiment.</span>
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Pas un outil générique : OnMange comprend votre quotidien — emplacements qui changent,
+            Pas un outil générique. OnMange comprend votre quotidien — emplacements qui changent,
             rush du midi, congés imprévus.
           </p>
         </AnimatedSection>

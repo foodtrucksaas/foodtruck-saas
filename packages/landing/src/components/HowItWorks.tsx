@@ -6,23 +6,24 @@ const STEPS = [
     number: 1,
     icon: ClipboardList,
     title: 'Créez votre menu',
-    subtitle: 'en 10 minutes',
-    description: 'Ajoutez vos plats, prix et options. Le menu est prêt en quelques clics.',
+    subtitle: '10 minutes chrono',
+    description: 'Ajoutez vos plats, vos prix, vos options. Votre page est en ligne immédiatement.',
   },
   {
     number: 2,
     icon: Share2,
     title: 'Partagez votre lien',
-    subtitle: 'partout',
+    subtitle: 'SMS, Insta, QR code',
     description:
-      'Envoyez votre lien par SMS, sur vos réseaux, ou imprimez votre QR code sur le comptoir. Vos clients cliquent et commandent.',
+      'Envoyez votre lien par SMS, postez-le sur Instagram, ou collez votre QR code sur le comptoir.',
   },
   {
     number: 3,
     icon: ShoppingBag,
     title: 'Recevez vos commandes',
-    subtitle: 'en temps réel',
-    description: "Une notification à chaque commande. Vous préparez, ils retirent. C'est tout.",
+    subtitle: 'même en dormant',
+    description:
+      "Les commandes arrivent sur votre tableau de bord. Vous préparez, vos clients retirent. C'est tout.",
   },
 ];
 
@@ -31,11 +32,15 @@ export default function HowItWorks() {
     <section id="how-it-works" className="py-20 lg:py-28">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14 lg:mb-20">
+          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+            Simple comme bonjour
+          </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
-            Lancez-vous en <span className="text-primary-500">10 minutes</span>
+            Lancez-vous en <span className="text-primary-500">3 étapes</span>
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            Trois étapes simples pour moderniser votre food truck.
+            Pas besoin d'être geek. Si vous savez utiliser un smartphone, vous savez utiliser
+            OnMange.
           </p>
         </AnimatedSection>
 

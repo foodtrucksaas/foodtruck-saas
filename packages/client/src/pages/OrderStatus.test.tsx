@@ -25,10 +25,27 @@ vi.mock('../lib/supabase', () => ({
 }));
 
 // Mock shared formatters
-vi.mock('@foodtruck/shared', () => ({
-  formatPrice: (price: number) => `${(price / 100).toFixed(2)} €`,
-  formatDateTime: (date: string) => new Date(date).toLocaleString('fr-FR'),
-  formatOrderId: (id: string) => `#${id.slice(0, 8).toUpperCase()}`,
+vi.mock('@foodtruck/shared', async () => {
+  const actual = await vi.importActual('@foodtruck/shared');
+  return {
+    ...actual,
+    formatPrice: (price: number) => `${(price / 100).toFixed(2)} €`,
+    formatDateTime: (date: string) => new Date(date).toLocaleString('fr-FR'),
+    formatOrderId: (id: string) => `#${id.slice(0, 8).toUpperCase()}`,
+  };
+});
+
+// Mock CartContext
+vi.mock('../contexts/CartContext', () => ({
+  useCart: () => ({
+    items: [],
+    foodtruckId: null,
+    addItem: vi.fn(),
+    clearCart: vi.fn(),
+    setFoodtruck: vi.fn(),
+    total: 0,
+    itemCount: 0,
+  }),
 }));
 
 // Import after mocks

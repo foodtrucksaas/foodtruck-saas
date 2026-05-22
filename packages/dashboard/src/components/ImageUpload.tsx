@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Camera, X, Loader2 } from 'lucide-react';
-import { OptimizedImage } from './OptimizedImage';
+import { OptimizedImage } from '@foodtruck/shared';
 
 interface ImageUploadProps {
   currentUrl: string | null | undefined;

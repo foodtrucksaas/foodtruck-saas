@@ -1,24 +1,30 @@
-import { Clock, TrendingUp, Heart } from 'lucide-react';
+import { PhoneOff, Clock, Users } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
 
-const OPPORTUNITIES = [
+const PROBLEMS = [
+  {
+    icon: PhoneOff,
+    stat: '3 à 5',
+    statLabel: 'appels manqués par service',
+    title: 'Vous perdez des commandes chaque jour',
+    description:
+      "En plein rush, en conduisant, le soir après le service — vous ne pouvez pas toujours décrocher. Chaque appel manqué, c'est un client qui va voir ailleurs.",
+  },
   {
     icon: Clock,
-    title: 'Recevez des commandes 24h/24',
+    stat: '0',
+    statLabel: 'commande entre les services',
+    title: 'Votre camion est fermé 18h par jour',
     description:
-      'En conduisant, en dormant, en vacances — vos clients commandent quand ils veulent, sans vous déranger.',
+      "Entre deux services, votre activité s'arrête. Pas de commandes le soir, pas de commandes le matin. Vos clients ne peuvent commander que quand vous êtes là.",
   },
   {
-    icon: TrendingUp,
-    title: 'Vos clients commandent plus',
+    icon: Users,
+    stat: '70%',
+    statLabel: 'de clients ne reviennent pas',
+    title: 'Vos clients vous oublient',
     description:
-      "Un menu clair avec options, suppléments et formules, ça donne envie d'ajouter. Le panier moyen augmente naturellement.",
-  },
-  {
-    icon: Heart,
-    title: 'Vos clients reviennent',
-    description:
-      'Commander est simple, le retrait est rapide. Programme de fidélité intégré : vos habitués sont récompensés automatiquement.',
+      'Sans outil de fidélité ni de rappel, même vos meilleurs clients finissent par oublier de revenir. Vous repartez à zéro chaque semaine.',
   },
 ];
 
@@ -27,18 +33,28 @@ export default function PainPoints() {
     <section id="pain-points" className="py-20 lg:py-28">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
+          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+            Le problème
+          </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
-            Et si vous pouviez faire <span className="text-primary-500">plus de commandes</span>,
-            sans plus d'effort ?
+            Vous laissez du chiffre d'affaires{' '}
+            <span className="text-primary-500">sur la table</span>
           </h2>
+          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+            Les food trucks perdent en moyenne 20% de commandes potentielles. Voici pourquoi.
+          </p>
         </AnimatedSection>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {OPPORTUNITIES.map((item, i) => (
+          {PROBLEMS.map((item, i) => (
             <AnimatedSection key={item.title} delay={i * 120}>
-              <div className="relative bg-white border border-gray-200 rounded-2xl p-6 lg:p-8 h-full overflow-hidden group hover:border-primary-200 hover:shadow-lg transition-all text-center">
-                <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                  <item.icon className="w-7 h-7 text-primary-500" />
+              <div className="relative bg-white border border-gray-200 rounded-2xl p-6 lg:p-8 h-full overflow-hidden group hover:border-primary-200 hover:shadow-lg transition-all">
+                <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center mb-5">
+                  <item.icon className="w-6 h-6 text-primary-500" />
+                </div>
+                <div className="mb-4">
+                  <span className="text-3xl font-extrabold text-primary-500">{item.stat}</span>
+                  <span className="text-sm text-gray-400 ml-1.5">{item.statLabel}</span>
                 </div>
                 <h3 className="text-lg font-bold text-anthracite mb-2">{item.title}</h3>
                 <p className="text-gray-500 leading-relaxed text-sm">{item.description}</p>

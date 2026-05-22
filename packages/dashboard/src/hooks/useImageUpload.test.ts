@@ -24,6 +24,12 @@ vi.mock('../utils/imageCompression', () => ({
   compressImage: vi.fn((file: File) => Promise.resolve(file)),
 }));
 
+// Mock react-hot-toast
+const mockToastError = vi.fn();
+vi.mock('react-hot-toast', () => ({
+  default: { error: (...args: unknown[]) => mockToastError(...args) },
+}));
+
 describe('useImageUpload', () => {
   const defaultOptions = {
     bucket: 'test-bucket',
@@ -39,7 +45,10 @@ describe('useImageUpload', () => {
     vi.clearAllMocks();
     mockUpload.mockResolvedValue({ error: null });
     mockGetPublicUrl.mockReturnValue({
-      data: { publicUrl: 'https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp' },
+      data: {
+        publicUrl:
+          'https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp',
+      },
     });
     mockRemove.mockResolvedValue({ error: null });
   });
@@ -69,7 +78,9 @@ describe('useImageUpload', () => {
         url = await result.current.uploadImage(file);
       });
 
-      expect(url).toBe('https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp');
+      expect(url).toBe(
+        'https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp'
+      );
       expect(mockUpload).toHaveBeenCalledWith(
         expect.stringMatching(/^test-folder\/\d+-[a-z0-9]+\.jpg$/),
         expect.any(File),
@@ -106,8 +117,6 @@ describe('useImageUpload', () => {
     });
 
     it('should reject invalid file types', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useImageUpload(defaultOptions));
       const file = createMockFile('test.pdf', 1000, 'application/pdf');
 
@@ -118,17 +127,13 @@ describe('useImageUpload', () => {
 
       expect(url).toBeNull();
       expect(mockUpload).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Type de fichier non supporté'));
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith(
+        expect.stringContaining('Type de fichier non supporté')
+      );
     });
 
     it('should reject files exceeding max size', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      const { result } = renderHook(() =>
-        useImageUpload({ ...defaultOptions, maxSizeMB: 1 })
-      );
+      const { result } = renderHook(() => useImageUpload({ ...defaultOptions, maxSizeMB: 1 }));
       // Create a file larger than 1MB
       const file = createMockFile('test.jpg', 2 * 1024 * 1024, 'image/jpeg');
 
@@ -139,13 +144,10 @@ describe('useImageUpload', () => {
 
       expect(url).toBeNull();
       expect(mockUpload).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('trop volumineux'));
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('trop volumineux'));
     });
 
     it('should handle upload errors', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockUpload.mockResolvedValueOnce({ error: new Error('Upload failed') });
 
       const { result } = renderHook(() => useImageUpload(defaultOptions));
@@ -157,9 +159,7 @@ describe('useImageUpload', () => {
       });
 
       expect(url).toBeNull();
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalled();
     });
 
     it('should use custom allowed types', async () => {
@@ -216,7 +216,8 @@ describe('useImageUpload', () => {
   });
 
   describe('deleteImage', () => {
-    const testUrl = 'https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp';
+    const testUrl =
+      'https://example.com/storage/v1/object/public/test-bucket/test-folder/image.webp';
 
     it('should delete an image successfully', async () => {
       const { result } = renderHook(() => useImageUpload(defaultOptions));
@@ -242,7 +243,6 @@ describe('useImageUpload', () => {
     });
 
     it('should handle delete errors', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockRemove.mockResolvedValueOnce({ error: new Error('Delete failed') });
 
       const { result } = renderHook(() => useImageUpload(defaultOptions));
@@ -253,14 +253,13 @@ describe('useImageUpload', () => {
       });
 
       expect(success).toBe(false);
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      expect(mockToastError).toHaveBeenCalled();
     });
 
     it('should handle URL-encoded paths', async () => {
       const { result } = renderHook(() => useImageUpload(defaultOptions));
-      const encodedUrl = 'https://example.com/storage/v1/object/public/test-bucket/test-folder/image%20with%20spaces.webp';
+      const encodedUrl =
+        'https://example.com/storage/v1/object/public/test-bucket/test-folder/image%20with%20spaces.webp';
 
       await act(async () => {
         await result.current.deleteImage(encodedUrl);
@@ -284,10 +283,8 @@ describe('useImageUpload', () => {
     });
 
     it('should use custom maxSizeMB', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      const { result } = renderHook(() =>
-        useImageUpload({ ...defaultOptions, maxSizeMB: 0.001 }) // 1KB
+      const { result } = renderHook(
+        () => useImageUpload({ ...defaultOptions, maxSizeMB: 0.001 }) // 1KB
       );
 
       const file = createMockFile('test.jpg', 2000, 'image/jpeg');
@@ -296,8 +293,6 @@ describe('useImageUpload', () => {
         const url = await result.current.uploadImage(file);
         expect(url).toBeNull();
       });
-
-      consoleSpy.mockRestore();
     });
   });
 });
