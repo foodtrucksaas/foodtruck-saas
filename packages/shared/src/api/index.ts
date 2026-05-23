@@ -6,6 +6,7 @@ import { createMenuApi } from './menu';
 import { createFoodtrucksApi } from './foodtrucks';
 import { createLoyaltyApi } from './loyalty';
 import { createOffersApi } from './offers';
+import { createBillingApi } from './billing';
 
 export { ApiError, handleResponse, handleOptionalResponse } from './client';
 export type { TypedSupabaseClient } from './client';
@@ -17,6 +18,7 @@ export type { MenuApi } from './menu';
 export type { FoodtrucksApi } from './foodtrucks';
 export type { LoyaltyApi } from './loyalty';
 export type { OffersApi, CartItemForOffers } from './offers';
+export type { BillingApi } from './billing';
 
 // Create a complete API client from a Supabase client
 export function createApi(supabase: TypedSupabaseClient) {
@@ -28,6 +30,7 @@ export function createApi(supabase: TypedSupabaseClient) {
     foodtrucks: createFoodtrucksApi(supabase),
     loyalty: createLoyaltyApi(supabase),
     offers: createOffersApi(supabase),
+    billing: createBillingApi(supabase),
   };
 }
 
@@ -41,6 +44,7 @@ export { createMenuApi } from './menu';
 export { createFoodtrucksApi } from './foodtrucks';
 export { createLoyaltyApi } from './loyalty';
 export { createOffersApi } from './offers';
+export { createBillingApi } from './billing';
 export {
   createBundleConfig,
   createBuyXGetYConfig,

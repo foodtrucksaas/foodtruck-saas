@@ -162,6 +162,9 @@ Ordre fixe pour éviter les drift de types :
 | `google-places`           | Autocomplete adresses (proxy server-side)            |
 | `delete-account`          | Suppression compte RGPD                              |
 | `seed-demo`               | Données de démo                                      |
+| `create-checkout-session` | Crée une Checkout Session Stripe Billing             |
+| `create-portal-session`   | Crée une session Customer Portal Stripe              |
+| `stripe-webhook`          | Reçoit les events Stripe (subscription lifecycle)    |
 
 ---
 

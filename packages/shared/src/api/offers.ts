@@ -276,7 +276,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         p_foodtruck_id: foodtruckId,
         p_cart_items: cartItems as unknown as Json,
         p_order_amount: orderAmount,
-        p_promo_code: promoCode || null,
+        p_promo_code: promoCode || undefined,
       });
 
       if (error) throw error;
@@ -294,7 +294,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         p_foodtruck_id: foodtruckId,
         p_cart_items: cartItems as unknown as Json,
         p_order_amount: orderAmount,
-        p_promo_code: promoCode || null,
+        p_promo_code: promoCode || undefined,
       });
 
       if (error) throw error;
@@ -357,7 +357,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         p_order_id: orderId,
         p_customer_email: customerEmail,
         p_discount_amount: discountAmount,
-        p_free_item_name: freeItemName || null,
+        p_free_item_name: freeItemName || undefined,
       });
 
       if (error) throw error;

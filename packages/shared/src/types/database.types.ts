@@ -1,13 +1,96 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.1';
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string;
+          admin_id: string;
+          created_at: string | null;
+          id: string;
+          metadata: Json | null;
+          target_foodtruck_id: string | null;
+        };
+        Insert: {
+          action: string;
+          admin_id: string;
+          created_at?: string | null;
+          id?: string;
+          metadata?: Json | null;
+          target_foodtruck_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          admin_id?: string;
+          created_at?: string | null;
+          id?: string;
+          metadata?: Json | null;
+          target_foodtruck_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'admin_actions_admin_id_fkey';
+            columns: ['admin_id'];
+            isOneToOne: false;
+            referencedRelation: 'admins';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'admin_actions_target_foodtruck_id_fkey';
+            columns: ['target_foodtruck_id'];
+            isOneToOne: false;
+            referencedRelation: 'foodtrucks';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      admins: {
+        Row: {
+          created_at: string | null;
+          email: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          email: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          email?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       campaign_sends: {
         Row: {
           campaign_id: string;
@@ -506,170 +589,6 @@ export type Database = {
           },
         ];
       };
-      offers: {
-        Row: {
-          id: string;
-          foodtruck_id: string;
-          name: string;
-          description: string | null;
-          offer_type: Database['public']['Enums']['offer_type'];
-          config: Json;
-          is_active: boolean;
-          start_date: string | null;
-          end_date: string | null;
-          time_start: string | null;
-          time_end: string | null;
-          days_of_week: number[] | null;
-          max_uses: number | null;
-          max_uses_per_customer: number | null;
-          current_uses: number;
-          total_discount_given: number;
-          stackable: boolean;
-          display_order: number | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          foodtruck_id: string;
-          name: string;
-          description?: string | null;
-          offer_type: Database['public']['Enums']['offer_type'];
-          config?: Json;
-          is_active?: boolean;
-          start_date?: string | null;
-          end_date?: string | null;
-          time_start?: string | null;
-          time_end?: string | null;
-          days_of_week?: number[] | null;
-          max_uses?: number | null;
-          max_uses_per_customer?: number | null;
-          current_uses?: number;
-          total_discount_given?: number;
-          stackable?: boolean;
-          display_order?: number | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          foodtruck_id?: string;
-          name?: string;
-          description?: string | null;
-          offer_type?: Database['public']['Enums']['offer_type'];
-          config?: Json;
-          is_active?: boolean;
-          start_date?: string | null;
-          end_date?: string | null;
-          time_start?: string | null;
-          time_end?: string | null;
-          days_of_week?: number[] | null;
-          max_uses?: number | null;
-          max_uses_per_customer?: number | null;
-          current_uses?: number;
-          total_discount_given?: number;
-          stackable?: boolean;
-          display_order?: number | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'offers_foodtruck_id_fkey';
-            columns: ['foodtruck_id'];
-            isOneToOne: false;
-            referencedRelation: 'foodtrucks';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      offer_items: {
-        Row: {
-          id: string;
-          offer_id: string;
-          menu_item_id: string;
-          role: string;
-          quantity: number;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          offer_id: string;
-          menu_item_id: string;
-          role: string;
-          quantity?: number;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          offer_id?: string;
-          menu_item_id?: string;
-          role?: string;
-          quantity?: number;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'offer_items_offer_id_fkey';
-            columns: ['offer_id'];
-            isOneToOne: false;
-            referencedRelation: 'offers';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'offer_items_menu_item_id_fkey';
-            columns: ['menu_item_id'];
-            isOneToOne: false;
-            referencedRelation: 'menu_items';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      offer_uses: {
-        Row: {
-          id: string;
-          offer_id: string;
-          order_id: string;
-          customer_email: string | null;
-          discount_amount: number;
-          free_item_name: string | null;
-          used_at: string;
-        };
-        Insert: {
-          id?: string;
-          offer_id: string;
-          order_id: string;
-          customer_email?: string | null;
-          discount_amount: number;
-          free_item_name?: string | null;
-          used_at?: string;
-        };
-        Update: {
-          id?: string;
-          offer_id?: string;
-          order_id?: string;
-          customer_email?: string | null;
-          discount_amount?: number;
-          free_item_name?: string | null;
-          used_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'offer_uses_offer_id_fkey';
-            columns: ['offer_id'];
-            isOneToOne: false;
-            referencedRelation: 'offers';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'offer_uses_order_id_fkey';
-            columns: ['order_id'];
-            isOneToOne: false;
-            referencedRelation: 'orders';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       device_tokens: {
         Row: {
           created_at: string | null;
@@ -714,8 +633,6 @@ export type Database = {
           allow_advance_orders: boolean | null;
           allow_asap_orders: boolean | null;
           auto_accept_orders: boolean | null;
-          offers_stackable: boolean | null;
-          promo_codes_stackable: boolean | null;
           cover_image_url: string | null;
           created_at: string | null;
           cuisine_types: string[] | null;
@@ -735,12 +652,14 @@ export type Database = {
           max_orders_per_slot: number | null;
           min_preparation_time: number | null;
           name: string;
+          offers_stackable: boolean | null;
           onboarding_completed_at: string | null;
           onboarding_step: number | null;
           order_slot_interval: number | null;
           payment_methods: string[] | null;
-          pickup_slot_interval: number | null;
           phone: string | null;
+          pickup_slot_interval: number | null;
+          promo_codes_stackable: boolean | null;
           send_confirmation_email: boolean | null;
           send_reminder_email: boolean | null;
           show_menu_photos: boolean;
@@ -784,8 +703,8 @@ export type Database = {
           onboarding_step?: number | null;
           order_slot_interval?: number | null;
           payment_methods?: string[] | null;
-          pickup_slot_interval?: number | null;
           phone?: string | null;
+          pickup_slot_interval?: number | null;
           promo_codes_stackable?: boolean | null;
           send_confirmation_email?: boolean | null;
           send_reminder_email?: boolean | null;
@@ -1010,81 +929,166 @@ export type Database = {
           },
         ];
       };
-      option_groups: {
+      offer_items: {
         Row: {
           created_at: string | null;
-          display_order: number | null;
           id: string;
-          is_multiple: boolean | null;
-          is_required: boolean | null;
           menu_item_id: string;
-          name: string;
+          offer_id: string;
+          quantity: number | null;
+          role: string;
         };
         Insert: {
           created_at?: string | null;
-          display_order?: number | null;
           id?: string;
-          is_multiple?: boolean | null;
-          is_required?: boolean | null;
           menu_item_id: string;
-          name: string;
+          offer_id: string;
+          quantity?: number | null;
+          role: string;
         };
         Update: {
           created_at?: string | null;
-          display_order?: number | null;
           id?: string;
-          is_multiple?: boolean | null;
-          is_required?: boolean | null;
           menu_item_id?: string;
-          name?: string;
+          offer_id?: string;
+          quantity?: number | null;
+          role?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'option_groups_menu_item_id_fkey';
+            foreignKeyName: 'offer_items_menu_item_id_fkey';
             columns: ['menu_item_id'];
             isOneToOne: false;
             referencedRelation: 'menu_items';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'offer_items_offer_id_fkey';
+            columns: ['offer_id'];
+            isOneToOne: false;
+            referencedRelation: 'offers';
+            referencedColumns: ['id'];
+          },
         ];
       };
-      options: {
+      offer_uses: {
         Row: {
-          created_at: string | null;
-          display_order: number | null;
+          customer_email: string | null;
+          discount_amount: number;
+          free_item_name: string | null;
           id: string;
-          is_available: boolean | null;
-          is_default: boolean | null;
-          name: string;
-          option_group_id: string;
-          price_modifier: number | null;
+          offer_id: string;
+          order_id: string;
+          used_at: string | null;
         };
         Insert: {
-          created_at?: string | null;
-          display_order?: number | null;
+          customer_email?: string | null;
+          discount_amount: number;
+          free_item_name?: string | null;
           id?: string;
-          is_available?: boolean | null;
-          is_default?: boolean | null;
-          name: string;
-          option_group_id: string;
-          price_modifier?: number | null;
+          offer_id: string;
+          order_id: string;
+          used_at?: string | null;
         };
         Update: {
-          created_at?: string | null;
-          display_order?: number | null;
+          customer_email?: string | null;
+          discount_amount?: number;
+          free_item_name?: string | null;
           id?: string;
-          is_available?: boolean | null;
-          is_default?: boolean | null;
-          name?: string;
-          option_group_id?: string;
-          price_modifier?: number | null;
+          offer_id?: string;
+          order_id?: string;
+          used_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'options_option_group_id_fkey';
-            columns: ['option_group_id'];
+            foreignKeyName: 'offer_uses_offer_id_fkey';
+            columns: ['offer_id'];
             isOneToOne: false;
-            referencedRelation: 'option_groups';
+            referencedRelation: 'offers';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'offer_uses_order_id_fkey';
+            columns: ['order_id'];
+            isOneToOne: false;
+            referencedRelation: 'orders';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      offers: {
+        Row: {
+          config: Json;
+          created_at: string | null;
+          current_uses: number | null;
+          days_of_week: number[] | null;
+          description: string | null;
+          display_order: number | null;
+          end_date: string | null;
+          foodtruck_id: string;
+          id: string;
+          is_active: boolean | null;
+          max_uses: number | null;
+          max_uses_per_customer: number | null;
+          name: string;
+          offer_type: Database['public']['Enums']['offer_type'];
+          stackable: boolean | null;
+          start_date: string | null;
+          time_end: string | null;
+          time_start: string | null;
+          total_discount_given: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          config?: Json;
+          created_at?: string | null;
+          current_uses?: number | null;
+          days_of_week?: number[] | null;
+          description?: string | null;
+          display_order?: number | null;
+          end_date?: string | null;
+          foodtruck_id: string;
+          id?: string;
+          is_active?: boolean | null;
+          max_uses?: number | null;
+          max_uses_per_customer?: number | null;
+          name: string;
+          offer_type: Database['public']['Enums']['offer_type'];
+          stackable?: boolean | null;
+          start_date?: string | null;
+          time_end?: string | null;
+          time_start?: string | null;
+          total_discount_given?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          config?: Json;
+          created_at?: string | null;
+          current_uses?: number | null;
+          days_of_week?: number[] | null;
+          description?: string | null;
+          display_order?: number | null;
+          end_date?: string | null;
+          foodtruck_id?: string;
+          id?: string;
+          is_active?: boolean | null;
+          max_uses?: number | null;
+          max_uses_per_customer?: number | null;
+          name?: string;
+          offer_type?: Database['public']['Enums']['offer_type'];
+          stackable?: boolean | null;
+          start_date?: string | null;
+          time_end?: string | null;
+          time_start?: string | null;
+          total_discount_given?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'offers_foodtruck_id_fkey';
+            columns: ['foodtruck_id'];
+            isOneToOne: false;
+            referencedRelation: 'foodtrucks';
             referencedColumns: ['id'];
           },
         ];
@@ -1132,7 +1136,7 @@ export type Database = {
             foreignKeyName: 'order_item_options_option_id_fkey';
             columns: ['option_id'];
             isOneToOne: false;
-            referencedRelation: 'options';
+            referencedRelation: 'category_options';
             referencedColumns: ['id'];
           },
           {
@@ -1189,8 +1193,52 @@ export type Database = {
           },
         ];
       };
+      order_modifications: {
+        Row: {
+          field_name: string;
+          id: string;
+          modified_at: string | null;
+          modified_by: string | null;
+          new_value: string | null;
+          old_value: string | null;
+          order_id: string;
+          reason: string | null;
+        };
+        Insert: {
+          field_name: string;
+          id?: string;
+          modified_at?: string | null;
+          modified_by?: string | null;
+          new_value?: string | null;
+          old_value?: string | null;
+          order_id: string;
+          reason?: string | null;
+        };
+        Update: {
+          field_name?: string;
+          id?: string;
+          modified_at?: string | null;
+          modified_by?: string | null;
+          new_value?: string | null;
+          old_value?: string | null;
+          order_id?: string;
+          reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'order_modifications_order_id_fkey';
+            columns: ['order_id'];
+            isOneToOne: false;
+            referencedRelation: 'orders';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       orders: {
         Row: {
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
           created_at: string | null;
           customer_email: string;
           customer_id: string | null;
@@ -1203,17 +1251,19 @@ export type Database = {
           id: string;
           is_asap: boolean | null;
           notes: string | null;
+          offer_discount: number | null;
+          offer_id: string | null;
           pickup_time: string;
           promo_code_id: string | null;
           reminder_sent_at: string | null;
           status: Database['public']['Enums']['order_status'] | null;
           total_amount: number;
           updated_at: string | null;
-          cancellation_reason: string | null;
-          cancelled_at: string | null;
-          cancelled_by: string | null;
         };
         Insert: {
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
           created_at?: string | null;
           customer_email: string;
           customer_id?: string | null;
@@ -1226,17 +1276,19 @@ export type Database = {
           id?: string;
           is_asap?: boolean | null;
           notes?: string | null;
+          offer_discount?: number | null;
+          offer_id?: string | null;
           pickup_time: string;
           promo_code_id?: string | null;
           reminder_sent_at?: string | null;
           status?: Database['public']['Enums']['order_status'] | null;
           total_amount: number;
           updated_at?: string | null;
+        };
+        Update: {
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: string | null;
-        };
-        Update: {
           created_at?: string | null;
           customer_email?: string;
           customer_id?: string | null;
@@ -1249,22 +1301,21 @@ export type Database = {
           id?: string;
           is_asap?: boolean | null;
           notes?: string | null;
+          offer_discount?: number | null;
+          offer_id?: string | null;
           pickup_time?: string;
           promo_code_id?: string | null;
           reminder_sent_at?: string | null;
           status?: Database['public']['Enums']['order_status'] | null;
           total_amount?: number;
           updated_at?: string | null;
-          cancellation_reason?: string | null;
-          cancelled_at?: string | null;
-          cancelled_by?: string | null;
         };
         Relationships: [
           {
             foreignKeyName: 'orders_deal_id_fkey';
             columns: ['deal_id'];
             isOneToOne: false;
-            referencedRelation: 'deals';
+            referencedRelation: 'offers';
             referencedColumns: ['id'];
           },
           {
@@ -1272,6 +1323,13 @@ export type Database = {
             columns: ['foodtruck_id'];
             isOneToOne: false;
             referencedRelation: 'foodtrucks';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'orders_offer_id_fkey';
+            columns: ['offer_id'];
+            isOneToOne: false;
+            referencedRelation: 'offers';
             referencedColumns: ['id'];
           },
           {
@@ -1393,6 +1451,24 @@ export type Database = {
           },
         ];
       };
+      rate_limits: {
+        Row: {
+          identifier: string;
+          request_count: number;
+          window_start: string;
+        };
+        Insert: {
+          identifier: string;
+          request_count?: number;
+          window_start?: string;
+        };
+        Update: {
+          identifier?: string;
+          request_count?: number;
+          window_start?: string;
+        };
+        Relationships: [];
+      };
       schedule_exceptions: {
         Row: {
           created_at: string | null;
@@ -1495,6 +1571,104 @@ export type Database = {
           },
         ];
       };
+      stripe_webhook_events: {
+        Row: {
+          event_id: string;
+          event_type: string;
+          id: string;
+          processed_at: string | null;
+        };
+        Insert: {
+          event_id: string;
+          event_type: string;
+          id?: string;
+          processed_at?: string | null;
+        };
+        Update: {
+          event_id?: string;
+          event_type?: string;
+          id?: string;
+          processed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null;
+          canceled_at: string | null;
+          created_at: string | null;
+          current_period_end: string | null;
+          current_period_start: string | null;
+          foodtruck_id: string;
+          id: string;
+          status: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          trial_ends_at: string;
+          trial_started_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          cancel_at_period_end?: boolean | null;
+          canceled_at?: string | null;
+          created_at?: string | null;
+          current_period_end?: string | null;
+          current_period_start?: string | null;
+          foodtruck_id: string;
+          id?: string;
+          status: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          trial_ends_at: string;
+          trial_started_at: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          cancel_at_period_end?: boolean | null;
+          canceled_at?: string | null;
+          created_at?: string | null;
+          current_period_end?: string | null;
+          current_period_start?: string | null;
+          foodtruck_id?: string;
+          id?: string;
+          status?: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          trial_ends_at?: string;
+          trial_started_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'subscriptions_foodtruck_id_fkey';
+            columns: ['foodtruck_id'];
+            isOneToOne: true;
+            referencedRelation: 'foodtrucks';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      waitlist: {
+        Row: {
+          created_at: string | null;
+          email: string;
+          id: string;
+          source: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          email: string;
+          id?: string;
+          source?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          email?: string;
+          id?: string;
+          source?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1510,6 +1684,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      apply_offer: {
+        Args: {
+          p_customer_email: string;
+          p_discount_amount: number;
+          p_free_item_name?: string;
+          p_offer_id: string;
+          p_order_id: string;
+        };
+        Returns: undefined;
+      };
       apply_promo_code: {
         Args: {
           p_customer_email: string;
@@ -1517,7 +1701,36 @@ export type Database = {
           p_order_id: string;
           p_promo_code_id: string;
         };
-        Returns: undefined;
+        Returns: boolean;
+      };
+      calculate_fair_bundle_discount: {
+        Args: { p_bundle_cats: Json; p_fixed_price: number; p_items: Json };
+        Returns: {
+          is_applicable: boolean;
+          items_used: Json;
+          total_discount: number;
+        }[];
+      };
+      calculate_fair_buy_x_get_y_discount: {
+        Args: {
+          p_eligible_cats: string[];
+          p_items: Json;
+          p_reward_qty: number;
+          p_trigger_qty: number;
+        };
+        Returns: {
+          items_used: Json;
+          num_applications: number;
+          total_discount: number;
+        }[];
+      };
+      check_rate_limit: {
+        Args: {
+          p_identifier: string;
+          p_max_requests?: number;
+          p_window_seconds?: number;
+        };
+        Returns: boolean;
       };
       check_slot_availability: {
         Args: {
@@ -1540,11 +1753,13 @@ export type Database = {
         };
         Returns: number;
       };
+      generate_slug: { Args: { name: string }; Returns: string };
+      get_access_state: { Args: { p_status: string }; Returns: string };
       get_analytics: {
         Args: {
-          p_end_date?: string;
+          p_end_date: string;
           p_foodtruck_id: string;
-          p_start_date?: string;
+          p_start_date: string;
         };
         Returns: Json;
       };
@@ -1570,67 +1785,22 @@ export type Database = {
       };
       get_applicable_offers: {
         Args: {
-          p_foodtruck_id: string;
           p_cart_items: Json;
+          p_foodtruck_id: string;
           p_order_amount: number;
-          p_promo_code?: string | null;
+          p_promo_code?: string;
         };
         Returns: {
+          calculated_discount: number;
+          description: string;
+          free_item_name: string;
+          is_applicable: boolean;
           offer_id: string;
           offer_name: string;
           offer_type: Database['public']['Enums']['offer_type'];
-          calculated_discount: number;
-          free_item_name: string | null;
-          is_applicable: boolean;
           progress_current: number;
           progress_required: number;
-          description: string | null;
         }[];
-      };
-      get_optimized_offers: {
-        Args: {
-          p_foodtruck_id: string;
-          p_cart_items: Json;
-          p_order_amount: number;
-          p_promo_code?: string | null;
-        };
-        Returns: {
-          offer_id: string;
-          offer_name: string;
-          offer_type: string;
-          times_applied: number;
-          discount_per_application: number;
-          calculated_discount: number;
-          items_consumed: { menu_item_id: string; quantity: number }[] | null;
-          free_item_name: string | null;
-        }[];
-      };
-      validate_offer_promo_code: {
-        Args: {
-          p_foodtruck_id: string;
-          p_code: string;
-          p_customer_email: string;
-          p_order_amount: number;
-        };
-        Returns: {
-          is_valid: boolean;
-          offer_id: string | null;
-          discount_type: string | null;
-          discount_value: number | null;
-          max_discount: number | null;
-          calculated_discount: number | null;
-          error_message: string | null;
-        }[];
-      };
-      apply_offer: {
-        Args: {
-          p_offer_id: string;
-          p_order_id: string;
-          p_customer_email: string;
-          p_discount_amount: number;
-          p_free_item_name?: string | null;
-        };
-        Returns: undefined;
       };
       get_available_slots: {
         Args: {
@@ -1673,6 +1843,58 @@ export type Database = {
         }[];
       };
       get_dashboard_stats: { Args: { p_foodtruck_id: string }; Returns: Json };
+      get_optimized_offers: {
+        Args: {
+          p_cart_items: Json;
+          p_foodtruck_id: string;
+          p_order_amount: number;
+          p_promo_code?: string;
+        };
+        Returns: {
+          calculated_discount: number;
+          discount_per_application: number;
+          free_item_name: string;
+          items_consumed: Json;
+          offer_id: string;
+          offer_name: string;
+          offer_type: Database['public']['Enums']['offer_type'];
+          times_applied: number;
+        }[];
+      };
+      increment_offer_uses:
+        | { Args: { p_count?: number; p_offer_id: string }; Returns: undefined }
+        | {
+            Args: {
+              p_count?: number;
+              p_discount_amount?: number;
+              p_offer_id: string;
+            };
+            Returns: undefined;
+          };
+      mark_first_unused_item: {
+        Args: { p_items: Json; p_menu_item_id: string; p_price: number };
+        Returns: Json;
+      };
+      mark_items_used_safe: {
+        Args: { p_items: Json; p_items_to_mark: Json };
+        Returns: Json;
+      };
+      process_bundle_offers: {
+        Args: { p_foodtruck_id: string; p_items: Json };
+        Returns: {
+          remaining_items: Json;
+          results: Json;
+          total_discount: number;
+        }[];
+      };
+      process_buy_x_get_y_offers: {
+        Args: { p_foodtruck_id: string; p_items: Json };
+        Returns: {
+          remaining_items: Json;
+          results: Json;
+          total_discount: number;
+        }[];
+      };
       redeem_loyalty_reward: {
         Args: {
           p_count?: number;
@@ -1681,6 +1903,40 @@ export type Database = {
           p_threshold: number;
         };
         Returns: boolean;
+      };
+      try_apply_item_based_offer: {
+        Args: {
+          p_items: Json;
+          p_reward_item_ids: string[];
+          p_reward_qty: number;
+          p_trigger_item_ids: string[];
+          p_trigger_qty: number;
+        };
+        Returns: {
+          discount: number;
+          free_item_name: string;
+          is_applicable: boolean;
+          items_consumed: Json;
+          remaining_items: Json;
+        }[];
+      };
+      unaccent: { Args: { '': string }; Returns: string };
+      validate_offer_promo_code: {
+        Args: {
+          p_code: string;
+          p_customer_email: string;
+          p_foodtruck_id: string;
+          p_order_amount: number;
+        };
+        Returns: {
+          calculated_discount: number;
+          discount_type: string;
+          discount_value: number;
+          error_message: string;
+          is_valid: boolean;
+          max_discount: number;
+          offer_id: string;
+        }[];
       };
       validate_promo_code: {
         Args: {
@@ -1713,14 +1969,15 @@ export type Database = {
       campaign_type: 'manual' | 'automated';
       deal_reward_type: 'free_item' | 'percentage' | 'fixed' | 'cheapest_in_cart';
       discount_type: 'percentage' | 'fixed';
-      offer_type: 'bundle' | 'buy_x_get_y' | 'promo_code' | 'threshold_discount';
+      offer_type: 'bundle' | 'buy_x_get_y' | 'happy_hour' | 'promo_code' | 'threshold_discount';
       order_status:
         | 'pending'
         | 'confirmed'
         | 'preparing'
         | 'ready'
-        | 'picked_up'
+        | 'completed'
         | 'cancelled'
+        | 'picked_up'
         | 'no_show';
       send_status: 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'failed';
     };
@@ -1846,6 +2103,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       campaign_channel: ['email', 'sms', 'both'],
@@ -1854,7 +2114,17 @@ export const Constants = {
       campaign_type: ['manual', 'automated'],
       deal_reward_type: ['free_item', 'percentage', 'fixed', 'cheapest_in_cart'],
       discount_type: ['percentage', 'fixed'],
-      order_status: ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'],
+      offer_type: ['bundle', 'buy_x_get_y', 'happy_hour', 'promo_code', 'threshold_discount'],
+      order_status: [
+        'pending',
+        'confirmed',
+        'preparing',
+        'ready',
+        'completed',
+        'cancelled',
+        'picked_up',
+        'no_show',
+      ],
       send_status: ['pending', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'failed'],
     },
   },

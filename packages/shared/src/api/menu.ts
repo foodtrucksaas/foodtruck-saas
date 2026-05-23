@@ -35,11 +35,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async createCategory(category: CategoryInsert): Promise<Category> {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert(category)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('categories').insert(category).select().single();
 
       return handleResponse(data, error);
     },
@@ -56,10 +52,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async deleteCategory(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('categories').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -84,45 +77,31 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return handleResponse(data, error);
     },
 
+    // Dead code — option_groups/options relations no longer exist on menu_items.
+    // Kept for backward compat; callers use direct Supabase queries instead.
     async getItemsWithOptions(foodtruckId: string): Promise<MenuItemWithOptions[]> {
       const { data, error } = await supabase
         .from('menu_items')
-        .select(`
-          *,
-          option_groups (
-            *,
-            options (*)
-          )
-        `)
+        .select('*')
         .eq('foodtruck_id', foodtruckId)
         .or('is_archived.is.null,is_archived.eq.false')
         .order('created_at');
 
-      return handleResponse(data, error) as MenuItemWithOptions[];
+      return handleResponse(data, error) as unknown as MenuItemWithOptions[];
     },
 
     async getItemById(id: string): Promise<MenuItemWithOptions | null> {
       const { data, error } = await supabase
         .from('menu_items')
-        .select(`
-          *,
-          option_groups (
-            *,
-            options (*)
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .maybeSingle();
 
-      return handleOptionalResponse(data, error) as MenuItemWithOptions | null;
+      return handleOptionalResponse(data, error) as unknown as MenuItemWithOptions | null;
     },
 
     async createItem(item: MenuItemInsert): Promise<MenuItem> {
-      const { data, error } = await supabase
-        .from('menu_items')
-        .insert(item)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('menu_items').insert(item).select().single();
 
       return handleResponse(data, error);
     },
@@ -187,7 +166,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
 
     async createOptionGroup(group: OptionGroupInsert): Promise<OptionGroup> {
       const { data, error } = await supabase
-        .from('option_groups')
+        .from('category_option_groups')
         .insert(group)
         .select()
         .single();
@@ -197,7 +176,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
 
     async updateOptionGroup(id: string, updates: Partial<OptionGroup>): Promise<OptionGroup> {
       const { data, error } = await supabase
-        .from('option_groups')
+        .from('category_option_groups')
         .update(updates)
         .eq('id', id)
         .select()
@@ -207,10 +186,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async deleteOptionGroup(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('option_groups')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('category_option_groups').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -219,7 +195,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
 
     async createOption(option: OptionInsert): Promise<Option> {
       const { data, error } = await supabase
-        .from('options')
+        .from('category_options')
         .insert(option)
         .select()
         .single();
@@ -229,7 +205,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
 
     async updateOption(id: string, updates: Partial<Option>): Promise<Option> {
       const { data, error } = await supabase
-        .from('options')
+        .from('category_options')
         .update(updates)
         .eq('id', id)
         .select()
@@ -239,10 +215,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async deleteOption(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('options')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('category_options').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -252,10 +225,12 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     async getCategoryOptionGroups(categoryId: string): Promise<CategoryOptionGroupWithOptions[]> {
       const { data, error } = await supabase
         .from('category_option_groups')
-        .select(`
+        .select(
+          `
           *,
           options:category_options(*)
-        `)
+        `
+        )
         .eq('category_id', categoryId)
         .order('display_order');
 
@@ -272,7 +247,9 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return count || 0;
     },
 
-    async createCategoryOptionGroup(group: CategoryOptionGroupInsert): Promise<CategoryOptionGroup> {
+    async createCategoryOptionGroup(
+      group: CategoryOptionGroupInsert
+    ): Promise<CategoryOptionGroup> {
       const { data, error } = await supabase
         .from('category_option_groups')
         .insert(group)
@@ -282,7 +259,10 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return handleResponse(data, error);
     },
 
-    async updateCategoryOptionGroup(id: string, updates: Partial<CategoryOptionGroup>): Promise<CategoryOptionGroup> {
+    async updateCategoryOptionGroup(
+      id: string,
+      updates: Partial<CategoryOptionGroup>
+    ): Promise<CategoryOptionGroup> {
       const { data, error } = await supabase
         .from('category_option_groups')
         .update(updates)
@@ -294,10 +274,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async deleteCategoryOptionGroup(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('category_option_groups')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('category_option_groups').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -310,7 +287,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
         .eq('category_id', categoryId);
 
       if (groups && groups.length > 0) {
-        const groupIds = groups.map(g => g.id);
+        const groupIds = groups.map((g) => g.id);
         await supabase.from('category_options').delete().in('option_group_id', groupIds);
       }
 
@@ -355,7 +332,10 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return handleResponse(data, error);
     },
 
-    async updateCategoryOption(id: string, updates: Partial<CategoryOption>): Promise<CategoryOption> {
+    async updateCategoryOption(
+      id: string,
+      updates: Partial<CategoryOption>
+    ): Promise<CategoryOption> {
       const { data, error } = await supabase
         .from('category_options')
         .update(updates)
@@ -367,10 +347,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     async deleteCategoryOption(id: string): Promise<void> {
-      const { error } = await supabase
-        .from('category_options')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('category_options').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -409,7 +386,9 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     // Get ALL required option groups with their options (for pricing in dashboard)
-    async getCategoryRequiredGroups(categoryId: string): Promise<CategoryOptionGroupWithCategoryOptions[]> {
+    async getCategoryRequiredGroups(
+      categoryId: string
+    ): Promise<CategoryOptionGroupWithCategoryOptions[]> {
       const { data, error } = await supabase
         .from('category_option_groups')
         .select('*, category_options(*)')
@@ -419,16 +398,21 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
         .order('display_order');
 
       if (error) throw error;
-      return (data || []).map(group => ({
+      return (data || []).map((group) => ({
         ...group,
         category_options: (group.category_options || [])
           .filter((o: CategoryOption) => o.is_available)
-          .sort((a: CategoryOption, b: CategoryOption) => (a.display_order ?? 0) - (b.display_order ?? 0))
+          .sort(
+            (a: CategoryOption, b: CategoryOption) =>
+              (a.display_order ?? 0) - (b.display_order ?? 0)
+          ),
       }));
     },
 
     // Get supplement groups with their options (for variable pricing per size)
-    async getCategorySupplementGroups(categoryId: string): Promise<CategoryOptionGroupWithCategoryOptions[]> {
+    async getCategorySupplementGroups(
+      categoryId: string
+    ): Promise<CategoryOptionGroupWithCategoryOptions[]> {
       const { data, error } = await supabase
         .from('category_option_groups')
         .select('*, category_options(*)')
@@ -437,11 +421,14 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
         .order('display_order');
 
       if (error) throw error;
-      return (data || []).map(group => ({
+      return (data || []).map((group) => ({
         ...group,
         category_options: (group.category_options || [])
           .filter((o: CategoryOption) => o.is_available)
-          .sort((a: CategoryOption, b: CategoryOption) => (a.display_order ?? 0) - (b.display_order ?? 0))
+          .sort(
+            (a: CategoryOption, b: CategoryOption) =>
+              (a.display_order ?? 0) - (b.display_order ?? 0)
+          ),
       }));
     },
 
@@ -455,7 +442,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
 
       if (!groups || groups.length === 0) return [];
 
-      const groupIds = groups.map(g => g.id);
+      const groupIds = groups.map((g) => g.id);
       const { data, error } = await supabase
         .from('category_options')
         .select('*')

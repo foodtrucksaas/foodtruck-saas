@@ -13,8 +13,14 @@
 **C'est le seul bloc qui empêche aujourd'hui d'avoir des revenus.** Tout le reste est secondaire tant que ce bloc n'est pas livré.
 
 - [ ] **Page pricing publique** sur la landing avec les 3 plans (Basic 29 / Pro 49 / Premium 79 €/mois) + call-to-action
-- [ ] **Intégration Stripe Billing** (subscriptions pour _le SaaS_, rien à voir avec NF525) — webhooks `customer.subscription.*`, page `/billing` côté dashboard, gate des features Pro/Premium selon plan
-- [ ] **Trial / freemium clarifié** : 14 j d'essai sans CB ? Plan gratuit limité ? À trancher avant d'écrire la première ligne de billing
+- [ ] **Intégration Stripe Billing** (subscriptions pour _le SaaS_, rien à voir avec NF525)
+  - [x] Migration `subscriptions` + `admins` + `admin_actions` + `stripe_webhook_events` (migration `20260524000005`)
+  - [x] Edge Functions `create-checkout-session`, `create-portal-session`, `stripe-webhook`
+  - [x] `_shared/stripe.ts` (SDK init, getOrCreateCustomer, verifyWebhookSignature)
+  - [x] Couche `shared/api/billing.ts` + `shared/types/billing.ts`
+  - [ ] Page `/billing` côté dashboard (Phase 1.2)
+  - [ ] Gate des features selon plan
+- [x] **Trial / freemium clarifié** : 14 j d'essai sans CB, trigger auto sur création foodtruck, `get_access_state()` pour dériver l'accès
 - [x] **Cleanup Stripe Connect legacy** — supprimé : `stripe-connect/`, `_shared/stripe.ts`, `requireStripe` dans `orders.ts`, `StripeConnectResponse` dans `api.ts`, vars `.env.example`, type `vite-env.d.ts`, migration `20260524000004` pour DROP colonnes DB
 - [ ] **Admin panel minimal** : liste des food trucks, plan actif, statut abonnement, capacité d'override manuel (geste commercial, debug)
 

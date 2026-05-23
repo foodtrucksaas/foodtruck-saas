@@ -41,14 +41,6 @@ export type OrderItem = DbTables<'order_items'>;
 export type OrderItemInsert = InsertTables<'order_items'>;
 export type OrderItemUpdate = UpdateTables<'order_items'>;
 
-export type OptionGroup = DbTables<'option_groups'>;
-export type OptionGroupInsert = InsertTables<'option_groups'>;
-export type OptionGroupUpdate = UpdateTables<'option_groups'>;
-
-export type Option = DbTables<'options'>;
-export type OptionInsert = InsertTables<'options'>;
-export type OptionUpdate = UpdateTables<'options'>;
-
 // Category-level options (using database types)
 export type CategoryOptionGroup = DbTables<'category_option_groups'>;
 export type CategoryOptionGroupInsert = InsertTables<'category_option_groups'>;
@@ -57,6 +49,14 @@ export type CategoryOptionGroupUpdate = UpdateTables<'category_option_groups'>;
 export type CategoryOption = DbTables<'category_options'>;
 export type CategoryOptionInsert = InsertTables<'category_options'>;
 export type CategoryOptionUpdate = UpdateTables<'category_options'>;
+
+// Legacy aliases — the old option_groups/options tables were renamed to category_option_groups/category_options
+export type OptionGroup = CategoryOptionGroup;
+export type OptionGroupInsert = CategoryOptionGroupInsert;
+export type OptionGroupUpdate = CategoryOptionGroupUpdate;
+export type Option = CategoryOption;
+export type OptionInsert = CategoryOptionInsert;
+export type OptionUpdate = CategoryOptionUpdate;
 
 export interface CategoryOptionGroupWithOptions extends CategoryOptionGroup {
   options: CategoryOption[];

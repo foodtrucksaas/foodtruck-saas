@@ -339,7 +339,7 @@ describe('Offers API', () => {
           p_foodtruck_id: 'ft-1',
           p_cart_items: cartItems,
           p_order_amount: 2400,
-          p_promo_code: null,
+          p_promo_code: undefined,
         });
         expect(result).toEqual(applicableOffers);
       });
