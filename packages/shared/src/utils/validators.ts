@@ -85,6 +85,23 @@ export function validateOrderItems(
 }
 
 /**
+ * Validate password strength: >= 8 chars, at least one letter, at least one digit.
+ * Returns { valid, reason? } with a French error message when invalid.
+ */
+export function isValidPassword(password: string): { valid: boolean; reason?: string } {
+  if (password.length < 8) {
+    return { valid: false, reason: 'Le mot de passe doit contenir au moins 8 caractères' };
+  }
+  if (!/[a-zA-Z]/.test(password)) {
+    return { valid: false, reason: 'Le mot de passe doit contenir au moins une lettre' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, reason: 'Le mot de passe doit contenir au moins un chiffre' };
+  }
+  return { valid: true };
+}
+
+/**
  * Validate UUID format
  */
 export function isValidUUID(uuid: string | null | undefined): boolean {

@@ -1,6 +1,6 @@
 # BACKLOG.md — OnMange.app
 
-> Liste vivante des chantiers identifiés. Mise à jour : 23 mai 2026.
+> Liste vivante des chantiers identifiés. Mise à jour : 24 mai 2026.
 >
 > Remplace l'ancien `AUDIT.md` (audit du 2 mars 2026), dont les items non encore traités sont repris ici, enrichis des nouveaux constats post-pivot Stripe.
 >
@@ -26,13 +26,15 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 
 Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'attaquer.
 
-- [ ] **`orders` INSERT `WITH CHECK (true)`** — n'importe qui peut créer une commande avec un `total_amount` arbitraire. Valider le total côté serveur dans l'Edge Function `create-order` (recalcul depuis les `order_items`)
-- [ ] **`increment_offer_uses` SECURITY DEFINER accessible anon** — DoS possible sur les compteurs. Retirer le `GRANT EXECUTE TO anon`
-- [ ] **`get_dashboard_stats` / `get_analytics` SECURITY DEFINER sans ownership check** — fuite cross-tenant via UUID deviné. Ajouter un guard `WHERE foodtruck_id = ...` croisé avec `auth.uid()`
-- [ ] **`offer_uses` INSERT `WITH CHECK (true)`** — tout user authentifié peut inscrire un usage sur n'importe quelle offre. Restreindre au `service_role`
-- [ ] **Source maps en production** — vérifier `vite.config.ts` des 3 packages et passer `sourcemap: 'hidden'` si encore exposé
+- [x] **`orders` INSERT `WITH CHECK (true)`** — corrigé : policy restreinte à `service_role` (migration `20260523000001`), total recalculé server-side dans `create-order`
+- [x] **`increment_offer_uses` SECURITY DEFINER accessible anon** — corrigé : `REVOKE EXECUTE FROM anon` (migration `20260523000001`)
+- [x] **`get_dashboard_stats` / `get_analytics` SECURITY DEFINER sans ownership check** — corrigé : guard `auth.uid()` ajouté dans le corps des fonctions + `REVOKE` anon/public (migrations `20260523000001` + `20260524000001`)
+- [x] **`offer_uses` INSERT `WITH CHECK (true)`** — corrigé : toutes les policies INSERT supprimées, seul `service_role` (Edge Function) peut insérer (migration `20260524000002`)
+- [x] **Source maps en production** — corrigé : `sourcemap: 'hidden'` dans les 2 vite.config.ts (client + dashboard)
 - [ ] **CSP hardening** — retirer `unsafe-inline` et `unsafe-eval` de `script-src` en build prod (nonces ou hashes)
-- [ ] **Validation password harmonisée** — 8 chars + complexité sur tous les entry points (Register, ResetPassword, mobile)
+- [x] **Validation password harmonisée** — corrigé : validateur `isValidPassword()` dans `shared/utils/validators.ts`, appliqué sur Register, ResetPassword et Settings/AccountSection (8 chars + lettre + chiffre)
+- [x] **DELETE policy trompeuse sur `orders`** — corrigé : policy supprimée, le trigger `prevent_order_deletion` reste la seule garde (migration `20260524000003`)
+- [x] **Module-level audio state leak** — corrigé : `sharedAudioContext` et `audioUnlocked` sont reset au changement de foodtruck dans `OrderNotificationContext`
 
 ---
 

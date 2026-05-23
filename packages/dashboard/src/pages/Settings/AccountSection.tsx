@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User, Eye, EyeOff, LogOut, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Modal, Button } from '@foodtruck/shared/components';
+import { isValidPassword } from '@foodtruck/shared';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { ErrorAlert } from '../../components/Alert';
@@ -31,8 +32,9 @@ export function AccountSection() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('Le nouveau mot de passe doit contenir au moins 6 caractères');
+    const pwCheck = isValidPassword(newPassword);
+    if (!pwCheck.valid) {
+      setError(pwCheck.reason!);
       return;
     }
 
@@ -196,7 +198,7 @@ export function AccountSection() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className="input min-h-[44px] pr-12"
-                        placeholder="Minimum 6 caractères"
+                        placeholder="8 caractères, 1 lettre, 1 chiffre"
                       />
                       <button
                         type="button"

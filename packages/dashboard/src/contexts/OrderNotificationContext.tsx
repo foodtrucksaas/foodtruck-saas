@@ -277,11 +277,19 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     [fetchPendingOrders, showPopupForOrders]
   );
 
-  // Reset known orders when foodtruck changes
+  // Reset all module-level state when foodtruck changes (prevents cross-session leaks)
   useEffect(() => {
     if (foodtruck?.id) {
       knownOrderIdsSet = new Set<string>();
       hasShownInitialPopup = false;
+      // Close and discard any existing AudioContext from a previous session
+      if (sharedAudioContext) {
+        if (typeof sharedAudioContext.close === 'function') {
+          sharedAudioContext.close().catch(() => {});
+        }
+        sharedAudioContext = null;
+      }
+      audioUnlocked = false;
     }
   }, [foodtruck?.id]);
 

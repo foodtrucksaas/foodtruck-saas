@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UtensilsCrossed, Mail, Lock, Loader2, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { isValidPassword } from '@foodtruck/shared';
 
 function translateAuthError(message: string): string {
   const translations: Record<string, string> = {
@@ -31,7 +32,7 @@ export default function Register() {
   const hasMinLength = password.length >= 8;
   const hasLetter = /[a-zA-Z]/.test(password);
   const hasDigit = /[0-9]/.test(password);
-  const isPasswordValid = hasMinLength && hasLetter && hasDigit;
+  const isPasswordValid = isValidPassword(password).valid;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

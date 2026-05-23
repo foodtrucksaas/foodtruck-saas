@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Lock, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { UtensilsCrossed, Lock, Loader2, CheckCircle, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorAlert } from '../components/Alert';
+import { isValidPassword } from '@foodtruck/shared';
 
 export default function ResetPassword() {
   const { updatePassword, user } = useAuth();
@@ -33,8 +34,9 @@ export default function ResetPassword() {
     e.preventDefault();
     setError('');
 
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    const pwCheck = isValidPassword(password);
+    if (!pwCheck.valid) {
+      setError(pwCheck.reason!);
       return;
     }
 
@@ -123,7 +125,7 @@ export default function ResetPassword() {
                   className="input pl-10 pr-10"
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={8}
                   autoFocus
                 />
                 <button
@@ -135,7 +137,27 @@ export default function ResetPassword() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Minimum 6 caractères</p>
+              {password.length > 0 && (
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li
+                    className={`flex items-center gap-1.5 ${password.length >= 8 ? 'text-success-600' : 'text-gray-400'}`}
+                  >
+                    <Check className="w-3.5 h-3.5" />8 caractères minimum
+                  </li>
+                  <li
+                    className={`flex items-center gap-1.5 ${/[a-zA-Z]/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Au moins une lettre
+                  </li>
+                  <li
+                    className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Au moins un chiffre
+                  </li>
+                </ul>
+              )}
             </div>
 
             <div>

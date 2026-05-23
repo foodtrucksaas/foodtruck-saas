@@ -8,6 +8,7 @@ import {
   sanitizeHtml,
   validateOrderItems,
   isValidUUID,
+  isValidPassword,
 } from './validators';
 
 describe('validators', () => {
@@ -134,6 +135,42 @@ describe('validators', () => {
     it('should handle null/undefined', () => {
       expect(isValidUUID(null)).toBe(false);
       expect(isValidUUID(undefined)).toBe(false);
+    });
+  });
+
+  describe('isValidPassword', () => {
+    it('should accept valid passwords', () => {
+      expect(isValidPassword('abcdef12').valid).toBe(true);
+      expect(isValidPassword('Passw0rd').valid).toBe(true);
+      expect(isValidPassword('a1b2c3d4e5').valid).toBe(true);
+    });
+
+    it('should reject passwords shorter than 8 characters', () => {
+      const result = isValidPassword('abc123');
+      expect(result.valid).toBe(false);
+      expect(result.reason).toContain('8 caractères');
+    });
+
+    it('should reject passwords without a letter', () => {
+      const result = isValidPassword('12345678');
+      expect(result.valid).toBe(false);
+      expect(result.reason).toContain('lettre');
+    });
+
+    it('should reject passwords without a digit', () => {
+      const result = isValidPassword('abcdefgh');
+      expect(result.valid).toBe(false);
+      expect(result.reason).toContain('chiffre');
+    });
+
+    it('should accept exactly 8 characters with letter and digit', () => {
+      expect(isValidPassword('abcdefg1').valid).toBe(true);
+    });
+
+    it('should return no reason when valid', () => {
+      const result = isValidPassword('Valid1Password');
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBeUndefined();
     });
   });
 
