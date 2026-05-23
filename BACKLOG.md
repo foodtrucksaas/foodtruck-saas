@@ -32,6 +32,7 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 - [x] **`offer_uses` INSERT `WITH CHECK (true)`** — corrigé : toutes les policies INSERT supprimées, seul `service_role` (Edge Function) peut insérer (migration `20260524000002`)
 - [x] **Source maps en production** — corrigé : `sourcemap: 'hidden'` dans les 2 vite.config.ts (client + dashboard)
 - [ ] **CSP hardening** — retirer `unsafe-inline` et `unsafe-eval` de `script-src` en build prod (nonces ou hashes)
+  > _Chantier à part : vérifier d'abord que le build Vite prod n'a pas besoin de unsafe-eval, sinon basculer sur des nonces ou hashes._
 - [x] **Validation password harmonisée** — corrigé : validateur `isValidPassword()` dans `shared/utils/validators.ts`, appliqué sur Register, ResetPassword et Settings/AccountSection (8 chars + lettre + chiffre)
 - [x] **DELETE policy trompeuse sur `orders`** — corrigé : policy supprimée, le trigger `prevent_order_deletion` reste la seule garde (migration `20260524000003`)
 - [x] **Module-level audio state leak** — corrigé : `sharedAudioContext` et `audioUnlocked` sont reset au changement de foodtruck dans `OrderNotificationContext`
@@ -57,6 +58,7 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 - [ ] **Remplacer `console.error` silencieux** par `toast.error()` dans les hooks dashboard
 - [ ] **Remplacer `window.confirm()`** par `useConfirmDialog` partout
 - [ ] **Vérifier fichiers potentiellement inutilisés** : `client/components/ApiError.tsx`, `client/components/Skeleton.tsx`, `dashboard/components/Skeleton.tsx`
+- [ ] **`import.meta.env` dans `shared/components/ErrorBoundary.tsx:114`** — couplage à Vite dans un package censé être runtime-agnostic. Risque : si la landing (config Vite différente) importe ce composant, ça pète. Refactor en injection (prop ou contexte) plutôt que lecture directe d'env. Détecté pendant le typecheck de la session sécurité du 23 mai 2026, pré-existant.
 
 ---
 
