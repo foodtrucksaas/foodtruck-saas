@@ -42,6 +42,7 @@ supabase/.temp
 # Misc
 *.tsbuildinfo
 .turbo
+*.timestamp-*.mjs
 
 # Capacitor - iOS
 packages/dashboard/ios/App/Pods
