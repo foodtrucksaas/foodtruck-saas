@@ -93,8 +93,6 @@ describe('useFoodtruck', () => {
     payment_methods: null,
     siret: null,
     show_promo_section: false,
-    stripe_account_id: null,
-    stripe_onboarding_complete: false,
   };
 
   const mockLocations: Location[] = [

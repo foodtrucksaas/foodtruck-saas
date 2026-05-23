@@ -162,7 +162,6 @@ Ordre fixe pour éviter les drift de types :
 | `google-places`           | Autocomplete adresses (proxy server-side)            |
 | `delete-account`          | Suppression compte RGPD                              |
 | `seed-demo`               | Données de démo                                      |
-| ~~`stripe-connect`~~      | **LEGACY** — à supprimer (voir `BACKLOG.md`)         |
 
 ---
 

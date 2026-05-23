@@ -114,7 +114,7 @@ export function validateOrderRequest(body: OrderRequest): Response | null {
   return null;
 }
 
-export async function getFoodtruck(foodtruckId: string, requireStripe = false) {
+export async function getFoodtruck(foodtruckId: string) {
   const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
     .from('foodtrucks')
@@ -124,9 +124,6 @@ export async function getFoodtruck(foodtruckId: string, requireStripe = false) {
     .single();
 
   if (error || !data) return { error: errorResponse('Foodtruck not found', 404) };
-  if (requireStripe && (!data.stripe_account_id || !data.stripe_onboarding_complete)) {
-    return { error: errorResponse('Foodtruck cannot accept payments yet') };
-  }
   return { foodtruck: data };
 }
 

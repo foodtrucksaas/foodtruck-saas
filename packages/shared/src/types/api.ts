@@ -44,10 +44,6 @@ export interface UpdateOrderStatusRequest {
   status: Order['status'];
 }
 
-export interface StripeConnectResponse {
-  url: string;
-}
-
 export interface AnalyticsData {
   startDate: string;
   endDate: string;

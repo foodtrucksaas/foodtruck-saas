@@ -15,7 +15,7 @@
 - [ ] **Page pricing publique** sur la landing avec les 3 plans (Basic 29 / Pro 49 / Premium 79 €/mois) + call-to-action
 - [ ] **Intégration Stripe Billing** (subscriptions pour _le SaaS_, rien à voir avec NF525) — webhooks `customer.subscription.*`, page `/billing` côté dashboard, gate des features Pro/Premium selon plan
 - [ ] **Trial / freemium clarifié** : 14 j d'essai sans CB ? Plan gratuit limité ? À trancher avant d'écrire la première ligne de billing
-- [ ] **Cleanup Stripe Connect legacy** (voir 🧹) — à faire AVANT d'introduire Stripe Billing pour pas confondre les deux SDK Stripe
+- [x] **Cleanup Stripe Connect legacy** — supprimé : `stripe-connect/`, `_shared/stripe.ts`, `requireStripe` dans `orders.ts`, `StripeConnectResponse` dans `api.ts`, vars `.env.example`, type `vite-env.d.ts`, migration `20260524000004` pour DROP colonnes DB
 - [ ] **Admin panel minimal** : liste des food trucks, plan actif, statut abonnement, capacité d'override manuel (geste commercial, debug)
 
 Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillée dans une session de chat dédiée.
@@ -41,13 +41,7 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 
 ## 🧹 Cleanup
 
-- [ ] **Stripe Connect legacy** — supprimer :
-  - `supabase/functions/stripe-connect/`
-  - `supabase/functions/_shared/stripe.ts`
-  - les refs Stripe dans `_shared/orders.ts`
-  - les types Stripe dans `shared/src/types/api.ts`
-  - la mention dans l'ancien README (déjà fait dans le nouveau)
-  - la var `VITE_STRIPE_PUBLISHABLE_KEY` dans `.env.example`
+- [x] **Stripe Connect legacy** — supprimé (migration `20260524000004` + code cleanup)
 - [ ] **`as any` dans `useOffers.ts` (10) et `offers.ts` API (7)** — typer correctement, en parallèle de la régénération des types DB
 - [ ] **Duplication offers** — `useOffers.ts` (dashboard) tape directement Supabase au lieu de passer par `shared/api/offers.ts`. Migrer pour respecter la convention
 - [ ] **Tables legacy `promo_codes`, `deals`, `promo_code_uses`, `deal_uses`** — dépréciées en migration mais existent encore. Vérifier qu'aucun code ne les lit, dumper les données, puis migration de DROP
