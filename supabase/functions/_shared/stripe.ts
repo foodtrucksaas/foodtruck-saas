@@ -44,12 +44,15 @@ export async function getOrCreateCustomer(
 /**
  * Verify a Stripe webhook signature. Throws on invalid signature.
  */
-export function verifyWebhookSignature(body: string, signature: string): Stripe.Event {
+export async function verifyWebhookSignature(
+  body: string,
+  signature: string
+): Promise<Stripe.Event> {
   const stripe = getStripe();
   const secret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
   if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET is not set');
 
-  return stripe.webhooks.constructEvent(body, signature, secret);
+  return await stripe.webhooks.constructEventAsync(body, signature, secret);
 }
 
 /**

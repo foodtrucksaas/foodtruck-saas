@@ -22,7 +22,7 @@ serve(async (req) => {
     // Verify signature
     let event;
     try {
-      event = verifyWebhookSignature(body, signature);
+      event = await verifyWebhookSignature(body, signature);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
@@ -48,10 +48,10 @@ serve(async (req) => {
           id: string;
           customer: string;
           status: string;
-          current_period_start: number;
-          current_period_end: number;
-          cancel_at_period_end: boolean;
-          canceled_at: number | null;
+          current_period_start?: number;
+          current_period_end?: number;
+          cancel_at_period_end?: boolean;
+          canceled_at?: number | null;
           metadata?: { foodtruck_id?: string };
         };
 
@@ -68,14 +68,17 @@ serve(async (req) => {
         };
         const mappedStatus = statusMap[sub.status] || 'incomplete';
 
+        const toISO = (ts: number | null | undefined): string | null =>
+          ts ? new Date(ts * 1000).toISOString() : null;
+
         const updateData = {
           stripe_subscription_id: sub.id,
           stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : null,
           status: mappedStatus,
-          current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: sub.cancel_at_period_end,
-          canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000).toISOString() : null,
+          current_period_start: toISO(sub.current_period_start),
+          current_period_end: toISO(sub.current_period_end),
+          cancel_at_period_end: sub.cancel_at_period_end ?? false,
+          canceled_at: toISO(sub.canceled_at),
           updated_at: new Date().toISOString(),
         };
 
