@@ -1,30 +1,10 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.1';
   };
   public: {
     Tables: {
@@ -649,6 +629,7 @@ export type Database = {
           loyalty_points_per_euro: number | null;
           loyalty_reward: number | null;
           loyalty_threshold: number | null;
+          max_discount_percent_per_order: number;
           max_orders_per_slot: number | null;
           min_preparation_time: number | null;
           name: string;
@@ -695,6 +676,7 @@ export type Database = {
           loyalty_points_per_euro?: number | null;
           loyalty_reward?: number | null;
           loyalty_threshold?: number | null;
+          max_discount_percent_per_order?: number;
           max_orders_per_slot?: number | null;
           min_preparation_time?: number | null;
           name: string;
@@ -741,6 +723,7 @@ export type Database = {
           loyalty_points_per_euro?: number | null;
           loyalty_reward?: number | null;
           loyalty_threshold?: number | null;
+          max_discount_percent_per_order?: number;
           max_orders_per_slot?: number | null;
           min_preparation_time?: number | null;
           name?: string;
@@ -1846,6 +1829,7 @@ export type Database = {
       get_optimized_offers: {
         Args: {
           p_cart_items: Json;
+          p_check_date?: string;
           p_foodtruck_id: string;
           p_order_amount: number;
           p_promo_code?: string;
@@ -1880,7 +1864,7 @@ export type Database = {
         Returns: Json;
       };
       process_bundle_offers: {
-        Args: { p_foodtruck_id: string; p_items: Json };
+        Args: { p_check_date?: string; p_foodtruck_id: string; p_items: Json };
         Returns: {
           remaining_items: Json;
           results: Json;
@@ -1888,7 +1872,7 @@ export type Database = {
         }[];
       };
       process_buy_x_get_y_offers: {
-        Args: { p_foodtruck_id: string; p_items: Json };
+        Args: { p_check_date?: string; p_foodtruck_id: string; p_items: Json };
         Returns: {
           remaining_items: Json;
           results: Json;
@@ -2103,9 +2087,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       campaign_channel: ['email', 'sms', 'both'],

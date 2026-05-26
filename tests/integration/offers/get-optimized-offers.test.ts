@@ -7,6 +7,7 @@ import {
   callGetOptimizedOffers,
   getTotalDiscount,
   cleanup,
+  setFoodtruckMaxDiscountCap,
   CartItem,
 } from './setup';
 
@@ -1046,5 +1047,111 @@ describe('Edge cases divers', () => {
     expect(total).toBe(400); // 200 + 200
 
     await cleanup(ftId, uid);
+  });
+});
+
+// ============================================================
+// Cap max_discount_percent_per_order
+// ============================================================
+describe('Cap max_discount_percent_per_order', () => {
+  let foodtruckId: string;
+  let userId: string;
+  let catId: string;
+  let itemId: string;
+
+  beforeAll(async () => {
+    const ft = await createTestFoodtruck();
+    foodtruckId = ft.foodtruckId;
+    userId = ft.userId;
+    catId = await createCategory(foodtruckId, { name: 'Burgers' });
+    itemId = await createMenuItem(foodtruckId, { name: 'Burger', price: 1000, categoryId: catId });
+  });
+
+  afterAll(async () => {
+    await cleanup(foodtruckId, userId);
+  });
+
+  it('default cap (50%) does not affect discount under 50%', async () => {
+    // 20% promo code on 1000 = 200 cents discount (20% < 50% cap)
+    await createOffer(foodtruckId, {
+      name: 'Promo 20%',
+      offer_type: 'promo_code',
+      config: { code: 'CAP20', discount_type: 'percentage', discount_value: 20 },
+    });
+
+    const cart: CartItem[] = [
+      { menu_item_id: itemId, category_id: catId, name: 'Burger', price: 1000, quantity: 1 },
+    ];
+    const results = await callGetOptimizedOffers(foodtruckId, cart, 1000, 'CAP20');
+    expect(getTotalDiscount(results)).toBe(200);
+  });
+
+  it('default cap (50%) clips discount that exceeds 50%', async () => {
+    // 70% promo code on 1000 = 700 cents, but cap is 50% => 500
+    await createOffer(foodtruckId, {
+      name: 'Promo 70%',
+      offer_type: 'promo_code',
+      config: { code: 'CAP70', discount_type: 'percentage', discount_value: 70 },
+    });
+
+    const cart: CartItem[] = [
+      { menu_item_id: itemId, category_id: catId, name: 'Burger', price: 1000, quantity: 1 },
+    ];
+    const results = await callGetOptimizedOffers(foodtruckId, cart, 1000, 'CAP70');
+    const total = getTotalDiscount(results);
+    // 1000 * 50% = 500 max
+    expect(total).toBeLessThanOrEqual(500);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('custom cap (30%) clips discount accordingly', async () => {
+    await setFoodtruckMaxDiscountCap(foodtruckId, 30);
+
+    await createOffer(foodtruckId, {
+      name: 'Promo 50% capped30',
+      offer_type: 'promo_code',
+      config: { code: 'CAPPED30', discount_type: 'percentage', discount_value: 50 },
+    });
+
+    const cart: CartItem[] = [
+      { menu_item_id: itemId, category_id: catId, name: 'Burger', price: 1000, quantity: 1 },
+    ];
+    const results = await callGetOptimizedOffers(foodtruckId, cart, 1000, 'CAPPED30');
+    const total = getTotalDiscount(results);
+    // 1000 * 30% = 300 max, original discount would be 500
+    expect(total).toBeLessThanOrEqual(300);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('cap 100% allows full discount', async () => {
+    await setFoodtruckMaxDiscountCap(foodtruckId, 100);
+
+    await createOffer(foodtruckId, {
+      name: 'Promo 80% uncapped',
+      offer_type: 'promo_code',
+      config: { code: 'FULL80', discount_type: 'percentage', discount_value: 80 },
+    });
+
+    const cart: CartItem[] = [
+      { menu_item_id: itemId, category_id: catId, name: 'Burger', price: 1000, quantity: 1 },
+    ];
+    const results = await callGetOptimizedOffers(foodtruckId, cart, 1000, 'FULL80');
+    expect(getTotalDiscount(results)).toBe(800);
+  });
+
+  it('cap 0% returns zero discount for all offers', async () => {
+    await setFoodtruckMaxDiscountCap(foodtruckId, 0);
+
+    await createOffer(foodtruckId, {
+      name: 'Promo 20% cap0',
+      offer_type: 'promo_code',
+      config: { code: 'ZERO', discount_type: 'percentage', discount_value: 20 },
+    });
+
+    const cart: CartItem[] = [
+      { menu_item_id: itemId, category_id: catId, name: 'Burger', price: 1000, quantity: 1 },
+    ];
+    const results = await callGetOptimizedOffers(foodtruckId, cart, 1000, 'ZERO');
+    expect(getTotalDiscount(results)).toBe(0);
   });
 });

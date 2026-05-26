@@ -183,6 +183,19 @@ export function expectAppliedOffers(results: OptimizedResult[], expectedOfferIds
   }
 }
 
+// ---------- Foodtruck config helpers ----------
+
+export async function setFoodtruckMaxDiscountCap(
+  foodtruckId: string,
+  percent: number
+): Promise<void> {
+  const { error } = await supabase
+    .from('foodtrucks')
+    .update({ max_discount_percent_per_order: percent })
+    .eq('id', foodtruckId);
+  if (error) throw error;
+}
+
 // ---------- Cleanup ----------
 
 export async function cleanup(foodtruckId: string, userId: string): Promise<void> {

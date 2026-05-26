@@ -38,7 +38,9 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 
   > ✅ Fait le 26 mai 2026 : 36 tests, 36 passing, 1 bug découvert (voir ci-dessous). Fichiers : `tests/integration/offers/setup.ts` + `tests/integration/offers/get-optimized-offers.test.ts`.
 
-- [ ] **Étape 2 — Cap de sécurité métier.** Ajouter colonne `max_discount_percent_per_order` sur `foodtrucks` (défaut 50%), la respecter dans `get_optimized_offers`. Petite migration, gros gain de sécurité contre accidents de config (foodtruck qui empile par erreur 5 offres concurrentes et donne 90% de remise).
+- [x] **Étape 2 — Cap de sécurité métier.** Ajouter colonne `max_discount_percent_per_order` sur `foodtrucks` (défaut 50%), la respecter dans `get_optimized_offers`. Petite migration, gros gain de sécurité contre accidents de config (foodtruck qui empile par erreur 5 offres concurrentes et donne 90% de remise).
+
+  > ✅ Fait le 26 mai 2026 : migration `20260526000002`, cap enforced dans SQL (scaling proportionnel) + `validateAppliedOffers` (Edge Function). 5 tests de non-régression ajoutés (43 tests total).
 
 - [ ] **Étape 3 — Migrer le dual code path.** `packages/dashboard/src/pages/Offers/useOffers.ts` (633 lignes) doit passer par `shared/api/offers.ts` au lieu d'appels Supabase directs. **Prérequis : Étape 1 (tests SQL) en place pour détecter les régressions.** (Cet item était déjà listé dans 🧹 Cleanup, gardé là-bas aussi, mais référencé ici.)
 

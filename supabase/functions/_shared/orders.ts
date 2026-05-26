@@ -675,6 +675,20 @@ export async function validateAppliedOffers(
     };
   }
 
+  // Enforce max_discount_percent_per_order cap
+  const { data: foodtruck } = await supabase
+    .from('foodtrucks')
+    .select('max_discount_percent_per_order')
+    .eq('id', foodtruckId)
+    .single();
+
+  const maxPct = foodtruck?.max_discount_percent_per_order ?? 50;
+  const maxDiscount = Math.floor((cartTotal * maxPct) / 100);
+
+  if (totalOffersDiscount > maxDiscount) {
+    totalOffersDiscount = maxDiscount;
+  }
+
   return { totalDiscount: totalOffersDiscount, error: null, validatedOffers: offerMap };
 }
 
