@@ -132,13 +132,15 @@ export async function callGetOptimizedOffers(
   foodtruckId: string,
   cartItems: CartItem[],
   totalAmount: number,
-  promoCode?: string
+  promoCode?: string,
+  checkDate?: string
 ): Promise<OptimizedResult[]> {
   const { data, error } = await supabase.rpc('get_optimized_offers', {
     p_foodtruck_id: foodtruckId,
     p_cart_items: cartItems,
     p_order_amount: totalAmount,
     p_promo_code: promoCode || null,
+    p_check_date: checkDate || null,
   });
   if (error) throw error;
   return (data as OptimizedResult[]) || [];

@@ -591,6 +591,18 @@ export async function validateAppliedOffers(
     if (offer.end_date && new Date(offer.end_date) < now) {
       return { totalDiscount: 0, error: errorResponse(`L'offre "${offer.name}" a expiré`) };
     }
+
+    // Check day of week (Paris timezone, 0=Sunday convention matching PostgreSQL DOW)
+    if (offer.days_of_week && offer.days_of_week.length > 0) {
+      const parisNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+      const dayOfWeek = parisNow.getDay(); // 0=Sunday, matches DB convention
+      if (!offer.days_of_week.includes(dayOfWeek)) {
+        return {
+          totalDiscount: 0,
+          error: errorResponse(`L'offre "${offer.name}" n'est pas active aujourd'hui`),
+        };
+      }
+    }
   }
 
   // 2. Build consumed items map to check no item is consumed more than available

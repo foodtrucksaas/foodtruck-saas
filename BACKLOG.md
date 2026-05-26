@@ -49,7 +49,7 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
   - `customer_email` non vérifié pour `max_uses_per_customer` → contournable via changement d'email. Pour les offres avec `max_uses_per_customer > 0`, exiger un compte authentifié ou vérifier l'email par lien magique avant application.
   - Ces 2 sous-items sont aussi listés dans 🔒 Sécurité ci-dessous.
 
-- [ ] **Bug découvert #1 — `days_of_week` jamais filtré nulle part.** Le champ `days_of_week` sur la table `offers` n'est vérifié NI dans `get_optimized_offers` (SQL), NI dans `validateAppliedOffers` (Edge Function `create-order`), NI côté client JS. Une offre configurée "lundi seulement" sera proposée ET validée tous les jours de la semaine. Seul le type `happy_hour` (déprécié) vérifiait `days_of_week` dans l'ancienne fonction `get_applicable_offers`. **Impact** : un food trucker qui configure une offre limitée à certains jours verra cette offre s'appliquer tout le temps. **Fix** : ajouter le filtre `AND (o.days_of_week IS NULL OR EXTRACT(DOW FROM NOW())::INTEGER = ANY(o.days_of_week))` dans `process_bundle_offers`, `process_buy_x_get_y_offers`, et les boucles threshold/promo_code de `get_optimized_offers`, + même vérification dans `validateAppliedOffers`. Test reproduisant le bug : `tests/integration/offers/get-optimized-offers.test.ts` → "offre avec days_of_week ne contenant pas le jour actuel".
+- [x] **Bug découvert #1 — `days_of_week` jamais filtré nulle part.** Fixé le 26 mai 2026 : migration `20260526000001_filter_offers_by_day_of_week.sql` + check dans `validateAppliedOffers`. Utilise `Europe/Paris` timezone. Nouveau paramètre `p_check_date` pour testabilité. 3 tests de non-régression ajoutés.
 
 ---
 
