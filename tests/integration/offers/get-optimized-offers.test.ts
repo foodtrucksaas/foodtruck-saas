@@ -814,11 +814,11 @@ describe('Validité temporelle', () => {
     expect(results.find((r) => r.offer_name === 'Passé')).toBeUndefined();
   });
 
-  it('offre avec days_of_week ne contenant pas le jour actuel → TODO vérification', async () => {
-    // NOTE: The SQL function checks days_of_week only in the initial 20260119 migration
-    // but the 20260209 version (latest) does NOT filter on days_of_week for bundles/BxGy.
-    // Only threshold_discount and promo_code check start_date/end_date.
-    // This test documents what the function actually does.
+  // BUG: days_of_week is NEVER filtered — not in SQL, not in validateAppliedOffers, not in client JS.
+  // An offer configured for "Monday only" will be proposed AND validated every day.
+  // See BACKLOG.md → 📦 Système d'offres → Bug #1.
+  // This test documents the bug: it SHOULD filter, but currently does NOT.
+  it('BUG: offre avec days_of_week ne contenant pas le jour actuel → devrait être filtrée mais ne l est pas', async () => {
     const today = new Date().getDay(); // 0=sun, 6=sat
     const notToday = (today + 3) % 7; // a day that is NOT today
 
@@ -833,11 +833,10 @@ describe('Validité temporelle', () => {
       { menu_item_id: itemId, category_id: catId, name: 'Item', price: 1000, quantity: 1 },
     ];
     const results = await callGetOptimizedOffers(foodtruckId, cart, 1000);
-    // The SQL function does NOT check days_of_week — it's only checked in validateAppliedOffers (server-side)
-    // So this offer WILL be returned by get_optimized_offers
-    // This is expected behavior: optimization is permissive, validation is strict
     const offer = results.find((r) => r.offer_name === 'Jour spécifique');
-    // Document actual behavior: the offer IS returned (days_of_week not filtered in SQL)
+
+    // BUG: offer IS returned even though today is not in days_of_week.
+    // When fixed, this assertion should be changed to: expect(offer).toBeUndefined();
     expect(offer).toBeDefined();
     expect(offer!.calculated_discount).toBe(200);
   });

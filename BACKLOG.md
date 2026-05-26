@@ -36,7 +36,7 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 
 - [x] **Étape 1 (priorité 1) — Suite de tests d'intégration SQL.** Fixtures sur `get_optimized_offers`, `calculate_fair_buy_x_get_y_discount`, `calculate_fair_bundle_discount`. Couverture : panier vide, un seul bundle, bundles concurrents (force la dual-strategy à départager), buy_x_get_y avec reste à skipper, combinaison mixte bundle+BxGy, promo_code + offre auto cumulés, edge case discount négatif, expire_date passée, day_of_week non match, max_uses atteint, etc. Vise 30+ cas. **Prérequis bloquant à TOUS les autres items ci-dessous.**
 
-  > ✅ Fait le 26 mai 2026 : 36 tests, 36 passing, 0 bugs découverts. Fichiers : `tests/integration/offers/setup.ts` + `tests/integration/offers/get-optimized-offers.test.ts`. Note : `days_of_week` n'est PAS filtré dans `get_optimized_offers` (c'est fait côté `validateAppliedOffers` dans l'Edge Function) — comportement documenté dans le test, pas un bug.
+  > ✅ Fait le 26 mai 2026 : 36 tests, 36 passing, 1 bug découvert (voir ci-dessous). Fichiers : `tests/integration/offers/setup.ts` + `tests/integration/offers/get-optimized-offers.test.ts`.
 
 - [ ] **Étape 2 — Cap de sécurité métier.** Ajouter colonne `max_discount_percent_per_order` sur `foodtrucks` (défaut 50%), la respecter dans `get_optimized_offers`. Petite migration, gros gain de sécurité contre accidents de config (foodtruck qui empile par erreur 5 offres concurrentes et donne 90% de remise).
 
@@ -48,6 +48,8 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
   - Pas de rate-limiting sur `create-order` → un attaquant peut brute-forcer un code promo (essayer `WELCOME2026`, `OUVERTURE`, etc. en boucle). Ajouter un rate limit par IP, ou au minimum sur les requêtes contenant un promo_code.
   - `customer_email` non vérifié pour `max_uses_per_customer` → contournable via changement d'email. Pour les offres avec `max_uses_per_customer > 0`, exiger un compte authentifié ou vérifier l'email par lien magique avant application.
   - Ces 2 sous-items sont aussi listés dans 🔒 Sécurité ci-dessous.
+
+- [ ] **Bug découvert #1 — `days_of_week` jamais filtré nulle part.** Le champ `days_of_week` sur la table `offers` n'est vérifié NI dans `get_optimized_offers` (SQL), NI dans `validateAppliedOffers` (Edge Function `create-order`), NI côté client JS. Une offre configurée "lundi seulement" sera proposée ET validée tous les jours de la semaine. Seul le type `happy_hour` (déprécié) vérifiait `days_of_week` dans l'ancienne fonction `get_applicable_offers`. **Impact** : un food trucker qui configure une offre limitée à certains jours verra cette offre s'appliquer tout le temps. **Fix** : ajouter le filtre `AND (o.days_of_week IS NULL OR EXTRACT(DOW FROM NOW())::INTEGER = ANY(o.days_of_week))` dans `process_bundle_offers`, `process_buy_x_get_y_offers`, et les boucles threshold/promo_code de `get_optimized_offers`, + même vérification dans `validateAppliedOffers`. Test reproduisant le bug : `tests/integration/offers/get-optimized-offers.test.ts` → "offre avec days_of_week ne contenant pas le jour actuel".
 
 ---
 
