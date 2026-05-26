@@ -28,6 +28,27 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 
 ---
 
+## 📦 Système d'offres
+
+> _Audit complet : voir `docs/analysis/offers-system.md` (26 mai 2026)._
+>
+> _Verdict : design correct, exigences métier respectées, mais grosse fragilité implémentation (20 migrations, 12 bugs patchés, 0 test SQL d'intégration). Plan d'action priorisé ci-dessous, dans l'ordre. Ne PAS réécrire le système, juste mettre le filet de sécurité et itérer._
+
+- [ ] **Étape 1 (priorité 1) — Suite de tests d'intégration SQL.** Fixtures sur `get_optimized_offers`, `calculate_fair_buy_x_get_y_discount`, `calculate_fair_bundle_discount`. Couverture : panier vide, un seul bundle, bundles concurrents (force la dual-strategy à départager), buy_x_get_y avec reste à skipper, combinaison mixte bundle+BxGy, promo_code + offre auto cumulés, edge case discount négatif, expire_date passée, day_of_week non match, max_uses atteint, etc. Vise 30+ cas. **Prérequis bloquant à TOUS les autres items ci-dessous.**
+
+- [ ] **Étape 2 — Cap de sécurité métier.** Ajouter colonne `max_discount_percent_per_order` sur `foodtrucks` (défaut 50%), la respecter dans `get_optimized_offers`. Petite migration, gros gain de sécurité contre accidents de config (foodtruck qui empile par erreur 5 offres concurrentes et donne 90% de remise).
+
+- [ ] **Étape 3 — Migrer le dual code path.** `packages/dashboard/src/pages/Offers/useOffers.ts` (633 lignes) doit passer par `shared/api/offers.ts` au lieu d'appels Supabase directs. **Prérequis : Étape 1 (tests SQL) en place pour détecter les régressions.** (Cet item était déjà listé dans 🧹 Cleanup, gardé là-bas aussi, mais référencé ici.)
+
+- [ ] **Étape 4 — Tuer les 18 `as any`.** Régénérer `database.types.ts`, fixer les 11 `as any` dans `dashboard/Offers/useOffers.ts` + 7 dans `shared/api/offers.ts`. **Prérequis : Étape 1.** (Idem, déjà listé dans 🧹 Cleanup, gardé là-bas aussi.)
+
+- [ ] **Étape 5 — Failles sécurité identifiées lors de l'audit** :
+  - Pas de rate-limiting sur `create-order` → un attaquant peut brute-forcer un code promo (essayer `WELCOME2026`, `OUVERTURE`, etc. en boucle). Ajouter un rate limit par IP, ou au minimum sur les requêtes contenant un promo_code.
+  - `customer_email` non vérifié pour `max_uses_per_customer` → contournable via changement d'email. Pour les offres avec `max_uses_per_customer > 0`, exiger un compte authentifié ou vérifier l'email par lien magique avant application.
+  - Ces 2 sous-items sont aussi listés dans 🔒 Sécurité ci-dessous.
+
+---
+
 ## 🔒 Sécurité — priorité 1
 
 Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'attaquer.
@@ -37,6 +58,8 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 - [x] **`get_dashboard_stats` / `get_analytics` SECURITY DEFINER sans ownership check** — corrigé : guard `auth.uid()` ajouté dans le corps des fonctions + `REVOKE` anon/public (migrations `20260523000001` + `20260524000001`)
 - [x] **`offer_uses` INSERT `WITH CHECK (true)`** — corrigé : toutes les policies INSERT supprimées, seul `service_role` (Edge Function) peut insérer (migration `20260524000002`)
 - [x] **Source maps en production** — corrigé : `sourcemap: 'hidden'` dans les 2 vite.config.ts (client + dashboard)
+- [ ] **[Offres] Rate-limiting sur `create-order`** — anti brute-force de promo_codes. Voir 📦 Système d'offres étape 5.
+- [ ] **[Offres] Vérification email pour `max_uses_per_customer`** — empêcher le contournement par changement d'email. Voir 📦 Système d'offres étape 5.
 - [ ] **CSP hardening** — retirer `unsafe-inline` et `unsafe-eval` de `script-src` en build prod (nonces ou hashes)
   > _Chantier à part : vérifier d'abord que le build Vite prod n'a pas besoin de unsafe-eval, sinon basculer sur des nonces ou hashes._
 - [x] **Validation password harmonisée** — corrigé : validateur `isValidPassword()` dans `shared/utils/validators.ts`, appliqué sur Register, ResetPassword et Settings/AccountSection (8 chars + lettre + chiffre)
