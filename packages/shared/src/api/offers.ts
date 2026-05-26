@@ -122,7 +122,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
       return data as unknown as OfferWithItems;
     },
 
-    // Get offers with items for a foodtruck
+    // Get offers with items for a foodtruck (ordered by display_order then created_at)
     async getWithItemsByFoodtruck(foodtruckId: string): Promise<OfferWithItems[]> {
       const { data, error } = await supabase
         .from('offers')
@@ -136,6 +136,7 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         `
         )
         .eq('foodtruck_id', foodtruckId)
+        .order('display_order', { nullsFirst: false })
         .order('created_at', { ascending: false });
 
       return handleResponse(data, error) as unknown as OfferWithItems[];
@@ -238,6 +239,17 @@ export function createOffersApi(supabase: TypedSupabaseClient) {
         .eq('offer_id', offerId);
 
       if (error) throw error;
+    },
+
+    // Reorder offers (batch update display_order)
+    async reorder(updates: { id: string; display_order: number }[]): Promise<void> {
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('offers')
+          .update({ display_order: update.display_order } as any)
+          .eq('id', update.id);
+        if (error) throw error;
+      }
     },
 
     // ============================================

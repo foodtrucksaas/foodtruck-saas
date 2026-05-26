@@ -34,6 +34,16 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return handleResponse(data, error);
     },
 
+    async getCategoriesWithOptionGroups(foodtruckId: string) {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*, category_option_groups(*, category_options(*))')
+        .eq('foodtruck_id', foodtruckId)
+        .order('display_order');
+
+      return handleResponse(data, error);
+    },
+
     async createCategory(category: CategoryInsert): Promise<Category> {
       const { data, error } = await supabase.from('categories').insert(category).select().single();
 
@@ -73,6 +83,17 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
         .eq('foodtruck_id', foodtruckId)
         .or('is_archived.is.null,is_archived.eq.false')
         .order('created_at');
+
+      return handleResponse(data, error);
+    },
+
+    async getAvailableItems(foodtruckId: string): Promise<MenuItem[]> {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('foodtruck_id', foodtruckId)
+        .eq('is_available', true)
+        .order('name');
 
       return handleResponse(data, error);
     },

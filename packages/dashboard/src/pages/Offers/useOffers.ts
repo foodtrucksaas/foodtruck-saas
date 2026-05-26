@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Disabled due to Supabase type casting requirements for complex queries
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { useFoodtruck } from '../../contexts/FoodtruckContext';
 import type {
   Offer,
@@ -143,36 +141,15 @@ export function useOffers() {
 
     setLoading(true);
     try {
-      const [offersRes, categoriesRes, itemsRes] = await Promise.all([
-        (supabase.from('offers') as any)
-          .select(
-            `
-            *,
-            offer_items (
-              *,
-              menu_item:menu_items (*)
-            )
-          `
-          )
-          .eq('foodtruck_id', foodtruck.id)
-          .order('display_order', { nullsFirst: false })
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('categories')
-          .select('*, category_option_groups(*, category_options(*))')
-          .eq('foodtruck_id', foodtruck.id)
-          .order('display_order'),
-        supabase
-          .from('menu_items')
-          .select('*')
-          .eq('foodtruck_id', foodtruck.id)
-          .eq('is_available', true)
-          .order('name'),
+      const [offersData, categoriesData, itemsData] = await Promise.all([
+        api.offers.getWithItemsByFoodtruck(foodtruck.id),
+        api.menu.getCategoriesWithOptionGroups(foodtruck.id),
+        api.menu.getAvailableItems(foodtruck.id),
       ]);
 
-      if (offersRes.data) setOffers(offersRes.data as unknown as OfferWithItems[]);
-      if (categoriesRes.data) setCategories(categoriesRes.data as CategoryWithOptionGroups[]);
-      if (itemsRes.data) setMenuItems(itemsRes.data as MenuItem[]);
+      setOffers(offersData);
+      setCategories(categoriesData as CategoryWithOptionGroups[]);
+      setMenuItems(itemsData);
     } catch {
       toast.error('Erreur de chargement des offres');
     } finally {
@@ -324,6 +301,13 @@ export function useOffers() {
     return null;
   }, [form]);
 
+  const closeWizard = useCallback(() => {
+    setShowWizard(false);
+    setEditingOffer(null);
+    setForm(initialFormState);
+    setWizardStep(1);
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (!foodtruck) return;
 
@@ -359,32 +343,18 @@ export function useOffers() {
       let offerId: string;
 
       if (editingOffer) {
-        // Update
-        const { error: updateError } = await supabase
-          .from('offers')
-          .update({
-            ...offerData,
-            foodtruck_id: undefined, // Don't update foodtruck_id
-          } as any)
-          .eq('id', editingOffer.id)
-          .select()
-          .single();
-
-        if (updateError) throw updateError;
+        // Update — omit foodtruck_id
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { foodtruck_id: _ftId, ...updatePayload } = offerData;
+        await api.offers.update(editingOffer.id, updatePayload);
         offerId = editingOffer.id;
 
         // Delete old items and recreate
-        await (supabase.from('offer_items') as any).delete().eq('offer_id', offerId);
+        await api.offers.removeAllItems(offerId);
       } else {
         // Create
-        const { data, error: createError } = await supabase
-          .from('offers')
-          .insert(offerData as any)
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        offerId = (data as any).id;
+        const created = await api.offers.create(offerData);
+        offerId = created.id;
       }
 
       // Add offer items
@@ -417,12 +387,10 @@ export function useOffers() {
             quantity: parseInt(form.rewardQuantity) || 1,
           });
         });
-        // For category_choice mode, categories are stored in config.trigger_category_ids and config.reward_category_ids
       }
 
       if (items.length > 0) {
-        const { error: itemsError } = await (supabase.from('offer_items') as any).insert(items);
-        if (itemsError) throw itemsError;
+        await api.offers.addItems(items);
       }
 
       await loadData();
@@ -432,18 +400,15 @@ export function useOffers() {
     } finally {
       setSaving(false);
     }
-  }, [foodtruck, form, editingOffer, buildConfig, validateForm, loadData]);
+  }, [foodtruck, form, editingOffer, buildConfig, validateForm, loadData, closeWizard]);
 
   const toggleActive = useCallback(
     async (offer: Offer) => {
-      const { error } = await (supabase.from('offers') as any)
-        .update({ is_active: !offer.is_active })
-        .eq('id', offer.id);
-
-      if (error) {
-        toast.error("Erreur lors du changement d'état");
-      } else {
+      try {
+        await api.offers.toggleActive(offer.id, !offer.is_active);
         await loadData();
+      } catch {
+        toast.error("Erreur lors du changement d'état");
       }
     },
     [loadData]
@@ -453,11 +418,11 @@ export function useOffers() {
     async (id: string) => {
       if (!confirm('Supprimer cette offre ?')) return;
 
-      const { error } = await (supabase.from('offers') as any).delete().eq('id', id);
-      if (error) {
-        toast.error('Erreur lors de la suppression');
-      } else {
+      try {
+        await api.offers.delete(id);
         await loadData();
+      } catch {
+        toast.error('Erreur lors de la suppression');
       }
     },
     [loadData]
@@ -465,7 +430,7 @@ export function useOffers() {
 
   const openEditWizard = useCallback((offer: OfferWithItems) => {
     setEditingOffer(offer);
-    const config = offer.config as any;
+    const config = offer.config as unknown as Record<string, unknown>;
 
     const newForm: OfferFormState = {
       ...initialFormState,
@@ -486,19 +451,22 @@ export function useOffers() {
     // Load config based on type
     switch (offer.offer_type) {
       case 'bundle':
-        newForm.bundleFixedPrice = ((config.fixed_price || 0) / 100).toString();
-        newForm.bundleFreeOptions = config.free_options || false;
+        newForm.bundleFixedPrice = (((config.fixed_price as number) || 0) / 100).toString();
+        newForm.bundleFreeOptions = (config.free_options as boolean) || false;
 
         if (config.type === 'category_choice' && config.bundle_categories) {
           newForm.bundleType = 'category_choice';
-          newForm.bundleCategories = (config.bundle_categories || []).map((bc: any) => ({
+          newForm.bundleCategories = (
+            config.bundle_categories as Array<Record<string, unknown>>
+          ).map((bc) => ({
             // Support both old format (category_id) and new format (category_ids)
-            categoryIds: bc.category_ids || (bc.category_id ? [bc.category_id] : []),
-            quantity: bc.quantity || 1,
-            label: bc.label || '',
-            excludedItems: bc.excluded_items || [],
-            supplements: bc.supplements || {},
-            excludedSizes: bc.excluded_sizes || {},
+            categoryIds:
+              (bc.category_ids as string[]) || (bc.category_id ? [bc.category_id as string] : []),
+            quantity: (bc.quantity as number) || 1,
+            label: (bc.label as string) || '',
+            excludedItems: (bc.excluded_items as string[]) || [],
+            supplements: (bc.supplements as Record<string, number>) || {},
+            excludedSizes: (bc.excluded_sizes as Record<string, string[]>) || {},
           }));
         } else {
           newForm.bundleType = 'specific_items';
@@ -508,19 +476,23 @@ export function useOffers() {
         }
         break;
       case 'buy_x_get_y':
-        newForm.triggerQuantity = (config.trigger_quantity || 3).toString();
-        newForm.rewardQuantity = (config.reward_quantity || 1).toString();
-        newForm.rewardType = config.reward_type || 'free';
-        newForm.rewardValue = config.reward_value ? (config.reward_value / 100).toString() : '';
+        newForm.triggerQuantity = ((config.trigger_quantity as number) || 3).toString();
+        newForm.rewardQuantity = ((config.reward_quantity as number) || 1).toString();
+        newForm.rewardType = (config.reward_type as 'free' | 'discount') || 'free';
+        newForm.rewardValue = config.reward_value
+          ? ((config.reward_value as number) / 100).toString()
+          : '';
 
         if (config.type === 'category_choice' && config.trigger_category_ids) {
           newForm.buyXGetYType = 'category_choice';
-          newForm.triggerCategoryIds = config.trigger_category_ids || [];
-          newForm.triggerExcludedItems = config.trigger_excluded_items || [];
-          newForm.triggerExcludedSizes = config.trigger_excluded_sizes || {};
-          newForm.rewardCategoryIds = config.reward_category_ids || [];
-          newForm.rewardExcludedItems = config.reward_excluded_items || [];
-          newForm.rewardExcludedSizes = config.reward_excluded_sizes || {};
+          newForm.triggerCategoryIds = (config.trigger_category_ids as string[]) || [];
+          newForm.triggerExcludedItems = (config.trigger_excluded_items as string[]) || [];
+          newForm.triggerExcludedSizes =
+            (config.trigger_excluded_sizes as Record<string, string[]>) || {};
+          newForm.rewardCategoryIds = (config.reward_category_ids as string[]) || [];
+          newForm.rewardExcludedItems = (config.reward_excluded_items as string[]) || [];
+          newForm.rewardExcludedSizes =
+            (config.reward_excluded_sizes as Record<string, string[]>) || {};
         } else {
           newForm.buyXGetYType = 'specific_items';
           newForm.triggerItems = (offer.offer_items || [])
@@ -532,39 +504,34 @@ export function useOffers() {
         }
         break;
       case 'promo_code':
-        newForm.promoCode = config.code || '';
-        newForm.promoCodeDiscountType = config.discount_type || 'percentage';
+        newForm.promoCode = (config.code as string) || '';
+        newForm.promoCodeDiscountType =
+          (config.discount_type as 'percentage' | 'fixed') || 'percentage';
         newForm.promoCodeDiscountValue =
           config.discount_type === 'percentage'
-            ? (config.discount_value || 0).toString()
-            : ((config.discount_value || 0) / 100).toString();
+            ? ((config.discount_value as number) || 0).toString()
+            : (((config.discount_value as number) || 0) / 100).toString();
         newForm.promoCodeMinOrderAmount = config.min_order_amount
-          ? (config.min_order_amount / 100).toString()
+          ? ((config.min_order_amount as number) / 100).toString()
           : '';
         newForm.promoCodeMaxDiscount = config.max_discount
-          ? (config.max_discount / 100).toString()
+          ? ((config.max_discount as number) / 100).toString()
           : '';
         break;
       case 'threshold_discount':
-        newForm.thresholdMinAmount = ((config.min_amount || 0) / 100).toString();
-        newForm.thresholdDiscountType = config.discount_type || 'percentage';
+        newForm.thresholdMinAmount = (((config.min_amount as number) || 0) / 100).toString();
+        newForm.thresholdDiscountType =
+          (config.discount_type as 'percentage' | 'fixed') || 'percentage';
         newForm.thresholdDiscountValue =
           config.discount_type === 'percentage'
-            ? (config.discount_value || 0).toString()
-            : ((config.discount_value || 0) / 100).toString();
+            ? ((config.discount_value as number) || 0).toString()
+            : (((config.discount_value as number) || 0) / 100).toString();
         break;
     }
 
     setForm(newForm);
     setWizardStep(2); // Go directly to config step when editing
     setShowWizard(true);
-  }, []);
-
-  const closeWizard = useCallback(() => {
-    setShowWizard(false);
-    setEditingOffer(null);
-    setForm(initialFormState);
-    setWizardStep(1);
   }, []);
 
   const openCreateWizard = useCallback((type?: OfferType) => {
@@ -579,20 +546,12 @@ export function useOffers() {
       setOffers(reorderedOffers);
 
       try {
-        // Update display_order for each offer
         const updates = reorderedOffers.map((offer, index) => ({
           id: offer.id,
           display_order: index,
         }));
 
-        // Update each offer's display_order
-        for (const update of updates) {
-          const { error } = await (supabase.from('offers') as any)
-            .update({ display_order: update.display_order })
-            .eq('id', update.id);
-
-          if (error) throw error;
-        }
+        await api.offers.reorder(updates);
       } catch {
         toast.error('Erreur lors du réordonnancement');
         // Revert on error

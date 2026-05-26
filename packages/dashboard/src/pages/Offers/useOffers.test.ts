@@ -6,11 +6,28 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import type { OfferWithItems, MenuItem, Category } from '@foodtruck/shared';
 import { useOffers, type OfferFormState } from './useOffers';
 
-// Mock supabase
-const mockFrom = vi.fn();
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
+// Mock the API module
+const { mockOffersApi, mockMenuApi } = vi.hoisted(() => ({
+  mockOffersApi: {
+    getWithItemsByFoodtruck: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    toggleActive: vi.fn(),
+    addItems: vi.fn(),
+    removeAllItems: vi.fn(),
+    reorder: vi.fn(),
+  },
+  mockMenuApi: {
+    getCategoriesWithOptionGroups: vi.fn(),
+    getAvailableItems: vi.fn(),
+  },
+}));
+
+vi.mock('../../lib/api', () => ({
+  api: {
+    offers: mockOffersApi,
+    menu: mockMenuApi,
   },
 }));
 
@@ -181,63 +198,16 @@ describe('useOffers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'offers') {
-        return {
-          select: () => ({
-            eq: () => ({
-              order: () => ({
-                order: () => Promise.resolve({ data: mockOffers, error: null }),
-              }),
-            }),
-          }),
-          insert: () => ({
-            select: () => ({
-              single: () => Promise.resolve({ data: { id: 'new-offer-id' }, error: null }),
-            }),
-          }),
-          update: () => ({
-            eq: () => ({
-              select: () => ({
-                single: () => Promise.resolve({ data: mockOffers[0], error: null }),
-              }),
-            }),
-          }),
-          delete: () => ({
-            eq: () => Promise.resolve({ error: null }),
-          }),
-        };
-      }
-      if (table === 'categories') {
-        return {
-          select: () => ({
-            eq: () => ({
-              order: () => Promise.resolve({ data: mockCategories, error: null }),
-            }),
-          }),
-        };
-      }
-      if (table === 'menu_items') {
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                order: () => Promise.resolve({ data: mockMenuItems, error: null }),
-              }),
-            }),
-          }),
-        };
-      }
-      if (table === 'offer_items') {
-        return {
-          insert: () => Promise.resolve({ error: null }),
-          delete: () => ({
-            eq: () => Promise.resolve({ error: null }),
-          }),
-        };
-      }
-      return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
-    });
+    mockOffersApi.getWithItemsByFoodtruck.mockResolvedValue(mockOffers);
+    mockMenuApi.getCategoriesWithOptionGroups.mockResolvedValue(mockCategories);
+    mockMenuApi.getAvailableItems.mockResolvedValue(mockMenuItems);
+    mockOffersApi.create.mockResolvedValue({ id: 'new-offer-id' });
+    mockOffersApi.update.mockResolvedValue(mockOffers[0]);
+    mockOffersApi.delete.mockResolvedValue(undefined);
+    mockOffersApi.toggleActive.mockResolvedValue(mockOffers[0]);
+    mockOffersApi.addItems.mockResolvedValue([]);
+    mockOffersApi.removeAllItems.mockResolvedValue(undefined);
+    mockOffersApi.reorder.mockResolvedValue(undefined);
   });
 
   describe('initialization', () => {
@@ -525,53 +495,24 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(mockFrom).toHaveBeenCalledWith('offers');
+      expect(mockOffersApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          foodtruck_id: 'ft-1',
+          name: 'New Promo',
+          offer_type: 'promo_code',
+          config: expect.objectContaining({ code: 'NEWCODE', discount_value: 15 }),
+        })
+      );
       expect(result.current.showWizard).toBe(false);
     });
 
     it('should set saving state during submit', async () => {
-      let resolveInsert: (value: unknown) => void;
-      const insertPromise = new Promise((resolve) => {
-        resolveInsert = resolve;
+      let resolveCreate: (value: unknown) => void;
+      const createPromise = new Promise((resolve) => {
+        resolveCreate = resolve;
       });
 
-      mockFrom.mockImplementation((table: string) => {
-        if (table === 'offers') {
-          return {
-            select: () => ({
-              eq: () => ({
-                order: () => Promise.resolve({ data: mockOffers, error: null }),
-              }),
-            }),
-            insert: () => ({
-              select: () => ({
-                single: () => insertPromise,
-              }),
-            }),
-          };
-        }
-        if (table === 'categories') {
-          return {
-            select: () => ({
-              eq: () => ({
-                order: () => Promise.resolve({ data: mockCategories, error: null }),
-              }),
-            }),
-          };
-        }
-        if (table === 'menu_items') {
-          return {
-            select: () => ({
-              eq: () => ({
-                eq: () => ({
-                  order: () => Promise.resolve({ data: mockMenuItems, error: null }),
-                }),
-              }),
-            }),
-          };
-        }
-        return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
-      });
+      mockOffersApi.create.mockReturnValue(createPromise);
 
       const { result } = renderHook(() => useOffers());
 
@@ -595,7 +536,7 @@ describe('useOffers', () => {
       expect(result.current.saving).toBe(true);
 
       await act(async () => {
-        resolveInsert!({ data: { id: 'new-offer' }, error: null });
+        resolveCreate!({ id: 'new-offer' });
       });
 
       await waitFor(() => {
@@ -616,7 +557,7 @@ describe('useOffers', () => {
         await result.current.toggleActive(mockOffers[0]);
       });
 
-      expect(mockFrom).toHaveBeenCalledWith('offers');
+      expect(mockOffersApi.toggleActive).toHaveBeenCalledWith('offer-1', false);
     });
   });
 
@@ -633,7 +574,7 @@ describe('useOffers', () => {
       });
 
       expect(global.confirm).toHaveBeenCalledWith('Supprimer cette offre ?');
-      expect(mockFrom).toHaveBeenCalledWith('offers');
+      expect(mockOffersApi.delete).toHaveBeenCalledWith('offer-1');
     });
 
     it('should not delete if user cancels', async () => {
@@ -645,15 +586,11 @@ describe('useOffers', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const callCountBefore = mockFrom.mock.calls.filter((c) => c[0] === 'offers').length;
-
       await act(async () => {
         await result.current.deleteOffer('offer-1');
       });
 
-      // Should not have made delete call
-      const deleteCalls = mockFrom.mock.calls.filter((c) => c[0] === 'offers').length;
-      expect(deleteCalls).toBe(callCountBefore); // No additional calls
+      expect(mockOffersApi.delete).not.toHaveBeenCalled();
     });
   });
 

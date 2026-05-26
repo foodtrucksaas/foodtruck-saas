@@ -42,7 +42,9 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 
   > ✅ Fait le 26 mai 2026 : migration `20260526000002`, cap enforced dans SQL (scaling proportionnel) + `validateAppliedOffers` (Edge Function). 5 tests de non-régression ajoutés (43 tests total).
 
-- [ ] **Étape 3 — Migrer le dual code path.** `packages/dashboard/src/pages/Offers/useOffers.ts` (633 lignes) doit passer par `shared/api/offers.ts` au lieu d'appels Supabase directs. **Prérequis : Étape 1 (tests SQL) en place pour détecter les régressions.** (Cet item était déjà listé dans 🧹 Cleanup, gardé là-bas aussi, mais référencé ici.)
+- [x] **Étape 3 — Migrer le dual code path.** `packages/dashboard/src/pages/Offers/useOffers.ts` (633 lignes) doit passer par `shared/api/offers.ts` au lieu d'appels Supabase directs. **Prérequis : Étape 1 (tests SQL) en place pour détecter les régressions.** (Cet item était déjà listé dans 🧹 Cleanup, gardé là-bas aussi, mais référencé ici.)
+
+  > ✅ Fait le 26 mai 2026 : 10 appels Supabase directs migrés vers `api.offers.*` et `api.menu.*`. 11 `as any` supprimés (1 reste : `config as unknown as Record<string, unknown>` pour le parsing JSONB). 3 méthodes ajoutées au shared API (`reorder`, `getCategoriesWithOptionGroups`, `getAvailableItems`). Tests adaptés aux mocks API (454 dashboard tests passent).
 
 - [ ] **Étape 4 — Tuer les 18 `as any`.** Régénérer `database.types.ts`, fixer les 11 `as any` dans `dashboard/Offers/useOffers.ts` + 7 dans `shared/api/offers.ts`. **Prérequis : Étape 1.** (Idem, déjà listé dans 🧹 Cleanup, gardé là-bas aussi.)
 
@@ -77,8 +79,8 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 ## 🧹 Cleanup
 
 - [x] **Stripe Connect legacy** — supprimé (migration `20260524000004` + code cleanup)
-- [ ] **`as any` dans `useOffers.ts` (10) et `offers.ts` API (7)** — typer correctement, en parallèle de la régénération des types DB
-- [ ] **Duplication offers** — `useOffers.ts` (dashboard) tape directement Supabase au lieu de passer par `shared/api/offers.ts`. Migrer pour respecter la convention
+- [ ] **`as any` dans `offers.ts` API (7)** — typer correctement, en parallèle de la régénération des types DB. Les 11 `as any` de `useOffers.ts` ont été supprimés (1 `as unknown as` reste pour parsing config JSONB).
+- [x] **Duplication offers** — `useOffers.ts` (dashboard) tape directement Supabase au lieu de passer par `shared/api/offers.ts`. Migré le 26 mai 2026.
 - [ ] **Tables legacy `promo_codes`, `deals`, `promo_code_uses`, `deal_uses`** — dépréciées en migration mais existent encore. Vérifier qu'aucun code ne les lit, dumper les données, puis migration de DROP
 - [ ] **Régénérer `database.types.ts`** — drift identifié en mars (`order_modifications` absent, `Constants` drift)
 - [ ] **Fusionner les 3 `OptimizedImage`** dans `shared`
