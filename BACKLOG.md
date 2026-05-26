@@ -34,7 +34,9 @@ Effort estimé : 1 à 2 semaines de Claude Code après spécification détaillé
 >
 > _Verdict : design correct, exigences métier respectées, mais grosse fragilité implémentation (20 migrations, 12 bugs patchés, 0 test SQL d'intégration). Plan d'action priorisé ci-dessous, dans l'ordre. Ne PAS réécrire le système, juste mettre le filet de sécurité et itérer._
 
-- [ ] **Étape 1 (priorité 1) — Suite de tests d'intégration SQL.** Fixtures sur `get_optimized_offers`, `calculate_fair_buy_x_get_y_discount`, `calculate_fair_bundle_discount`. Couverture : panier vide, un seul bundle, bundles concurrents (force la dual-strategy à départager), buy_x_get_y avec reste à skipper, combinaison mixte bundle+BxGy, promo_code + offre auto cumulés, edge case discount négatif, expire_date passée, day_of_week non match, max_uses atteint, etc. Vise 30+ cas. **Prérequis bloquant à TOUS les autres items ci-dessous.**
+- [x] **Étape 1 (priorité 1) — Suite de tests d'intégration SQL.** Fixtures sur `get_optimized_offers`, `calculate_fair_buy_x_get_y_discount`, `calculate_fair_bundle_discount`. Couverture : panier vide, un seul bundle, bundles concurrents (force la dual-strategy à départager), buy_x_get_y avec reste à skipper, combinaison mixte bundle+BxGy, promo_code + offre auto cumulés, edge case discount négatif, expire_date passée, day_of_week non match, max_uses atteint, etc. Vise 30+ cas. **Prérequis bloquant à TOUS les autres items ci-dessous.**
+
+  > ✅ Fait le 26 mai 2026 : 36 tests, 36 passing, 0 bugs découverts. Fichiers : `tests/integration/offers/setup.ts` + `tests/integration/offers/get-optimized-offers.test.ts`. Note : `days_of_week` n'est PAS filtré dans `get_optimized_offers` (c'est fait côté `validateAppliedOffers` dans l'Edge Function) — comportement documenté dans le test, pas un bug.
 
 - [ ] **Étape 2 — Cap de sécurité métier.** Ajouter colonne `max_discount_percent_per_order` sur `foodtrucks` (défaut 50%), la respecter dans `get_optimized_offers`. Petite migration, gros gain de sécurité contre accidents de config (foodtruck qui empile par erreur 5 offres concurrentes et donne 90% de remise).
 
