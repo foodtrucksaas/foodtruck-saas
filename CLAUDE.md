@@ -165,6 +165,8 @@ Ordre fixe pour éviter les drift de types :
 | `create-checkout-session` | Crée une Checkout Session Stripe Billing             |
 | `create-portal-session`   | Crée une session Customer Portal Stripe              |
 | `stripe-webhook`          | Reçoit les events Stripe (subscription lifecycle)    |
+| `send-trial-reminders`    | Emails relance trial J-7/J-3/J-1 (cron 1×/jour)      |
+| `expire-trials`           | Expire les trials sans CB (cron 1×/heure)            |
 
 ---
 

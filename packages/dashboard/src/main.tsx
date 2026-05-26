@@ -5,6 +5,7 @@ import App from './App';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { FoodtruckProvider } from './contexts/FoodtruckContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { initSentry } from './lib/sentry';
 import './index.css';
 
@@ -24,8 +25,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     >
       <AuthProvider>
         <FoodtruckProvider>
-          <App />
-          <Toaster position="top-right" />
+          <SubscriptionProvider>
+            <App />
+            <Toaster position="top-right" />
+          </SubscriptionProvider>
         </FoodtruckProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -1,10 +1,30 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.1';
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -1588,6 +1608,9 @@ export type Database = {
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           trial_ends_at: string;
+          trial_reminder_1d_sent_at: string | null;
+          trial_reminder_3d_sent_at: string | null;
+          trial_reminder_7d_sent_at: string | null;
           trial_started_at: string;
           updated_at: string | null;
         };
@@ -1603,6 +1626,9 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           trial_ends_at: string;
+          trial_reminder_1d_sent_at?: string | null;
+          trial_reminder_3d_sent_at?: string | null;
+          trial_reminder_7d_sent_at?: string | null;
           trial_started_at: string;
           updated_at?: string | null;
         };
@@ -1618,6 +1644,9 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           trial_ends_at?: string;
+          trial_reminder_1d_sent_at?: string | null;
+          trial_reminder_3d_sent_at?: string | null;
+          trial_reminder_7d_sent_at?: string | null;
           trial_started_at?: string;
           updated_at?: string | null;
         };
@@ -2087,6 +2116,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       campaign_channel: ['email', 'sms', 'both'],

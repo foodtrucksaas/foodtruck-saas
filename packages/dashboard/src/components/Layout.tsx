@@ -29,6 +29,7 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import NewOrderPopup from './NewOrderPopup';
 import PendingOrdersModal from './PendingOrdersModal';
 import QuickOrderModal from './QuickOrderModal';
+import TrialBanner from './TrialBanner';
 
 interface LayoutProps {
   children: ReactNode;
@@ -311,6 +312,7 @@ function LayoutContent({ children }: LayoutProps) {
         </header>
 
         <OnboardingBanner />
+        {location.pathname !== '/billing' && <TrialBanner />}
 
         {/* Content - native scroll */}
         <main
@@ -367,6 +369,7 @@ function LayoutContent({ children }: LayoutProps) {
         </header>
 
         <OnboardingBanner />
+        {location.pathname !== '/billing' && <TrialBanner />}
 
         {/* Desktop content */}
         <main

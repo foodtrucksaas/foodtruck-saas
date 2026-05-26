@@ -21,6 +21,7 @@
   - [x] Page `/billing` côté dashboard (Phase 1.2) — trialing/active/past_due/degraded states + post-checkout toasts
   - [ ] Gate des features selon plan
 - [x] **Trial / freemium clarifié** : 14 j d'essai sans CB, trigger auto sur création foodtruck, `get_access_state()` pour dériver l'accès
+- [x] **Phase 2 — Trial flow** : `SubscriptionContext` (fetch + polling 60s + focus/visibility), `TrialBanner` (4 urgency levels, dismissible sauf J-1/J-0, CTA carte bancaire), email reminders J-7/J-3/J-1 (Edge Function `send-trial-reminders` + Resend), trial expiration cron (`expire-trials`, toutes les heures), migrations `20260526000003` (reminder columns) + `20260526000004` (pg_cron jobs). 20 tests.
 - [x] **Cleanup Stripe Connect legacy** — supprimé : `stripe-connect/`, `_shared/stripe.ts`, `requireStripe` dans `orders.ts`, `StripeConnectResponse` dans `api.ts`, vars `.env.example`, type `vite-env.d.ts`, migration `20260524000004` pour DROP colonnes DB
 - [ ] **Admin panel minimal** : liste des food trucks, plan actif, statut abonnement, capacité d'override manuel (geste commercial, debug)
 
