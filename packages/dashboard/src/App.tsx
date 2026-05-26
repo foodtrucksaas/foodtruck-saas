@@ -20,6 +20,7 @@ const Customers = lazy(() => import('./pages/Customers'));
 const Campaigns = lazy(() => import('./pages/Campaigns'));
 const Offers = lazy(() => import('./pages/Offers'));
 const Loyalty = lazy(() => import('./pages/Loyalty'));
+const Billing = lazy(() => import('./pages/Billing'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const OnboardingAssistant = lazy(() => import('./pages/OnboardingAssistant'));
@@ -202,6 +203,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Loyalty />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/billing"
+            element={
+              <PrivateRoute>
+                <Billing />
               </PrivateRoute>
             }
           />

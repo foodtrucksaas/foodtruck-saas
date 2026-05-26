@@ -10,6 +10,7 @@ import {
   Send,
   Sparkles,
   Gift,
+  CreditCard,
   Settings,
   Menu,
   X,
@@ -51,8 +52,9 @@ const navigation: NavItem[] = [
   { type: 'link', name: 'Clients', href: '/customers', icon: Users },
   { type: 'link', name: 'Fidélité', href: '/loyalty', icon: Gift },
   { type: 'link', name: 'Campagnes', href: '/campaigns', icon: Send },
-  // Paramètres en bas
+  // Compte
   { type: 'separator', label: '' },
+  { type: 'link', name: 'Facturation', href: '/billing', icon: CreditCard },
   { type: 'link', name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 

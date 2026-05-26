@@ -18,7 +18,7 @@
   - [x] Edge Functions `create-checkout-session`, `create-portal-session`, `stripe-webhook`
   - [x] `_shared/stripe.ts` (SDK init, getOrCreateCustomer, verifyWebhookSignature)
   - [x] Couche `shared/api/billing.ts` + `shared/types/billing.ts`
-  - [ ] Page `/billing` côté dashboard (Phase 1.2)
+  - [x] Page `/billing` côté dashboard (Phase 1.2) — trialing/active/past_due/degraded states + post-checkout toasts
   - [ ] Gate des features selon plan
 - [x] **Trial / freemium clarifié** : 14 j d'essai sans CB, trigger auto sur création foodtruck, `get_access_state()` pour dériver l'accès
 - [x] **Cleanup Stripe Connect legacy** — supprimé : `stripe-connect/`, `_shared/stripe.ts`, `requireStripe` dans `orders.ts`, `StripeConnectResponse` dans `api.ts`, vars `.env.example`, type `vite-env.d.ts`, migration `20260524000004` pour DROP colonnes DB
