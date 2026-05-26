@@ -153,6 +153,7 @@ export default function Billing() {
           <TrialingState
             subscription={subscription}
             onCheckout={handleCheckout}
+            onPortal={handlePortal}
             loading={actionLoading}
           />
         ) : subscription.status === 'active' ? (
@@ -180,14 +181,17 @@ export default function Billing() {
 function TrialingState({
   subscription,
   onCheckout,
+  onPortal,
   loading,
 }: {
   subscription: Subscription;
   onCheckout: () => void;
+  onPortal: () => void;
   loading: boolean;
 }) {
   const days = daysUntil(subscription.trial_ends_at);
   const endDate = formatDate(subscription.trial_ends_at);
+  const hasCB = !!subscription.stripe_subscription_id;
 
   return (
     <div className="space-y-4">
@@ -199,23 +203,50 @@ function TrialingState({
         (le {endDate}).
       </Alert>
 
-      <p className="text-sm text-gray-600">
-        Ajoutez votre moyen de paiement maintenant pour continuer sans interruption à la fin de
-        votre essai. Aucun débit avant la fin de la période d&apos;essai.
-      </p>
+      {hasCB ? (
+        <>
+          <p className="text-sm text-gray-600">
+            Votre carte bancaire est enregistrée. Vous serez automatiquement débité de 29&nbsp;€ HT
+            à la fin de votre période d&apos;essai, sans action de votre part.
+          </p>
 
-      <button
-        onClick={onCheckout}
-        disabled={loading}
-        className="btn-primary flex items-center gap-2"
-      >
-        {loading ? (
-          <RefreshCw className="w-4 h-4 animate-spin" />
-        ) : (
-          <CreditCard className="w-4 h-4" />
-        )}
-        Ajouter ma carte bancaire
-      </button>
+          <div>
+            <button
+              onClick={onPortal}
+              disabled={loading}
+              className="btn-secondary flex items-center gap-2"
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <ExternalLink className="w-4 h-4" />
+              )}
+              Gérer mon abonnement
+            </button>
+            <p className="text-xs text-gray-400 mt-2">Mise à jour CB, factures, annulation</p>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-gray-600">
+            Ajoutez votre moyen de paiement maintenant pour continuer sans interruption à la fin de
+            votre essai. Aucun débit avant la fin de la période d&apos;essai.
+          </p>
+
+          <button
+            onClick={onCheckout}
+            disabled={loading}
+            className="btn-primary flex items-center gap-2"
+          >
+            {loading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <CreditCard className="w-4 h-4" />
+            )}
+            Ajouter ma carte bancaire
+          </button>
+        </>
+      )}
     </div>
   );
 }

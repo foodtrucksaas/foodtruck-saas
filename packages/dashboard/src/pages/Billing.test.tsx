@@ -97,6 +97,45 @@ describe('Billing page', () => {
     });
   });
 
+  describe('trialing with CB', () => {
+    it('should show manage button when trialing with stripe_subscription_id', async () => {
+      mockGetSubscription.mockResolvedValue({
+        ...baseSubscription,
+        status: 'trialing',
+        stripe_subscription_id: 'sub_test_123',
+      });
+
+      renderBilling();
+
+      expect(await screen.findByText(/essai gratuit/)).toBeInTheDocument();
+      expect(screen.getByText(/carte bancaire est enregistrée/)).toBeInTheDocument();
+      expect(screen.getByText(/29.*€ HT/)).toBeInTheDocument();
+      expect(screen.getByText(/Gérer mon abonnement/)).toBeInTheDocument();
+      expect(screen.queryByText(/Ajouter ma carte bancaire/)).not.toBeInTheDocument();
+    });
+
+    it('should call createPortalSession on manage button click', async () => {
+      mockGetSubscription.mockResolvedValue({
+        ...baseSubscription,
+        status: 'trialing',
+        stripe_subscription_id: 'sub_test_123',
+      });
+      mockCreatePortalSession.mockResolvedValue({
+        url: 'https://billing.stripe.com/portal',
+      });
+
+      renderBilling();
+
+      const btn = await screen.findByText(/Gérer mon abonnement/);
+      fireEvent.click(btn);
+
+      await waitFor(() => {
+        expect(mockCreatePortalSession).toHaveBeenCalledTimes(1);
+        expect(window.location.href).toBe('https://billing.stripe.com/portal');
+      });
+    });
+  });
+
   describe('active state', () => {
     it('should show active banner and manage button', async () => {
       mockGetSubscription.mockResolvedValue({
