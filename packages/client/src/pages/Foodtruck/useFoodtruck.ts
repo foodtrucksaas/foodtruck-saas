@@ -72,6 +72,7 @@ interface UseFoodtruckResult {
   specificItemsBundles: SpecificItemsBundleOffer[];
   buyXGetYOffers: BuyXGetYOffer[];
   loading: boolean;
+  isActive: boolean;
 
   // Active tab
   activeTab: 'menu' | 'info';
@@ -128,6 +129,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const [buyXGetYOffers, setBuyXGetYOffers] = useState<BuyXGetYOffer[]>([]);
   const [todayException, setTodayException] = useState<TodayException | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isActive, setIsActive] = useState(true);
   const [activeTab, setActiveTab] = useState<'menu' | 'info'>('menu');
 
   // Options modal state
@@ -179,51 +181,73 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         // Fetch other data in parallel
         const todayStr = formatLocalDate(new Date());
         const now = new Date().toISOString();
-        const [categoriesRes, menuRes, schedulesRes, exceptionRes, bundlesRes, buyXGetYRes] =
-          await Promise.all([
-            supabase
-              .from('categories')
-              .select('*, category_option_groups(*, category_options(*))')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .order('display_order'),
-            supabase
-              .from('menu_items')
-              .select('*')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .eq('is_available', true)
-              .or('is_archived.is.null,is_archived.eq.false')
-              .order('display_order'),
-            supabase
-              .from('schedules')
-              .select('*, location:locations(*)')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .eq('is_active', true)
-              .order('day_of_week'),
-            supabase
-              .from('schedule_exceptions')
-              .select('*, location:locations(*)')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .gte('date', todayStr)
-              .order('date'),
-            // Fetch active bundle offers (with offer_items for specific_items bundles)
-            supabase
-              .from('offers')
-              .select('*, offer_items(id, menu_item_id, quantity)')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .eq('offer_type', 'bundle')
-              .eq('is_active', true)
-              .or(`start_date.is.null,start_date.lte.${now}`)
-              .or(`end_date.is.null,end_date.gte.${now}`),
-            // Fetch active buy_x_get_y offers (category_choice type only)
-            supabase
-              .from('offers')
-              .select('*')
-              .eq('foodtruck_id', actualFoodtruckId)
-              .eq('offer_type', 'buy_x_get_y')
-              .eq('is_active', true)
-              .or(`start_date.is.null,start_date.lte.${now}`)
-              .or(`end_date.is.null,end_date.gte.${now}`),
-          ]);
+        const [
+          categoriesRes,
+          menuRes,
+          schedulesRes,
+          exceptionRes,
+          bundlesRes,
+          buyXGetYRes,
+          subRes,
+        ] = await Promise.all([
+          supabase
+            .from('categories')
+            .select('*, category_option_groups(*, category_options(*))')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .order('display_order'),
+          supabase
+            .from('menu_items')
+            .select('*')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('is_available', true)
+            .or('is_archived.is.null,is_archived.eq.false')
+            .order('display_order'),
+          supabase
+            .from('schedules')
+            .select('*, location:locations(*)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('is_active', true)
+            .order('day_of_week'),
+          supabase
+            .from('schedule_exceptions')
+            .select('*, location:locations(*)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .gte('date', todayStr)
+            .order('date'),
+          // Fetch active bundle offers (with offer_items for specific_items bundles)
+          supabase
+            .from('offers')
+            .select('*, offer_items(id, menu_item_id, quantity)')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('offer_type', 'bundle')
+            .eq('is_active', true)
+            .or(`start_date.is.null,start_date.lte.${now}`)
+            .or(`end_date.is.null,end_date.gte.${now}`),
+          // Fetch active buy_x_get_y offers (category_choice type only)
+          supabase
+            .from('offers')
+            .select('*')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .eq('offer_type', 'buy_x_get_y')
+            .eq('is_active', true)
+            .or(`start_date.is.null,start_date.lte.${now}`)
+            .or(`end_date.is.null,end_date.gte.${now}`),
+          // Fetch subscription status to check if foodtruck is active
+          supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('foodtruck_id', actualFoodtruckId)
+            .maybeSingle(),
+        ]);
+
+        // Check subscription status
+        const subStatus = subRes.data?.status;
+        const active =
+          subStatus === 'trialing' ||
+          subStatus === 'active' ||
+          subStatus === 'past_due' ||
+          !subStatus;
+        setIsActive(active);
 
         setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
         setMenuItems((menuRes.data as MenuItem[]) || []);
@@ -448,6 +472,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     specificItemsBundles,
     buyXGetYOffers,
     loading,
+    isActive,
 
     // Active tab
     activeTab,

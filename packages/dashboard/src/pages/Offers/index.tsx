@@ -2,6 +2,7 @@ import { Plus, Sparkles, Users } from 'lucide-react';
 import { useOffers } from './useOffers';
 import { SortableOfferList } from './SortableOfferList';
 import { OfferWizard } from './OfferWizard';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 export default function Offers() {
   const {
@@ -26,6 +27,10 @@ export default function Offers() {
     openCreateWizard,
     reorderOffers,
   } = useOffers();
+  const canWrite = useCanWrite();
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
 
   if (loading) {
     return (
@@ -44,7 +49,9 @@ export default function Offers() {
         </p>
         <button
           onClick={() => openCreateWizard()}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+          disabled={!canWrite}
+          title={disabledTitle}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
           Nouvelle offre
@@ -87,7 +94,9 @@ export default function Offers() {
           </p>
           <button
             onClick={() => openCreateWizard()}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+            disabled={!canWrite}
+            title={disabledTitle}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-5 h-5" />
             Créer une offre
@@ -100,6 +109,7 @@ export default function Offers() {
           onEdit={openEditWizard}
           onDelete={deleteOffer}
           onReorder={reorderOffers}
+          readOnly={!canWrite}
         />
       )}
 

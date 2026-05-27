@@ -9,6 +9,7 @@ interface DayModalProps {
   onFormChange: (form: DayModalFormState) => void;
   onClose: () => void;
   onSave: () => void;
+  readOnly?: boolean;
 }
 
 export function DayModal({
@@ -18,6 +19,7 @@ export function DayModal({
   onFormChange,
   onClose,
   onSave,
+  readOnly,
 }: DayModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
@@ -181,7 +183,13 @@ export function DayModal({
           </button>
           <button
             onClick={onSave}
-            className="flex-1 btn-primary min-h-[48px] sm:min-h-[44px] active:scale-[0.98]"
+            disabled={readOnly}
+            title={
+              readOnly
+                ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+                : undefined
+            }
+            className="flex-1 btn-primary min-h-[48px] sm:min-h-[44px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Sauvegarder
           </button>

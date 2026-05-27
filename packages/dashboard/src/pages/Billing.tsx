@@ -77,7 +77,13 @@ export default function Billing() {
     window.history.replaceState({}, '', location.pathname);
 
     if (success === '1') {
-      showSuccess('Votre abonnement est actif !');
+      // Detect reactivation from degraded state
+      const wasDegraded = location.state?.degraded === true;
+      showSuccess(
+        wasDegraded
+          ? 'Votre abonnement est actif, votre food truck est de nouveau en ligne !'
+          : 'Votre abonnement est actif !'
+      );
 
       // Re-fetch after delay (webhook may take 1-5s)
       const t1 = setTimeout(async () => {

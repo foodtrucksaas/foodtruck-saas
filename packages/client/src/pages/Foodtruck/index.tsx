@@ -63,6 +63,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
     specificItemsBundles,
     buyXGetYOffers,
     loading,
+    isActive,
 
     // Active tab
     activeTab,
@@ -269,6 +270,20 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
   return (
     <div className="min-h-screen pb-24">
+      {/* Inactive foodtruck banner */}
+      {!isActive && (
+        <div
+          className="bg-orange-50 border-b border-orange-200 px-4 py-3 text-center"
+          role="alert"
+          data-testid="inactive-foodtruck-banner"
+        >
+          <p className="text-sm font-medium text-orange-800">
+            Ce food truck ne prend pas de commandes en ligne pour le moment. Vous pouvez le
+            retrouver sur place selon ses horaires.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="relative">
         {foodtruck.cover_image_url ? (
@@ -777,9 +792,10 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                           key={item.id}
                           item={item}
                           hasOptions={!!getCategoryOptions(item.category_id)}
-                          quantity={getItemQuantity(item.id)}
-                          onAdd={() => handleAddItem(item)}
-                          onUpdate={(delta) => handleUpdateQuantity(item.id, delta)}
+                          quantity={isActive ? getItemQuantity(item.id) : 0}
+                          onAdd={() => isActive && handleAddItem(item)}
+                          onUpdate={(delta) => isActive && handleUpdateQuantity(item.id, delta)}
+                          disabled={!isActive}
                         />
                       ))}
                     </div>
@@ -1028,7 +1044,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       </div>
 
       {/* Cart Bar */}
-      {itemCount > 0 && (
+      {isActive && itemCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
             to={checkoutPath}

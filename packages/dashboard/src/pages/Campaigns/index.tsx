@@ -2,6 +2,7 @@ import { Plus, Send } from 'lucide-react';
 import { useCampaigns } from './useCampaigns';
 import { CampaignModal } from './CampaignModal';
 import { CampaignCard } from './CampaignCard';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 export default function Campaigns() {
   const {
@@ -21,6 +22,10 @@ export default function Campaigns() {
     deleteCampaign,
     sendCampaign,
   } = useCampaigns();
+  const canWrite = useCanWrite();
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
 
   if (loading) {
     return (
@@ -39,7 +44,9 @@ export default function Campaigns() {
         </p>
         <button
           onClick={openNewCampaign}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+          disabled={!canWrite}
+          title={disabledTitle}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
           Nouvelle campagne
@@ -57,7 +64,9 @@ export default function Campaigns() {
           </p>
           <button
             onClick={openNewCampaign}
-            className="mt-4 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95"
+            disabled={!canWrite}
+            title={disabledTitle}
+            className="mt-4 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Créer une campagne
           </button>
@@ -73,6 +82,7 @@ export default function Campaigns() {
               onSend={() => sendCampaign(campaign)}
               onEdit={() => openEditCampaign(campaign)}
               onDelete={() => deleteCampaign(campaign.id)}
+              readOnly={!canWrite}
             />
           ))}
         </div>

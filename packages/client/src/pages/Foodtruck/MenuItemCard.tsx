@@ -9,6 +9,7 @@ interface MenuItemCardProps {
   quantity: number;
   onAdd: () => void;
   onUpdate: (delta: number) => void;
+  disabled?: boolean;
 }
 
 const MenuItemCard = memo(function MenuItemCard({
@@ -17,11 +18,13 @@ const MenuItemCard = memo(function MenuItemCard({
   quantity,
   onAdd,
   onUpdate,
+  disabled,
 }: MenuItemCardProps) {
   const isInCart = quantity > 0;
 
   // Handle card click - add item if not in cart or has options
   const handleCardClick = () => {
+    if (disabled) return;
     if (!isInCart || hasOptions) {
       onAdd();
     }
@@ -36,8 +39,8 @@ const MenuItemCard = memo(function MenuItemCard({
           handleCardClick();
         }
       }}
-      tabIndex={0}
-      role="button"
+      tabIndex={disabled ? -1 : 0}
+      role={disabled ? undefined : 'button'}
       aria-label={`${item.name}, ${formatPrice(item.price)}${item.description ? `, ${item.description}` : ''}${isInCart ? `, ${quantity} dans le panier` : ''}`}
       className={`bg-white rounded-2xl p-4 flex gap-4 cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
         isInCart
@@ -122,21 +125,23 @@ const MenuItemCard = memo(function MenuItemCard({
                 )}
                 <span className="font-bold text-gray-900 text-base">{formatPrice(item.price)}</span>
               </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAdd();
-                }}
-                aria-label={
-                  hasOptions
-                    ? `Choisir les options pour ${item.name}`
-                    : `Ajouter ${item.name} au panier`
-                }
-                className="h-11 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-              >
-                {hasOptions ? 'Choisir' : 'Ajouter'}
-              </button>
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAdd();
+                  }}
+                  aria-label={
+                    hasOptions
+                      ? `Choisir les options pour ${item.name}`
+                      : `Ajouter ${item.name} au panier`
+                  }
+                  className="h-11 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                >
+                  {hasOptions ? 'Choisir' : 'Ajouter'}
+                </button>
+              )}
             </>
           )}
         </div>

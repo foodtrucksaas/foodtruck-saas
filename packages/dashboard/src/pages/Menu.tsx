@@ -13,6 +13,7 @@ import {
 import { formatPrice } from '@foodtruck/shared';
 import { useMenuPage } from '../hooks';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
+import { useCanWrite } from '../hooks/useCanWrite';
 import {
   SortableMenuItemList,
   MenuItemForm,
@@ -82,6 +83,10 @@ export default function Menu() {
   } = useMenuPage();
 
   const { foodtruck } = useFoodtruck();
+  const canWrite = useCanWrite();
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
 
   const clientUrl = foodtruck?.slug
@@ -210,7 +215,9 @@ export default function Menu() {
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto">
                   <button
                     onClick={() => openOptionsWizard(category)}
-                    className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-[0.98]"
+                    disabled={!canWrite}
+                    title={disabledTitle ?? undefined}
+                    className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     Options
@@ -220,8 +227,9 @@ export default function Menu() {
                       setFormData((prev) => ({ ...prev, category_id: category.id }));
                       setShowForm(true);
                     }}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95 shadow-sm"
-                    title="Ajouter un plat"
+                    disabled={!canWrite}
+                    title={disabledTitle ?? 'Ajouter un plat'}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Ajouter un plat"
                   >
                     <Plus className="w-5 h-5" />
@@ -243,7 +251,9 @@ export default function Menu() {
                     setFormData((prev) => ({ ...prev, category_id: category.id }));
                     setShowForm(true);
                   }}
-                  className="text-primary-500 hover:text-primary-600 text-xs sm:text-sm font-medium min-h-[44px] px-2 active:opacity-70"
+                  disabled={!canWrite}
+                  title={disabledTitle}
+                  className="text-primary-500 hover:text-primary-600 text-xs sm:text-sm font-medium min-h-[44px] px-2 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + Ajouter un item
                 </button>
@@ -258,7 +268,9 @@ export default function Menu() {
             setOpenCategoryForm(true);
             setShowCategoryManager(true);
           }}
-          className="w-full py-3 sm:py-4 min-h-[48px] sm:min-h-[52px] border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-colors flex items-center justify-center gap-2 active:scale-[0.99]"
+          disabled={!canWrite}
+          title={disabledTitle}
+          className="w-full py-3 sm:py-4 min-h-[48px] sm:min-h-[52px] border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-colors flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-500 disabled:hover:bg-transparent"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span className="font-medium text-sm sm:text-base">Ajouter une catégorie</span>
@@ -321,7 +333,9 @@ export default function Menu() {
                       </div>
                       <button
                         onClick={() => restoreItem(item)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-xs sm:text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98] w-full sm:w-auto"
+                        disabled={!canWrite}
+                        title={disabledTitle}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-xs sm:text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:scale-[0.98] w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <RotateCcw className="w-4 h-4" />
                         Restaurer

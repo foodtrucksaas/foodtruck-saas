@@ -32,6 +32,7 @@ interface OfferCardProps {
     attributes: DraggableAttributes;
     listeners: SyntheticListenerMap | undefined;
   };
+  readOnly?: boolean;
 }
 
 const typeIcons: Record<OfferType, typeof Package> = {
@@ -106,7 +107,11 @@ export function OfferCard({
   onDelete,
   isDragging = false,
   dragHandleProps,
+  readOnly,
 }: OfferCardProps) {
+  const disabledTitle = readOnly
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
   const Icon = typeIcons[offer.offer_type];
   const colorClass = typeColors[offer.offer_type];
   const badgeColorClass = typeBadgeColors[offer.offer_type];
@@ -184,12 +189,13 @@ export function OfferCard({
         <div className="flex items-center gap-1 self-end sm:self-start ml-auto sm:ml-0">
           <button
             onClick={() => onToggle(offer)}
-            className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 ${
+            disabled={readOnly}
+            className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
               offer.is_active
                 ? 'bg-success-500 text-white hover:bg-success-600'
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
-            title={offer.is_active ? 'Désactiver' : 'Activer'}
+            title={disabledTitle ?? (offer.is_active ? 'Désactiver' : 'Activer')}
           >
             {offer.is_active ? (
               <>
@@ -205,16 +211,18 @@ export function OfferCard({
           </button>
           <button
             onClick={() => onEdit(offer)}
-            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-info-600 hover:bg-info-50 transition-all active:scale-95"
-            title="Modifier"
+            disabled={readOnly}
+            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-info-600 hover:bg-info-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={disabledTitle ?? 'Modifier'}
             aria-label="Modifier l'offre"
           >
             <Pencil className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(offer.id)}
-            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-error-600 hover:bg-error-50 transition-all active:scale-95"
-            title="Supprimer"
+            disabled={readOnly}
+            className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-gray-400 hover:text-error-600 hover:bg-error-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={disabledTitle ?? 'Supprimer'}
             aria-label="Supprimer l'offre"
           >
             <Trash2 className="w-4 h-4" />

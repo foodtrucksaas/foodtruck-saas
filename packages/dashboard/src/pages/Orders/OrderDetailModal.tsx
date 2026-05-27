@@ -3,6 +3,7 @@ import { X, Pencil, Check, Package, XCircle } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { OrderWithItemsAndOptions } from '@foodtruck/shared';
 import { ErrorAlert } from '../../components/Alert';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 const CANCEL_REASONS = [
   "Client a demandé l'annulation",
@@ -40,6 +41,7 @@ export function OrderDetailModal({
   const [cancelReason, setCancelReason] = useState('');
   const [cancelReasonOther, setCancelReasonOther] = useState('');
   const [cancelError, setCancelError] = useState('');
+  const canWrite = useCanWrite();
 
   const isPending = order.status === 'pending';
   const isConfirmed = order.status === 'confirmed';
@@ -83,9 +85,19 @@ export function OrderDetailModal({
   };
 
   const canModifyTime =
-    order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
+    canWrite &&
+    order.status !== 'picked_up' &&
+    order.status !== 'cancelled' &&
+    order.status !== 'no_show';
   const canCancel =
-    order.status !== 'picked_up' && order.status !== 'cancelled' && order.status !== 'no_show';
+    canWrite &&
+    order.status !== 'picked_up' &&
+    order.status !== 'cancelled' &&
+    order.status !== 'no_show';
+
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
 
   // Extract discount/offer info
   const orderWithDiscounts = order as OrderWithItemsAndOptions & {
@@ -404,7 +416,9 @@ export function OrderDetailModal({
                 {isPending && (
                   <button
                     onClick={onAccept}
-                    className="w-full sm:flex-1 px-4 py-3.5 min-h-[48px] sm:min-h-[44px] bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    disabled={!canWrite}
+                    title={disabledTitle}
+                    className="w-full sm:flex-1 px-4 py-3.5 min-h-[48px] sm:min-h-[44px] bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                   >
                     <Check className="w-5 h-5" />
                     Accepter la commande
@@ -415,14 +429,18 @@ export function OrderDetailModal({
                   <>
                     <button
                       onClick={onMarkReady}
-                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+                      disabled={!canWrite}
+                      title={disabledTitle}
+                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-success-500 hover:bg-success-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Check className="w-4 h-4" />
                       Prête
                     </button>
                     <button
                       onClick={onMarkPickedUp}
-                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+                      disabled={!canWrite}
+                      title={disabledTitle}
+                      className="w-full sm:flex-1 px-4 py-3 min-h-[48px] sm:min-h-[44px] bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Package className="w-4 h-4" />
                       Retirée
@@ -433,7 +451,9 @@ export function OrderDetailModal({
                 {!useReadyStatus && isConfirmed && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    disabled={!canWrite}
+                    title={disabledTitle}
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée
@@ -443,7 +463,9 @@ export function OrderDetailModal({
                 {isReady && (
                   <button
                     onClick={onMarkPickedUp}
-                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"
+                    disabled={!canWrite}
+                    title={disabledTitle}
+                    className="w-full sm:flex-1 px-4 py-4 min-h-[52px] sm:min-h-[48px] bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Package className="w-5 h-5" />
                     Commande retirée

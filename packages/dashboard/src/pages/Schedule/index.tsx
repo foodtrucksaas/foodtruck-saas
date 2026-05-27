@@ -4,6 +4,7 @@ import { CalendarView } from './CalendarView';
 import { RecurringScheduleTab } from './RecurringScheduleTab';
 import { LocationsTab } from './LocationsTab';
 import { DayModal } from './DayModal';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 export default function SchedulePage() {
   const {
@@ -43,6 +44,7 @@ export default function SchedulePage() {
     setShowScheduleForm,
     setShowLocationForm,
   } = useSchedule();
+  const canWrite = useCanWrite();
 
   if (loading) {
     return (
@@ -128,6 +130,7 @@ export default function SchedulePage() {
           onSubmit={handleScheduleSubmit}
           onEdit={startEditSchedule}
           onDelete={deleteSchedule}
+          readOnly={!canWrite}
         />
       )}
 
@@ -147,6 +150,7 @@ export default function SchedulePage() {
           onSubmit={handleLocationSubmit}
           onEdit={startEditLocation}
           onDelete={deleteLocation}
+          readOnly={!canWrite}
         />
       )}
 
@@ -159,6 +163,7 @@ export default function SchedulePage() {
           onFormChange={setDayModalForm}
           onClose={() => setShowDayModal(false)}
           onSave={saveDayException}
+          readOnly={!canWrite}
         />
       )}
     </div>

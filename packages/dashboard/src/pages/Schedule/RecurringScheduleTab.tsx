@@ -15,6 +15,7 @@ interface RecurringScheduleTabProps {
   onSubmit: (e: React.FormEvent) => void;
   onEdit: (schedule: ScheduleWithLocation) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }
 
 export function RecurringScheduleTab({
@@ -29,7 +30,11 @@ export function RecurringScheduleTab({
   onSubmit,
   onEdit,
   onDelete,
+  readOnly,
 }: RecurringScheduleTabProps) {
+  const disabledTitle = readOnly
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
   return (
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
@@ -41,8 +46,9 @@ export function RecurringScheduleTab({
         </div>
         <button
           onClick={onShowForm}
-          className="btn-secondary text-xs sm:text-sm min-h-[44px] active:scale-[0.98] w-full sm:w-auto"
-          disabled={locations.length === 0}
+          className="btn-secondary text-xs sm:text-sm min-h-[44px] active:scale-[0.98] w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={locations.length === 0 || readOnly}
+          title={disabledTitle}
         >
           <Plus className="w-4 h-4 mr-1" />
           Ajouter
@@ -181,14 +187,18 @@ export function RecurringScheduleTab({
             <div className="flex items-center gap-1 self-end sm:self-auto flex-shrink-0">
               <button
                 onClick={() => onEdit(schedule)}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+                disabled={readOnly}
+                title={disabledTitle}
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Modifier"
               >
                 <Pencil className="w-4 h-4 text-gray-500" />
               </button>
               <button
                 onClick={() => onDelete(schedule.id)}
-                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+                disabled={readOnly}
+                title={disabledTitle}
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Supprimer"
               >
                 <Trash2 className="w-4 h-4 text-red-500" />

@@ -9,6 +9,7 @@ interface CampaignCardProps {
   onSend: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  readOnly?: boolean;
 }
 
 export function CampaignCard({
@@ -18,7 +19,11 @@ export function CampaignCard({
   onSend,
   onEdit,
   onDelete,
+  readOnly,
 }: CampaignCardProps) {
+  const disabledTitle = readOnly
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
   const targeting = campaign.targeting as CampaignTargeting;
   const openRate =
     campaign.sent_count > 0 ? (campaign.opened_count / campaign.sent_count) * 100 : 0;
@@ -95,8 +100,9 @@ export function CampaignCard({
             <>
               <button
                 onClick={onSend}
-                disabled={sending}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-600 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium text-sm transition-all shadow-md active:scale-95"
+                disabled={sending || readOnly}
+                title={disabledTitle}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-600 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl font-medium text-sm transition-all shadow-md active:scale-95 disabled:cursor-not-allowed"
               >
                 {sending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -107,7 +113,9 @@ export function CampaignCard({
               </button>
               <button
                 onClick={onEdit}
-                className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-xl text-gray-500 transition-colors active:scale-95"
+                disabled={readOnly}
+                title={disabledTitle}
+                className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-xl text-gray-500 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Modifier"
               >
                 <Edit2 className="w-4 h-4" />
@@ -124,7 +132,9 @@ export function CampaignCard({
           )}
           <button
             onClick={onDelete}
-            className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors active:scale-95"
+            disabled={readOnly}
+            title={disabledTitle}
+            className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Supprimer"
           >
             <Trash2 className="w-4 h-4" />

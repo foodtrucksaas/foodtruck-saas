@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import { useLoyalty } from './useLoyalty';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 // Number input with stepper buttons for mobile
 function NumberInput({
@@ -165,6 +166,10 @@ export default function Loyalty() {
     toggleAllowMultiple,
     saveValues,
   } = useLoyalty();
+  const canWrite = useCanWrite();
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
 
   if (loading) {
     return (
@@ -247,7 +252,12 @@ export default function Loyalty() {
                     : 'Le programme de fidélité est désactivé.'}
                 </p>
               </div>
-              <Toggle checked={settings.loyalty_enabled} onChange={toggleEnabled} />
+              <Toggle
+                checked={settings.loyalty_enabled}
+                onChange={toggleEnabled}
+                disabled={!canWrite}
+                title={disabledTitle}
+              />
             </div>
             {settings.loyalty_enabled && (
               <>
@@ -310,6 +320,8 @@ export default function Loyalty() {
                   <Toggle
                     checked={settings.loyalty_allow_multiple}
                     onChange={toggleAllowMultiple}
+                    disabled={!canWrite}
+                    title={disabledTitle}
                   />
                 </div>
 
@@ -369,8 +381,9 @@ export default function Loyalty() {
 
                 <button
                   onClick={saveValues}
-                  disabled={settingsLoading}
-                  className="btn-primary min-h-[48px] w-full active:scale-[0.98] flex items-center justify-center font-medium"
+                  disabled={settingsLoading || !canWrite}
+                  title={disabledTitle}
+                  className="btn-primary min-h-[48px] w-full active:scale-[0.98] flex items-center justify-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {settingsLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -514,11 +527,23 @@ function StatCard({
   );
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function Toggle({
+  checked,
+  onChange,
+  disabled,
+  title,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  disabled?: boolean;
+  title?: string;
+}) {
   return (
     <button
       onClick={onChange}
-      className={`relative inline-flex h-[34px] w-[60px] min-w-[60px] min-h-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none active:scale-95 items-center ${checked ? 'bg-primary-500' : 'bg-gray-200'}`}
+      disabled={disabled}
+      title={title}
+      className={`relative inline-flex h-[34px] w-[60px] min-w-[60px] min-h-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none active:scale-95 items-center disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-primary-500' : 'bg-gray-200'}`}
       role="switch"
       aria-checked={checked}
     >

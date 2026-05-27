@@ -25,9 +25,16 @@ interface SortableOfferItemProps {
   onToggle: (offer: OfferWithItems) => void;
   onEdit: (offer: OfferWithItems) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }
 
-function SortableOfferItem({ offer, onToggle, onEdit, onDelete }: SortableOfferItemProps) {
+function SortableOfferItem({
+  offer,
+  onToggle,
+  onEdit,
+  onDelete,
+  readOnly,
+}: SortableOfferItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: offer.id,
   });
@@ -48,6 +55,7 @@ function SortableOfferItem({ offer, onToggle, onEdit, onDelete }: SortableOfferI
         onDelete={onDelete}
         isDragging={isDragging}
         dragHandleProps={{ attributes, listeners }}
+        readOnly={readOnly}
       />
     </div>
   );
@@ -59,6 +67,7 @@ interface SortableOfferListProps {
   onEdit: (offer: OfferWithItems) => void;
   onDelete: (id: string) => void;
   onReorder: (offers: OfferWithItems[]) => void;
+  readOnly?: boolean;
 }
 
 export function SortableOfferList({
@@ -67,6 +76,7 @@ export function SortableOfferList({
   onEdit,
   onDelete,
   onReorder,
+  readOnly,
 }: SortableOfferListProps) {
   const [, setActiveId] = useState<string | null>(null);
 
@@ -115,6 +125,7 @@ export function SortableOfferList({
               onToggle={onToggle}
               onEdit={onEdit}
               onDelete={onDelete}
+              readOnly={readOnly}
             />
           ))}
         </div>

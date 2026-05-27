@@ -30,6 +30,8 @@ import NewOrderPopup from './NewOrderPopup';
 import PendingOrdersModal from './PendingOrdersModal';
 import QuickOrderModal from './QuickOrderModal';
 import TrialBanner from './TrialBanner';
+import DegradedModeBanner from './DegradedModeBanner';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -83,6 +85,7 @@ function LayoutContent({ children }: LayoutProps) {
   const location = useLocation();
   const { signOut } = useAuth();
   useFoodtruck(); // Keep context active
+  const { accessState } = useSubscription();
   const {
     pendingPopupOrders,
     pendingCount,
@@ -312,7 +315,11 @@ function LayoutContent({ children }: LayoutProps) {
         </header>
 
         <OnboardingBanner />
-        {location.pathname !== '/billing' && <TrialBanner />}
+        {accessState === 'degraded' ? (
+          <DegradedModeBanner />
+        ) : (
+          location.pathname !== '/billing' && <TrialBanner />
+        )}
 
         {/* Content - native scroll */}
         <main
@@ -369,7 +376,11 @@ function LayoutContent({ children }: LayoutProps) {
         </header>
 
         <OnboardingBanner />
-        {location.pathname !== '/billing' && <TrialBanner />}
+        {accessState === 'degraded' ? (
+          <DegradedModeBanner />
+        ) : (
+          location.pathname !== '/billing' && <TrialBanner />
+        )}
 
         {/* Desktop content */}
         <main

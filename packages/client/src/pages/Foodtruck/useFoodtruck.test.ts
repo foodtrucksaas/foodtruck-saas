@@ -284,6 +284,15 @@ describe('useFoodtruck', () => {
           }),
         };
       }
+      if (table === 'subscriptions') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        };
+      }
       return { select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) };
     });
   });

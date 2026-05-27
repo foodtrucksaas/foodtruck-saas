@@ -99,6 +99,27 @@ serve(async (req) => {
     const { foodtruck, error: ftError } = await getFoodtruck(body.foodtruck_id);
     if (ftError) return ftError;
 
+    // Check subscription status — refuse orders for degraded foodtrucks
+    {
+      const supabaseAdmin = createSupabaseAdmin();
+      const { data: sub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('status')
+        .eq('foodtruck_id', body.foodtruck_id)
+        .maybeSingle();
+      const status = sub?.status;
+      const isActive = status === 'trialing' || status === 'active' || status === 'past_due';
+      if (!isActive) {
+        return errorResponse(
+          JSON.stringify({
+            code: 'FOODTRUCK_NOT_ACTIVE',
+            message: 'Ce food truck ne prend pas de commandes pour le moment',
+          }),
+          403
+        );
+      }
+    }
+
     // force_slot requires service role key (dashboard internal calls only)
     const forceSlotAllowed = body.force_slot && isServiceRoleRequest(req);
 

@@ -16,6 +16,7 @@ import {
 import { formatPrice } from '@foodtruck/shared';
 import { useCustomers, formatDate, type FilterSegment } from './useCustomers';
 import { CustomersPageSkeleton } from '../../components/Skeleton';
+import { useCanWrite } from '../../hooks/useCanWrite';
 
 const SEGMENTS = [
   { key: 'all', label: 'Tous' },
@@ -42,6 +43,10 @@ export default function Customers() {
     setShowFilters,
     exportCSV,
   } = useCustomers();
+  const canWrite = useCanWrite();
+  const disabledTitle = !canWrite
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
 
   if (loading) {
     return <CustomersPageSkeleton />;
@@ -56,7 +61,9 @@ export default function Customers() {
         </p>
         <button
           onClick={exportCSV}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
+          disabled={!canWrite}
+          title={disabledTitle}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download className="w-4 h-4" />
           Exporter

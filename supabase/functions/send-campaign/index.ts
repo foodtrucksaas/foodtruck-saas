@@ -100,6 +100,26 @@ serve(async (req) => {
       );
     }
 
+    // Check subscription status — refuse campaigns for degraded foodtrucks
+    {
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('foodtruck_id', campaign.foodtruck_id)
+        .maybeSingle();
+      const status = sub?.status;
+      const isActive = status === 'trialing' || status === 'active' || status === 'past_due';
+      if (!isActive) {
+        return new Response(
+          JSON.stringify({
+            code: 'ACCOUNT_NOT_ACTIVE',
+            error: "Votre abonnement n'est plus actif",
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Fetch recipients
     const { data: recipients, error: recipientsError } = await supabase.rpc(
       'get_campaign_recipients',

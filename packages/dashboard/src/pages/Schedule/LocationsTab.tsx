@@ -18,6 +18,7 @@ interface LocationsTabProps {
   onSubmit: (e: React.FormEvent) => void;
   onEdit: (location: Location) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }
 
 export function LocationsTab({
@@ -31,7 +32,11 @@ export function LocationsTab({
   onSubmit,
   onEdit,
   onDelete,
+  readOnly,
 }: LocationsTabProps) {
+  const disabledTitle = readOnly
+    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    : undefined;
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handlePlaceSelect = (place: PlaceResult) => {
@@ -65,7 +70,9 @@ export function LocationsTab({
         </div>
         <button
           onClick={onShowForm}
-          className="btn-secondary text-xs sm:text-sm min-h-[44px] active:scale-[0.98] w-full sm:w-auto"
+          disabled={readOnly}
+          title={disabledTitle}
+          className="btn-secondary text-xs sm:text-sm min-h-[44px] active:scale-[0.98] w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4 mr-1" />
           Ajouter
@@ -173,14 +180,18 @@ export function LocationsTab({
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => onEdit(location)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+                    disabled={readOnly}
+                    title={disabledTitle}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Modifier"
                   >
                     <Pencil className="w-4 h-4 text-gray-500" />
                   </button>
                   <button
                     onClick={() => onDelete(location.id)}
-                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+                    disabled={readOnly}
+                    title={disabledTitle}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 rounded-lg transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Supprimer"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -215,14 +226,18 @@ export function LocationsTab({
                 <div className="flex items-center justify-end gap-1 mt-2 -mr-1">
                   <button
                     onClick={() => onEdit(location)}
-                    className="h-9 px-3 flex items-center gap-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 text-xs"
+                    disabled={readOnly}
+                    title={disabledTitle}
+                    className="h-9 px-3 flex items-center gap-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Modifier
                   </button>
                   <button
                     onClick={() => onDelete(location.id)}
-                    className="h-9 px-3 flex items-center gap-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors active:scale-95 text-xs"
+                    disabled={readOnly}
+                    title={disabledTitle}
+                    className="h-9 px-3 flex items-center gap-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Supprimer

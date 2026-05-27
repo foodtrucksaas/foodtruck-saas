@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useFoodtruck } from './contexts/FoodtruckContext';
+import { useSubscription } from './contexts/SubscriptionContext';
 import Layout from './components/Layout';
 import Loading from './components/Loading';
 import { ErrorBoundary } from '@foodtruck/shared';
@@ -25,11 +26,14 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const OnboardingAssistant = lazy(() => import('./pages/OnboardingAssistant'));
 
+const DEGRADED_ALLOWED_ROUTES = ['/billing', '/settings'];
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { foodtruck, loading: foodtruckLoading } = useFoodtruck();
+  const { isLoading: subLoading } = useSubscription();
 
-  if (loading || foodtruckLoading) {
+  if (loading || foodtruckLoading || subLoading) {
     return <Loading />;
   }
 
@@ -42,6 +46,17 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <Layout>{children}</Layout>;
+}
+
+function SubscriptionGuard({ children }: { children: React.ReactNode }) {
+  const { accessState } = useSubscription();
+  const location = useLocation();
+
+  if (accessState === 'degraded' && !DEGRADED_ALLOWED_ROUTES.includes(location.pathname)) {
+    return <Navigate to="/billing" replace state={{ degraded: true }} />;
+  }
+
+  return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -135,7 +150,9 @@ export default function App() {
             path="/"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <SubscriptionGuard>
+                  <Dashboard />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -143,7 +160,9 @@ export default function App() {
             path="/menu"
             element={
               <PrivateRoute>
-                <Menu />
+                <SubscriptionGuard>
+                  <Menu />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -151,7 +170,9 @@ export default function App() {
             path="/orders"
             element={
               <PrivateRoute>
-                <Orders />
+                <SubscriptionGuard>
+                  <Orders />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -159,7 +180,9 @@ export default function App() {
             path="/schedule"
             element={
               <PrivateRoute>
-                <Schedule />
+                <SubscriptionGuard>
+                  <Schedule />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -167,7 +190,9 @@ export default function App() {
             path="/analytics"
             element={
               <PrivateRoute>
-                <Analytics />
+                <SubscriptionGuard>
+                  <Analytics />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -175,7 +200,9 @@ export default function App() {
             path="/customers"
             element={
               <PrivateRoute>
-                <Customers />
+                <SubscriptionGuard>
+                  <Customers />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -183,7 +210,9 @@ export default function App() {
             path="/campaigns"
             element={
               <PrivateRoute>
-                <Campaigns />
+                <SubscriptionGuard>
+                  <Campaigns />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -194,7 +223,9 @@ export default function App() {
             path="/offers"
             element={
               <PrivateRoute>
-                <Offers />
+                <SubscriptionGuard>
+                  <Offers />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
@@ -202,7 +233,9 @@ export default function App() {
             path="/loyalty"
             element={
               <PrivateRoute>
-                <Loyalty />
+                <SubscriptionGuard>
+                  <Loyalty />
+                </SubscriptionGuard>
               </PrivateRoute>
             }
           />
