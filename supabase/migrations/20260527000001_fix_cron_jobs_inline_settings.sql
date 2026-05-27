@@ -1,12 +1,11 @@
--- Setup cron jobs for trial management using pg_cron + pg_net
--- These call Edge Functions via HTTP
--- Values are inlined because ALTER DATABASE SET app.settings.* is not allowed on hosted Supabase
+-- Fix cron jobs: inline URL and secret instead of current_setting()
+-- which requires ALTER DATABASE SET (not allowed on hosted Supabase)
 
--- Enable extensions if not already enabled
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-CREATE EXTENSION IF NOT EXISTS pg_net;
+-- Remove old jobs
+SELECT cron.unschedule('send-trial-reminders');
+SELECT cron.unschedule('expire-trials');
 
--- Send trial reminder emails once per day at 09:00 UTC (11:00 Paris time)
+-- Recreate with inlined values
 SELECT cron.schedule(
   'send-trial-reminders',
   '0 9 * * *',
@@ -19,7 +18,6 @@ SELECT cron.schedule(
   $$
 );
 
--- Expire trials every hour at minute 0
 SELECT cron.schedule(
   'expire-trials',
   '0 * * * *',
