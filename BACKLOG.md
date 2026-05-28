@@ -108,7 +108,13 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 - [x] **Paramètres offres → modale dans la page Offres** — idem, bouton ⚙️ dans le header
 - [x] **Allégement page Paramètres** — sections Commandes et Offres retirées (déplacées vers leurs pages respectives), reste 10 sections
 
-### Chantier 2 — À faire
+### Chantier 2 — Refonte options article-level
+
+- [x] **Sous-étape 2.1 — Backend BDD** : nouvelles tables `menu_item_option_groups`, `menu_item_options`, `option_templates` + migration des données depuis category-level (overrides prix + désactivations préservés). 61 groups, 157 options migrés. RLS conforme. 6 tests d'intégration.
+- [ ] **Sous-étape 2.2 — Refonte UI Menu options article-level.** La BDD est prête. Templates d'options, UI d'assignation par article, suppression de la gestion options au niveau catégorie.
+- [ ] **Sous-étape 2.3 — Bascule complète** : le frontend et les Edge Functions lisent `menu_item_options` au lieu de `category_options`. Suppression des anciennes tables.
+
+### Chantier 3 — À faire
 
 - [ ] **Renommer "Carte" → "Menu"** — aligner sur le vocabulaire food truck
 - [ ] **Empty states enrichis** — illustrations + CTA contextuel sur chaque page vide
