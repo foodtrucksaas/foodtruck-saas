@@ -131,7 +131,10 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     () => pendingPopupsStore
   );
   const [pendingCount, setPendingCount] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('dashboard_sound_enabled');
+    return saved !== null ? saved === 'true' : true;
+  });
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Refs to access latest values in callbacks without re-subscribing
@@ -151,6 +154,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   }, [foodtruck]);
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
+    localStorage.setItem('dashboard_sound_enabled', String(soundEnabled));
   }, [soundEnabled]);
   useEffect(() => {
     pendingPopupOrdersRef.current = pendingPopupOrders;

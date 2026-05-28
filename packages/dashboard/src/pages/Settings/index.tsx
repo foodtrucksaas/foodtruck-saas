@@ -6,8 +6,6 @@ import {
   Building,
   Wallet,
   QrCode,
-  ShoppingBag,
-  Tag,
   Palette,
   User,
   Link2,
@@ -21,8 +19,6 @@ import { PaymentMethodsSection } from './PaymentMethodsSection';
 import { BusinessInfoSection } from './BusinessInfoSection';
 import { QRCodeSection } from './QRCodeSection';
 import { EmbedButtonSection } from './EmbedButtonSection';
-import { OrderSettingsSection } from './OrderSettingsSection';
-import { OffersSettingsSection } from './OffersSettingsSection';
 import { AccountSection } from './AccountSection';
 import ThemeSection from './ThemeSection';
 
@@ -35,8 +31,6 @@ const SECTIONS = [
   { id: 'payment', label: 'Paiement', icon: Wallet },
   { id: 'qr', label: 'QR Code', icon: QrCode },
   { id: 'embed', label: 'Bouton', icon: Code2 },
-  { id: 'orders', label: 'Commandes', icon: ShoppingBag },
-  { id: 'offers', label: 'Offres', icon: Tag },
   { id: 'theme', label: 'Thème', icon: Palette },
   { id: 'assistant', label: 'Assistant', icon: Wand2 },
   { id: 'account', label: 'Compte', icon: User },
@@ -325,44 +319,6 @@ export default function Settings() {
         className="scroll-mt-36"
       >
         <EmbedButtonSection foodtruck={foodtruck} clientLink={clientLink} />
-      </div>
-
-      {/* Order Settings Section */}
-      <div
-        ref={(el) => {
-          sectionRefs.current['orders'] = el;
-        }}
-        className="scroll-mt-36"
-      >
-        <OrderSettingsSection
-          foodtruck={foodtruck}
-          editForm={editForm}
-          editingField={editingField}
-          editLoading={editLoading}
-          onStartEdit={startEditing}
-          onSave={saveField}
-          onCancel={cancelEditing}
-          onUpdateForm={updateEditForm}
-        />
-      </div>
-
-      {/* Offers Settings Section */}
-      <div
-        ref={(el) => {
-          sectionRefs.current['offers'] = el;
-        }}
-        className="scroll-mt-36"
-      >
-        <OffersSettingsSection
-          foodtruck={foodtruck}
-          editForm={editForm}
-          editingField={editingField}
-          editLoading={editLoading}
-          onStartEdit={startEditing}
-          onSave={saveField}
-          onCancel={cancelEditing}
-          onUpdateForm={updateEditForm}
-        />
       </div>
 
       {/* Theme Section */}

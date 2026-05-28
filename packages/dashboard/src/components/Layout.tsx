@@ -17,6 +17,8 @@ import {
   LogOut,
   Plus,
   Bell,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
@@ -48,7 +50,7 @@ const navigation: NavItem[] = [
   { type: 'link', name: 'Commandes', href: '/orders', icon: ClipboardList },
   { type: 'link', name: 'Carte', href: '/menu', icon: UtensilsCrossed },
   { type: 'link', name: 'Planning', href: '/schedule', icon: Calendar },
-  { type: 'link', name: 'Menus & Offres', href: '/offers', icon: Sparkles },
+  { type: 'link', name: 'Offres', href: '/offers', icon: Sparkles },
   // Performance & Clients
   { type: 'separator', label: 'Performance' },
   { type: 'link', name: 'Analyses', href: '/analytics', icon: BarChart3 },
@@ -89,6 +91,8 @@ function LayoutContent({ children }: LayoutProps) {
   const {
     pendingPopupOrders,
     pendingCount,
+    soundEnabled,
+    setSoundEnabled,
     acceptOrder,
     cancelOrder,
     dismissPopup,
@@ -303,6 +307,23 @@ function LayoutContent({ children }: LayoutProps) {
                 </span>
               )}
             </button>
+            {/* Sound toggle */}
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl shadow-sm flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95 ${
+                soundEnabled
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-white text-gray-400 hover:bg-gray-50'
+              }`}
+              aria-pressed={soundEnabled}
+              aria-label={soundEnabled ? 'Désactiver le son' : 'Activer le son'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4" aria-hidden="true" />
+              ) : (
+                <VolumeX className="w-4 h-4" aria-hidden="true" />
+              )}
+            </button>
             {/* New order button */}
             <button
               onClick={() => setShowQuickOrder(true)}
@@ -361,6 +382,23 @@ function LayoutContent({ children }: LayoutProps) {
                   >
                     {pendingCount}
                   </span>
+                )}
+              </button>
+              {/* Sound toggle */}
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ease-out active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                  soundEnabled
+                    ? 'bg-primary-500 text-white shadow-md shadow-primary-500/30'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-400'
+                }`}
+                aria-pressed={soundEnabled}
+                aria-label={soundEnabled ? 'Désactiver le son' : 'Activer le son'}
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-5 h-5" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="w-5 h-5" aria-hidden="true" />
                 )}
               </button>
               {/* New order button */}

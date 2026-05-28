@@ -1,17 +1,17 @@
 import { useState, useMemo } from 'react';
 import {
-  Volume2,
-  VolumeX,
   ChevronLeft,
   ChevronRight,
   Calendar,
   List,
   Clock,
   ShoppingBag,
+  Settings,
 } from 'lucide-react';
 import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 import { OrderDetailModal } from './OrderDetailModal';
+import { OrderSettingsModal } from './OrderSettingsModal';
 import { TimelineView } from './TimelineView';
 import { OrdersPageSkeleton } from '../../components/Skeleton';
 
@@ -41,8 +41,6 @@ export default function Orders() {
     goToNextDay,
     goToToday,
     setDate,
-    soundEnabled,
-    setSoundEnabled,
     acceptOrder,
     cancelOrderWithReason,
     markReady,
@@ -51,6 +49,7 @@ export default function Orders() {
   } = useOrders();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem('orders-view-mode');
     return saved === 'list' || saved === 'timeline' ? saved : 'timeline';
@@ -168,6 +167,9 @@ export default function Orders() {
         />
       )}
 
+      {/* Order Settings Modal */}
+      <OrderSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
       {/* Sticky Header - compact on mobile */}
       <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm -mx-3 px-3 py-2 sm:-mx-4 sm:px-4 sm:py-3 md:-mx-8 md:px-8 border-b border-gray-200/80">
         <div className="flex flex-col gap-3 sm:gap-4">
@@ -278,20 +280,12 @@ export default function Orders() {
                 </button>
               </div>
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-h-[44px] rounded-xl flex items-center justify-center gap-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm ${soundEnabled ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                aria-pressed={soundEnabled}
-                aria-label={soundEnabled ? 'Désactiver le son' : 'Activer le son'}
+                onClick={() => setShowSettings(true)}
+                className="p-2 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-h-[44px] rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300 flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 shadow-sm"
+                aria-label="Paramètres des commandes"
                 type="button"
               >
-                {soundEnabled ? (
-                  <Volume2 className="w-4 h-4" aria-hidden="true" />
-                ) : (
-                  <VolumeX className="w-4 h-4" aria-hidden="true" />
-                )}
-                <span className="hidden md:inline font-medium">
-                  {soundEnabled ? 'Son' : 'Muet'}
-                </span>
+                <Settings className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           </div>

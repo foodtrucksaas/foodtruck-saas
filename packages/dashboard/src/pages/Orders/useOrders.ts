@@ -28,12 +28,7 @@ interface ScheduleRow {
 
 export function useOrders() {
   const { foodtruck } = useFoodtruck();
-  const {
-    soundEnabled,
-    setSoundEnabled,
-    acceptOrder: contextAcceptOrder,
-    refreshTrigger,
-  } = useOrderNotification();
+  const { acceptOrder: contextAcceptOrder, refreshTrigger } = useOrderNotification();
   const [orders, setOrders] = useState<OrderWithItemsAndOptions[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithItemsAndOptions | null>(null);
@@ -409,10 +404,6 @@ export function useOrders() {
     goToNextDay,
     goToToday,
     setDate,
-
-    // Sound
-    soundEnabled,
-    setSoundEnabled,
 
     // Actions
     acceptOrder,

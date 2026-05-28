@@ -1,7 +1,9 @@
-import { Plus, Sparkles, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Sparkles, Users, Settings } from 'lucide-react';
 import { useOffers } from './useOffers';
 import { SortableOfferList } from './SortableOfferList';
 import { OfferWizard } from './OfferWizard';
+import { OfferSettingsModal } from './OfferSettingsModal';
 import { useCanWrite } from '../../hooks/useCanWrite';
 
 export default function Offers() {
@@ -27,6 +29,7 @@ export default function Offers() {
     openCreateWizard,
     reorderOffers,
   } = useOffers();
+  const [showSettings, setShowSettings] = useState(false);
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
     ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
@@ -42,20 +45,32 @@ export default function Offers() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Offer Settings Modal */}
+      <OfferSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
           Gérez toutes vos offres promotionnelles
         </p>
-        <button
-          onClick={() => openCreateWizard()}
-          disabled={!canWrite}
-          title={disabledTitle}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="w-5 h-5" />
-          Nouvelle offre
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+            aria-label="Paramètres des offres"
+          >
+            <Settings className="w-5 h-5" aria-hidden="true" />
+          </button>
+          <button
+            onClick={() => openCreateWizard()}
+            disabled={!canWrite}
+            title={disabledTitle}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] flex-1 sm:flex-initial bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-5 h-5" />
+            Nouvelle offre
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

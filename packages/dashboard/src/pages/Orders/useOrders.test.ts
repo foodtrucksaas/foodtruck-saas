@@ -568,19 +568,6 @@ describe('useOrders', () => {
     });
   });
 
-  describe('sound settings', () => {
-    it('should expose sound settings from context', async () => {
-      const { result } = renderHook(() => useOrders());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.soundEnabled).toBe(true);
-      expect(result.current.setSoundEnabled).toBe(mockSetSoundEnabled);
-    });
-  });
-
   describe('error handling', () => {
     it('should handle fetch error gracefully', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

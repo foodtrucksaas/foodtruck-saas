@@ -96,6 +96,25 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 
 ---
 
+## 🎨 UX redesign dashboard
+
+> _Analyse complète : voir `docs/analysis/dashboard-ux.md` (28 mai 2026)._
+
+### Chantier 1 — Quick wins naming & IA (fait le 28 mai 2026)
+
+- [x] **Sidebar "Menus & Offres" → "Offres"** — le mot "Menus" était un faux ami avec la page Carte
+- [x] **Son global dans le header Layout** — le toggle son était enterré dans la page Commandes, maintenant visible partout (mobile + desktop), persisté en localStorage
+- [x] **Paramètres commandes → modale dans la page Commandes** — bouton ⚙️ dans le toolbar, ouvre une modale avec les réglages (mode acceptation, popup, créneaux, etc.)
+- [x] **Paramètres offres → modale dans la page Offres** — idem, bouton ⚙️ dans le header
+- [x] **Allégement page Paramètres** — sections Commandes et Offres retirées (déplacées vers leurs pages respectives), reste 10 sections
+
+### Chantier 2 — À faire
+
+- [ ] **Renommer "Carte" → "Menu"** — aligner sur le vocabulaire food truck
+- [ ] **Empty states enrichis** — illustrations + CTA contextuel sur chaque page vide
+- [ ] **Onboarding progress bar** — indicateur visuel de progression dans le header
+- [ ] **Preview côté client** depuis la page Offres — lien "Voir côté client" comme sur la page Carte
+
 ## 🎨 UX critique
 
 - [ ] **Route 404 client** — page blanche actuellement
