@@ -92,7 +92,7 @@ const ROWS: Row[] = [
   },
   {
     label: 'Coût mensuel',
-    onmange: '29€/mois',
+    onmange: '29€ HT/mois',
     telephone: '"Gratuit"',
     generic: '29-69€/mois',
   },

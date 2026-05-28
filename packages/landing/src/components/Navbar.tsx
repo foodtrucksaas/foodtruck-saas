@@ -52,10 +52,10 @@ export default function Navbar() {
 
             {/* CTA - scrolls to hero email form */}
             <a
-              href="#waitlist"
+              href="https://pro.onmange.app/register"
               className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-95"
             >
-              Rejoindre la liste
+              Essayer gratuitement
             </a>
 
             {/* Mobile hamburger */}

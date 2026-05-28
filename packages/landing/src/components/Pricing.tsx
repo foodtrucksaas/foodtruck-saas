@@ -1,7 +1,6 @@
 import {
   Check,
   ArrowRight,
-  Sparkles,
   Flag,
   Shield,
   Smartphone,
@@ -51,7 +50,7 @@ export default function Pricing() {
             </span>{' '}
             + 49 à 69€/mois. Chez OnMange :{' '}
             <span className="font-semibold text-anthracite">
-              0€ pour démarrer, 29€/mois tout compris.
+              0€ pour démarrer, 29€ HT/mois tout compris.
             </span>
           </p>
         </AnimatedSection>
@@ -59,14 +58,6 @@ export default function Pricing() {
         <AnimatedSection animation="scale-in">
           <div className="max-w-md mx-auto">
             <div className="relative bg-white rounded-3xl shadow-xl ring-2 ring-primary-100 overflow-hidden">
-              {/* Launch badge */}
-              <div className="absolute top-5 right-5 z-10">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 text-white text-sm font-bold rounded-full shadow-lg">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Offre de lancement
-                </div>
-              </div>
-
               {/* Header */}
               <div className="bg-gradient-to-br from-primary-500 via-primary-500 to-primary-600 px-8 pt-10 pb-7 text-center">
                 <p className="text-primary-100 text-sm font-semibold uppercase tracking-wider">
@@ -74,10 +65,11 @@ export default function Pricing() {
                 </p>
                 <div className="flex items-baseline justify-center gap-1 mt-2">
                   <span className="text-6xl font-extrabold text-white">29€</span>
-                  <span className="text-primary-200 text-xl font-medium">/mois</span>
+                  <span className="text-primary-200 text-xl font-medium">HT /mois</span>
                 </div>
-                <p className="text-primary-100/80 text-sm mt-2">
-                  Soit moins de 1€ par jour · 0€ de mise en service · HT
+                <p className="text-primary-100 text-sm font-medium mt-2">soit 34,80 € TTC</p>
+                <p className="text-primary-100/80 text-xs mt-1">
+                  Soit moins de 1€ par jour · 0€ de mise en service
                 </p>
               </div>
 
@@ -122,10 +114,10 @@ export default function Pricing() {
                 </ul>
 
                 <a
-                  href="#waitlist"
+                  href="https://pro.onmange.app/register"
                   className="mt-8 flex items-center justify-center gap-2 w-full py-4 text-base font-bold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
                 >
-                  Essayer gratuitement 30 jours
+                  Essayer gratuitement 14 jours
                   <ArrowRight className="w-4 h-4" />
                 </a>
 
@@ -152,9 +144,9 @@ export default function Pricing() {
               ))}
             </div>
             <p className="mt-8 text-gray-500 max-w-lg mx-auto">
-              En tant que <span className="font-semibold text-anthracite">membre fondateur</span>,
-              vous bénéficiez d'un accompagnement personnalisé et votre avis façonnera les futures
-              évolutions.
+              TVA 20 % applicable, récupérable pour les food trucks assujettis à la TVA.
+              <br />
+              Annulation à tout moment, en un clic, depuis votre espace.
             </p>
           </div>
         </AnimatedSection>

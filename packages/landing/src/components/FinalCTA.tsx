@@ -2,7 +2,7 @@ import { ArrowRight, Shield, Clock, Wallet } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
 
 const GUARANTEES = [
-  { icon: Clock, text: '30 jours gratuits' },
+  { icon: Clock, text: '14 jours gratuits' },
   { icon: Wallet, text: '0% de commission' },
   { icon: Shield, text: 'Sans engagement' },
 ];
@@ -41,10 +41,10 @@ export default function FinalCTA() {
           </div>
 
           <a
-            href="#waitlist"
+            href="https://pro.onmange.app/register"
             className="mt-8 inline-flex items-center justify-center gap-2 px-10 py-5 text-lg font-bold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
           >
-            Essayer gratuitement pendant 30 jours
+            Essayer gratuitement pendant 14 jours
             <ArrowRight className="w-5 h-5" />
           </a>
 

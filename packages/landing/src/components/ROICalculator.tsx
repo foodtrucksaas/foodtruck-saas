@@ -162,7 +162,7 @@ export default function ROICalculator() {
               </div>
 
               <a
-                href="#waitlist"
+                href="https://pro.onmange.app/register"
                 className="mt-6 flex items-center justify-center gap-2 w-full py-3.5 text-base font-semibold text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-all shadow-cta hover:shadow-cta-hover active:scale-[0.98]"
               >
                 Gagner {formatEur(results.extraRevenue)}/mois
