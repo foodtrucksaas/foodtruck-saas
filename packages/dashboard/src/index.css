@@ -1,3 +1,5 @@
+@import '../../shared/src/styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,7 +8,6 @@
   html,
   body,
   #root {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
   }
@@ -33,8 +34,7 @@
   }
 
   body {
-    background-color: #fafafa;
-    color: #2d2d2d;
+    /* background-color and color now from tokens.css */
     -webkit-tap-highlight-color: transparent;
   }
 

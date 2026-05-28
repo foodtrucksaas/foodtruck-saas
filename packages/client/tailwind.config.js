@@ -1,26 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  presets: [require('../shared/tailwind.preset.js')],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', '../shared/src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      // Semantic colors — kept from existing config until Sprint B3 migration
       colors: {
-        // Palette Coral (#F97066)
-        primary: {
-          50: '#FFF5F4',   // Background très léger
-          100: '#FFE4E1',
-          200: '#FFCCC7',
-          300: '#FFA69E',
-          400: '#FF8075',
-          500: '#F97066',  // Couleur principale
-          600: '#E65A50',  // Hover
-          700: '#C44038',
-          800: '#A33530',
-          900: '#862D2B',
-          950: '#491413',
-        },
-        // Neutres personnalisés
-        anthracite: '#2D2D2D',
-        // États
         success: {
           50: '#ECFDF5',
           100: '#D1FAE5',
@@ -70,19 +55,7 @@ export default {
           900: '#1E3A8A',
         },
       },
-      fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-      },
-      boxShadow: {
-        'card': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
-      },
-      borderRadius: {
-        'xl': '12px',
-        '2xl': '16px',
-      },
       animation: {
-        // Page & content transitions
         'fade-in': 'fadeIn 0.2s ease-out',
         'fade-in-up': 'fadeInUp 0.3s ease-out',
         'fade-in-down': 'fadeInDown 0.3s ease-out',
@@ -93,41 +66,31 @@ export default {
         'slide-in-down': 'slideInDown 0.3s ease-out',
         'slide-out-right': 'slideOutRight 0.2s ease-in',
         'slide-out-left': 'slideOutLeft 0.2s ease-in',
-        // Modal animations
         'modal-in': 'modalIn 0.2s ease-out',
         'modal-out': 'modalOut 0.15s ease-in',
         'sheet-in': 'sheetIn 0.3s ease-out',
         'sheet-out': 'sheetOut 0.2s ease-in',
         'backdrop-in': 'backdropIn 0.2s ease-out',
         'backdrop-out': 'backdropOut 0.15s ease-in',
-        // Scale animations
         'scale-in': 'scaleIn 0.2s ease-out',
         'scale-out': 'scaleOut 0.15s ease-in',
         'bounce-in': 'bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         'pop': 'pop 0.2s ease-out',
-        // Loading animations
         'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'shimmer': 'shimmer 1.5s infinite',
         'spinner': 'spinner 0.8s linear infinite',
-        // List stagger (use with animation-delay)
         'stagger-in': 'staggerIn 0.3s ease-out forwards',
-        // Status badge
         'status-pulse': 'statusPulse 2s ease-in-out infinite',
-        // Cart feedback
         'cart-bounce': 'cartBounce 0.4s ease-out',
         'add-to-cart': 'addToCart 0.3s ease-out',
         'cart-pop': 'cartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        // Toast animations
         'toast-in': 'toastIn 0.3s ease-out',
         'toast-out': 'toastOut 0.2s ease-in',
-        // Button press
         'press': 'press 0.15s ease-out',
-        // Legacy support
         fadeIn: 'fadeIn 0.3s ease-out',
         slideUp: 'slideUp 0.3s ease-out',
       },
       keyframes: {
-        // Fade animations
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -144,7 +107,6 @@ export default {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
         },
-        // Slide animations
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(100%)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -173,7 +135,6 @@ export default {
           '0%': { opacity: '1', transform: 'translateX(0)' },
           '100%': { opacity: '0', transform: 'translateX(-24px)' },
         },
-        // Modal animations
         modalIn: {
           '0%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
           '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
@@ -198,7 +159,6 @@ export default {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
         },
-        // Scale animations
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.9)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
@@ -218,7 +178,6 @@ export default {
           '50%': { transform: 'scale(1.02)' },
           '100%': { transform: 'scale(1)' },
         },
-        // Loading animations
         pulseSubtle: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.6' },
@@ -231,17 +190,14 @@ export default {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
-        // Staggered list animation
         staggerIn: {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        // Status pulse
         statusPulse: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%': { opacity: '0.8', transform: 'scale(1.05)' },
         },
-        // Cart animations
         cartBounce: {
           '0%': { transform: 'scale(1)' },
           '25%': { transform: 'scale(1.2)' },
@@ -259,7 +215,6 @@ export default {
           '50%': { transform: 'scale(1.15)' },
           '100%': { transform: 'scale(1)' },
         },
-        // Toast animations
         toastIn: {
           '0%': { opacity: '0', transform: 'translateY(-100%) scale(0.9)' },
           '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
@@ -268,14 +223,12 @@ export default {
           '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
           '100%': { opacity: '0', transform: 'translateY(-100%) scale(0.9)' },
         },
-        // Button press
         press: {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(0.97)' },
           '100%': { transform: 'scale(1)' },
         },
       },
-      // Custom transition timing functions
       transitionTimingFunction: {
         'bounce-in': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         'smooth-out': 'cubic-bezier(0.4, 0, 0.2, 1)',

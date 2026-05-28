@@ -1,16 +1,16 @@
+@import '../../shared/src/styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    background-color: #fafafa;
-    color: #2d2d2d;
+    /* background-color, color, font-family now from tokens.css */
     padding-bottom: env(safe-area-inset-bottom);
   }
 }

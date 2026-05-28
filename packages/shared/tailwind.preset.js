@@ -1,0 +1,79 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        corail: {
+          50: '#FFF1E8',
+          100: '#FFE4E1',
+          200: '#FFCCC7',
+          300: '#FFA69E',
+          400: '#FF8075',
+          500: '#F97066',
+          600: '#E65A50',
+          700: '#C44038',
+          800: '#A33530',
+          900: '#862D2B',
+          950: '#491413',
+        },
+        // Backward compat — existing code uses `primary-*` everywhere.
+        // Will be removed once migration to `corail-*` is complete.
+        primary: {
+          50: '#FFF1E8',
+          100: '#FFE4E1',
+          200: '#FFCCC7',
+          300: '#FFA69E',
+          400: '#FF8075',
+          500: '#F97066',
+          600: '#E65A50',
+          700: '#C44038',
+          800: '#A33530',
+          900: '#862D2B',
+          950: '#491413',
+        },
+        marine: {
+          50: '#EEF2F7',
+          100: '#C7D0DD',
+          200: '#93A4BC',
+          300: '#5F779A',
+          400: '#3D5879',
+          500: '#1E3A5F',
+          600: '#182F4D',
+          700: '#11243B',
+          800: '#0B1A29',
+          900: '#060D17',
+        },
+        canvas: '#FFFBF5',
+        surface: '#FFFFFF',
+        sand: {
+          100: '#FFF1E8',
+          200: '#F5EDE2',
+        },
+        anthracite: '#2D2D2D',
+        pending: {
+          50: '#FBF1DD',
+          500: '#D9A45B',
+          600: '#B5853E',
+          700: '#8C6529',
+          800: '#7A5828',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+      },
+      borderRadius: {
+        lg: '12px',
+        xl: '16px',
+        '2xl': '24px',
+      },
+      boxShadow: {
+        card: '0 4px 12px rgba(45, 45, 45, 0.06)',
+        'card-hover': '0 8px 24px rgba(45, 45, 45, 0.10)',
+        cta: '0 4px 16px rgba(249, 112, 102, 0.25)',
+        'cta-hover': '0 6px 24px rgba(249, 112, 102, 0.35)',
+        modal: '0 24px 48px rgba(45, 45, 45, 0.18)',
+      },
+    },
+  },
+};
