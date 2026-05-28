@@ -224,23 +224,6 @@ export function BuyXGetYConfig({ form, categories, menuItems, updateForm }: Wiza
           </div>
         )}
       </div>
-
-      {/* Resume */}
-      {form.triggerCategoryIds.length > 0 && form.rewardCategoryIds.length > 0 && (
-        <p className="text-sm text-success-600 bg-success-50 rounded-lg p-3">
-          {form.triggerQuantity}{' '}
-          {categories
-            .filter((c) => form.triggerCategoryIds.includes(c.id))
-            .map((c) => c.name)
-            .join('/')}{' '}
-          = {form.rewardQuantity}{' '}
-          {categories
-            .filter((c) => form.rewardCategoryIds.includes(c.id))
-            .map((c) => c.name)
-            .join('/')}{' '}
-          offert{parseInt(form.rewardQuantity) > 1 ? 's' : ''}
-        </p>
-      )}
     </div>
   );
 }

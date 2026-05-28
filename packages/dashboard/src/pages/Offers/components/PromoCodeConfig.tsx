@@ -65,7 +65,12 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
       {/* Options */}
       <div className="grid grid-cols-2 gap-4 pt-2">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Minimum commande</label>
+          <label
+            className="block text-sm text-gray-600 mb-1"
+            title="Le code ne s'applique que si le panier atteint ce montant"
+          >
+            Minimum commande
+          </label>
           <div className="relative">
             <input
               type="number"
@@ -83,7 +88,12 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
           </div>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Réduction max</label>
+          <label
+            className="block text-sm text-gray-600 mb-1"
+            title="Plafonne la réduction pour les codes en pourcentage (ex: -10% mais max 5€)"
+          >
+            Réduction max
+          </label>
           <div className="relative">
             <input
               type="number"
@@ -101,18 +111,6 @@ export function PromoCodeConfig({ form, updateForm }: PromoCodeConfigProps) {
           </div>
         </div>
       </div>
-
-      {/* Apercu */}
-      {form.promoCode && (
-        <div className="bg-purple-50 rounded-lg p-3 text-sm text-purple-700">
-          Code <span className="font-mono font-bold">{form.promoCode}</span> ={' '}
-          <span className="font-medium">
-            -{form.promoCodeDiscountValue || '0'}
-            {form.promoCodeDiscountType === 'percentage' ? '%' : '€'}
-          </span>
-          {form.promoCodeMinOrderAmount && ` (min. ${form.promoCodeMinOrderAmount}€)`}
-        </div>
-      )}
     </div>
   );
 }

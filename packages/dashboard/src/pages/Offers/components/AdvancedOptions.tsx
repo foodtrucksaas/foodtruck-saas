@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Settings2, Clock, Calendar } from 'lucide-react';
 import type { WizardFormProps } from './wizardTypes';
 
-type AdvancedOptionsProps = Pick<WizardFormProps, 'form' | 'updateForm'>;
+type AdvancedOptionsProps = Pick<WizardFormProps, 'form' | 'updateForm'> & {
+  defaultOpen?: boolean;
+};
 
-export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AdvancedOptions({ form, updateForm, defaultOpen = false }: AdvancedOptionsProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   // Montrer un indicateur si des options sont configurées
   const hasConfig =
@@ -58,7 +60,7 @@ export function AdvancedOptions({ form, updateForm }: AdvancedOptionsProps) {
       >
         <span className="flex items-center gap-2">
           <Settings2 className="w-4 h-4" />
-          Options avancées
+          Options avancées (dates, jours, limites)
           {hasConfig && !isOpen && <span className="w-2 h-2 rounded-full bg-primary-500" />}
         </span>
         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

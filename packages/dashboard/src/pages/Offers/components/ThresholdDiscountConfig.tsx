@@ -70,21 +70,9 @@ export function ThresholdDiscountConfig({ form, updateForm }: ThresholdDiscountC
           />
         </div>
         <span className="text-gray-500 pb-2">
-          {form.thresholdDiscountType === 'percentage' ? '%' : '€'} offerts
+          {form.thresholdDiscountType === 'percentage' ? '%' : '€'} de réduction
         </span>
       </div>
-
-      {/* Resume */}
-      {form.thresholdMinAmount && form.thresholdDiscountValue && (
-        <div className="bg-success-50 rounded-lg p-3 text-sm text-success-600">
-          Dès <span className="font-bold">{form.thresholdMinAmount}€</span> d'achat ={' '}
-          <span className="font-bold">
-            -{form.thresholdDiscountValue}
-            {form.thresholdDiscountType === 'percentage' ? '%' : '€'}
-          </span>{' '}
-          automatiquement
-        </div>
-      )}
     </div>
   );
 }

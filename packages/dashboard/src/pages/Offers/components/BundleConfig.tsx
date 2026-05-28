@@ -138,25 +138,6 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
         </div>
       </div>
 
-      {/* Mini resume */}
-      {form.bundleCategories.length >= 2 && form.bundleFixedPrice && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg text-sm text-primary-700">
-          <span className="font-medium">
-            {form.bundleCategories
-              .map((bc) => {
-                const names = bc.categoryIds
-                  .map((id) => categories.find((c) => c.id === id)?.name)
-                  .filter(Boolean);
-                return names.length > 1 ? `(${names.join(' / ')})` : names[0] || '';
-              })
-              .filter(Boolean)
-              .join(' + ')}
-          </span>
-          <span>=</span>
-          <span className="font-bold">{form.bundleFixedPrice}€</span>
-        </div>
-      )}
-
       {/* Elements de la formule */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -362,7 +343,12 @@ export function BundleConfig({ form, categories, menuItems, updateForm }: Wizard
           onChange={(e) => updateForm({ bundleFreeOptions: e.target.checked })}
           className="rounded border-gray-300 text-primary-500"
         />
-        <span className="text-sm text-gray-600">Suppléments/extras gratuits dans la formule</span>
+        <span
+          className="text-sm text-gray-600"
+          title="Si coché, les suppléments (taille, extras) ne modifient pas le prix de la formule"
+        >
+          Suppléments/extras gratuits dans la formule
+        </span>
       </label>
     </div>
   );

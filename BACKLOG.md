@@ -116,6 +116,17 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 - [x] **Garde-fou anti-drift pricing** : commentaires de liaison croisée entre `packages/shared/src/utils/pricing.ts` et `supabase/functions/_shared/orders.ts`. Test d'intégration `tests/integration/pricing-coherence.test.ts` (13 tests, 7 combos) valide que `computeMenuItemPrice`, `computeCartItemUnitPrice` (client) et `computeUnitPrice` (serveur) produisent exactement le même prix. Teste aussi le rejet par create-order en cas de drift (5 cas de prix faux).
 - [ ] **Sous-étape 2.4 — Nettoyage** : supprimer les anciennes tables `category_option_groups`/`category_options`, les champs legacy `option_prices`/`disabled_options` sur `menu_items`, et le fallback `isSizeOption` côté client. Retirer les méthodes `@deprecated` de shared/api/menu.ts.
 
+### Refonte wizard offres (fait le 28 mai 2026)
+
+- [x] **Skeleton commun step 2** : nom → notes internes repliables → config → info block → recap → options avancées → erreurs → boutons
+- [x] **Bandeau recap dynamique** : `OfferRecapBanner` vert avec texte contextuel par type (bundle, buy_x_get_y, promo_code, threshold_discount)
+- [x] **Liste d'erreurs de validation** : `OfferValidationErrors` en rouge, séparée du recap
+- [x] **Bloc "Comment ça marche"** : `OfferInfoBlock` gris avec explication par type
+- [x] **Vocabulaire unifié** : "€ offerts" → "€ de réduction", "Description" → "Notes internes (vous seul les voyez)", tooltips sur Minimum commande / Réduction max / Suppléments gratuits
+- [x] **Suppression des mini-recaps inline** des 4 composants de config (BundleConfig, BuyXGetYConfig, PromoCodeConfig, ThresholdDiscountConfig)
+- [x] **Options avancées** : label enrichi "(dates, jours, limites)", prop `defaultOpen` pour mode édition
+- [x] **17 tests** pour `getRecapText` et `getValidationErrors` (OfferRecap.test.ts)
+
 ### Chantier 3 — À faire
 
 - [ ] **Renommer "Carte" → "Menu"** — aligner sur le vocabulaire food truck

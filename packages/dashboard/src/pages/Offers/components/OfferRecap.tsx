@@ -1,223 +1,209 @@
-import {
-  Check,
-  AlertCircle,
-  Clock,
-  Calendar,
-  Users,
-  Package,
-  Gift,
-  Tag,
-  TrendingUp,
-} from 'lucide-react';
+import { CheckCircle2, Info } from 'lucide-react';
 import type { OfferFormState, CategoryWithOptionGroups } from '../useOffers';
 
-interface OfferRecapProps {
+// ============================================
+// Recap Banner — positive summary of what's configured
+// ============================================
+
+interface OfferRecapBannerProps {
   form: OfferFormState;
   categories: CategoryWithOptionGroups[];
 }
 
-export function OfferRecap({ form, categories }: OfferRecapProps) {
-  const getCategoryNames = (ids: string[]) =>
-    ids
-      .map((id) => categories.find((c) => c.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
+function getCategoryNames(ids: string[], categories: CategoryWithOptionGroups[]) {
+  return ids
+    .map((id) => categories.find((c) => c.id === id)?.name)
+    .filter(Boolean)
+    .join(' / ');
+}
 
-  const getIcon = () => {
-    switch (form.offerType) {
-      case 'bundle':
-        return <Package className="w-5 h-5 text-white" />;
-      case 'buy_x_get_y':
-        return <Gift className="w-5 h-5 text-white" />;
-      case 'promo_code':
-        return <Tag className="w-5 h-5 text-white" />;
-      case 'threshold_discount':
-        return <TrendingUp className="w-5 h-5 text-white" />;
-    }
-  };
+function getBundleRecapText(
+  form: OfferFormState,
+  categories: CategoryWithOptionGroups[]
+): string | null {
+  if (!form.bundleFixedPrice || form.bundleCategories.length < 2) return null;
+  const elements = form.bundleCategories
+    .map((bc) => getCategoryNames(bc.categoryIds, categories))
+    .filter(Boolean);
+  if (elements.length < 2) return null;
+  const name = form.name?.trim() || 'Formule';
+  return `${name} = ${elements.join(' + ')} pour ${form.bundleFixedPrice}\u202F€`;
+}
 
-  // Couleurs spécifiques aux offres (distinctes des statuts commandes)
-  const getIconBgColor = () => {
-    switch (form.offerType) {
-      case 'bundle':
-        return 'bg-violet-500';
-      case 'buy_x_get_y':
-        return 'bg-amber-500';
-      case 'promo_code':
-        return 'bg-indigo-500';
-      case 'threshold_discount':
-        return 'bg-teal-500';
-    }
-  };
+function getBuyXGetYRecapText(
+  form: OfferFormState,
+  categories: CategoryWithOptionGroups[]
+): string | null {
+  if (form.triggerCategoryIds.length === 0 || form.rewardCategoryIds.length === 0) return null;
+  const triggerCats = getCategoryNames(form.triggerCategoryIds, categories);
+  const rewardCats = getCategoryNames(form.rewardCategoryIds, categories);
+  if (!triggerCats || !rewardCats) return null;
+  const plural = parseInt(form.rewardQuantity) > 1 ? 's' : '';
+  return `${form.triggerQuantity} ${triggerCats} acheté${parseInt(form.triggerQuantity) > 1 ? 's' : ''} = ${form.rewardQuantity} ${rewardCats} offert${plural}`;
+}
 
-  const getMainDescription = () => {
-    switch (form.offerType) {
-      case 'bundle': {
-        const elements = form.bundleCategories
-          .map((bc) => getCategoryNames(bc.categoryIds))
-          .filter(Boolean);
-        return (
-          <span>
-            {elements.join(' + ')} = <strong>{form.bundleFixedPrice}€</strong>
-          </span>
-        );
-      }
-      case 'buy_x_get_y': {
-        const triggerCats = getCategoryNames(form.triggerCategoryIds);
-        const rewardCats = getCategoryNames(form.rewardCategoryIds);
-        return (
-          <span>
-            <strong>{form.triggerQuantity}</strong> {triggerCats} ={' '}
-            <strong>{form.rewardQuantity}</strong> {rewardCats} offert
-            {parseInt(form.rewardQuantity) > 1 ? 's' : ''}
-          </span>
-        );
-      }
-      case 'promo_code':
-        return (
-          <span>
-            Code <strong className="font-mono">{form.promoCode}</strong> ={' '}
-            <strong>
-              -{form.promoCodeDiscountValue}
-              {form.promoCodeDiscountType === 'percentage' ? '%' : '€'}
-            </strong>
-            {form.promoCodeMinOrderAmount && ` (min. ${form.promoCodeMinOrderAmount}€)`}
-          </span>
-        );
-      case 'threshold_discount':
-        return (
-          <span>
-            Dès <strong>{form.thresholdMinAmount}€</strong> d'achat ={' '}
-            <strong>
-              -{form.thresholdDiscountValue}
-              {form.thresholdDiscountType === 'percentage' ? '%' : '€'}
-            </strong>
-          </span>
-        );
-    }
-  };
+function getPromoCodeRecapText(form: OfferFormState): string | null {
+  if (!form.promoCode.trim() || !form.promoCodeDiscountValue) return null;
+  const unit = form.promoCodeDiscountType === 'percentage' ? '%' : '\u202F€';
+  let text = `Code ${form.promoCode} = -${form.promoCodeDiscountValue}${unit}`;
+  if (form.promoCodeMinOrderAmount) {
+    text += `, minimum ${form.promoCodeMinOrderAmount}\u202F€`;
+  }
+  return text;
+}
 
-  const warnings: string[] = [];
-  const infos: string[] = [];
+function getThresholdRecapText(form: OfferFormState): string | null {
+  if (!form.thresholdMinAmount || !form.thresholdDiscountValue) return null;
+  const unit = form.thresholdDiscountType === 'percentage' ? '%' : '\u202F€';
+  return `Dès ${form.thresholdMinAmount}\u202F€ d'achat = -${form.thresholdDiscountValue}${unit} automatiquement`;
+}
 
-  // Vérifications
+export function getRecapText(
+  form: OfferFormState,
+  categories: CategoryWithOptionGroups[]
+): string | null {
+  switch (form.offerType) {
+    case 'bundle':
+      return getBundleRecapText(form, categories);
+    case 'buy_x_get_y':
+      return getBuyXGetYRecapText(form, categories);
+    case 'promo_code':
+      return getPromoCodeRecapText(form);
+    case 'threshold_discount':
+      return getThresholdRecapText(form);
+    default:
+      return null;
+  }
+}
+
+export function OfferRecapBanner({ form, categories }: OfferRecapBannerProps) {
+  const recapText = getRecapText(form, categories);
+  if (!recapText) return null;
+
+  return (
+    <div
+      className="flex items-center gap-2.5 px-4 py-3 bg-success-50 border border-success-200 rounded-xl"
+      data-testid="offer-recap-banner"
+    >
+      <CheckCircle2 className="w-5 h-5 text-success-600 flex-shrink-0" />
+      <p className="text-sm font-medium text-success-700">{recapText}</p>
+    </div>
+  );
+}
+
+// ============================================
+// Validation Errors — red bullet list
+// ============================================
+
+interface OfferValidationErrorsProps {
+  form: OfferFormState;
+}
+
+export function getValidationErrors(form: OfferFormState): string[] {
+  const errors: string[] = [];
+
   if (!form.name.trim()) {
-    warnings.push("Nom de l'offre manquant");
+    errors.push("Nom de l'offre manquant");
   }
 
   if (form.offerType === 'bundle') {
     if (!form.bundleFixedPrice || parseFloat(form.bundleFixedPrice) <= 0) {
-      warnings.push('Prix de la formule manquant');
+      errors.push('Prix de la formule manquant');
     }
     if (form.bundleCategories.length < 2) {
-      warnings.push('Une formule doit avoir au moins 2 éléments');
+      errors.push('Une formule doit avoir au moins 2 éléments');
     }
   }
 
   if (form.offerType === 'buy_x_get_y') {
     if (form.triggerCategoryIds.length === 0) {
-      warnings.push('Sélectionnez les catégories à acheter');
+      errors.push('Sélectionnez les catégories à acheter');
     }
     if (form.rewardCategoryIds.length === 0) {
-      warnings.push('Sélectionnez les catégories offertes');
+      errors.push('Sélectionnez les catégories offertes');
     }
   }
 
   if (form.offerType === 'promo_code' && !form.promoCode.trim()) {
-    warnings.push('Code promo manquant');
+    errors.push('Code promo manquant');
   }
 
   if (form.offerType === 'threshold_discount') {
     if (!form.thresholdMinAmount || parseFloat(form.thresholdMinAmount) <= 0) {
-      warnings.push('Montant minimum manquant');
+      errors.push('Montant minimum manquant');
     }
   }
 
-  // Infos sur les restrictions
-  if (form.timeStart && form.timeEnd) {
-    infos.push(`Disponible de ${form.timeStart.slice(0, 5)} à ${form.timeEnd.slice(0, 5)}`);
-  }
+  return errors;
+}
 
-  if (form.startDate || form.endDate) {
-    const start = form.startDate
-      ? new Date(form.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-      : '';
-    const end = form.endDate
-      ? new Date(form.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-      : '';
-    if (start && end) {
-      infos.push(`Du ${start} au ${end}`);
-    } else if (start) {
-      infos.push(`À partir du ${start}`);
-    } else if (end) {
-      infos.push(`Jusqu'au ${end}`);
-    }
-  }
+export function OfferValidationErrors({ form }: OfferValidationErrorsProps) {
+  const errors = getValidationErrors(form);
+  if (errors.length === 0) return null;
 
-  if (form.maxUses) {
-    infos.push(`Limité à ${form.maxUses} utilisations`);
-  }
+  return (
+    <div className="space-y-1.5" data-testid="offer-validation-errors">
+      {errors.map((error, i) => (
+        <p key={i} className="text-sm text-red-600 flex items-start gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+          {error}
+        </p>
+      ))}
+    </div>
+  );
+}
 
-  if (form.maxUsesPerCustomer && form.maxUsesPerCustomer !== '1') {
-    infos.push(`Max ${form.maxUsesPerCustomer}x par client`);
-  }
+// ============================================
+// Info block — "Comment ça marche pour vos clients"
+// ============================================
 
-  if (form.bundleFreeOptions && form.offerType === 'bundle') {
-    infos.push('Suppléments gratuits inclus');
-  }
+interface OfferInfoBlockProps {
+  offerType: OfferFormState['offerType'];
+}
 
-  const isValid = warnings.length === 0;
+const INFO_TEXTS: Record<string, string> = {
+  bundle:
+    'Le client compose son menu en choisissant un article par élément. Il paie le prix fixe que vous avez défini, quel que soit le choix.',
+  buy_x_get_y:
+    'Quand le client met X articles éligibles dans son panier, le moins cher des articles « offerts » est gratuit. Le système choisit automatiquement le bon.',
+  promo_code: 'Le client tape ce code dans son panier à la caisse pour bénéficier de la réduction.',
+  threshold_discount:
+    "S'applique automatiquement dès que le panier atteint le montant minimum. Aucun code à saisir pour le client.",
+};
+
+export function OfferInfoBlock({ offerType }: OfferInfoBlockProps) {
+  const text = INFO_TEXTS[offerType];
+  if (!text) return null;
 
   return (
     <div
-      className={`rounded-xl border-2 p-4 bg-white ${
-        isValid ? 'border-success-500' : 'border-warning-500'
-      }`}
+      className="flex items-start gap-2.5 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl"
+      data-testid="offer-info-block"
     >
-      <div className="flex items-start gap-3">
-        <div className={`p-2 rounded-lg ${getIconBgColor()}`}>{getIcon()}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-gray-900 truncate">{form.name || 'Sans nom'}</h4>
-            {isValid && <Check className="w-4 h-4 text-success-600 flex-shrink-0" />}
-          </div>
-
-          <p className="text-sm text-gray-700">{getMainDescription()}</p>
-
-          {/* Infos */}
-          {infos.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {infos.map((info, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white/60 rounded-full text-gray-600"
-                >
-                  {info.includes('Disponible') && <Clock className="w-3 h-3" />}
-                  {(info.includes('Du') || info.includes('partir') || info.includes("Jusqu'")) && (
-                    <Calendar className="w-3 h-3" />
-                  )}
-                  {(info.includes('Limité') || info.includes('Max')) && (
-                    <Users className="w-3 h-3" />
-                  )}
-                  {info}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Warnings */}
-          {warnings.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {warnings.map((warning, i) => (
-                <p key={i} className="text-xs text-warning-600 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                  {warning}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
+      <Info className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+      <div>
+        <p className="text-xs font-medium text-gray-500 mb-0.5">
+          Comment ça marche pour vos clients
+        </p>
+        <p className="text-sm text-gray-600">{text}</p>
       </div>
     </div>
+  );
+}
+
+// Legacy default export for backward compat during transition
+// (can remove once OfferWizard is updated)
+export function OfferRecap({
+  form,
+  categories,
+}: {
+  form: OfferFormState;
+  categories: CategoryWithOptionGroups[];
+}) {
+  return (
+    <>
+      <OfferRecapBanner form={form} categories={categories} />
+      <OfferValidationErrors form={form} />
+    </>
   );
 }

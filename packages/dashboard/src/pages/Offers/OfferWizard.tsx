@@ -1,4 +1,5 @@
-import { X, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useState } from 'react';
+import { X, ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import type { OfferType, MenuItem, OfferWithItems } from '@foodtruck/shared';
 import { OFFER_TYPE_LABELS } from '@foodtruck/shared';
 import type { OfferFormState, CategoryWithOptionGroups } from './useOffers';
@@ -9,7 +10,9 @@ import {
   PromoCodeConfig,
   ThresholdDiscountConfig,
   AdvancedOptions,
-  OfferRecap,
+  OfferRecapBanner,
+  OfferValidationErrors,
+  OfferInfoBlock,
 } from './components';
 
 interface OfferWizardProps {
@@ -55,9 +58,21 @@ export function OfferWizard({
 
   // Pour le mode edition, on saute l'etape 1
   const totalSteps = editingOffer ? 1 : 2;
-  // effectiveStep utilise pour la logique d'affichage
-  const _effectiveStep = editingOffer ? 2 : step;
-  void _effectiveStep; // Mark as intentionally unused for now
+
+  // Notes internes collapsible — collapsed by default, open in edit mode if has description
+  const [notesOpen, setNotesOpen] = useState(editingOffer ? !!form.description.trim() : false);
+
+  // Advanced options: open by default in edit mode if any value is set
+  const advancedDefaultOpen =
+    !!editingOffer &&
+    !!(
+      form.startDate ||
+      form.endDate ||
+      form.timeStart ||
+      form.timeEnd ||
+      form.maxUses ||
+      form.maxUsesPerCustomer
+    );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
@@ -157,32 +172,43 @@ export function OfferWizard({
             {/* Step 2: Configure Offer */}
             {step === 2 && (
               <div className="space-y-5 sm:space-y-6">
-                {/* Basic Info */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Nom de l'offre *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.name}
-                      onChange={(e) => updateForm({ name: e.target.value })}
-                      className="input min-h-[48px] text-base"
-                      placeholder="Ex: Menu Midi, Code Bienvenue..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Description (optionnel)
-                    </label>
+                {/* Nom de l'offre */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Nom de l'offre *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => updateForm({ name: e.target.value })}
+                    className="input min-h-[48px] text-base"
+                    placeholder="Ex: Menu Midi, Code Bienvenue..."
+                  />
+                </div>
+
+                {/* Notes internes — collapsible */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setNotesOpen(!notesOpen)}
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    {notesOpen ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                    Notes internes (vous seul les voyez)
+                  </button>
+                  {notesOpen && (
                     <textarea
                       value={form.description}
                       onChange={(e) => updateForm({ description: e.target.value })}
-                      className="input min-h-[80px] text-base"
+                      className="input min-h-[80px] text-base mt-2"
                       rows={2}
-                      placeholder="Description interne..."
+                      placeholder="Notes visibles uniquement par vous..."
                     />
-                  </div>
+                  )}
                 </div>
 
                 {/* Type-specific config */}
@@ -195,11 +221,21 @@ export function OfferWizard({
                   <ThresholdDiscountConfig form={form} updateForm={updateForm} />
                 )}
 
-                {/* Recap */}
-                <OfferRecap form={form} categories={categories} />
+                {/* Info block — "Comment ça marche pour vos clients" */}
+                <OfferInfoBlock offerType={form.offerType} />
+
+                {/* Recap banner */}
+                <OfferRecapBanner form={form} categories={categories} />
 
                 {/* Advanced Options */}
-                <AdvancedOptions form={form} updateForm={updateForm} />
+                <AdvancedOptions
+                  form={form}
+                  updateForm={updateForm}
+                  defaultOpen={advancedDefaultOpen}
+                />
+
+                {/* Validation errors — just above footer */}
+                <OfferValidationErrors form={form} />
               </div>
             )}
           </div>
