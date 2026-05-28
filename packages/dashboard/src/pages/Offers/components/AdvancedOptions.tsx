@@ -9,14 +9,6 @@ type AdvancedOptionsProps = Pick<WizardFormProps, 'form' | 'updateForm'> & {
 export function AdvancedOptions({ form, updateForm, defaultOpen = false }: AdvancedOptionsProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  // Montrer un indicateur si des options sont configurées
-  const hasConfig =
-    form.startDate ||
-    form.endDate ||
-    form.timeStart ||
-    form.timeEnd ||
-    form.maxUses ||
-    form.maxUsesPerCustomer;
   const hasTimeSlot = form.timeStart && form.timeEnd;
   const hasDateRange = form.startDate || form.endDate;
 
@@ -61,7 +53,6 @@ export function AdvancedOptions({ form, updateForm, defaultOpen = false }: Advan
         <span className="flex items-center gap-2">
           <Settings2 className="w-4 h-4" />
           Options avancées (dates, jours, limites)
-          {hasConfig && !isOpen && <span className="w-2 h-2 rounded-full bg-primary-500" />}
         </span>
         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
