@@ -1,3 +1,18 @@
+/**
+ * DUPLICATION INTENTIONNELLE — Lien avec packages/shared/src/utils/pricing.ts
+ *
+ * Les fonctions computeUnitPrice / isAbsoluteOption ci-dessous calculent
+ * le prix d'un menu_item avec ses options selectionnees. Elles sont
+ * dupliquees entre le client (packages/shared, runtime Node/Vite)
+ * et le serveur (ce fichier, runtime Deno) car les Edge Functions
+ * Deno ne peuvent pas importer depuis le monorepo @foodtruck/shared.
+ *
+ * SI TU MODIFIES LA LOGIQUE ICI, MODIFIE AUSSI L'AUTRE FICHIER.
+ * Le test d'integration tests/integration/pricing-coherence.test.ts
+ * valide la coherence des deux implementations. S'il casse, c'est
+ * que les deux ont drift.
+ */
+
 import { createSupabaseAdmin } from './supabase.ts';
 import { errorResponse } from './responses.ts';
 

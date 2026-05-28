@@ -1,3 +1,18 @@
+/**
+ * DUPLICATION INTENTIONNELLE — Lien avec supabase/functions/_shared/orders.ts
+ *
+ * Cette fonction calcule le prix d'un menu_item avec ses options
+ * selectionnees. Elle est dupliquee entre le client (packages/shared,
+ * runtime Node/Vite) et le serveur (supabase/functions/_shared,
+ * runtime Deno) car les Edge Functions Deno ne peuvent pas importer
+ * depuis le monorepo @foodtruck/shared.
+ *
+ * SI TU MODIFIES LA LOGIQUE ICI, MODIFIE AUSSI L'AUTRE FICHIER.
+ * Le test d'integration tests/integration/pricing-coherence.test.ts
+ * valide la coherence des deux implementations. S'il casse, c'est
+ * que les deux ont drift.
+ */
+
 import type { PriceMode, SelectedOption } from '../types';
 
 // ============================================
