@@ -1,6 +1,11 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.1';
+  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -860,6 +865,94 @@ export type Database = {
           },
         ];
       };
+      menu_item_option_groups: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          id: string;
+          is_multiple: boolean;
+          is_required: boolean;
+          menu_item_id: string;
+          name: string;
+          price_mode: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          is_multiple?: boolean;
+          is_required?: boolean;
+          menu_item_id: string;
+          name: string;
+          price_mode?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          is_multiple?: boolean;
+          is_required?: boolean;
+          menu_item_id?: string;
+          name?: string;
+          price_mode?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'menu_item_option_groups_menu_item_id_fkey';
+            columns: ['menu_item_id'];
+            isOneToOne: false;
+            referencedRelation: 'menu_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      menu_item_options: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          group_id: string;
+          id: string;
+          is_available: boolean;
+          is_default: boolean;
+          name: string;
+          price_modifier: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_order?: number;
+          group_id: string;
+          id?: string;
+          is_available?: boolean;
+          is_default?: boolean;
+          name: string;
+          price_modifier?: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          group_id?: string;
+          id?: string;
+          is_available?: boolean;
+          is_default?: boolean;
+          name?: string;
+          price_modifier?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'menu_item_options_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'menu_item_option_groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       menu_items: {
         Row: {
           allergens: string[] | null;
@@ -1089,6 +1182,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: 'offers_foodtruck_id_fkey';
+            columns: ['foodtruck_id'];
+            isOneToOne: false;
+            referencedRelation: 'foodtrucks';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      option_templates: {
+        Row: {
+          config: Json;
+          created_at: string;
+          display_order: number;
+          foodtruck_id: string;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          config: Json;
+          created_at?: string;
+          display_order?: number;
+          foodtruck_id: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          config?: Json;
+          created_at?: string;
+          display_order?: number;
+          foodtruck_id?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'option_templates_foodtruck_id_fkey';
             columns: ['foodtruck_id'];
             isOneToOne: false;
             referencedRelation: 'foodtrucks';

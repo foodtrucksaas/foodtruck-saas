@@ -50,6 +50,43 @@ export type CategoryOption = DbTables<'category_options'>;
 export type CategoryOptionInsert = InsertTables<'category_options'>;
 export type CategoryOptionUpdate = UpdateTables<'category_options'>;
 
+// Menu-item-level options (new model — chantier 2.1+)
+export type MenuItemOptionGroup = DbTables<'menu_item_option_groups'>;
+export type MenuItemOptionGroupInsert = InsertTables<'menu_item_option_groups'>;
+export type MenuItemOptionGroupUpdate = UpdateTables<'menu_item_option_groups'>;
+
+export type MenuItemOption = DbTables<'menu_item_options'>;
+export type MenuItemOptionInsert = InsertTables<'menu_item_options'>;
+export type MenuItemOptionUpdate = UpdateTables<'menu_item_options'>;
+
+export type OptionTemplate = DbTables<'option_templates'>;
+export type OptionTemplateInsert = InsertTables<'option_templates'>;
+export type OptionTemplateUpdate = UpdateTables<'option_templates'>;
+
+export type PriceMode = 'absolute' | 'modifier';
+
+export interface MenuItemOptionGroupWithOptions extends MenuItemOptionGroup {
+  menu_item_options: MenuItemOption[];
+}
+
+export interface OptionTemplateGroupConfig {
+  name: string;
+  price_mode: PriceMode;
+  is_required: boolean;
+  is_multiple: boolean;
+  display_order: number;
+  options: {
+    name: string;
+    price_modifier: number;
+    is_default: boolean;
+    display_order: number;
+  }[];
+}
+
+export interface OptionTemplateConfig {
+  groups: OptionTemplateGroupConfig[];
+}
+
 // Legacy aliases — the old option_groups/options tables were renamed to category_option_groups/category_options
 export type OptionGroup = CategoryOptionGroup;
 export type OptionGroupInsert = CategoryOptionGroupInsert;

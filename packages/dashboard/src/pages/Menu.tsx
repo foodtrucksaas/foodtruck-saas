@@ -4,7 +4,6 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight,
-  Pencil,
   Trash2,
   RotateCcw,
   UtensilsCrossed,
@@ -14,13 +13,7 @@ import { formatPrice } from '@foodtruck/shared';
 import { useMenuPage } from '../hooks';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
 import { useCanWrite } from '../hooks/useCanWrite';
-import {
-  SortableMenuItemList,
-  MenuItemForm,
-  CategoryManager,
-  OptionsWizard,
-  CategoryOptionsModal,
-} from '../components/menu';
+import { SortableMenuItemList, MenuItemForm, CategoryManager } from '../components/menu';
 
 export default function Menu() {
   const {
@@ -35,15 +28,14 @@ export default function Menu() {
     editingItem,
     formData,
     setFormData,
-    selectedCategorySizeOptions,
-    selectedCategorySupplements,
-    requiredOptionGroups,
-    supplementOptionGroups,
+    optionTemplates,
     handleEdit,
     handleSubmit,
     resetForm,
     toggleAvailability,
     deleteItem,
+    handleApplyTemplate,
+    handleSaveAsTemplate,
 
     // Archived items
     archivedItems,
@@ -61,25 +53,6 @@ export default function Menu() {
 
     // Item reordering
     reorderCategoryItems,
-
-    // Options wizard
-    showOptionsWizard,
-    optionsWizardCategory,
-    optionsWizardGroups,
-    setOptionsWizardGroups,
-    savingOptionsWizard,
-    openOptionsWizard,
-    closeOptionsWizard,
-    saveOptionsWizard,
-
-    // Category options modal
-    showCategoryOptionsModal,
-    selectedCategoryForOptions,
-    categoryOptionGroups,
-    setCategoryOptionGroups,
-    savingOptions,
-    closeCategoryOptionsModal,
-    saveCategoryOptionGroups,
   } = useMenuPage();
 
   const { foodtruck } = useFoodtruck();
@@ -152,35 +125,12 @@ export default function Menu() {
         editingItem={editingItem}
         formData={formData}
         categories={categories}
-        sizeOptions={selectedCategorySizeOptions}
-        supplements={selectedCategorySupplements}
-        requiredOptionGroups={requiredOptionGroups}
-        supplementOptionGroups={supplementOptionGroups}
+        optionTemplates={optionTemplates}
         onFormDataChange={setFormData}
         onSubmit={handleSubmit}
         onClose={resetForm}
-      />
-
-      {/* Options Wizard Modal */}
-      <OptionsWizard
-        isOpen={showOptionsWizard}
-        category={optionsWizardCategory}
-        groups={optionsWizardGroups}
-        saving={savingOptionsWizard}
-        onGroupsChange={setOptionsWizardGroups}
-        onSave={saveOptionsWizard}
-        onClose={closeOptionsWizard}
-      />
-
-      {/* Category Options Modal */}
-      <CategoryOptionsModal
-        isOpen={showCategoryOptionsModal}
-        category={selectedCategoryForOptions}
-        optionGroups={categoryOptionGroups}
-        saving={savingOptions}
-        onOptionGroupsChange={setCategoryOptionGroups}
-        onSave={saveCategoryOptionGroups}
-        onClose={closeCategoryOptionsModal}
+        onApplyTemplate={handleApplyTemplate}
+        onSaveAsTemplate={handleSaveAsTemplate}
       />
 
       {/* Menu Items */}
@@ -213,15 +163,6 @@ export default function Menu() {
                   )}
                 </span>
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto">
-                  <button
-                    onClick={() => openOptionsWizard(category)}
-                    disabled={!canWrite}
-                    title={disabledTitle ?? undefined}
-                    className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-2 min-h-[44px] text-xs text-gray-500 hover:text-primary-600 hover:bg-white rounded-lg transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                    Options
-                  </button>
                   <button
                     onClick={() => {
                       setFormData((prev) => ({ ...prev, category_id: category.id }));

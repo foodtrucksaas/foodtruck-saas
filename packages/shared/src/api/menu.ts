@@ -18,6 +18,17 @@ import type {
   CategoryOptionInsert,
   CategoryOptionGroupWithOptions,
   CategoryOptionGroupWithCategoryOptions,
+  MenuItemOptionGroup,
+  MenuItemOptionGroupInsert,
+  MenuItemOptionGroupUpdate,
+  MenuItemOption,
+  MenuItemOptionInsert,
+  MenuItemOptionUpdate,
+  MenuItemOptionGroupWithOptions,
+  OptionTemplate,
+  OptionTemplateInsert,
+  OptionTemplateUpdate,
+  OptionTemplateConfig,
 } from '../types';
 
 export function createMenuApi(supabase: TypedSupabaseClient) {
@@ -472,6 +483,166 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
         .order('display_order');
 
       return handleResponse(data, error);
+    },
+
+    // === Menu Item Option Groups (article-level) ===
+
+    async getMenuItemOptionGroups(menuItemId: string): Promise<MenuItemOptionGroupWithOptions[]> {
+      const { data, error } = await supabase
+        .from('menu_item_option_groups')
+        .select('*, menu_item_options(*)')
+        .eq('menu_item_id', menuItemId)
+        .order('display_order');
+
+      if (error) throw error;
+      return (data || []).map((group) => ({
+        ...group,
+        menu_item_options: (group.menu_item_options || []).sort(
+          (a: MenuItemOption, b: MenuItemOption) => (a.display_order ?? 0) - (b.display_order ?? 0)
+        ),
+      }));
+    },
+
+    async createMenuItemOptionGroup(
+      group: MenuItemOptionGroupInsert
+    ): Promise<MenuItemOptionGroup> {
+      const { data, error } = await supabase
+        .from('menu_item_option_groups')
+        .insert(group)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async updateMenuItemOptionGroup(
+      id: string,
+      updates: MenuItemOptionGroupUpdate
+    ): Promise<MenuItemOptionGroup> {
+      const { data, error } = await supabase
+        .from('menu_item_option_groups')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async deleteMenuItemOptionGroup(id: string): Promise<void> {
+      const { error } = await supabase.from('menu_item_option_groups').delete().eq('id', id);
+
+      if (error) throw error;
+    },
+
+    async deleteMenuItemOptionGroupsByItem(menuItemId: string): Promise<void> {
+      const { error } = await supabase
+        .from('menu_item_option_groups')
+        .delete()
+        .eq('menu_item_id', menuItemId);
+
+      if (error) throw error;
+    },
+
+    // === Menu Item Options (article-level) ===
+
+    async createMenuItemOption(option: MenuItemOptionInsert): Promise<MenuItemOption> {
+      const { data, error } = await supabase
+        .from('menu_item_options')
+        .insert(option)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async updateMenuItemOption(id: string, updates: MenuItemOptionUpdate): Promise<MenuItemOption> {
+      const { data, error } = await supabase
+        .from('menu_item_options')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async deleteMenuItemOption(id: string): Promise<void> {
+      const { error } = await supabase.from('menu_item_options').delete().eq('id', id);
+
+      if (error) throw error;
+    },
+
+    // === Option Templates ===
+
+    async getOptionTemplates(foodtruckId: string): Promise<OptionTemplate[]> {
+      const { data, error } = await supabase
+        .from('option_templates')
+        .select('*')
+        .eq('foodtruck_id', foodtruckId)
+        .order('display_order');
+
+      return handleResponse(data, error);
+    },
+
+    async createOptionTemplate(template: OptionTemplateInsert): Promise<OptionTemplate> {
+      const { data, error } = await supabase
+        .from('option_templates')
+        .insert(template)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async updateOptionTemplate(id: string, updates: OptionTemplateUpdate): Promise<OptionTemplate> {
+      const { data, error } = await supabase
+        .from('option_templates')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      return handleResponse(data, error);
+    },
+
+    async deleteOptionTemplate(id: string): Promise<void> {
+      const { error } = await supabase.from('option_templates').delete().eq('id', id);
+
+      if (error) throw error;
+    },
+
+    async applyOptionTemplate(menuItemId: string, template: OptionTemplate): Promise<void> {
+      const config = template.config as unknown as OptionTemplateConfig;
+      if (!config?.groups) return;
+
+      for (const groupConfig of config.groups) {
+        const { data: group, error: gErr } = await supabase
+          .from('menu_item_option_groups')
+          .insert({
+            menu_item_id: menuItemId,
+            name: groupConfig.name,
+            price_mode: groupConfig.price_mode,
+            is_required: groupConfig.is_required,
+            is_multiple: groupConfig.is_multiple,
+            display_order: groupConfig.display_order,
+          })
+          .select('id')
+          .single();
+
+        if (gErr) throw gErr;
+
+        for (const optConfig of groupConfig.options) {
+          const { error: oErr } = await supabase.from('menu_item_options').insert({
+            group_id: group!.id,
+            name: optConfig.name,
+            price_modifier: optConfig.price_modifier,
+            is_default: optConfig.is_default,
+            display_order: optConfig.display_order,
+          });
+          if (oErr) throw oErr;
+        }
+      }
     },
   };
 }

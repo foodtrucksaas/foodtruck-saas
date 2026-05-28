@@ -15,15 +15,12 @@ const mockUpdateCategory = vi.fn();
 const mockDeleteCategory = vi.fn();
 const mockReorderCategories = vi.fn();
 const mockReorderItems = vi.fn();
-const mockGetCategoryOptionGroups = vi.fn();
-const mockCreateCategoryOptionGroup = vi.fn();
-const mockUpdateCategoryOptionGroup = vi.fn();
-const mockDeleteCategoryOptionGroup = vi.fn();
-const mockDeleteCategoryOptionGroupsByCategory = vi.fn();
-const mockCreateCategoryOption = vi.fn();
-const mockDeleteCategoryOptionsByGroup = vi.fn();
-const mockGetCategoryRequiredGroups = vi.fn();
-const mockGetCategorySupplementGroups = vi.fn();
+const mockGetMenuItemOptionGroups = vi.fn();
+const mockCreateMenuItemOptionGroup = vi.fn();
+const mockCreateMenuItemOption = vi.fn();
+const mockDeleteMenuItemOptionGroupsByItem = vi.fn();
+const mockGetOptionTemplates = vi.fn();
+const mockCreateOptionTemplate = vi.fn();
 
 vi.mock('../lib/api', () => ({
   api: {
@@ -39,17 +36,13 @@ vi.mock('../lib/api', () => ({
       deleteCategory: (...args: unknown[]) => mockDeleteCategory(...args),
       reorderCategories: (...args: unknown[]) => mockReorderCategories(...args),
       reorderItems: (...args: unknown[]) => mockReorderItems(...args),
-      getCategoryOptionGroups: (...args: unknown[]) => mockGetCategoryOptionGroups(...args),
-      createCategoryOptionGroup: (...args: unknown[]) => mockCreateCategoryOptionGroup(...args),
-      updateCategoryOptionGroup: (...args: unknown[]) => mockUpdateCategoryOptionGroup(...args),
-      deleteCategoryOptionGroup: (...args: unknown[]) => mockDeleteCategoryOptionGroup(...args),
-      deleteCategoryOptionGroupsByCategory: (...args: unknown[]) =>
-        mockDeleteCategoryOptionGroupsByCategory(...args),
-      createCategoryOption: (...args: unknown[]) => mockCreateCategoryOption(...args),
-      deleteCategoryOptionsByGroup: (...args: unknown[]) =>
-        mockDeleteCategoryOptionsByGroup(...args),
-      getCategoryRequiredGroups: (...args: unknown[]) => mockGetCategoryRequiredGroups(...args),
-      getCategorySupplementGroups: (...args: unknown[]) => mockGetCategorySupplementGroups(...args),
+      getMenuItemOptionGroups: (...args: unknown[]) => mockGetMenuItemOptionGroups(...args),
+      createMenuItemOptionGroup: (...args: unknown[]) => mockCreateMenuItemOptionGroup(...args),
+      createMenuItemOption: (...args: unknown[]) => mockCreateMenuItemOption(...args),
+      deleteMenuItemOptionGroupsByItem: (...args: unknown[]) =>
+        mockDeleteMenuItemOptionGroupsByItem(...args),
+      getOptionTemplates: (...args: unknown[]) => mockGetOptionTemplates(...args),
+      createOptionTemplate: (...args: unknown[]) => mockCreateOptionTemplate(...args),
     },
   },
 }));
@@ -152,8 +145,12 @@ vi.mock('../contexts/FoodtruckContext', () => ({
 
 // Mock react-hot-toast
 const mockToastError = vi.fn();
+const mockToastSuccess = vi.fn();
 vi.mock('react-hot-toast', () => ({
-  default: { error: (...args: unknown[]) => mockToastError(...args) },
+  default: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+  },
 }));
 
 // Mock confirm
@@ -174,15 +171,16 @@ describe('useMenuPage', () => {
     mockDeleteCategory.mockResolvedValue(undefined);
     mockReorderCategories.mockResolvedValue(undefined);
     mockReorderItems.mockResolvedValue(undefined);
-    mockGetCategoryOptionGroups.mockResolvedValue([]);
-    mockCreateCategoryOptionGroup.mockResolvedValue({ id: 'new-group' });
-    mockUpdateCategoryOptionGroup.mockResolvedValue(undefined);
-    mockDeleteCategoryOptionGroup.mockResolvedValue(undefined);
-    mockDeleteCategoryOptionGroupsByCategory.mockResolvedValue(undefined);
-    mockCreateCategoryOption.mockResolvedValue({ id: 'new-option' });
-    mockDeleteCategoryOptionsByGroup.mockResolvedValue(undefined);
-    mockGetCategoryRequiredGroups.mockResolvedValue([]);
-    mockGetCategorySupplementGroups.mockResolvedValue([]);
+    mockGetMenuItemOptionGroups.mockResolvedValue([]);
+    mockCreateMenuItemOptionGroup.mockResolvedValue({ id: 'new-group' });
+    mockCreateMenuItemOption.mockResolvedValue({ id: 'new-option' });
+    mockDeleteMenuItemOptionGroupsByItem.mockResolvedValue(undefined);
+    mockGetOptionTemplates.mockResolvedValue([]);
+    mockCreateOptionTemplate.mockResolvedValue({
+      id: 'new-template',
+      name: 'Test',
+      config: { groups: [] },
+    });
   });
 
   describe('initialization', () => {
@@ -212,6 +210,13 @@ describe('useMenuPage', () => {
       expect(result.current.formData.name).toBe('');
       expect(result.current.formData.price).toBe('');
       expect(result.current.formData.category_id).toBe('');
+      expect(result.current.formData.optionGroups).toEqual([]);
+    });
+
+    it('should load option templates on mount', () => {
+      renderHook(() => useMenuPage());
+
+      expect(mockGetOptionTemplates).toHaveBeenCalledWith('ft-1');
     });
   });
 
@@ -241,11 +246,11 @@ describe('useMenuPage', () => {
   });
 
   describe('handleEdit', () => {
-    it('should set editingItem and populate form', () => {
+    it('should set editingItem and populate form', async () => {
       const { result } = renderHook(() => useMenuPage());
 
-      act(() => {
-        result.current.handleEdit(mockMenuItems[0]);
+      await act(async () => {
+        await result.current.handleEdit(mockMenuItems[0]);
       });
 
       expect(result.current.editingItem).toEqual(mockMenuItems[0]);
@@ -256,33 +261,168 @@ describe('useMenuPage', () => {
       expect(result.current.formData.allergens).toEqual(['gluten']);
     });
 
-    it('should convert price from cents to euros', () => {
+    it('should convert price from cents to euros', async () => {
       const { result } = renderHook(() => useMenuPage());
 
-      act(() => {
-        result.current.handleEdit(mockMenuItems[1]);
+      await act(async () => {
+        await result.current.handleEdit(mockMenuItems[1]);
       });
 
       expect(result.current.formData.price).toBe('14.00');
     });
 
-    it('should set is_daily_special from item', () => {
+    it('should set is_daily_special from item', async () => {
       const { result } = renderHook(() => useMenuPage());
 
-      act(() => {
-        result.current.handleEdit(mockMenuItems[1]);
+      await act(async () => {
+        await result.current.handleEdit(mockMenuItems[1]);
       });
 
       expect(result.current.formData.is_daily_special).toBe(true);
     });
+
+    it('should load option groups for item', async () => {
+      const mockGroups = [
+        {
+          id: 'group-1',
+          menu_item_id: 'item-1',
+          name: 'Taille',
+          price_mode: 'absolute',
+          is_required: true,
+          is_multiple: false,
+          display_order: 0,
+          created_at: '2024-01-01',
+          menu_item_options: [
+            {
+              id: 'opt-1',
+              option_group_id: 'group-1',
+              name: 'S',
+              price_modifier: 900,
+              is_default: true,
+              is_available: true,
+              display_order: 0,
+              created_at: '2024-01-01',
+            },
+          ],
+        },
+      ];
+      mockGetMenuItemOptionGroups.mockResolvedValueOnce(mockGroups);
+
+      const { result } = renderHook(() => useMenuPage());
+
+      await act(async () => {
+        await result.current.handleEdit(mockMenuItems[0]);
+      });
+
+      expect(mockGetMenuItemOptionGroups).toHaveBeenCalledWith('item-1');
+      expect(result.current.formData.optionGroups).toHaveLength(1);
+      expect(result.current.formData.optionGroups[0].name).toBe('Taille');
+      expect(result.current.formData.optionGroups[0].price_mode).toBe('absolute');
+      expect(result.current.formData.optionGroups[0].options[0].price_modifier).toBe('9.00');
+    });
   });
 
-  describe('resetForm', () => {
-    it('should reset form to initial state', () => {
+  describe('handleSubmit', () => {
+    it('should create new item with option groups', async () => {
       const { result } = renderHook(() => useMenuPage());
 
       act(() => {
-        result.current.handleEdit(mockMenuItems[0]);
+        result.current.setFormData({
+          name: 'New Burger',
+          description: '',
+          price: '10.00',
+          category_id: 'cat-1',
+          allergens: [],
+          is_daily_special: false,
+          optionGroups: [
+            {
+              name: 'Taille',
+              price_mode: 'absolute',
+              is_required: true,
+              is_multiple: false,
+              display_order: 0,
+              options: [
+                {
+                  name: 'S',
+                  price_modifier: '9.00',
+                  is_default: true,
+                  is_available: true,
+                  display_order: 0,
+                },
+                {
+                  name: 'M',
+                  price_modifier: '11.00',
+                  is_default: false,
+                  is_available: true,
+                  display_order: 1,
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: vi.fn(),
+        } as unknown as React.FormEvent);
+      });
+
+      // Base price should be cheapest absolute option (9.00 = 900 cents)
+      expect(mockCreateItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          price: 900,
+          name: 'New Burger',
+        })
+      );
+
+      // Should save option groups
+      expect(mockDeleteMenuItemOptionGroupsByItem).toHaveBeenCalledWith('new-item');
+      expect(mockCreateMenuItemOptionGroup).toHaveBeenCalledWith(
+        expect.objectContaining({
+          menu_item_id: 'new-item',
+          name: 'Taille',
+          price_mode: 'absolute',
+        })
+      );
+      expect(mockCreateMenuItemOption).toHaveBeenCalledTimes(2);
+    });
+
+    it('should use entered price when no absolute group', async () => {
+      const { result } = renderHook(() => useMenuPage());
+
+      act(() => {
+        result.current.setFormData({
+          name: 'Simple Burger',
+          description: '',
+          price: '12.50',
+          category_id: 'cat-1',
+          allergens: [],
+          is_daily_special: false,
+          optionGroups: [],
+        });
+      });
+
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: vi.fn(),
+        } as unknown as React.FormEvent);
+      });
+
+      expect(mockCreateItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          price: 1250,
+        })
+      );
+    });
+  });
+
+  describe('resetForm', () => {
+    it('should reset form to initial state', async () => {
+      const { result } = renderHook(() => useMenuPage());
+
+      await act(async () => {
+        await result.current.handleEdit(mockMenuItems[0]);
       });
 
       expect(result.current.showForm).toBe(true);
@@ -295,6 +435,7 @@ describe('useMenuPage', () => {
       expect(result.current.editingItem).toBeNull();
       expect(result.current.formData.name).toBe('');
       expect(result.current.formData.price).toBe('');
+      expect(result.current.formData.optionGroups).toEqual([]);
     });
   });
 
@@ -484,155 +625,98 @@ describe('useMenuPage', () => {
   });
 
   describe('item reordering', () => {
-    it('should move item up', async () => {
+    it('should reorder category items', async () => {
       const { result } = renderHook(() => useMenuPage());
 
-      const categoryItems = [mockMenuItems[0], mockMenuItems[1]];
+      const reorderedItems = [mockMenuItems[1], mockMenuItems[0]];
 
       await act(async () => {
-        await result.current.moveItemUp(mockMenuItems[1], categoryItems, 1);
+        await result.current.reorderCategoryItems(reorderedItems);
       });
 
+      expect(mockUpdateMenuItemsOrder).toHaveBeenCalledWith(reorderedItems);
       expect(mockReorderItems).toHaveBeenCalledWith([
         { id: 'item-2', display_order: 0 },
         { id: 'item-1', display_order: 1 },
       ]);
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-
-    it('should not move first item up', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      const categoryItems = [mockMenuItems[0], mockMenuItems[1]];
-
-      await act(async () => {
-        await result.current.moveItemUp(mockMenuItems[0], categoryItems, 0);
-      });
-
-      expect(mockReorderItems).not.toHaveBeenCalled();
-    });
-
-    it('should move item down', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      const categoryItems = [mockMenuItems[0], mockMenuItems[1]];
-
-      await act(async () => {
-        await result.current.moveItemDown(mockMenuItems[0], categoryItems, 0);
-      });
-
-      expect(mockReorderItems).toHaveBeenCalledWith([
-        { id: 'item-1', display_order: 1 },
-        { id: 'item-2', display_order: 0 },
-      ]);
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-
-    it('should not move last item down', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      const categoryItems = [mockMenuItems[0], mockMenuItems[1]];
-
-      await act(async () => {
-        await result.current.moveItemDown(mockMenuItems[1], categoryItems, 1);
-      });
-
-      expect(mockReorderItems).not.toHaveBeenCalled();
     });
   });
 
-  describe('options wizard', () => {
-    it('should initialize with showOptionsWizard false', () => {
+  describe('templates', () => {
+    it('should apply template groups to form', () => {
       const { result } = renderHook(() => useMenuPage());
 
-      expect(result.current.showOptionsWizard).toBe(false);
-    });
-
-    it('should open options wizard', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.openOptionsWizard(mockCategories[0]);
-      });
-
-      expect(result.current.showOptionsWizard).toBe(true);
-      expect(result.current.optionsWizardCategory).toEqual(mockCategories[0]);
-    });
-
-    it('should close options wizard', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.openOptionsWizard(mockCategories[0]);
-      });
-
-      expect(result.current.showOptionsWizard).toBe(true);
-
-      act(() => {
-        result.current.closeOptionsWizard();
-      });
-
-      expect(result.current.showOptionsWizard).toBe(false);
-      expect(result.current.optionsWizardCategory).toBeNull();
-    });
-
-    it('should load existing option groups when opening wizard', async () => {
-      const existingGroups = [
-        {
-          id: 'group-1',
-          name: 'Taille',
-          is_multiple: false,
-          options: [
-            { name: 'S', price_modifier: 0, is_available: true },
-            { name: 'M', price_modifier: 200, is_available: true },
+      const mockTemplate = {
+        id: 'tmpl-1',
+        foodtruck_id: 'ft-1',
+        name: 'Burger Options',
+        config: {
+          groups: [
+            {
+              name: 'Taille',
+              price_mode: 'absolute',
+              is_required: true,
+              is_multiple: false,
+              display_order: 0,
+              options: [
+                { name: 'S', price_modifier: 900, is_default: true, display_order: 0 },
+                { name: 'M', price_modifier: 1100, is_default: false, display_order: 1 },
+              ],
+            },
           ],
         },
-      ];
-      mockGetCategoryOptionGroups.mockResolvedValueOnce(existingGroups);
-
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.openOptionsWizard(mockCategories[0]);
-      });
-
-      expect(mockGetCategoryOptionGroups).toHaveBeenCalledWith('cat-1');
-      expect(result.current.optionsWizardGroups).toHaveLength(1);
-      expect(result.current.optionsWizardGroups[0].name).toBe('Taille');
-    });
-  });
-
-  describe('category options modal', () => {
-    it('should initialize with showCategoryOptionsModal false', () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      expect(result.current.showCategoryOptionsModal).toBe(false);
-    });
-
-    it('should open category options modal', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.openCategoryOptionsModal(mockCategories[0]);
-      });
-
-      expect(result.current.showCategoryOptionsModal).toBe(true);
-      expect(result.current.selectedCategoryForOptions).toEqual(mockCategories[0]);
-    });
-
-    it('should close category options modal', async () => {
-      const { result } = renderHook(() => useMenuPage());
-
-      await act(async () => {
-        await result.current.openCategoryOptionsModal(mockCategories[0]);
-      });
+        created_at: '2024-01-01',
+        updated_at: null,
+      };
 
       act(() => {
-        result.current.closeCategoryOptionsModal();
+        result.current.handleApplyTemplate(mockTemplate);
       });
 
-      expect(result.current.showCategoryOptionsModal).toBe(false);
-      expect(result.current.selectedCategoryForOptions).toBeNull();
+      expect(result.current.formData.optionGroups).toHaveLength(1);
+      expect(result.current.formData.optionGroups[0].name).toBe('Taille');
+      expect(result.current.formData.optionGroups[0].price_mode).toBe('absolute');
+      expect(result.current.formData.optionGroups[0].options[0].price_modifier).toBe('9.00');
+    });
+
+    it('should save current groups as template', async () => {
+      const { result } = renderHook(() => useMenuPage());
+
+      act(() => {
+        result.current.setFormData((prev) => ({
+          ...prev,
+          optionGroups: [
+            {
+              name: 'Taille',
+              price_mode: 'absolute' as const,
+              is_required: true,
+              is_multiple: false,
+              display_order: 0,
+              options: [
+                {
+                  name: 'S',
+                  price_modifier: '9.00',
+                  is_default: true,
+                  is_available: true,
+                  display_order: 0,
+                },
+              ],
+            },
+          ],
+        }));
+      });
+
+      await act(async () => {
+        await result.current.handleSaveAsTemplate('My Template');
+      });
+
+      expect(mockCreateOptionTemplate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          foodtruck_id: 'ft-1',
+          name: 'My Template',
+        })
+      );
+      expect(mockToastSuccess).toHaveBeenCalledWith('Template sauvegardé');
     });
   });
 
