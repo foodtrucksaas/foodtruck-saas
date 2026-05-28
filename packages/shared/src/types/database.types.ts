@@ -1855,6 +1855,10 @@ export type Database = {
         }[];
       };
       get_dashboard_stats: { Args: { p_foodtruck_id: string }; Returns: Json };
+      get_foodtruck_access_state: {
+        Args: { p_foodtruck_id: string };
+        Returns: string;
+      };
       get_optimized_offers: {
         Args: {
           p_cart_items: Json;
