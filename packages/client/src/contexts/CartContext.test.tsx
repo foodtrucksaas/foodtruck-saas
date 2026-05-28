@@ -51,7 +51,7 @@ const createSelectedOption = (overrides: Partial<SelectedOption> = {}): Selected
   name: 'Medium',
   groupName: 'Size',
   priceModifier: 200, // +2€
-  isSizeOption: false,
+  priceMode: 'modifier',
   ...overrides,
 });
 
@@ -355,7 +355,7 @@ describe('CartContext', () => {
       const supplement = createSelectedOption({
         name: 'Extra cheese',
         priceModifier: 200,
-        isSizeOption: false,
+        priceMode: 'modifier',
       });
 
       act(() => {
@@ -365,13 +365,13 @@ describe('CartContext', () => {
       expect(result.current.total).toBe(1200); // 10€ + 2€
     });
 
-    it('should use size option price as base price', () => {
+    it('should use absolute option price as base price', () => {
       const { result } = renderHook(() => useCart(), { wrapper });
       const menuItem = createMenuItem({ price: 1000 }); // Default price
       const sizeOption = createSelectedOption({
         name: 'Large',
         priceModifier: 1500, // Large size costs 15€
-        isSizeOption: true,
+        priceMode: 'absolute',
       });
 
       act(() => {
@@ -381,20 +381,20 @@ describe('CartContext', () => {
       expect(result.current.total).toBe(1500); // Size option replaces base price
     });
 
-    it('should combine size option and supplements correctly', () => {
+    it('should combine absolute option and modifiers correctly', () => {
       const { result } = renderHook(() => useCart(), { wrapper });
       const menuItem = createMenuItem({ price: 1000 });
       const sizeOption = createSelectedOption({
         optionId: 'size-l',
         name: 'Large',
         priceModifier: 1500,
-        isSizeOption: true,
+        priceMode: 'absolute',
       });
       const supplement = createSelectedOption({
         optionId: 'extra-cheese',
         name: 'Extra cheese',
         priceModifier: 200,
-        isSizeOption: false,
+        priceMode: 'modifier',
       });
 
       act(() => {
@@ -523,7 +523,7 @@ describe('CartContext', () => {
     it('should include options price when freeOptions is false', () => {
       const { result } = renderHook(() => useCart(), { wrapper });
       const menuItem = createMenuItem();
-      const option = createSelectedOption({ priceModifier: 200, isSizeOption: false });
+      const option = createSelectedOption({ priceModifier: 200, priceMode: 'modifier' });
       const bundleInfo: BundleCartInfo = {
         bundleId: 'bundle-1',
         bundleName: 'Test Bundle',
@@ -550,7 +550,7 @@ describe('CartContext', () => {
     it('should not include options price when freeOptions is true', () => {
       const { result } = renderHook(() => useCart(), { wrapper });
       const menuItem = createMenuItem();
-      const option = createSelectedOption({ priceModifier: 200, isSizeOption: false });
+      const option = createSelectedOption({ priceModifier: 200, priceMode: 'modifier' });
       const bundleInfo: BundleCartInfo = {
         bundleId: 'bundle-1',
         bundleName: 'Test Bundle',

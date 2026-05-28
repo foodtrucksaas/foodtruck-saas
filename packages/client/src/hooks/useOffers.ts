@@ -5,6 +5,7 @@ import type {
   CartItem,
   ValidateOfferPromoCodeResult,
 } from '@foodtruck/shared';
+import { computeCartItemUnitPrice } from '@foodtruck/shared';
 import { api } from '../lib/api';
 
 interface UseOffersResult {
@@ -51,8 +52,10 @@ export function useOffers(
     const regularItems = items.filter((item) => !item.bundleInfo);
     return regularItems
       .map((item) => {
-        const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-        return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${sizeOption?.optionId || ''}`;
+        const absoluteOption = item.selectedOptions?.find(
+          (opt) => opt.priceMode === 'absolute' || opt.isSizeOption
+        );
+        return `${item.menuItem.id}:${item.quantity}:${item.menuItem.category_id}:${absoluteOption?.optionId || ''}`;
       })
       .sort()
       .join('|');
@@ -78,19 +81,16 @@ export function useOffers(
       try {
         // Build cart items JSON for the API call
         const cartItems = regularItems.map((item) => {
-          const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-          const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-          const supplementsTotal =
-            item.selectedOptions?.reduce(
-              (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
-              0
-            ) || 0;
+          const absoluteOption = item.selectedOptions?.find(
+            (opt) => opt.priceMode === 'absolute' || opt.isSizeOption
+          );
+          const price = computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
           return {
             menu_item_id: item.menuItem.id,
             category_id: item.menuItem.category_id,
             quantity: item.quantity,
-            price: basePrice + supplementsTotal,
-            size_id: sizeOption?.optionId || null,
+            price,
+            size_id: absoluteOption?.optionId || null,
             name: item.menuItem.name, // Include name for display in SQL
           };
         });

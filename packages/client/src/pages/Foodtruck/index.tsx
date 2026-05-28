@@ -34,6 +34,7 @@ import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
 import { useOffers, useBundleDetection, useDocumentMeta } from '../../hooks';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
+import { getCheapestAbsolutePrice } from '@foodtruck/shared';
 import { useFoodtruck, type BundleOffer } from './useFoodtruck';
 import MenuItemCard from './MenuItemCard';
 import OptionsModal from './OptionsModal';
@@ -71,7 +72,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
     // Options modal state
     selectedMenuItem,
-    selectedCategory,
+    selectedOptionGroups,
     showOptionsModal,
 
     // Computed values
@@ -84,7 +85,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
     itemCount,
 
     // Handlers
-    getCategoryOptions,
+    getItemOptionGroups,
     getItemQuantity,
     handleAddItem,
     handleOptionsConfirm,
@@ -787,17 +788,35 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                   >
                     <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
                     <div className="grid gap-3 stagger-children">
-                      {groupedItems[category.id].map((item) => (
-                        <MenuItemCard
-                          key={item.id}
-                          item={item}
-                          hasOptions={!!getCategoryOptions(item.category_id)}
-                          quantity={isActive ? getItemQuantity(item.id) : 0}
-                          onAdd={() => isActive && handleAddItem(item)}
-                          onUpdate={(delta) => isActive && handleUpdateQuantity(item.id, delta)}
-                          disabled={!isActive}
-                        />
-                      ))}
+                      {groupedItems[category.id].map((item) => {
+                        const groups = getItemOptionGroups(item.id);
+                        const startingPrice = groups
+                          ? getCheapestAbsolutePrice(
+                              groups.map((g) => ({
+                                id: g.id,
+                                price_mode: g.price_mode as 'absolute' | 'modifier',
+                                display_order: g.display_order ?? 0,
+                                options: (g.menu_item_options || []).map((o) => ({
+                                  id: o.id,
+                                  price_modifier: o.price_modifier,
+                                  is_available: o.is_available,
+                                })),
+                              }))
+                            )
+                          : null;
+                        return (
+                          <MenuItemCard
+                            key={item.id}
+                            item={item}
+                            hasOptions={!!groups}
+                            startingPrice={startingPrice}
+                            quantity={isActive ? getItemQuantity(item.id) : 0}
+                            onAdd={() => isActive && handleAddItem(item)}
+                            onUpdate={(delta) => isActive && handleUpdateQuantity(item.id, delta)}
+                            disabled={!isActive}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 ) : null
@@ -1086,10 +1105,10 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       )}
 
       {/* Options Modal */}
-      {showOptionsModal && selectedMenuItem && selectedCategory && (
+      {showOptionsModal && selectedMenuItem && selectedOptionGroups && (
         <OptionsModal
           menuItem={selectedMenuItem}
-          category={selectedCategory}
+          optionGroups={selectedOptionGroups}
           onClose={closeOptionsModal}
           onConfirm={handleOptionsConfirm}
         />

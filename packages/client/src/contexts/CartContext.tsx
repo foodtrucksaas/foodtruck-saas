@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { calculateBundlePrice } from '@foodtruck/shared';
+import { calculateBundlePrice, computeCartItemUnitPrice } from '@foodtruck/shared';
 import type { CartItem, MenuItem, SelectedOption, BundleCartInfo } from '@foodtruck/shared';
 
 interface CartContextType {
@@ -237,21 +237,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return sum + calculateBundlePrice(item.bundleInfo, item.quantity).total;
     }
 
-    // Regular items
-    // Check if there's a size option (which contains the full price)
-    const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-
-    // Base price: size option price if exists, otherwise menu item price
-    const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-
-    // Add supplements (non-size options)
-    const supplementsTotal =
-      item.selectedOptions?.reduce(
-        (optSum, opt) => optSum + (opt.isSizeOption ? 0 : opt.priceModifier),
-        0
-      ) || 0;
-
-    return sum + (basePrice + supplementsTotal) * item.quantity;
+    // Regular items — use shared pricing (supports both priceMode and legacy isSizeOption)
+    const unitPrice = computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
+    return sum + unitPrice * item.quantity;
   }, 0);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);

@@ -10,6 +10,7 @@ interface MenuItemCardProps {
   onAdd: () => void;
   onUpdate: (delta: number) => void;
   disabled?: boolean;
+  startingPrice?: number | null;
 }
 
 const MenuItemCard = memo(function MenuItemCard({
@@ -19,6 +20,7 @@ const MenuItemCard = memo(function MenuItemCard({
   onAdd,
   onUpdate,
   disabled,
+  startingPrice,
 }: MenuItemCardProps) {
   const isInCart = quantity > 0;
 
@@ -123,7 +125,9 @@ const MenuItemCard = memo(function MenuItemCard({
                 {hasOptions && (
                   <span className="text-[13px] leading-tight text-gray-500 block">À partir de</span>
                 )}
-                <span className="font-bold text-gray-900 text-base">{formatPrice(item.price)}</span>
+                <span className="font-bold text-gray-900 text-base">
+                  {formatPrice(startingPrice ?? item.price)}
+                </span>
               </div>
               {!disabled && (
                 <button

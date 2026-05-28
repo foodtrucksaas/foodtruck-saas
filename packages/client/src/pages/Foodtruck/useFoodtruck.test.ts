@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import type { Foodtruck, MenuItem, Location, CartItem } from '@foodtruck/shared';
-import { useFoodtruck, type ScheduleWithLocation, type CategoryWithOptions } from './useFoodtruck';
+import { useFoodtruck, type ScheduleWithLocation } from './useFoodtruck';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -109,46 +109,13 @@ describe('useFoodtruck', () => {
     },
   ];
 
-  const mockCategories: CategoryWithOptions[] = [
+  const mockCategories = [
     {
       id: 'cat-1',
       foodtruck_id: 'ft-1',
       name: 'Burgers',
       display_order: 0,
       created_at: '2024-01-01',
-      category_option_groups: [
-        {
-          id: 'group-1',
-          category_id: 'cat-1',
-          name: 'Taille',
-          is_required: true,
-          is_multiple: false,
-          display_order: 0,
-          created_at: '2024-01-01',
-          category_options: [
-            {
-              id: 'opt-1',
-              option_group_id: 'group-1',
-              name: 'Normal',
-              price_modifier: 0,
-              is_available: true,
-              is_default: true,
-              display_order: 0,
-              created_at: '2024-01-01',
-            },
-            {
-              id: 'opt-2',
-              option_group_id: 'group-1',
-              name: 'XL',
-              price_modifier: 200,
-              is_available: true,
-              is_default: false,
-              display_order: 1,
-              created_at: '2024-01-01',
-            },
-          ],
-        },
-      ],
     },
     {
       id: 'cat-2',
@@ -156,7 +123,47 @@ describe('useFoodtruck', () => {
       name: 'Boissons',
       display_order: 1,
       created_at: '2024-01-01',
-      category_option_groups: [],
+    },
+  ];
+
+  // Article-level option groups (new model)
+  const mockOptionGroups = [
+    {
+      id: 'group-1',
+      menu_item_id: 'item-1',
+      name: 'Taille',
+      price_mode: 'absolute',
+      is_required: true,
+      is_multiple: false,
+      display_order: 0,
+      created_at: '2024-01-01',
+      updated_at: null,
+      menu_item_options: [
+        {
+          id: 'opt-1',
+          group_id: 'group-1',
+          name: 'Normal',
+          price_modifier: 1200,
+          is_available: true,
+          is_default: true,
+          display_order: 0,
+          created_at: '2024-01-01',
+          updated_at: null,
+        },
+        {
+          id: 'opt-2',
+          group_id: 'group-1',
+          name: 'XL',
+          price_modifier: 1400,
+          is_available: true,
+          is_default: false,
+          display_order: 1,
+          created_at: '2024-01-01',
+          updated_at: null,
+        },
+      ],
+      // Join artifact from the query
+      menu_items: { foodtruck_id: 'ft-1' },
     },
   ];
 
@@ -245,6 +252,15 @@ describe('useFoodtruck', () => {
                   order: () => Promise.resolve({ data: mockMenuItems, error: null }),
                 }),
               }),
+            }),
+          }),
+        };
+      }
+      if (table === 'menu_item_option_groups') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => Promise.resolve({ data: mockOptionGroups, error: null }),
             }),
           }),
         };
@@ -434,39 +450,30 @@ describe('useFoodtruck', () => {
     });
   });
 
-  describe('getCategoryOptions', () => {
-    it('should return category with options', async () => {
+  describe('getItemOptionGroups', () => {
+    it('should return option groups for item with options', async () => {
       const { result } = renderHook(() => useFoodtruck('ft-1'));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const category = result.current.getCategoryOptions('cat-1');
-      expect(category).not.toBeNull();
-      expect(category?.name).toBe('Burgers');
+      const groups = result.current.getItemOptionGroups('item-1');
+      expect(groups).not.toBeNull();
+      expect(groups).toHaveLength(1);
+      expect(groups![0].name).toBe('Taille');
+      expect(groups![0].price_mode).toBe('absolute');
     });
 
-    it('should return null for category without options', async () => {
+    it('should return null for item without options', async () => {
       const { result } = renderHook(() => useFoodtruck('ft-1'));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      const category = result.current.getCategoryOptions('cat-2');
-      expect(category).toBeNull();
-    });
-
-    it('should return null for null categoryId', async () => {
-      const { result } = renderHook(() => useFoodtruck('ft-1'));
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      const category = result.current.getCategoryOptions(null);
-      expect(category).toBeNull();
+      const groups = result.current.getItemOptionGroups('item-2');
+      expect(groups).toBeNull();
     });
   });
 
@@ -517,7 +524,7 @@ describe('useFoodtruck', () => {
       expect(mockAddItem).toHaveBeenCalledWith(mockMenuItems[1], 1);
     });
 
-    it('should open options modal if category has options', async () => {
+    it('should open options modal if item has option groups', async () => {
       const { result } = renderHook(() => useFoodtruck('ft-1'));
 
       await waitFor(() => {
@@ -530,7 +537,8 @@ describe('useFoodtruck', () => {
 
       expect(result.current.showOptionsModal).toBe(true);
       expect(result.current.selectedMenuItem).toEqual(mockMenuItems[0]);
-      expect(result.current.selectedCategory).not.toBeNull();
+      expect(result.current.selectedOptionGroups).not.toBeNull();
+      expect(result.current.selectedOptionGroups).toHaveLength(1);
     });
   });
 
@@ -553,8 +561,8 @@ describe('useFoodtruck', () => {
           name: 'Normal',
           optionGroupId: 'group-1',
           groupName: 'Taille',
-          priceModifier: 0,
-          isSizeOption: true,
+          priceModifier: 1200,
+          priceMode: 'absolute' as const,
         },
       ];
 
@@ -613,7 +621,7 @@ describe('useFoodtruck', () => {
 
       expect(result.current.showOptionsModal).toBe(false);
       expect(result.current.selectedMenuItem).toBeNull();
-      expect(result.current.selectedCategory).toBeNull();
+      expect(result.current.selectedOptionGroups).toBeNull();
     });
   });
 

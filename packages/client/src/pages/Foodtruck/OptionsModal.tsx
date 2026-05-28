@@ -1,19 +1,37 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Minus } from 'lucide-react';
-import { formatPrice } from '@foodtruck/shared';
-import type { MenuItem, SelectedOption } from '@foodtruck/shared';
-import type { CategoryWithOptions, CategoryOptionGroupWithOptions } from './useFoodtruck';
+import { formatPrice, computeMenuItemPrice, type PricingOptionGroup } from '@foodtruck/shared';
+import type {
+  MenuItem,
+  SelectedOption,
+  MenuItemOptionGroupWithOptions,
+  PriceMode,
+} from '@foodtruck/shared';
 
 interface OptionsModalProps {
   menuItem: MenuItem;
-  category: CategoryWithOptions;
+  optionGroups: MenuItemOptionGroupWithOptions[];
   onClose: () => void;
   onConfirm: (selectedOptions: SelectedOption[], quantity: number, notes?: string) => void;
 }
 
+/** Convert DB option groups to the pricing engine format. */
+function toPricingGroups(groups: MenuItemOptionGroupWithOptions[]): PricingOptionGroup[] {
+  return groups.map((g) => ({
+    id: g.id,
+    price_mode: g.price_mode as PriceMode,
+    display_order: g.display_order ?? 0,
+    options: (g.menu_item_options || []).map((o) => ({
+      id: o.id,
+      price_modifier: o.price_modifier,
+      is_available: o.is_available,
+    })),
+  }));
+}
+
 export default function OptionsModal({
   menuItem,
-  category,
+  optionGroups,
   onClose,
   onConfirm,
 }: OptionsModalProps) {
@@ -21,86 +39,21 @@ export default function OptionsModal({
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
 
-  const optionGroups = category.category_option_groups || [];
-
-  // Type-safe access to option_prices JSONB
-  const optionPrices = (menuItem.option_prices || {}) as Record<string, number>;
-
-  // Type-safe access to disabled_options JSONB
-  const disabledOptions = (menuItem.disabled_options || []) as string[];
-
-  // Get the first required single-selection group (typically "Taille") - sorted by display_order
-  const sortedRequiredGroups = optionGroups
-    .filter((g) => g.is_required && !g.is_multiple)
-    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-
-  const sizeGroup = sortedRequiredGroups.length > 0 ? sortedRequiredGroups[0] : null;
-
-  // Check if a group is THE size group (first required, single selection)
-  // Only the first required group uses absolute pricing, others use modifiers
-  const isTheSizeGroup = (group: CategoryOptionGroupWithOptions) =>
-    sizeGroup !== null && group.id === sizeGroup.id;
-
-  // Get currently selected size option ID
-  const getSelectedSizeId = (): string | null => {
-    if (!sizeGroup) return null;
-    const sizeSelections = selections[sizeGroup.id] || [];
-    return sizeSelections.length > 0 ? sizeSelections[0] : null;
-  };
-
-  // Get the price for an option, considering item-specific prices
-  // - Size group (first required): absolute price
-  // - Other required groups (Base, Cuisson) and supplements: modifier with optional per-size pricing
-  const getOptionPrice = (
-    group: CategoryOptionGroupWithOptions,
-    optionId: string,
-    sizeId?: string | null
-  ): number => {
-    if (isTheSizeGroup(group)) {
-      // For size options: use item-specific price if available
-      const itemPrice = optionPrices[optionId];
-      if (itemPrice !== undefined) {
-        return itemPrice;
-      }
-      // Fallback: base price + modifier (modifier is a delta, e.g., +0€, +3€, +6€)
-      const option = group.category_options?.find((o) => o.id === optionId);
-      return menuItem.price + (option?.price_modifier || 0);
-    }
-
-    // For other groups (Base, Cuisson, Supplements): check for per-size pricing first
-    const effectiveSizeId = sizeId ?? getSelectedSizeId();
-    if (effectiveSizeId) {
-      const perSizeKey = `${optionId}:${effectiveSizeId}`;
-      const perSizePrice = optionPrices[perSizeKey];
-      if (perSizePrice !== undefined) {
-        return perSizePrice;
-      }
-    }
-
-    // Then check for item-specific flat price
-    const flatPrice = optionPrices[optionId];
-    if (flatPrice !== undefined) {
-      return flatPrice;
-    }
-
-    // Fallback: use category modifier
-    const option = group.category_options?.find((o) => o.id === optionId);
-    return option?.price_modifier || 0;
-  };
+  const pricingGroups = toPricingGroups(optionGroups);
 
   // Initialize with default options
   useEffect(() => {
     const defaults: Record<string, string[]> = {};
     optionGroups.forEach((group) => {
-      const defaultOpts = (group.category_options || [])
-        .filter((opt) => opt.is_default && opt.is_available && !disabledOptions.includes(opt.id))
+      const defaultOpts = (group.menu_item_options || [])
+        .filter((opt) => opt.is_default && opt.is_available)
         .map((opt) => opt.id);
       if (defaultOpts.length > 0) {
         defaults[group.id] = defaultOpts;
       }
     });
     setSelections(defaults);
-  }, [optionGroups, disabledOptions]);
+  }, [optionGroups]);
 
   const handleOptionToggle = (groupId: string, optionId: string, isMultiple: boolean) => {
     setSelections((prev) => {
@@ -116,50 +69,32 @@ export default function OptionsModal({
     });
   };
 
+  // All selected option IDs (flat list)
+  const selectedOptionIds = Object.values(selections).flat();
+
   const calculateTotal = () => {
-    let basePrice = menuItem.price;
-    let supplements = 0;
-    const selectedSizeId = getSelectedSizeId();
-
-    Object.entries(selections).forEach(([groupId, optionIds]) => {
-      const group = optionGroups.find((g) => g.id === groupId);
-      if (!group) return;
-
-      optionIds.forEach((optionId) => {
-        if (isTheSizeGroup(group)) {
-          // Size option: use as base price
-          basePrice = getOptionPrice(group, optionId);
-        } else {
-          // Other required groups + supplements: add modifier (using size-specific price if available)
-          supplements += getOptionPrice(group, optionId, selectedSizeId);
-        }
-      });
-    });
-
-    return (basePrice + supplements) * quantity;
+    const { unitPrice } = computeMenuItemPrice(menuItem.price, pricingGroups, selectedOptionIds);
+    return unitPrice * quantity;
   };
 
   const handleConfirm = () => {
     const selectedOptions: SelectedOption[] = [];
-    const selectedSizeId = getSelectedSizeId();
 
     Object.entries(selections).forEach(([groupId, optionIds]) => {
       const group = optionGroups.find((g) => g.id === groupId);
+      if (!group) return;
+      const priceMode = group.price_mode as PriceMode;
+
       optionIds.forEach((optionId) => {
-        const option = group?.category_options?.find((o) => o.id === optionId);
-        if (option && group) {
-          const isSize = isTheSizeGroup(group);
-          // For size options, store the full price; for others, store the modifier (may vary by size)
-          const priceValue = isSize
-            ? getOptionPrice(group, optionId)
-            : getOptionPrice(group, optionId, selectedSizeId);
+        const option = group.menu_item_options?.find((o) => o.id === optionId);
+        if (option) {
           selectedOptions.push({
             optionId: option.id,
             optionGroupId: group.id,
             name: option.name,
             groupName: group.name,
-            priceModifier: priceValue,
-            isSizeOption: isSize,
+            priceModifier: option.price_modifier,
+            priceMode,
           });
         }
       });
@@ -173,6 +108,18 @@ export default function OptionsModal({
       const selected = selections[group.id] || [];
       return selected.length >= 1;
     });
+  };
+
+  /** Display price for an option based on its group's price_mode. */
+  const formatOptionPrice = (group: MenuItemOptionGroupWithOptions, optionId: string): string => {
+    const option = group.menu_item_options?.find((o) => o.id === optionId);
+    if (!option) return '';
+
+    if ((group.price_mode as PriceMode) === 'absolute') {
+      return formatPrice(option.price_modifier);
+    }
+    // Modifier: show +X€ or Gratuit
+    return option.price_modifier > 0 ? `+${formatPrice(option.price_modifier)}` : 'Gratuit';
   };
 
   return (
@@ -196,9 +143,7 @@ export default function OptionsModal({
         {/* Option Groups */}
         <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 space-y-6">
           {optionGroups
-            .filter((g) =>
-              g.category_options?.some((o) => o.is_available && !disabledOptions.includes(o.id))
-            )
+            .filter((g) => g.menu_item_options?.some((o) => o.is_available))
             .sort((a, b) => {
               // Obligatoires (is_required) en premier
               if (a.is_required !== b.is_required) {
@@ -222,8 +167,8 @@ export default function OptionsModal({
                   </span>
                 </div>
                 <div className="space-y-2">
-                  {(group.category_options || [])
-                    .filter((opt) => opt.is_available && !disabledOptions.includes(opt.id))
+                  {(group.menu_item_options || [])
+                    .filter((opt) => opt.is_available)
                     .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
                     .map((option) => {
                       const isSelected = (selections[group.id] || []).includes(option.id);
@@ -248,18 +193,7 @@ export default function OptionsModal({
                           <span
                             className={`text-sm font-semibold min-w-[70px] text-right ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
                           >
-                            {isTheSizeGroup(group)
-                              ? formatPrice(getOptionPrice(group, option.id))
-                              : (() => {
-                                  const modifierPrice = getOptionPrice(
-                                    group,
-                                    option.id,
-                                    getSelectedSizeId()
-                                  );
-                                  return modifierPrice > 0
-                                    ? `+${formatPrice(modifierPrice)}`
-                                    : 'Gratuit';
-                                })()}
+                            {formatOptionPrice(group, option.id)}
                           </span>
                         </button>
                       );

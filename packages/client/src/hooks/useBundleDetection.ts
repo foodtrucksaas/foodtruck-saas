@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { CartItem, BundleCategoryConfig, Offer } from '@foodtruck/shared';
+import { computeCartItemUnitPrice } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 
 interface BundleConfig {
@@ -30,20 +31,15 @@ interface UseBundleDetectionResult {
 
 // Get the price of a cart item (including options)
 function getItemPrice(item: CartItem): number {
-  const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-  const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-  const supplementsTotal =
-    item.selectedOptions?.reduce(
-      (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
-      0
-    ) || 0;
-  return basePrice + supplementsTotal;
+  return computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
 }
 
-// Get the selected size ID from a cart item's options
+// Get the selected size/absolute option ID from a cart item's options
 function getSelectedSizeId(item: CartItem): string | null {
-  const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-  return sizeOption?.optionId || null;
+  const absoluteOption = item.selectedOptions?.find(
+    (opt) => opt.priceMode === 'absolute' || opt.isSizeOption
+  );
+  return absoluteOption?.optionId || null;
 }
 
 // Check if a cart item matches a bundle category
@@ -104,7 +100,8 @@ function calculateBundlePrice(
     matchedItems.forEach(({ item }) => {
       const optionsPrice =
         item.selectedOptions?.reduce(
-          (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
+          (sum, opt) =>
+            sum + (opt.priceMode === 'absolute' || opt.isSizeOption ? 0 : opt.priceModifier),
           0
         ) || 0;
       price += optionsPrice;

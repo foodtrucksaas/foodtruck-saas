@@ -7,7 +7,28 @@ interface SelectedOptionRequest {
   name: string;
   group_name: string;
   price_modifier: number;
+  price_mode?: 'absolute' | 'modifier';
+  /** @deprecated Use price_mode instead. Kept for backward compat. */
   is_size_option?: boolean;
+}
+
+/** Check if an option is absolute (replaces base price). Supports both price_mode and legacy is_size_option. */
+function isAbsoluteOption(opt: SelectedOptionRequest): boolean {
+  if (opt.price_mode) return opt.price_mode === 'absolute';
+  return opt.is_size_option === true;
+}
+
+/** Compute unit price for a regular item from its base price and selected options. */
+function computeUnitPrice(menuItemPrice: number, options?: SelectedOptionRequest[]): number {
+  if (!options || options.length === 0) return menuItemPrice;
+
+  const absoluteOpt = options.find(isAbsoluteOption);
+  const basePrice = absoluteOpt ? absoluteOpt.price_modifier : menuItemPrice;
+  const modifiersTotal = options.reduce(
+    (sum, opt) => sum + (isAbsoluteOption(opt) ? 0 : opt.price_modifier),
+    0
+  );
+  return basePrice + modifiersTotal;
 }
 
 // NEW: Applied offer from optimized combination
@@ -204,8 +225,8 @@ export function validatePickupTime(pickupTime: string): Response | null {
 }
 
 /**
- * Validate prices sent by the client against database prices
- * Validates category options only (item-specific options not used)
+ * Validate prices sent by the client against database prices.
+ * Queries menu_item_options (article-level), falling back to category_options for legacy orders.
  */
 export async function validatePrices(
   items: OrderRequest['items'],
@@ -229,21 +250,35 @@ export async function validatePrices(
     return null; // No options to validate
   }
 
-  // Fetch category options only
-  const { data: categoryOptions, error } = await supabase
-    .from('category_options')
-    .select('id, name, price_modifier, is_available')
+  // Fetch from menu_item_options (new model) with group info for price_mode
+  const { data: menuItemOptions, error: mioErr } = await supabase
+    .from('menu_item_options')
+    .select('id, name, price_modifier, is_available, group:menu_item_option_groups(price_mode)')
     .in('id', allOptionIds);
 
-  if (error) {
-    console.error('Error fetching category_options:', error);
+  if (mioErr) {
+    console.error('Error fetching menu_item_options:', mioErr);
     return errorResponse('Erreur lors de la validation des options');
   }
 
   const optionsMap = new Map<string, any>();
-  if (categoryOptions) {
-    for (const opt of categoryOptions) {
+  if (menuItemOptions) {
+    for (const opt of menuItemOptions) {
       optionsMap.set(opt.id, opt);
+    }
+  }
+
+  // Fallback: for any option IDs not found in menu_item_options, try category_options (legacy)
+  const missingIds = allOptionIds.filter((id) => !optionsMap.has(id));
+  if (missingIds.length > 0) {
+    const { data: catOptions } = await supabase
+      .from('category_options')
+      .select('id, name, price_modifier, is_available')
+      .in('id', missingIds);
+    if (catOptions) {
+      for (const opt of catOptions) {
+        optionsMap.set(opt.id, opt);
+      }
     }
   }
 
@@ -264,23 +299,27 @@ export async function validatePrices(
           return errorResponse(`L'option "${dbOption.name}" n'est plus disponible`);
         }
 
-        // Skip price validation for size options (they contain full price, not modifier)
-        if (selectedOpt.is_size_option) {
+        // Skip detailed price validation for absolute options (they contain full price)
+        if (isAbsoluteOption(selectedOpt)) {
+          // For absolute options, verify price matches DB exactly
+          if (selectedOpt.price_modifier !== dbOption.price_modifier) {
+            return errorResponse(
+              `Le prix de l'option "${dbOption.name}" a changé. Veuillez rafraîchir la page.`
+            );
+          }
           continue;
         }
 
-        // For supplements, the price may be customized per menu item (per-size pricing)
-        // So we only validate that the price is reasonable (non-negative and not excessively high)
-        // The total validation in validateOrderTotal will catch any calculation errors
+        // For modifiers: validate price is reasonable
         if (selectedOpt.price_modifier < 0) {
           return errorResponse(`Le prix de l'option "${dbOption.name}" est invalide.`);
         }
 
-        // Check if price is different from expected (more than 3x the default or +2€ above, whichever is greater)
-        // This catches tampering while allowing legitimate per-size pricing
-        if (dbOption.price_modifier > 0) {
+        // Check if price matches DB (exact match for the new model)
+        if (selectedOpt.price_modifier !== dbOption.price_modifier) {
+          // Allow some tolerance for legacy per-size pricing
           const maxAllowed = Math.max(dbOption.price_modifier * 3, dbOption.price_modifier + 200);
-          if (selectedOpt.price_modifier > maxAllowed) {
+          if (dbOption.price_modifier > 0 && selectedOpt.price_modifier > maxAllowed) {
             return errorResponse(
               `Le prix de l'option "${dbOption.name}" est anormalement élevé. Veuillez rafraîchir la page.`
             );
@@ -723,20 +762,13 @@ export function validateOrderTotal(
       // Add options price only if not free_options
       if (!item.bundle_free_options && item.selected_options && item.selected_options.length > 0) {
         const optionsTotal = item.selected_options
-          .filter((opt) => !opt.is_size_option)
+          .filter((opt) => !isAbsoluteOption(opt))
           .reduce((sum, opt) => sum + opt.price_modifier, 0);
         unitPrice += optionsTotal;
       }
     } else {
-      // Regular item - base price (already in centimes)
-      unitPrice = menuItem.price;
-
-      // Add option prices
-      if (item.selected_options && item.selected_options.length > 0) {
-        for (const opt of item.selected_options) {
-          unitPrice += opt.price_modifier; // price_modifier is already in centimes
-        }
-      }
+      // Regular item — use shared pricing logic (supports both price_mode and legacy is_size_option)
+      unitPrice = computeUnitPrice(menuItem.price, item.selected_options);
     }
 
     serverSubtotal += unitPrice * item.quantity;
@@ -807,7 +839,7 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
       // Add options price only if not free_options
       if (!item.bundle_free_options && item.selected_options && item.selected_options.length > 0) {
         const optionsTotal = item.selected_options
-          .filter((opt) => !opt.is_size_option) // Size options are not used in bundles this way
+          .filter((opt) => !isAbsoluteOption(opt)) // Size options are not used in bundles this way
           .reduce((sum, opt) => sum + opt.price_modifier, 0);
         unitPriceCentimes += optionsTotal;
       }
@@ -815,33 +847,13 @@ export function calculateOrder(items: OrderRequest['items'], menuItems: any[]) {
       if (item.selected_options && item.selected_options.length > 0) {
         itemOptions.push({ itemIndex: i, options: item.selected_options });
       }
-    } else if (item.selected_options && item.selected_options.length > 0) {
-      // Regular item with options
-      // Check if there's a size option (contains full price in centimes)
-      const sizeOption = item.selected_options.find((opt) => opt.is_size_option);
-
-      if (sizeOption) {
-        // Size option contains the full price in centimes - use it as base
-        unitPriceCentimes = sizeOption.price_modifier;
-        // Add only non-size option modifiers (also in centimes)
-        const supplementsTotal = item.selected_options
-          .filter((opt) => !opt.is_size_option)
-          .reduce((sum, opt) => sum + opt.price_modifier, 0);
-        unitPriceCentimes += supplementsTotal;
-      } else {
-        // No size option - base price is already in centimes + add modifiers
-        unitPriceCentimes = menuItem.price;
-        const optionsTotal = item.selected_options.reduce(
-          (sum, opt) => sum + opt.price_modifier,
-          0
-        );
-        unitPriceCentimes += optionsTotal;
-      }
-
-      itemOptions.push({ itemIndex: i, options: item.selected_options });
     } else {
-      // No options - base price is already in centimes
-      unitPriceCentimes = menuItem.price;
+      // Regular item — use shared pricing logic (supports both price_mode and legacy is_size_option)
+      unitPriceCentimes = computeUnitPrice(menuItem.price, item.selected_options);
+
+      if (item.selected_options && item.selected_options.length > 0) {
+        itemOptions.push({ itemIndex: i, options: item.selected_options });
+      }
     }
 
     // Build notes with instance number for bundles (e.g., [Plat + Dessert = 12#1])

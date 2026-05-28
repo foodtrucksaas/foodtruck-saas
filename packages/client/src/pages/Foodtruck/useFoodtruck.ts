@@ -7,12 +7,11 @@ import type {
   Category,
   Schedule,
   Location,
-  CategoryOptionGroup,
-  CategoryOption,
   SelectedOption,
   Offer,
   BundleConfig,
   BuyXGetYConfig,
+  MenuItemOptionGroupWithOptions,
 } from '@foodtruck/shared';
 
 // Note: Bundle/BuyXGetY modals removed - offers now apply automatically
@@ -29,14 +28,6 @@ export interface TodayException {
   location?: Location | null;
   start_time?: string | null;
   end_time?: string | null;
-}
-
-export interface CategoryOptionGroupWithOptions extends CategoryOptionGroup {
-  category_options: CategoryOption[];
-}
-
-export interface CategoryWithOptions extends Category {
-  category_option_groups?: CategoryOptionGroupWithOptions[];
 }
 
 // Bundle offer with category choice config
@@ -65,7 +56,7 @@ export interface BuyXGetYOffer extends Offer {
 interface UseFoodtruckResult {
   // Data
   foodtruck: Foodtruck | null;
-  categories: CategoryWithOptions[];
+  categories: Category[];
   menuItems: MenuItem[];
   schedules: ScheduleWithLocation[];
   bundles: BundleOffer[];
@@ -80,7 +71,7 @@ interface UseFoodtruckResult {
 
   // Options modal state
   selectedMenuItem: MenuItem | null;
-  selectedCategory: CategoryWithOptions | null;
+  selectedOptionGroups: MenuItemOptionGroupWithOptions[] | null;
   showOptionsModal: boolean;
 
   // Computed values
@@ -95,7 +86,7 @@ interface UseFoodtruckResult {
   itemCount: number;
 
   // Handlers
-  getCategoryOptions: (categoryId: string | null) => CategoryWithOptions | null;
+  getItemOptionGroups: (itemId: string) => MenuItemOptionGroupWithOptions[] | null;
   getItemQuantity: (itemId: string) => number;
   handleAddItem: (item: MenuItem) => void;
   handleOptionsConfirm: (
@@ -121,8 +112,11 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const { items, addItem, updateQuantity, setFoodtruck, total, itemCount, getCartKey } = useCart();
 
   const [foodtruck, setFoodtruckData] = useState<Foodtruck | null>(null);
-  const [categories, setCategories] = useState<CategoryWithOptions[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItemOptionGroups, setMenuItemOptionGroups] = useState<
+    Record<string, MenuItemOptionGroupWithOptions[]>
+  >({});
   const [schedules, setSchedules] = useState<ScheduleWithLocation[]>([]);
   const [bundles, setBundles] = useState<BundleOffer[]>([]);
   const [specificItemsBundles, setSpecificItemsBundles] = useState<SpecificItemsBundleOffer[]>([]);
@@ -134,7 +128,9 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
 
   // Options modal state
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryWithOptions | null>(null);
+  const [selectedOptionGroups, setSelectedOptionGroups] = useState<
+    MenuItemOptionGroupWithOptions[] | null
+  >(null);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
 
   useEffect(() => {
@@ -184,6 +180,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         const [
           categoriesRes,
           menuRes,
+          optionGroupsRes,
           schedulesRes,
           exceptionRes,
           bundlesRes,
@@ -192,7 +189,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         ] = await Promise.all([
           supabase
             .from('categories')
-            .select('*, category_option_groups(*, category_options(*))')
+            .select('*')
             .eq('foodtruck_id', actualFoodtruckId)
             .order('display_order'),
           supabase
@@ -201,6 +198,12 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
             .eq('foodtruck_id', actualFoodtruckId)
             .eq('is_available', true)
             .or('is_archived.is.null,is_archived.eq.false')
+            .order('display_order'),
+          // Fetch article-level option groups with their options
+          supabase
+            .from('menu_item_option_groups')
+            .select('*, menu_item_options(*), menu_items!inner(foodtruck_id)')
+            .eq('menu_items.foodtruck_id', actualFoodtruckId)
             .order('display_order'),
           supabase
             .from('schedules')
@@ -242,9 +245,22 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         const accessState = subRes.data as string | null;
         setIsActive(accessState !== 'degraded');
 
-        setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
+        setCategories((categoriesRes.data as Category[]) || []);
         setMenuItems((menuRes.data as MenuItem[]) || []);
         setSchedules((schedulesRes.data as ScheduleWithLocation[]) || []);
+
+        // Group option groups by menu_item_id
+        const rawGroups =
+          (optionGroupsRes.data as (MenuItemOptionGroupWithOptions & {
+            menu_items: { foodtruck_id: string };
+          })[]) || [];
+        const grouped: Record<string, MenuItemOptionGroupWithOptions[]> = {};
+        for (const g of rawGroups) {
+          const itemId = g.menu_item_id;
+          if (!grouped[itemId]) grouped[itemId] = [];
+          grouped[itemId].push(g as unknown as MenuItemOptionGroupWithOptions);
+        }
+        setMenuItemOptionGroups(grouped);
 
         // Separate bundles by type
         const allBundles = (bundlesRes.data || []) as unknown as (BundleOffer & {
@@ -300,18 +316,17 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     fetchData();
   }, [foodtruckId, setFoodtruck]);
 
-  const getCategoryOptions = useCallback(
-    (categoryId: string | null) => {
-      if (!categoryId) return null;
-      const category = categories.find((c) => c.id === categoryId);
-      if (!category?.category_option_groups) return null;
+  const getItemOptionGroups = useCallback(
+    (itemId: string): MenuItemOptionGroupWithOptions[] | null => {
+      const groups = menuItemOptionGroups[itemId];
+      if (!groups || groups.length === 0) return null;
 
-      const hasAvailableOptions = category.category_option_groups.some((g) =>
-        g.category_options?.some((o) => o.is_available)
+      const hasAvailableOptions = groups.some((g) =>
+        g.menu_item_options?.some((o) => o.is_available)
       );
-      return hasAvailableOptions ? category : null;
+      return hasAvailableOptions ? groups : null;
     },
-    [categories]
+    [menuItemOptionGroups]
   );
 
   const getItemQuantity = useCallback(
@@ -325,18 +340,18 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
 
   const handleAddItem = useCallback(
     (item: MenuItem) => {
-      const categoryWithOptions = getCategoryOptions(item.category_id);
+      const groups = getItemOptionGroups(item.id);
 
-      if (categoryWithOptions) {
+      if (groups) {
         setSelectedMenuItem(item);
-        setSelectedCategory(categoryWithOptions);
+        setSelectedOptionGroups(groups);
         setShowOptionsModal(true);
       } else {
         addItem(item, 1);
         toast.success(`${item.name} ajouté au panier`);
       }
     },
-    [getCategoryOptions, addItem]
+    [getItemOptionGroups, addItem]
   );
 
   const handleOptionsConfirm = useCallback(
@@ -346,7 +361,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
         toast.success(`${selectedMenuItem?.name} ajouté au panier`);
         setShowOptionsModal(false);
         setSelectedMenuItem(null);
-        setSelectedCategory(null);
+        setSelectedOptionGroups(null);
       }
     },
     [selectedMenuItem, addItem]
@@ -369,7 +384,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
   const closeOptionsModal = useCallback(() => {
     setShowOptionsModal(false);
     setSelectedMenuItem(null);
-    setSelectedCategory(null);
+    setSelectedOptionGroups(null);
   }, []);
 
   const navigateBack = useCallback(() => {
@@ -473,7 +488,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
 
     // Options modal state
     selectedMenuItem,
-    selectedCategory,
+    selectedOptionGroups,
     showOptionsModal,
 
     // Computed values
@@ -488,7 +503,7 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
     itemCount,
 
     // Handlers
-    getCategoryOptions,
+    getItemOptionGroups,
     getItemQuantity,
     handleAddItem,
     handleOptionsConfirm,

@@ -44,13 +44,15 @@ function createCartItem(overrides: Partial<CartItem> = {}): CartItem {
 }
 
 // Helper to create a mock bundle offer
-function createBundleOffer(overrides: Partial<{
-  id: string;
-  name: string;
-  fixed_price: number;
-  bundle_categories: BundleCategoryConfig[];
-  free_options: boolean;
-}> = {}) {
+function createBundleOffer(
+  overrides: Partial<{
+    id: string;
+    name: string;
+    fixed_price: number;
+    bundle_categories: BundleCategoryConfig[];
+    free_options: boolean;
+  }> = {}
+) {
   return {
     id: overrides.id ?? 'bundle-1',
     foodtruck_id: 'foodtruck-1',
@@ -103,7 +105,7 @@ async function waitForBundlesLoaded() {
     expect(mockSupabaseFrom).toHaveBeenCalled();
   });
   // Small delay to ensure setState has propagated
-  await new Promise(resolve => setTimeout(resolve, 10));
+  await new Promise((resolve) => setTimeout(resolve, 10));
 }
 
 describe('useBundleDetection', () => {
@@ -115,9 +117,7 @@ describe('useBundleDetection', () => {
     it('should initialize with default values after loading', async () => {
       setupSupabaseMock([]);
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', []));
 
       await waitForBundlesLoaded();
 
@@ -130,9 +130,7 @@ describe('useBundleDetection', () => {
     it('should not fetch bundles when foodtruckId is undefined', () => {
       setupSupabaseMock([]);
 
-      const { result } = renderHook(() =>
-        useBundleDetection(undefined, [])
-      );
+      const { result } = renderHook(() => useBundleDetection(undefined, []));
 
       expect(result.current.detectedBundles).toEqual([]);
       expect(result.current.loading).toBe(false);
@@ -142,15 +140,11 @@ describe('useBundleDetection', () => {
     it('should return empty bundles with empty cart', async () => {
       setupSupabaseMock([
         createBundleOffer({
-          bundle_categories: [
-            { category_ids: ['category-1'], quantity: 1 },
-          ],
+          bundle_categories: [{ category_ids: ['category-1'], quantity: 1 }],
         }),
       ]);
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', []));
 
       await waitForBundlesLoaded();
 
@@ -163,16 +157,12 @@ describe('useBundleDetection', () => {
     it('should fetch bundles on mount', async () => {
       const mockBundles = [
         createBundleOffer({
-          bundle_categories: [
-            { category_ids: ['category-1'], quantity: 1 },
-          ],
+          bundle_categories: [{ category_ids: ['category-1'], quantity: 1 }],
         }),
       ];
       setupSupabaseMock(mockBundles);
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', []));
 
       // Initially loading
       expect(result.current.loading).toBe(true);
@@ -185,9 +175,7 @@ describe('useBundleDetection', () => {
     it('should handle API errors gracefully', async () => {
       setupSupabaseMock(null, new Error('Network error'));
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [createCartItem()])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', [createCartItem()]));
 
       await waitForBundlesLoaded();
 
@@ -208,9 +196,7 @@ describe('useBundleDetection', () => {
       ];
       setupSupabaseMock(bundles);
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', []));
 
       await waitForBundlesLoaded();
 
@@ -249,9 +235,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -288,9 +272,7 @@ describe('useBundleDetection', () => {
         // Missing dessert!
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -300,9 +282,7 @@ describe('useBundleDetection', () => {
     it('should ignore cart items that are already part of a bundle', async () => {
       const bundleOffer = createBundleOffer({
         fixed_price: 1500,
-        bundle_categories: [
-          { category_ids: ['category-pizza'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -324,9 +304,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -362,9 +340,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -403,9 +379,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -438,9 +412,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -480,15 +452,13 @@ describe('useBundleDetection', () => {
               name: 'Large',
               groupName: 'Size',
               priceModifier: 1600, // Size option replaces base price (16 euros)
-              isSizeOption: true,
+              priceMode: 'absolute' as const,
             },
           ],
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -507,9 +477,7 @@ describe('useBundleDetection', () => {
       const bundleOffer = createBundleOffer({
         fixed_price: 1000, // Lower bundle price to create savings
         free_options: false,
-        bundle_categories: [
-          { category_ids: ['category-pizza'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -527,15 +495,13 @@ describe('useBundleDetection', () => {
               name: 'Extra Cheese',
               groupName: 'Extras',
               priceModifier: 200, // 2 euro extra
-              isSizeOption: false,
+              priceMode: 'modifier' as const,
             },
           ],
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -553,9 +519,7 @@ describe('useBundleDetection', () => {
       const bundleOffer = createBundleOffer({
         fixed_price: 1500,
         free_options: true,
-        bundle_categories: [
-          { category_ids: ['category-pizza'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -573,15 +537,13 @@ describe('useBundleDetection', () => {
               name: 'Extra Cheese',
               groupName: 'Extras',
               priceModifier: 200, // 2 euro extra - should be free!
-              isSizeOption: false,
+              priceMode: 'modifier' as const,
             },
           ],
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -609,9 +571,7 @@ describe('useBundleDetection', () => {
           id: 'bundle-2',
           name: 'Pizza Deal',
           fixed_price: 1200,
-          bundle_categories: [
-            { category_ids: ['category-pizza'], quantity: 1 },
-          ],
+          bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
         }),
       ];
       setupSupabaseMock(bundles);
@@ -633,9 +593,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -682,9 +640,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -703,16 +659,12 @@ describe('useBundleDetection', () => {
         createBundleOffer({
           id: 'bundle-1',
           fixed_price: 1600,
-          bundle_categories: [
-            { category_ids: ['category-pizza'], quantity: 1 },
-          ],
+          bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
         }),
         createBundleOffer({
           id: 'bundle-2',
           fixed_price: 1000, // Better deal
-          bundle_categories: [
-            { category_ids: ['category-pizza'], quantity: 1 },
-          ],
+          bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
         }),
       ];
       setupSupabaseMock(bundles);
@@ -727,9 +679,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -744,9 +694,7 @@ describe('useBundleDetection', () => {
     it('should match items using category_ids array', async () => {
       const bundleOffer = createBundleOffer({
         fixed_price: 1200, // Lower than item price to create savings
-        bundle_categories: [
-          { category_ids: ['category-pizza', 'category-pasta'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza', 'category-pasta'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -760,9 +708,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -792,9 +738,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -823,9 +767,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -860,15 +802,13 @@ describe('useBundleDetection', () => {
               name: 'XL',
               groupName: 'Size',
               priceModifier: 1800,
-              isSizeOption: true,
+              priceMode: 'absolute' as const,
             },
           ],
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -904,15 +844,13 @@ describe('useBundleDetection', () => {
               name: 'Medium',
               groupName: 'Size',
               priceModifier: 1500, // Higher price to create savings
-              isSizeOption: true,
+              priceMode: 'absolute' as const,
             },
           ],
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -922,9 +860,7 @@ describe('useBundleDetection', () => {
 
     it('should not match items without a category', async () => {
       const bundleOffer = createBundleOffer({
-        bundle_categories: [
-          { category_ids: ['category-pizza'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -938,9 +874,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -970,9 +904,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -1007,9 +939,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -1025,10 +955,9 @@ describe('useBundleDetection', () => {
     it('should refetch bundles when foodtruckId changes', async () => {
       setupSupabaseMock([]);
 
-      const { rerender } = renderHook(
-        ({ foodtruckId }) => useBundleDetection(foodtruckId, []),
-        { initialProps: { foodtruckId: 'foodtruck-1' } }
-      );
+      const { rerender } = renderHook(({ foodtruckId }) => useBundleDetection(foodtruckId, []), {
+        initialProps: { foodtruckId: 'foodtruck-1' },
+      });
 
       await waitFor(() => {
         expect(mockSupabaseFrom).toHaveBeenCalledTimes(1);
@@ -1111,9 +1040,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -1124,9 +1051,7 @@ describe('useBundleDetection', () => {
     it('should handle items with no selectedOptions', async () => {
       const bundleOffer = createBundleOffer({
         fixed_price: 1000,
-        bundle_categories: [
-          { category_ids: ['category-pizza'], quantity: 1 },
-        ],
+        bundle_categories: [{ category_ids: ['category-pizza'], quantity: 1 }],
       });
       setupSupabaseMock([bundleOffer]);
 
@@ -1141,9 +1066,7 @@ describe('useBundleDetection', () => {
         }),
       ];
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', cartItems)
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', cartItems));
 
       await waitForBundlesLoaded();
 
@@ -1154,9 +1077,7 @@ describe('useBundleDetection', () => {
     it('should handle null data from API', async () => {
       setupSupabaseMock(null);
 
-      const { result } = renderHook(() =>
-        useBundleDetection('foodtruck-1', [createCartItem()])
-      );
+      const { result } = renderHook(() => useBundleDetection('foodtruck-1', [createCartItem()]));
 
       await waitForBundlesLoaded();
 

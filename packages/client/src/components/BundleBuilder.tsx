@@ -204,7 +204,7 @@ export default function BundleBuilder({
       name: e.option.name,
       groupName: e.group.name,
       priceModifier: e.option.price_modifier ?? 0,
-      isSizeOption: false,
+      priceMode: 'modifier',
     }));
 
     // Add supplement selections
@@ -221,7 +221,7 @@ export default function BundleBuilder({
             name: option.name,
             groupName: groupData.group.name,
             priceModifier: option.price_modifier ?? 0,
-            isSizeOption: false,
+            priceMode: 'modifier',
           });
         }
       });

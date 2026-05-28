@@ -45,6 +45,7 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
       return handleResponse(data, error);
     },
 
+    /** @deprecated Use menu_item_option_groups (article-level) instead. Kept until old tables are dropped (2.4). */
     async getCategoriesWithOptionGroups(foodtruckId: string) {
       const { data, error } = await supabase
         .from('categories')
@@ -253,7 +254,9 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
     },
 
     // === Category Option Groups ===
+    // @deprecated — Use menu_item_option_groups (article-level) instead. Kept until old tables are dropped (2.4).
 
+    /** @deprecated */
     async getCategoryOptionGroups(categoryId: string): Promise<CategoryOptionGroupWithOptions[]> {
       const { data, error } = await supabase
         .from('category_option_groups')
@@ -501,6 +504,35 @@ export function createMenuApi(supabase: TypedSupabaseClient) {
           (a: MenuItemOption, b: MenuItemOption) => (a.display_order ?? 0) - (b.display_order ?? 0)
         ),
       }));
+    },
+
+    /** Load option groups for ALL menu items of a foodtruck in one query. */
+    async getMenuItemOptionGroupsByFoodtruck(
+      foodtruckId: string
+    ): Promise<Record<string, MenuItemOptionGroupWithOptions[]>> {
+      const { data, error } = await supabase
+        .from('menu_item_option_groups')
+        .select('*, menu_item_options(*), menu_items!inner(foodtruck_id)')
+        .eq('menu_items.foodtruck_id', foodtruckId)
+        .order('display_order');
+
+      if (error) throw error;
+
+      const result: Record<string, MenuItemOptionGroupWithOptions[]> = {};
+      for (const group of data || []) {
+        const itemId = group.menu_item_id;
+        if (!result[itemId]) result[itemId] = [];
+        result[itemId].push({
+          ...group,
+          menu_item_options: (
+            ((group as Record<string, unknown>).menu_item_options as MenuItemOption[]) || []
+          ).sort(
+            (a: MenuItemOption, b: MenuItemOption) =>
+              (a.display_order ?? 0) - (b.display_order ?? 0)
+          ),
+        });
+      }
+      return result;
     },
 
     async createMenuItemOptionGroup(

@@ -112,7 +112,8 @@ Tirés de l'audit de mars, statuts à vérifier dans le code actuel avant d'atta
 
 - [x] **Sous-étape 2.1 — Backend BDD** : nouvelles tables `menu_item_option_groups`, `menu_item_options`, `option_templates` + migration des données depuis category-level (overrides prix + désactivations préservés). 61 groups, 157 options migrés. RLS conforme. 6 tests d'intégration.
 - [x] **Sous-étape 2.2 — Refonte UI Menu options article-level (dashboard).** Migration `price_mode` (absolute/modifier) sur `menu_item_option_groups` avec recalcul depuis sources. InlineOptionsEditor avec 3 presets (taille/choix obligatoire/suppléments), max 1 groupe absolu par plat, import/save templates. MenuItemForm simplifié (668→145 lignes), useMenuPage nettoyé (702→320 lignes). OptionsWizard et CategoryOptionsModal dépréciés. 487 tests dashboard, 5 tests intégration price-mode. Commit `82793fa` (migration) + à committer (UI).
-- [ ] **Sous-étape 2.3 — Bascule complète** : le frontend client et les Edge Functions lisent `menu_item_options` au lieu de `category_options`. Ajustement D client ("à partir de X€" pour items avec groupe absolu). Suppression des anciennes tables.
+- [x] **Sous-étape 2.3 — Bascule client + create-order** : client public et Edge Function `create-order` lisent `menu_item_option_groups`/`menu_item_options` avec `price_mode` au lieu de `category_option_groups`. Pricing partagé via `computeMenuItemPrice` / `computeCartItemUnitPrice`. "À partir de X€" affiche le cheapest absolute. `isSizeOption` remplacé par `priceMode` (backward-compat localStorage). Dead components supprimés (OptionsWizard, CategoryOptionsModal). 1050 tests passent.
+- [ ] **Sous-étape 2.4 — Nettoyage** : supprimer les anciennes tables `category_option_groups`/`category_options`, les champs legacy `option_prices`/`disabled_options` sur `menu_items`, et le fallback `isSizeOption` côté client. Retirer les méthodes `@deprecated` de shared/api/menu.ts.
 
 ### Chantier 3 — À faire
 

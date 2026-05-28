@@ -1,12 +1,18 @@
 import { useState, useMemo } from 'react';
 import { Minus, Plus, X, Tag, Check, Loader2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
+import { formatPrice, calculateBundlePrice, computeCartItemUnitPrice } from '@foodtruck/shared';
 import type {
   CartItem,
   AppliedOfferDetail,
   CustomerLoyaltyInfo,
   SelectedOption,
 } from '@foodtruck/shared';
+
+/** Check if an option is a modifier (not absolute/size). */
+function isModifierOption(opt: SelectedOption): boolean {
+  if (opt.priceMode) return opt.priceMode === 'modifier';
+  return !opt.isSizeOption;
+}
 
 interface OrderSummaryCardProps {
   items: CartItem[];
@@ -256,8 +262,10 @@ export function OrderSummaryCard({
           // Calculate bundle total from config (we show the discounted total)
           const bundleTotal = bundleItems.reduce((sum, bi) => {
             if (!bi.cartItem) return sum;
-            const sizeOpt = bi.cartItem.selectedOptions?.find((o) => o.isSizeOption);
-            const price = sizeOpt ? sizeOpt.priceModifier : bi.cartItem.menuItem.price;
+            const price = computeCartItemUnitPrice(
+              bi.cartItem.menuItem.price,
+              bi.cartItem.selectedOptions
+            );
             return sum + price * bi.quantity;
           }, 0);
           const discountedTotal = bundleTotal - offer.discount_amount / offer.times_applied;
@@ -354,7 +362,7 @@ export function OrderSummaryCard({
                           ? bi.cartItem.selectedOptions
                               .map((o) => {
                                 const mod =
-                                  !o.isSizeOption && o.priceModifier > 0
+                                  isModifierOption(o) && o.priceModifier > 0
                                     ? ` (+${formatPrice(o.priceModifier)})`
                                     : '';
                                 return `${o.name}${mod}`;
@@ -470,7 +478,7 @@ export function OrderSummaryCard({
                         ? sel.selectedOptions
                             .map((o) => {
                               const mod =
-                                !o.isSizeOption && o.priceModifier > 0
+                                isModifierOption(o) && o.priceModifier > 0
                                   ? ` (+${formatPrice(o.priceModifier)})`
                                   : '';
                               return `${o.name}${mod}`;
@@ -511,14 +519,7 @@ export function OrderSummaryCard({
             if (displayQuantity <= 0) return null;
 
             const cartKey = getCartKey(item.menuItem.id, item.selectedOptions);
-            const sizeOption = item.selectedOptions?.find((opt) => opt.isSizeOption);
-            const basePrice = sizeOption ? sizeOption.priceModifier : item.menuItem.price;
-            const supplementsTotal =
-              item.selectedOptions?.reduce(
-                (sum, opt) => sum + (opt.isSizeOption ? 0 : opt.priceModifier),
-                0
-              ) || 0;
-            const unitPrice = basePrice + supplementsTotal;
+            const unitPrice = computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
 
             // Check if some quantity is free via buy_x_get_y
             const freeInfo = freeItemsMap.get(item.menuItem.id);
@@ -529,7 +530,7 @@ export function OrderSummaryCard({
             const optionsText = item.selectedOptions
               ?.map((opt) => {
                 const mod =
-                  !opt.isSizeOption && opt.priceModifier > 0
+                  isModifierOption(opt) && opt.priceModifier > 0
                     ? ` (+${formatPrice(opt.priceModifier)})`
                     : '';
                 return `${opt.name}${mod}`;

@@ -144,7 +144,9 @@ export interface SelectedOption {
   name: string;
   groupName: string;
   priceModifier: number;
-  isSizeOption?: boolean; // If true, priceModifier is the total price (replaces base price)
+  priceMode?: PriceMode; // 'absolute' = full price replacing base, 'modifier' = delta added to base
+  /** @deprecated Use priceMode === 'absolute' instead. Kept for backward compat with old carts in localStorage. */
+  isSizeOption?: boolean;
 }
 
 // Bundle selection for cart items
