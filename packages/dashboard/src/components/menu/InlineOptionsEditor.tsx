@@ -465,6 +465,7 @@ function GroupEditor({
                 value={opt.price_modifier}
                 onChange={(e) => onUpdateOption(optIdx, { price_modifier: e.target.value })}
                 onWheel={(e) => e.currentTarget.blur()}
+                onFocus={(e) => e.target.select()}
                 className={`input text-sm text-right min-h-[40px] w-full ${!isAbsolute ? 'pl-5' : ''}`}
                 placeholder="0.00"
               />

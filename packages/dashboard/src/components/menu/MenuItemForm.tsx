@@ -89,24 +89,22 @@ export function MenuItemForm({
           />
         )}
 
-        {/* Base price — always shown, serves as fallback when no absolute group */}
-        <div>
-          <Input
-            label={hasAbsoluteGroup ? 'Prix de base (référence)' : 'Prix *'}
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.price}
-            onChange={(e) => onFormDataChange({ ...formData, price: e.target.value })}
-            required={!hasAbsoluteGroup}
-            className="min-h-[44px]"
-          />
-          {hasAbsoluteGroup && (
-            <p className="text-xs text-gray-400 mt-1">
-              Le prix affiché sera celui du groupe Taille/Format. Ce prix de base sert de référence.
-            </p>
-          )}
-        </div>
+        {/* Base price — hidden when an absolute group exists (price auto-computed from cheapest option) */}
+        {!hasAbsoluteGroup && (
+          <div>
+            <Input
+              label="Prix *"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.price}
+              onChange={(e) => onFormDataChange({ ...formData, price: e.target.value })}
+              required
+              className="min-h-[44px]"
+              onFocus={(e) => e.target.select()}
+            />
+          </div>
+        )}
 
         {/* Inline options editor */}
         <InlineOptionsEditor
