@@ -232,22 +232,15 @@ export function useFoodtruck(foodtruckId: string | undefined): UseFoodtruckResul
             .eq('is_active', true)
             .or(`start_date.is.null,start_date.lte.${now}`)
             .or(`end_date.is.null,end_date.gte.${now}`),
-          // Fetch subscription status to check if foodtruck is active
-          supabase
-            .from('subscriptions')
-            .select('status')
-            .eq('foodtruck_id', actualFoodtruckId)
-            .maybeSingle(),
+          // Fetch access state via secure RPC (bypasses RLS for anon clients)
+          supabase.rpc('get_foodtruck_access_state', {
+            p_foodtruck_id: actualFoodtruckId,
+          }),
         ]);
 
-        // Check subscription status
-        const subStatus = subRes.data?.status;
-        const active =
-          subStatus === 'trialing' ||
-          subStatus === 'active' ||
-          subStatus === 'past_due' ||
-          !subStatus;
-        setIsActive(active);
+        // Check subscription access state from RPC
+        const accessState = subRes.data as string | null;
+        setIsActive(accessState !== 'degraded');
 
         setCategories((categoriesRes.data as CategoryWithOptions[]) || []);
         setMenuItems((menuRes.data as MenuItem[]) || []);

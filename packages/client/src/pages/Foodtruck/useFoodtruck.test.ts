@@ -11,9 +11,11 @@ vi.mock('react-router-dom', () => ({
 
 // Mock Supabase
 const mockFrom = vi.fn();
+const mockRpc = vi.fn(() => Promise.resolve({ data: 'full', error: null }));
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));
 
@@ -280,15 +282,6 @@ describe('useFoodtruck', () => {
                   }),
                 }),
               }),
-            }),
-          }),
-        };
-      }
-      if (table === 'subscriptions') {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
             }),
           }),
         };
