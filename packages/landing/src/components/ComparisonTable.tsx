@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react';
+import { Check, X, ArrowRight } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
 
 type CellValue = true | false | string;
@@ -20,55 +20,17 @@ const ROWS: Row[] = [
     generic: false,
   },
   {
-    label: 'Planning hebdomadaire',
-    sublabel: 'Emplacements & horaires par jour',
-    onmange: true,
-    telephone: false,
-    generic: false,
-  },
-  {
     label: 'Prise de commande 24h/24',
     onmange: true,
     telephone: false,
     generic: true,
   },
   {
-    label: 'Menu digital avec photos',
+    label: 'Multi-emplacements',
+    sublabel: 'Planning qui change chaque jour',
     onmange: true,
-    telephone: false,
-    generic: true,
-  },
-  {
-    label: 'Programme de fidélité',
-    onmange: true,
-    telephone: false,
-    generic: false,
-  },
-  {
-    label: 'CRM & marketing',
-    sublabel: 'Emails, SMS, segments',
-    onmange: true,
-    telephone: false,
-    generic: false,
-  },
-  {
-    label: 'Analytics',
-    sublabel: 'CA, heures de pointe, plats vendus',
-    onmange: true,
-    telephone: false,
-    generic: false,
-  },
-  {
-    label: 'Commandes sur site (POS)',
-    onmange: true,
-    telephone: 'N/A',
-    generic: false,
-  },
-  {
-    label: 'Fermeture vacances/congés',
-    onmange: '1 clic',
-    telephone: 'Répondeur',
-    generic: true,
+    telephone: 'Débrouillage',
+    generic: 'Parfois',
   },
   {
     label: 'Votre marque, votre lien',
@@ -78,11 +40,10 @@ const ROWS: Row[] = [
     generic: 'Leur marque',
   },
   {
-    label: 'Gestion des paiements',
-    sublabel: 'Vous encaissez directement',
-    onmange: 'Non',
-    telephone: 'Non',
-    generic: 'Oui (Stripe)',
+    label: 'Commission par commande',
+    onmange: '0%',
+    telephone: '0%',
+    generic: '5-15%',
   },
   {
     label: 'Frais de mise en service',
@@ -94,7 +55,7 @@ const ROWS: Row[] = [
     label: 'Coût mensuel',
     onmange: '29€ HT/mois',
     telephone: '"Gratuit"',
-    generic: '29-69€/mois',
+    generic: '49-69€/mois',
   },
 ];
 
@@ -144,7 +105,9 @@ export default function ComparisonTable() {
                   {ROWS.map((row, i) => {
                     const isLast = i === ROWS.length - 1;
                     const isCostRow =
-                      row.label === 'Coût mensuel' || row.label === 'Frais de mise en service';
+                      row.label === 'Coût mensuel' ||
+                      row.label === 'Frais de mise en service' ||
+                      row.label === 'Commission par commande';
                     return (
                       <tr
                         key={row.label}
@@ -179,6 +142,16 @@ export default function ComparisonTable() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <a
+              href="#benefits"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-marine-500 hover:text-marine-600 transition-colors"
+            >
+              Et plus encore : fidélité, analytics, CRM, POS…
+              <ArrowRight className="w-4 h-4" />
+            </a>
           </div>
         </AnimatedSection>
       </div>

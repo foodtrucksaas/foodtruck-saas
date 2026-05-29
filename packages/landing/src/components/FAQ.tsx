@@ -32,32 +32,12 @@ const FAQ_ITEMS: FAQItem[] = [
     a: "C'est justement pour ça qu'on a créé OnMange. Vous configurez votre planning une fois (lundi marché X, jeudi spot Y…), et vous modifiez n'importe quel jour en 2 clics. Vacances ? Fermez en un clic. Vos clients voient toujours les bonnes infos, au bon endroit.",
   },
   {
-    q: '"Je dois acheter un nom de domaine ?"',
-    a: "Non. Dès votre inscription, vous obtenez votre lien personnalisé (votrenom.onmange.app) prêt à partager. Aucune configuration technique. Envoyez-le par SMS, mettez-le sur vos réseaux, imprimez-le en QR code — c'est tout.",
-  },
-  {
-    q: '"Comment ça se passe pour mes clients ?"',
-    a: 'Vos clients cliquent sur votre lien ou scannent votre QR code. Ils voient votre menu, choisissent leurs plats, sélectionnent un créneau de retrait et valident. 2 minutes. Ils reçoivent une confirmation par email et un rappel avant le retrait. Vous, vous voyez la commande apparaître sur votre tableau de bord.',
+    q: '"29€ HT/mois, c\'est rentable ?"',
+    a: "Faites le calcul : 2 à 3 commandes supplémentaires par semaine à 12 € de panier moyen = 100 à 150 € de CA en plus. Moins les 29 € HT d'abonnement = 70 à 120 € de bénéfice net. Et c'est sans compter la fidélisation, le CRM, les analytics. Les concurrents facturent 49 à 69 €/mois + 400 à 1 100 € de mise en service.",
   },
   {
     q: '"Et si je veux arrêter ?"',
     a: "Aucun engagement, aucune durée minimum. Vous résiliez en un clic depuis votre espace. Votre accès reste actif jusqu'à la fin de la période déjà payée, puis votre compte passe en lecture seule. Pas de frais cachés, pas de pénalité.",
-  },
-  {
-    q: '"Que se passe-t-il à la fin des 14 jours d\'essai ?"',
-    a: "Si vous avez ajouté votre carte bancaire, votre abonnement démarre automatiquement à 29 € HT/mois. Sinon, votre compte passe en mode lecture seule : vous gardez l'accès à toutes vos données, mais vous ne pouvez plus recevoir de nouvelles commandes. Vous pouvez réactiver à tout moment.",
-  },
-  {
-    q: '"Que deviennent mes données si j\'arrête ?"',
-    a: "Vos données sont conservées en lecture seule indéfiniment. Votre menu, vos commandes, vos statistiques restent accessibles. Si vous revenez, tout est là où vous l'avez laissé.",
-  },
-  {
-    q: '"Je suis micro-entrepreneur, et la TVA ?"',
-    a: "L'abonnement est affiché à 29 € HT/mois, soit 34,80 € TTC (TVA 20 %). Si vous êtes assujetti à la TVA, elle est récupérable. Si vous êtes en franchise de TVA (micro-entrepreneur sous les seuils), vous payez le TTC mais ne pouvez pas la déduire — c'est le même fonctionnement que vos autres abonnements professionnels.",
-  },
-  {
-    q: '"29€ HT/mois, c\'est rentable ?"',
-    a: "Faites le calcul : 2 à 3 commandes supplémentaires par semaine à 12 € de panier moyen = 100 à 150 € de CA en plus. Moins les 29 € HT d'abonnement = 70 à 120 € de bénéfice net. Et c'est sans compter la fidélisation, le CRM, les analytics. Les concurrents facturent 49 à 69 €/mois + 400 à 1 100 € de mise en service.",
   },
   {
     q: '"Pourquoi pas une solution de click & collect classique ?"',
