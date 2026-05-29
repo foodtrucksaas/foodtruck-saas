@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, Mail, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorAlert } from '../components/Alert';
 
@@ -63,8 +64,8 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <UtensilsCrossed className="w-8 h-8 text-white" />
+          <div className="flex justify-center mb-4">
+            <Logo variant="monogram" size="xl" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Mot de passe oublié</h1>
           <p className="text-gray-600 mt-2">

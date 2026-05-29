@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Lock, Loader2, CheckCircle, Eye, EyeOff, Check } from 'lucide-react';
+import { Lock, Loader2, CheckCircle, Eye, EyeOff, Check } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorAlert } from '../components/Alert';
 import { isValidPassword } from '@foodtruck/shared';
@@ -102,8 +103,8 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <UtensilsCrossed className="w-8 h-8 text-white" />
+          <div className="flex justify-center mb-4">
+            <Logo variant="monogram" size="xl" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Nouveau mot de passe</h1>
           <p className="text-gray-600 mt-2">Choisis un nouveau mot de passe sécurisé</p>

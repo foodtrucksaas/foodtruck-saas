@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
 
 function translateAuthError(message: string): string {
@@ -85,13 +86,10 @@ export default function Login() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div
-            className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            aria-hidden="true"
-          >
-            <UtensilsCrossed className="w-8 h-8 text-white" />
+          <div className="flex justify-center mb-4">
+            <Logo variant="monogram" size="xl" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">FoodTruck SaaS</h1>
+          <h1 className="text-2xl font-bold text-gray-900">OnMange</h1>
           <p className="text-gray-600 mt-2">Connecte-toi à ton espace</p>
         </div>
 

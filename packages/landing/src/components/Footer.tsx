@@ -1,3 +1,5 @@
+import { Logo } from '@foodtruck/shared';
+
 const PRODUCT_LINKS = [
   { label: 'Fonctionnalités', href: '#benefits' },
   { label: 'Tarif', href: '#pricing' },
@@ -18,7 +20,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="mb-3">
-              <img src="/logo.svg" alt="OnMange" className="h-8 brightness-0 invert" />
+              <Logo theme="dark" size="lg" />
             </div>
             <p className="text-gray-400 text-sm max-w-xs">
               La solution de pré-commandes pour les food trucks. Simple, sans commission, efficace.

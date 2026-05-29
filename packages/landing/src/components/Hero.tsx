@@ -1,4 +1,5 @@
 import { ArrowRight, Check, Star } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 
 const TRUST_ITEMS = ['0% de commission', 'Sans engagement', 'Prêt en 10 min'];
 
@@ -128,7 +129,7 @@ export default function Hero() {
                     {/* App header */}
                     <div className="bg-gradient-to-b from-primary-50 to-white pt-10 px-5 pb-3">
                       <div className="flex items-center gap-2 mb-4">
-                        <img src="/logo.svg" alt="OnMange" className="h-6" />
+                        <Logo size="md" />
                         <div>
                           <p className="text-[11px] font-bold text-anthracite">Le Burger Nomade</p>
                           <p className="text-[9px] text-green-600 font-medium">

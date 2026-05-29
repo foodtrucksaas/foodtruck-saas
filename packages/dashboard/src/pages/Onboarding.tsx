@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Loader2, ArrowRight, Sparkles } from 'lucide-react';
-import { generateSlug } from '@foodtruck/shared';
+import { Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { generateSlug, Logo } from '@foodtruck/shared';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
@@ -71,12 +71,7 @@ export default function Onboarding() {
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
-              <UtensilsCrossed className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900">OnMange</span>
-          </div>
+          <Logo size="lg" />
         </div>
       </div>
 

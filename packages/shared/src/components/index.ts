@@ -26,6 +26,9 @@ export type { SpinnerProps, LoadingProps } from './Spinner';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps, IllustrationId } from './EmptyState';
 
+export { Logo } from './Logo';
+export type { LogoProps, LogoVariant, LogoTheme, LogoSize } from './Logo';
+
 export { ErrorBoundary } from './ErrorBoundary';
 
 export { OptimizedImage, preloadImage, useImagePreload, useWebPSupport } from './OptimizedImage';

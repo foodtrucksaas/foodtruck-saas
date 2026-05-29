@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 
 const NAV_LINKS = [
@@ -25,7 +26,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#hero" className="flex items-center">
-            <img src="/logo.svg" alt="OnMange" className="h-10 sm:h-11" />
+            <Logo size="lg" />
           </a>
 
           {/* Nav links - desktop only */}
