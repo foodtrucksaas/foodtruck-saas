@@ -15,9 +15,9 @@ export default {
         'slide-in-down': 'slideInDown 0.3s ease-out',
         'slide-out-right': 'slideOutRight 0.2s ease-in',
         'slide-out-left': 'slideOutLeft 0.2s ease-in',
-        'modal-in': 'modalIn 0.2s ease-out',
+        'modal-in': 'modalIn 0.25s ease-out',
         'modal-out': 'modalOut 0.15s ease-in',
-        'sheet-in': 'sheetIn 0.3s ease-out',
+        'sheet-in': 'sheetIn 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
         'sheet-out': 'sheetOut 0.2s ease-in',
         'backdrop-in': 'backdropIn 0.2s ease-out',
         'backdrop-out': 'backdropOut 0.15s ease-in',
@@ -93,12 +93,12 @@ export default {
           '100%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
         },
         sheetIn: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
+          '0%': { opacity: '0', transform: 'translateY(100%)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         sheetOut: {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(100%)' },
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(100%)' },
         },
         backdropIn: {
           '0%': { opacity: '0' },

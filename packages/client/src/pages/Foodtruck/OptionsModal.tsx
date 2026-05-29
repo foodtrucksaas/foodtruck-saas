@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Plus, Minus } from 'lucide-react';
 import { formatPrice, computeMenuItemPrice, type PricingOptionGroup } from '@foodtruck/shared';
 import type {
@@ -35,14 +35,7 @@ export default function OptionsModal({
   onClose,
   onConfirm,
 }: OptionsModalProps) {
-  const [selections, setSelections] = useState<Record<string, string[]>>({});
-  const [quantity, setQuantity] = useState(1);
-  const [notes, setNotes] = useState('');
-
-  const pricingGroups = toPricingGroups(optionGroups);
-
-  // Initialize with default options
-  useEffect(() => {
+  const [selections, setSelections] = useState<Record<string, string[]>>(() => {
     const defaults: Record<string, string[]> = {};
     optionGroups.forEach((group) => {
       const defaultOpts = (group.menu_item_options || [])
@@ -52,8 +45,12 @@ export default function OptionsModal({
         defaults[group.id] = defaultOpts;
       }
     });
-    setSelections(defaults);
-  }, [optionGroups]);
+    return defaults;
+  });
+  const [quantity, setQuantity] = useState(1);
+  const [notes, setNotes] = useState('');
+
+  const pricingGroups = toPricingGroups(optionGroups);
 
   const handleOptionToggle = (groupId: string, optionId: string, isMultiple: boolean) => {
     setSelections((prev) => {
@@ -124,7 +121,7 @@ export default function OptionsModal({
 
   return (
     <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] shadow-xl animate-sheet-in sm:animate-modal-in flex flex-col overflow-hidden">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] shadow-xl animate-sheet-in sm:animate-modal-in [animation-delay:50ms] [animation-fill-mode:backwards] flex flex-col overflow-hidden">
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-10 h-1 rounded-full bg-gray-300" />
         </div>

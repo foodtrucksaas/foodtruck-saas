@@ -387,7 +387,7 @@ export default function BundleBuilder({
 
   return (
     <div className="fixed inset-0 bg-anthracite/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm animate-backdrop-in">
-      <div className="bg-white w-full max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-3xl overflow-hidden flex flex-col animate-sheet-in sm:animate-modal-in shadow-xl">
+      <div className="bg-white w-full max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-3xl overflow-hidden flex flex-col animate-sheet-in sm:animate-modal-in [animation-delay:50ms] [animation-fill-mode:backwards] shadow-xl">
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-10 h-1 rounded-full bg-gray-300" />
         </div>
