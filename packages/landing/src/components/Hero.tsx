@@ -228,6 +228,57 @@ export default function Hero() {
             </div>
           </div>
         </div>
+
+        {/* Decorative food truck illustration — desktop only */}
+        <div
+          className="hidden lg:flex justify-center mt-12 text-primary-500/20 animate-fade-in-up"
+          style={{ animationDelay: '600ms' }}
+        >
+          <svg
+            width="400"
+            height="80"
+            viewBox="0 0 400 80"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            role="img"
+            aria-label="Foodtruck stylisé"
+          >
+            {/* Ground line */}
+            <line x1="0" y1="70" x2="400" y2="70" strokeWidth="1" opacity="0.5" />
+            {/* Truck body */}
+            <path d="M80 70 L80 35 L140 35 L150 22 L260 22 L260 70" />
+            {/* Service window */}
+            <rect x="170" y="30" width="40" height="25" rx="3" />
+            {/* Awning */}
+            <path d="M165 22 L165 16 Q200 10 250 16 L250 22" />
+            <path d="M175 16 Q185 13 195 16" />
+            <path d="M205 14 Q215 11 225 14" />
+            <path d="M235 15 Q240 13 245 16" />
+            {/* Wheels */}
+            <circle cx="110" cy="70" r="10" />
+            <circle cx="110" cy="70" r="4" />
+            <circle cx="240" cy="70" r="10" />
+            <circle cx="240" cy="70" r="4" />
+            {/* Smoke from chimney */}
+            <path d="M145 22 L145 12" />
+            <path d="M142 8 Q145 4 148 8" />
+            <path d="M140 3 Q145 -2 150 3" />
+            {/* Menu board */}
+            <rect x="285" y="40" width="25" height="30" rx="2" />
+            <line x1="290" y1="48" x2="305" y2="48" strokeWidth="1" />
+            <line x1="290" y1="53" x2="302" y2="53" strokeWidth="1" />
+            <line x1="290" y1="58" x2="305" y2="58" strokeWidth="1" />
+            {/* Parasol */}
+            <line x1="340" y1="70" x2="340" y2="30" />
+            <path d="M320 30 Q340 20 360 30" />
+            {/* Customer silhouette */}
+            <circle cx="340" cy="55" r="5" />
+            <path d="M335 70 Q335 62 340 62 Q345 62 345 70" />
+          </svg>
+        </div>
       </div>
     </section>
   );
