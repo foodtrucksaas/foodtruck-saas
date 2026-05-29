@@ -1,5 +1,5 @@
 import { Plus, Trash2, MapPin, Clock, Pencil, X } from 'lucide-react';
-import { DAY_NAMES, formatTime } from '@foodtruck/shared';
+import { DAY_NAMES, formatTime, EmptyState } from '@foodtruck/shared';
 import type { Location } from '@foodtruck/shared';
 import type { ScheduleWithLocation, ScheduleFormState } from './useSchedule';
 
@@ -207,9 +207,11 @@ export function RecurringScheduleTab({
           </div>
         ))}
         {schedules.length === 0 && (
-          <p className="text-gray-500 text-xs sm:text-sm">
-            Tu n'as pas encore configuré tes horaires. Dis aux clients quand tu es ouvert.
-          </p>
+          <EmptyState
+            illustration="no-schedule"
+            title="Pas encore d'horaires configurés"
+            description="Dis aux clients quand tu es ouvert."
+          />
         )}
       </div>
     </section>

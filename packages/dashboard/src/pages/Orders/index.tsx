@@ -1,13 +1,6 @@
 import { useState, useMemo } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  List,
-  Clock,
-  ShoppingBag,
-  Settings,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, List, Clock, Settings } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 import { OrderDetailModal } from './OrderDetailModal';
@@ -432,15 +425,12 @@ export default function Orders() {
       {viewMode === 'timeline' ? (
         /* Timeline View */
         orders.length === 0 ? (
-          <div className="card p-12 text-center">
-            <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-lg font-semibold text-gray-900 mb-2">
-              Pas encore de commande aujourd'hui
-            </p>
-            <p className="text-sm text-gray-500">
-              Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières
-              pré-commandes.
-            </p>
+          <div className="card">
+            <EmptyState
+              illustration="no-orders"
+              title="Pas encore de commande aujourd'hui"
+              description="Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières pré-commandes."
+            />
           </div>
         ) : (
           <TimelineView
@@ -474,15 +464,12 @@ export default function Orders() {
       ) : /* List View - grouped by time slot */
       filteredGroupedOrders.length === 0 ? (
         orders.length === 0 ? (
-          <div className="card p-12 text-center">
-            <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-lg font-semibold text-gray-900 mb-2">
-              Pas encore de commande aujourd'hui
-            </p>
-            <p className="text-sm text-gray-500">
-              Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières
-              pré-commandes.
-            </p>
+          <div className="card">
+            <EmptyState
+              illustration="no-orders"
+              title="Pas encore de commande aujourd'hui"
+              description="Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières pré-commandes."
+            />
           </div>
         ) : (
           <div className="text-center py-16 text-gray-400">

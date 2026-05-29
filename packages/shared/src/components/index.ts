@@ -24,7 +24,7 @@ export { Spinner, Loading } from './Spinner';
 export type { SpinnerProps, LoadingProps } from './Spinner';
 
 export { EmptyState } from './EmptyState';
-export type { EmptyStateProps } from './EmptyState';
+export type { EmptyStateProps, IllustrationId } from './EmptyState';
 
 export { ErrorBoundary } from './ErrorBoundary';
 

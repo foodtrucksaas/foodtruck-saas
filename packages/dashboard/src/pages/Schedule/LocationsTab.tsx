@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, MapPin, Pencil, X, Navigation, CheckCircle } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import type { Location } from '@foodtruck/shared';
 import type { LocationFormState } from './useSchedule';
 import {
@@ -248,13 +249,11 @@ export function LocationsTab({
           );
         })}
         {locations.length === 0 && (
-          <div className="text-center py-8">
-            <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Aucun emplacement renseigné.</p>
-            <p className="text-gray-400 text-xs mt-1">
-              Ajoute le lieu où tu seras pour qu'on te trouve.
-            </p>
-          </div>
+          <EmptyState
+            illustration="no-schedule"
+            title="Aucun emplacement renseigné"
+            description="Ajoute le lieu où tu seras pour qu'on te trouve."
+          />
         )}
       </div>
     </section>

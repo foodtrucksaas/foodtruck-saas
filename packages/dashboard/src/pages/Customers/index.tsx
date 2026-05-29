@@ -13,6 +13,7 @@ import {
   Download,
   Gift,
 } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { formatPrice } from '@foodtruck/shared';
 import { useCustomers, formatDate, type FilterSegment } from './useCustomers';
 import { CustomersPageSkeleton } from '../../components/Skeleton';
@@ -178,27 +179,29 @@ export default function Customers() {
       {/* Customers List */}
       {customers.length === 0 ? (
         searchQuery || filterSegment !== 'all' || filterLocation ? (
-          <div className="card p-12 text-center">
-            <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">Aucun client ne correspond aux filtres</p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setFilterSegment('all');
-                setFilterLocation(null);
+          <div className="card">
+            <EmptyState
+              illustration="no-clients"
+              iconColor="marine"
+              title="Aucun client ne correspond aux filtres"
+              action={{
+                label: 'Réinitialiser',
+                onClick: () => {
+                  setSearchQuery('');
+                  setFilterSegment('all');
+                  setFilterLocation(null);
+                },
               }}
-              className="mt-3 px-4 py-2.5 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-all active:scale-95"
-            >
-              Réinitialiser
-            </button>
+            />
           </div>
         ) : (
-          <div className="card p-12 text-center">
-            <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">Aucun client ne correspond à ta recherche.</p>
-            <p className="text-sm text-gray-400 mt-1">
-              Les clients apparaissent ici après leur première pré-commande.
-            </p>
+          <div className="card">
+            <EmptyState
+              illustration="no-clients"
+              iconColor="marine"
+              title="Aucun client ne correspond à ta recherche."
+              description="Les clients apparaissent ici après leur première pré-commande."
+            />
           </div>
         )
       ) : (

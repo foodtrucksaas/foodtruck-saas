@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, ReactNode, memo, useCallback } from 'react
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Calendar, ChevronDown, Download, MapPin, Sparkles } from 'lucide-react';
 import { Package, ShoppingBag, TrendingUp, TrendingDown, Users } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { formatPrice, safeDivide, safeNumber } from '@foodtruck/shared';
 import { useAnalytics, DATE_PRESETS } from './useAnalytics';
 import { AnalyticsPageSkeleton } from '../../components/Skeleton';
@@ -326,9 +327,11 @@ export default function Analytics() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm text-center py-8">
-              Pas encore assez de données pour afficher des stats. Reviens dans quelques jours.
-            </p>
+            <EmptyState
+              illustration="no-data"
+              title="Pas encore assez de données"
+              description="Reviens dans quelques jours."
+            />
           )}
         </div>
         <div className="card p-4 sm:p-6">

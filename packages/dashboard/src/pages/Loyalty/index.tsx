@@ -12,7 +12,7 @@ import {
   Eye,
   Sparkles,
 } from 'lucide-react';
-import { formatPrice } from '@foodtruck/shared';
+import { formatPrice, EmptyState } from '@foodtruck/shared';
 import { useLoyalty } from './useLoyalty';
 import { useCanWrite } from '../../hooks/useCanWrite';
 
@@ -404,10 +404,12 @@ export default function Loyalty() {
           <p className="text-sm text-gray-500">Clients inscrits au programme de fidélité</p>
         </div>
         {customers.length === 0 ? (
-          <div className="p-4 sm:p-6 md:p-8 text-center text-gray-500">
-            <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>Aucun client inscrit au programme</p>
-          </div>
+          <EmptyState
+            illustration="no-clients"
+            iconColor="marine"
+            title="Aucun client inscrit au programme"
+            description="Les clients s'inscrivent au programme lors de leur prochaine commande."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

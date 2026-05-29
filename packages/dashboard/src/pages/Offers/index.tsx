@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Sparkles, Users, Settings } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { useOffers } from './useOffers';
 import { SortableOfferList } from './SortableOfferList';
 import { OfferWizard } from './OfferWizard';
@@ -99,21 +100,15 @@ export default function Offers() {
 
       {/* Offers List */}
       {offers.length === 0 ? (
-        <div className="card p-12 text-center">
-          <Sparkles className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">Aucune offre active</p>
-          <p className="text-sm text-gray-400 mt-1">
-            Une offre bien pensée peut booster tes pré-commandes.
-          </p>
-          <button
-            onClick={() => openCreateWizard()}
-            disabled={!canWrite}
-            title={disabledTitle}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus className="w-5 h-5" />
-            Créer une offre
-          </button>
+        <div className="card">
+          <EmptyState
+            illustration="no-offers"
+            title="Aucune offre active"
+            description="Une offre bien pensée peut booster tes pré-commandes."
+            action={
+              canWrite ? { label: 'Créer une offre', onClick: () => openCreateWizard() } : undefined
+            }
+          />
         </div>
       ) : (
         <SortableOfferList

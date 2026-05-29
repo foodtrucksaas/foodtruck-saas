@@ -1,4 +1,5 @@
-import { Plus, Send } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { useCampaigns } from './useCampaigns';
 import { CampaignModal } from './CampaignModal';
 import { CampaignCard } from './CampaignCard';
@@ -55,21 +56,13 @@ export default function Campaigns() {
 
       {/* Campaigns List */}
       {campaigns.length === 0 ? (
-        <div className="card p-6 sm:p-8 md:p-12 text-center">
-          <Send className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
-          <p className="text-gray-500">Aucune campagne</p>
-          <p className="text-sm text-gray-400 mt-1">
-            Envoie des emails et SMS à tes clients : promotions, nouveautés, horaires
-            exceptionnels...
-          </p>
-          <button
-            onClick={openNewCampaign}
-            disabled={!canWrite}
-            title={disabledTitle}
-            className="mt-4 px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Créer une campagne
-          </button>
+        <div className="card">
+          <EmptyState
+            illustration="no-campaign"
+            title="Aucune campagne"
+            description="Envoie des emails et SMS à tes clients : promotions, nouveautés, horaires exceptionnels..."
+            action={canWrite ? { label: 'Nouvelle campagne', onClick: openNewCampaign } : undefined}
+          />
         </div>
       ) : (
         <div className="grid gap-3 sm:gap-4">

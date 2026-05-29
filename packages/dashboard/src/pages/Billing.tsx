@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CreditCard, ExternalLink, RefreshCw } from 'lucide-react';
+import { EmptyState } from '@foodtruck/shared';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
 import { api } from '../lib/api';
 import { Alert } from '../components/Alert';
@@ -154,7 +155,7 @@ export default function Billing() {
         )}
 
         {!subscription ? (
-          <p className="text-gray-500">Aucun abonnement trouvé.</p>
+          <EmptyState illustration="no-invoice" title="Aucun abonnement trouvé" />
         ) : subscription.status === 'trialing' ? (
           <TrialingState
             subscription={subscription}
