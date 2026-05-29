@@ -28,8 +28,10 @@ function Wordmark({ height, theme }: { height: number; theme: LogoTheme }) {
 
   return (
     <span
-      className="font-serif font-semibold select-none leading-none"
+      className="select-none leading-none"
       style={{
+        fontFamily: "'Fraunces', Georgia, serif",
+        fontWeight: 600,
         fontSize: height,
         letterSpacing: '-0.02em',
         color,

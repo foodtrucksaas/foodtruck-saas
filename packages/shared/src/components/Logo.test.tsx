@@ -100,4 +100,16 @@ describe('Logo', () => {
     const circle = screen.getByRole('img', { name: 'OnMange' }).querySelector('circle');
     expect(circle?.getAttribute('fill')).toBe('#FFFFFF');
   });
+
+  it('wordmark uses Fraunces font-family explicitly', () => {
+    render(<Logo />);
+    const wordmark = screen.getByRole('img', { name: 'OnMange' }).querySelector('span');
+    expect(wordmark?.style.fontFamily).toContain('Fraunces');
+  });
+
+  it('wordmark uses font-weight 600', () => {
+    render(<Logo />);
+    const wordmark = screen.getByRole('img', { name: 'OnMange' }).querySelector('span');
+    expect(wordmark?.style.fontWeight).toBe('600');
+  });
 });

@@ -20,6 +20,7 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import { Logo } from '@foodtruck/shared';
 import { useAuth } from '../contexts/AuthContext';
 import { useFoodtruck } from '../contexts/FoodtruckContext';
 import {
@@ -203,8 +204,13 @@ function LayoutContent({ children }: LayoutProps) {
           <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
+        {/* Logo */}
+        <div className="hidden lg:flex items-center px-5 pt-6 pb-4">
+          <Logo variant="full" theme="dark" size="lg" />
+        </div>
+
         {/* Navigation */}
-        <div className="h-full overflow-y-auto pt-16 lg:pt-6 pb-24 px-3">
+        <div className="h-full overflow-y-auto pt-16 lg:pt-0 pb-24 px-3">
           <nav className="space-y-1" aria-label="Menu principal">
             {navigation.map((item, index) => {
               if (item.type === 'separator') {
