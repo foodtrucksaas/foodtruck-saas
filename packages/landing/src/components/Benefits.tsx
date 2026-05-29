@@ -1,13 +1,4 @@
-import {
-  Clock,
-  MapPin,
-  UtensilsCrossed,
-  ShoppingBag,
-  Wallet,
-  Mail,
-  BarChart3,
-  Globe,
-} from 'lucide-react';
+import { Clock, MapPin, BookOpen, ShoppingBag, Wallet, Mail, BarChart3, Globe } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
 
 const BENEFITS = [
@@ -44,7 +35,7 @@ const BENEFITS = [
       "Lundi marché, jeudi zone industrielle ? Votre planning s'adapte. Vacances ? Un clic pour fermer.",
   },
   {
-    icon: UtensilsCrossed,
+    icon: BookOpen,
     iconBg: 'bg-corail-50',
     iconColor: 'text-corail-500',
     title: 'Menu 100% personnalisable',
