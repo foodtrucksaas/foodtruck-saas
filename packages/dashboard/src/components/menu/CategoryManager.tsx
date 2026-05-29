@@ -210,7 +210,7 @@ export function CategoryManager({
 
         {categories.length === 0 ? (
           <p className="text-gray-500 text-sm">
-            Aucune catégorie. Créez-en une pour organiser vos plats.
+            Aucune catégorie. Crée-en une pour organiser tes articles.
           </p>
         ) : (
           <DndContext

@@ -58,7 +58,7 @@ export default function Menu() {
   const { foodtruck } = useFoodtruck();
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
 
@@ -72,7 +72,7 @@ export default function Menu() {
     <div className="space-y-6">
       {/* Page header */}
       <div className="hidden lg:flex items-center justify-between">
-        <p className="text-gray-600">Gérez les plats de votre food truck</p>
+        <p className="text-gray-600">Gère les articles de ton food truck</p>
         <div className="flex items-center gap-2">
           {clientUrl && (
             <a href={clientUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
@@ -138,11 +138,9 @@ export default function Menu() {
         {categories.length === 0 && (
           <div className="card p-8 text-center mb-6">
             <UtensilsCrossed className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              Créez votre première catégorie
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Crée ta première catégorie</h3>
             <p className="text-sm text-gray-500">
-              Organisez votre menu en catégories comme Entrées, Plats, Desserts
+              Organise ton menu en catégories comme Entrées, Plats, Desserts
             </p>
           </div>
         )}

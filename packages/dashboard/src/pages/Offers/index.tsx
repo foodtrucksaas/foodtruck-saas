@@ -32,7 +32,7 @@ export default function Offers() {
   const [showSettings, setShowSettings] = useState(false);
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
 
   if (loading) {

@@ -45,7 +45,7 @@ export default function Customers() {
   } = useCustomers();
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
 
   if (loading) {
@@ -57,7 +57,7 @@ export default function Customers() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Gérez votre base clients et vos campagnes
+          Gère ta base clients et tes campagnes
         </p>
         <button
           onClick={exportCSV}

@@ -22,7 +22,7 @@ export function CampaignCard({
   readOnly,
 }: CampaignCardProps) {
   const disabledTitle = readOnly
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
   const targeting = campaign.targeting as CampaignTargeting;
   const openRate =

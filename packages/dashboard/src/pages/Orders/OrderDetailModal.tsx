@@ -72,7 +72,7 @@ export function OrderDetailModal({
     if (finalReason) {
       onCancelWithReason(finalReason);
     } else {
-      setCancelError("Veuillez sélectionner un motif d'annulation");
+      setCancelError("Sélectionne un motif d'annulation");
     }
   };
 
@@ -96,7 +96,7 @@ export function OrderDetailModal({
     order.status !== 'no_show';
 
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
 
   // Extract discount/offer info

@@ -198,7 +198,7 @@ export function OfferWizard({
                     ) : (
                       <ChevronDown className="w-3.5 h-3.5" />
                     )}
-                    Notes internes (vous seul les voyez)
+                    Notes internes (toi seul les vois)
                   </button>
                   {notesOpen && (
                     <textarea
@@ -206,7 +206,7 @@ export function OfferWizard({
                       onChange={(e) => updateForm({ description: e.target.value })}
                       className="input min-h-[80px] text-base mt-2"
                       rows={2}
-                      placeholder="Notes visibles uniquement par vous..."
+                      placeholder="Notes visibles uniquement par toi..."
                     />
                   )}
                 </div>
@@ -221,7 +221,7 @@ export function OfferWizard({
                   <ThresholdDiscountConfig form={form} updateForm={updateForm} />
                 )}
 
-                {/* Info block — "Comment ça marche pour vos clients" */}
+                {/* Info block — "Comment ça marche pour tes clients" */}
                 <OfferInfoBlock offerType={form.offerType} />
 
                 {/* Recap banner */}

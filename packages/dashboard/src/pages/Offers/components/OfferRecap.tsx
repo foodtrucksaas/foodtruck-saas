@@ -154,7 +154,7 @@ export function OfferValidationErrors({ form }: OfferValidationErrorsProps) {
 }
 
 // ============================================
-// Info block — "Comment ça marche pour vos clients"
+// Info block — "Comment ça marche pour tes clients"
 // ============================================
 
 interface OfferInfoBlockProps {
@@ -163,7 +163,7 @@ interface OfferInfoBlockProps {
 
 const INFO_TEXTS: Record<string, string> = {
   bundle:
-    'Le client compose son menu en choisissant un article par élément. Il paie le prix fixe que vous avez défini, quel que soit le choix.',
+    'Le client compose son menu en choisissant un article par élément. Il paie le prix fixe que tu as défini, quel que soit le choix.',
   buy_x_get_y:
     'Quand le client met X articles éligibles dans son panier, le moins cher des articles « offerts » est gratuit. Le système choisit automatiquement le bon.',
   promo_code: 'Le client tape ce code dans son panier à la caisse pour bénéficier de la réduction.',
@@ -183,7 +183,7 @@ export function OfferInfoBlock({ offerType }: OfferInfoBlockProps) {
       <Info className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
       <div>
         <p className="text-xs font-medium text-gray-500 mb-0.5">
-          Comment ça marche pour vos clients
+          Comment ça marche pour tes clients
         </p>
         <p className="text-sm text-gray-600">{text}</p>
       </div>

@@ -36,11 +36,11 @@ export default function TrialBanner() {
   if (days <= 0) {
     bgClass = 'bg-red-50 border-red-200';
     textClass = 'text-red-800';
-    message = "Votre essai se termine aujourd'hui";
+    message = "Ton essai se termine aujourd'hui";
   } else if (days === 1) {
     bgClass = 'bg-red-50 border-red-200';
     textClass = 'text-red-800';
-    message = 'Votre essai se termine demain';
+    message = 'Ton essai se termine demain';
   } else if (days <= 3) {
     bgClass = 'bg-orange-50 border-orange-200';
     textClass = 'text-orange-800';
@@ -64,8 +64,7 @@ export default function TrialBanner() {
           <span>{message}</span>
           {hasCard ? (
             <span className="ml-2 font-normal opacity-75">
-              Votre carte est enregistrée, vous serez débité à la fin de l'essai sans action de
-              votre part.
+              Ta carte est enregistrée, tu seras débité à la fin de l'essai sans action de ta part.
             </span>
           ) : (
             <Link

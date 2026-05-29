@@ -92,7 +92,7 @@ export default function Analytics() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col gap-3 sm:gap-4">
         <p className="hidden sm:block text-gray-600 text-sm sm:text-base">
-          Analysez les performances de votre food truck
+          Analyse les performances de ton food truck
         </p>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative">

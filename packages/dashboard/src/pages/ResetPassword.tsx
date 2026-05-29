@@ -22,7 +22,7 @@ export default function ResetPassword() {
     const timer = setTimeout(() => {
       if (!user) {
         setError(
-          'Le lien de réinitialisation est invalide ou a expiré. Veuillez faire une nouvelle demande.'
+          'Le lien de réinitialisation est invalide ou a expiré. Fais une nouvelle demande.'
         );
       }
     }, 2000);
@@ -106,7 +106,7 @@ export default function ResetPassword() {
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Nouveau mot de passe</h1>
-          <p className="text-gray-600 mt-2">Choisissez un nouveau mot de passe sécurisé</p>
+          <p className="text-gray-600 mt-2">Choisis un nouveau mot de passe sécurisé</p>
         </div>
 
         <div className="card p-6">

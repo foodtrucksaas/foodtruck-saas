@@ -263,7 +263,7 @@ function buildTargeting(form: CampaignForm): CampaignTargeting {
 }
 
 export const SEGMENT_OPTIONS: { key: SegmentType; label: string; description: string }[] = [
-  { key: 'all', label: 'Tous les clients', description: 'Tous vos clients opt-in' },
+  { key: 'all', label: 'Tous les clients', description: 'Tous tes clients opt-in' },
   { key: 'location', label: 'Par emplacement', description: "Clients d'un lieu précis" },
   { key: 'inactive', label: 'Clients inactifs', description: 'Pas commandé depuis X jours' },
   { key: 'loyal', label: 'Clients fidèles', description: '5+ commandes passées' },

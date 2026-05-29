@@ -216,7 +216,7 @@ export function ProfileSection({
               value={editForm.description}
               onChange={(e) => onUpdateForm('description', e.target.value)}
               className="input min-h-[100px] resize-none w-full"
-              placeholder="Décrivez votre food truck..."
+              placeholder="Décris ton food truck..."
               autoFocus
             />
           }

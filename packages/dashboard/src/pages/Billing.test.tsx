@@ -191,7 +191,7 @@ describe('Billing page', () => {
 
   describe('degraded states', () => {
     it.each([
-      ['canceled', 'annulé votre abonnement'],
+      ['canceled', 'annulé ton abonnement'],
       ['unpaid', 'suspendu suite à un échec'],
       ['expired_trial', "période d'essai est terminée"],
       ['incomplete', "inscription n'a pas été finalisée"],

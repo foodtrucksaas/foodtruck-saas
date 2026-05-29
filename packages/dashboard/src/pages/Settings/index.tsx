@@ -112,7 +112,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-4 sm:space-y-8 max-w-2xl">
-      <p className="hidden sm:block text-gray-600">Gérez les informations de votre food truck</p>
+      <p className="hidden sm:block text-gray-600">Gère les informations de ton food truck</p>
 
       {/* Mobile Quick Navigation - sticky horizontal scroll */}
       <div className="sm:hidden sticky top-0 z-20 -mx-4 px-4 py-3 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200">
@@ -152,13 +152,13 @@ export default function Settings() {
       >
         <h2 className="text-lg font-semibold text-gray-900 mb-4">URL de commande</h2>
         <p className="text-gray-600 mb-4">
-          Partagez ce lien avec vos clients pour qu'ils puissent consulter votre menu et commander.
+          Partage ce lien avec tes clients pour qu'ils puissent consulter ton menu et commander.
         </p>
 
         {/* Editable Slug */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700 mb-2 block">
-            Votre adresse personnalisée
+            Ton adresse personnalisée
           </label>
           {editingField === 'slug' ? (
             <div className="space-y-3">
@@ -177,12 +177,11 @@ export default function Settings() {
                 <span className="text-gray-500 text-sm">.onmange.app</span>
               </div>
               <p className="text-xs text-gray-500">
-                Utilisez uniquement des lettres minuscules, chiffres et tirets. Minimum 3
-                caractères.
+                Utilise uniquement des lettres minuscules, chiffres et tirets. Minimum 3 caractères.
               </p>
               <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
-                Attention : changer votre adresse rendra vos anciens QR codes, boutons et liens
-                partagés inaccessibles. Pensez à réimprimer vos supports.
+                Attention : changer ton adresse rendra tes anciens QR codes, boutons et liens
+                partagés inaccessibles. Pense à réimprimer tes supports.
               </p>
               {editError && (
                 <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{editError}</p>
@@ -341,7 +340,7 @@ export default function Settings() {
         <section className="card p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Assistant de configuration</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Relancez l'assistant pour modifier vos emplacements, horaires, menu et offres en mode
+            Relance l'assistant pour modifier tes emplacements, horaires, menu et offres en mode
             guidé.
           </p>
           <button

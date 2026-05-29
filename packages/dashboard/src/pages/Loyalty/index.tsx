@@ -168,7 +168,7 @@ export default function Loyalty() {
   } = useLoyalty();
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
 
   if (loading) {
@@ -184,7 +184,7 @@ export default function Loyalty() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Gérez votre programme et suivez vos clients
+          Gère ton programme et suis tes clients
         </p>
         <div
           className={`px-3 py-1.5 rounded-full text-sm font-medium self-start sm:self-auto ${settings.loyalty_enabled ? 'bg-success-500 text-white' : 'bg-gray-100 text-gray-600'}`}
@@ -368,7 +368,7 @@ export default function Loyalty() {
 
                 <div className="bg-primary-50 rounded-xl p-4">
                   <p className="text-sm text-primary-800">
-                    <strong>Résumé :</strong> Vos clients gagnent{' '}
+                    <strong>Résumé :</strong> Tes clients gagnent{' '}
                     <strong>
                       {settings.loyalty_points_per_euro} point
                       {settings.loyalty_points_per_euro > 1 ? 's' : ''}

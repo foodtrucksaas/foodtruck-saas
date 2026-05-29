@@ -35,7 +35,7 @@ export function LocationsTab({
   readOnly,
 }: LocationsTabProps) {
   const disabledTitle = readOnly
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -66,7 +66,7 @@ export function LocationsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div>
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">Emplacements</h2>
-          <p className="text-xs sm:text-sm text-gray-500">Vos différents points de vente</p>
+          <p className="text-xs sm:text-sm text-gray-500">Tes différents points de vente</p>
         </div>
         <button
           onClick={onShowForm}

@@ -28,7 +28,7 @@ export function AccountSection() {
     setSuccess(false);
 
     if (!oldPassword) {
-      setError('Veuillez entrer votre mot de passe actuel');
+      setError('Entre ton mot de passe actuel');
       return;
     }
 
@@ -73,7 +73,7 @@ export function AccountSection() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'SUPPRIMER') {
-      setDeleteError('Veuillez taper SUPPRIMER pour confirmer');
+      setDeleteError('Tape SUPPRIMER pour confirmer');
       return;
     }
 
@@ -87,7 +87,7 @@ export function AccountSection() {
       } = await supabase.auth.refreshSession();
 
       if (sessionError || !session) {
-        setDeleteError('Votre session a expiré. Veuillez vous reconnecter et réessayer.');
+        setDeleteError('Ta session a expiré. Reconnecte-toi et réessaie.');
         setDeleting(false);
         return;
       }
@@ -173,7 +173,7 @@ export function AccountSection() {
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         className="input min-h-[44px] pr-12"
-                        placeholder="Votre mot de passe actuel"
+                        placeholder="Ton mot de passe actuel"
                         autoFocus
                       />
                       <button
@@ -296,18 +296,18 @@ export function AccountSection() {
             <div>
               <p className="text-sm font-medium text-error-800">Action irréversible</p>
               <p className="text-sm text-error-600">
-                Toutes vos données seront définitivement supprimées.
+                Toutes tes données seront définitivement supprimées.
               </p>
             </div>
           </div>
 
           <p className="text-sm text-gray-600 mb-4">Cette action supprimera définitivement :</p>
           <ul className="text-sm text-gray-600 mb-4 list-disc list-inside space-y-1">
-            <li>Votre profil et paramètres</li>
-            <li>Votre menu et catégories</li>
-            <li>Vos emplacements et planning</li>
-            <li>Votre historique de commandes</li>
-            <li>Vos clients et campagnes</li>
+            <li>Ton profil et paramètres</li>
+            <li>Ton menu et catégories</li>
+            <li>Tes emplacements et planning</li>
+            <li>Ton historique de commandes</li>
+            <li>Tes clients et campagnes</li>
           </ul>
 
           <p className="text-sm text-gray-600 mb-2">

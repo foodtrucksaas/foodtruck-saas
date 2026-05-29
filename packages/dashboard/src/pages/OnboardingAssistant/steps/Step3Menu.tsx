@@ -220,7 +220,7 @@ export function Step3Menu({ foodtruckId, onNext, onBack }: Step3MenuProps) {
 
   const handleContinue = () => {
     if (categories.length === 0 || categories.every((c) => c.items.length === 0)) {
-      showError('Ajoutez au moins un article avant de continuer');
+      showError('Ajoute au moins un article avant de continuer');
       return;
     }
     onNext();
@@ -322,10 +322,8 @@ export function Step3Menu({ foodtruckId, onNext, onBack }: Step3MenuProps) {
     >
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Votre menu</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Creez vos categories et ajoutez vos articles.
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">Ton menu</h2>
+          <p className="text-sm text-gray-500 mt-1">Crée tes catégories et ajoute tes articles.</p>
         </div>
 
         {/* Categories list */}
@@ -518,7 +516,7 @@ function CategoryEditor({
   const handleDeleteOptionGroup = async (groupId: string) => {
     const confirmed = await confirmDialog.confirm({
       title: 'Supprimer ces options ?',
-      message: 'Les prix par taille de vos articles seront aussi supprimes.',
+      message: 'Les prix par taille de tes articles seront aussi supprimés.',
       confirmText: 'Supprimer',
       variant: 'danger',
     });

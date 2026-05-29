@@ -30,11 +30,11 @@ const degradedStatuses: SubscriptionStatus[] = [
 ];
 
 const degradedMessages: Partial<Record<SubscriptionStatus, string>> = {
-  canceled: 'Vous avez annulé votre abonnement.',
-  unpaid: 'Votre abonnement a été suspendu suite à un échec de paiement.',
-  expired_trial: "Votre période d'essai est terminée.",
-  incomplete: "Votre inscription n'a pas été finalisée.",
-  paused: 'Votre compte est en pause.',
+  canceled: 'Tu as annulé ton abonnement.',
+  unpaid: 'Ton abonnement a été suspendu suite à un échec de paiement.',
+  expired_trial: "Ta période d'essai est terminée.",
+  incomplete: "Ton inscription n'a pas été finalisée.",
+  paused: 'Ton compte est en pause.',
 };
 
 export default function Billing() {
@@ -81,8 +81,8 @@ export default function Billing() {
       const wasDegraded = location.state?.degraded === true;
       showSuccess(
         wasDegraded
-          ? 'Votre abonnement est actif, votre food truck est de nouveau en ligne !'
-          : 'Votre abonnement est actif !'
+          ? 'Ton abonnement est actif, ton food truck est de nouveau en ligne !'
+          : 'Ton abonnement est actif !'
       );
 
       // Re-fetch after delay (webhook may take 1-5s)
@@ -94,7 +94,7 @@ export default function Billing() {
             const retry = await api.billing.getSubscription(foodtruckId!);
             if (retry && retry.status === 'trialing') {
               showWarning(
-                "Votre abonnement est en cours d'activation, rechargez la page dans quelques secondes."
+                "Ton abonnement est en cours d'activation, recharge la page dans quelques secondes."
               );
             } else {
               setSubscription(retry);
@@ -202,7 +202,7 @@ function TrialingState({
   return (
     <div className="space-y-4">
       <Alert variant="info">
-        Votre essai gratuit se termine dans{' '}
+        Ton essai gratuit se termine dans{' '}
         <strong>
           {days} jour{days > 1 ? 's' : ''}
         </strong>{' '}
@@ -212,8 +212,8 @@ function TrialingState({
       {hasCB ? (
         <>
           <p className="text-sm text-gray-600">
-            Votre carte bancaire est enregistrée. Vous serez automatiquement débité de 29&nbsp;€ HT
-            à la fin de votre période d&apos;essai, sans action de votre part.
+            Ta carte bancaire est enregistrée. Tu seras automatiquement débité de 29&nbsp;€ HT à la
+            fin de ta période d&apos;essai, sans action de ta part.
           </p>
 
           <div>
@@ -235,8 +235,8 @@ function TrialingState({
       ) : (
         <>
           <p className="text-sm text-gray-600">
-            Ajoutez votre moyen de paiement maintenant pour continuer sans interruption à la fin de
-            votre essai. Aucun débit avant la fin de la période d&apos;essai.
+            Ajoute ton moyen de paiement maintenant pour continuer sans interruption à la fin de ton
+            essai. Aucun débit avant la fin de la période d&apos;essai.
           </p>
 
           <button
@@ -268,7 +268,7 @@ function ActiveState({
 }) {
   return (
     <div className="space-y-4">
-      <Alert variant="success">Votre abonnement est actif.</Alert>
+      <Alert variant="success">Ton abonnement est actif.</Alert>
 
       {subscription.current_period_end && (
         <p className="text-sm text-gray-600">
@@ -301,8 +301,8 @@ function PastDueState({ onPortal, loading }: { onPortal: () => void; loading: bo
       <Alert variant="warning">Paiement en cours de relance.</Alert>
 
       <p className="text-sm text-gray-600">
-        Votre dernier paiement a échoué. Stripe va automatiquement réessayer pendant les prochains
-        jours. Vérifiez votre moyen de paiement pour éviter une interruption.
+        Ton dernier paiement a échoué. Stripe va automatiquement réessayer pendant les prochains
+        jours. Vérifie ton moyen de paiement pour éviter une interruption.
       </p>
 
       <button onClick={onPortal} disabled={loading} className="btn-primary flex items-center gap-2">
@@ -331,7 +331,7 @@ function DegradedState({
       <Alert variant="error">Abonnement inactif.</Alert>
 
       <p className="text-sm text-gray-600">
-        {degradedMessages[status] || "Votre abonnement n'est plus actif."}
+        {degradedMessages[status] || "Ton abonnement n'est plus actif."}
       </p>
 
       <button

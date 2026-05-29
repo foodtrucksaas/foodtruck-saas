@@ -74,7 +74,7 @@ function OnboardingBanner() {
       <span className="font-medium">Terminer la configuration</span>
       <span className="hidden sm:inline">
         {' '}
-        — L'assistant vous guide pour configurer emplacements, horaires et menu
+        — L'assistant te guide pour configurer emplacements, horaires et menu
       </span>
       <span className="ml-2">&rarr;</span>
     </Link>

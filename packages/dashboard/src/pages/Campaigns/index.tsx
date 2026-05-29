@@ -24,7 +24,7 @@ export default function Campaigns() {
   } = useCampaigns();
   const canWrite = useCanWrite();
   const disabledTitle = !canWrite
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
 
   if (loading) {
@@ -40,7 +40,7 @@ export default function Campaigns() {
       {/* Header - hidden on mobile (Layout provides header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <p className="hidden sm:block text-sm sm:text-base text-gray-600">
-          Envoyez des emails et SMS à vos clients
+          Envoie des emails et SMS à tes clients
         </p>
         <button
           onClick={openNewCampaign}
@@ -59,7 +59,7 @@ export default function Campaigns() {
           <Send className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
           <p className="text-gray-500">Aucune campagne</p>
           <p className="text-sm text-gray-400 mt-1">
-            Envoyez des emails et SMS à vos clients : promotions, nouveautés, horaires
+            Envoie des emails et SMS à tes clients : promotions, nouveautés, horaires
             exceptionnels...
           </p>
           <button

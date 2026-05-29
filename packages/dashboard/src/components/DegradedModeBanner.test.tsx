@@ -39,7 +39,7 @@ describe('DegradedModeBanner', () => {
     mockSubscription.accessState = 'degraded';
     mockSubscription.subscription = { status: 'canceled', canceled_at: '2026-05-15T00:00:00Z' };
     renderBanner();
-    expect(screen.getByText(/annulé votre abonnement/)).toBeDefined();
+    expect(screen.getByText(/annulé ton abonnement/)).toBeDefined();
     expect(screen.getByText(/15\/05\/2026/)).toBeDefined();
   });
 

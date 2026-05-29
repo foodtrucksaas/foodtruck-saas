@@ -10,17 +10,17 @@ function formatDate(dateStr: string): string {
 function getMessage(status: SubscriptionStatus, canceledAt: string | null): string {
   switch (status) {
     case 'canceled':
-      return `Vous avez annulé votre abonnement${canceledAt ? ` le ${formatDate(canceledAt)}` : ''}. Réactivez pour continuer à recevoir des commandes.`;
+      return `Tu as annulé ton abonnement${canceledAt ? ` le ${formatDate(canceledAt)}` : ''}. Réactive pour continuer à recevoir des commandes.`;
     case 'unpaid':
-      return 'Votre abonnement a été suspendu suite à un échec de paiement. Mettez à jour votre carte pour réactiver.';
+      return 'Ton abonnement a été suspendu suite à un échec de paiement. Mets à jour ta carte pour réactiver.';
     case 'expired_trial':
-      return "Votre période d'essai gratuit est terminée. Activez votre abonnement pour reprendre l'activité.";
+      return "Ta période d'essai gratuit est terminée. Active ton abonnement pour reprendre l'activité.";
     case 'incomplete':
-      return "Votre inscription n'a pas été finalisée.";
+      return "Ton inscription n'a pas été finalisée.";
     case 'paused':
-      return 'Votre compte est en pause.';
+      return 'Ton compte est en pause.';
     default:
-      return "Votre abonnement n'est plus actif.";
+      return "Ton abonnement n'est plus actif.";
   }
 }
 

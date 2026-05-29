@@ -64,7 +64,7 @@ export default function OnboardingAssistant() {
   );
 
   const handleSkip = async () => {
-    if (!window.confirm("Vos données sont sauvegardées. Quitter l'assistant ?")) return;
+    if (!window.confirm("Tes données sont enregistrées. Quitter l'assistant ?")) return;
     setSkipping(true);
     navigate('/');
   };

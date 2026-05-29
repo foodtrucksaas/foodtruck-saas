@@ -60,8 +60,8 @@ export function EmbedButtonSection({ foodtruck, clientLink }: EmbedButtonSection
       </div>
 
       <p className="text-sm text-gray-500 mb-6">
-        Ajoutez un bouton de commande sur votre site web. Copiez le code HTML ci-dessous et
-        collez-le dans votre site.
+        Ajoute un bouton de commande sur ton site web. Copie le code HTML ci-dessous et colle-le
+        dans ton site.
       </p>
 
       {/* Style selector */}

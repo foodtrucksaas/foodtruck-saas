@@ -87,9 +87,9 @@ export default function Onboarding() {
           <div className="text-center mb-8">
             <div className="text-5xl mb-4">🚚</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Comment s'appelle votre food truck ?
+              Comment s'appelle ton food truck ?
             </h1>
-            <p className="text-gray-500 text-sm">C'est le nom que vos clients verront</p>
+            <p className="text-gray-500 text-sm">C'est le nom que tes clients verront</p>
           </div>
 
           {/* Form */}
@@ -140,7 +140,7 @@ export default function Onboarding() {
 
           <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-400">
             <Sparkles className="w-4 h-4" />
-            <span>L'assistant vous guide ensuite pas à pas</span>
+            <span>L'assistant te guide ensuite pas à pas</span>
           </div>
         </div>
       </div>

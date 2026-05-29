@@ -67,8 +67,8 @@ export function QRCodeSection({ foodtruck, clientLink }: QRCodeSectionProps) {
       </div>
 
       <p className="text-sm text-gray-500 mb-4">
-        Partagez ce QR code pour permettre à vos clients d'accéder directement à votre menu.
-        Imprimez-le sur vos flyers, affiches ou directement sur votre food truck.
+        Partage ce QR code pour permettre à tes clients d'accéder directement à ton menu. Imprime-le
+        sur tes flyers, affiches ou directement sur ton food truck.
       </p>
 
       <div className="flex flex-col items-center">

@@ -6,10 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 function translateAuthError(message: string): string {
   const translations: Record<string, string> = {
     'Invalid login credentials': 'Email ou mot de passe incorrect',
-    'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
+    'Email not confirmed': 'Confirme ton email avant de te connecter',
     'User not found': 'Aucun compte associé à cet email.',
-    'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
-    'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+    'Too many requests': 'Trop de tentatives, réessaie plus tard',
+    'Email rate limit exceeded': "Trop d'emails envoyés, réessaie plus tard",
     'User already registered': 'Un compte existe déjà avec cet email',
     'Password should be at least 6 characters':
       'Le mot de passe doit contenir au moins 6 caractères',
@@ -43,7 +43,7 @@ export default function Login() {
 
   const handleMagicLink = async () => {
     if (!email) {
-      setError('Veuillez entrer votre email');
+      setError('Entre ton email');
       return;
     }
 
@@ -65,7 +65,7 @@ export default function Login() {
       <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full text-center" role="status" aria-live="polite">
           <Mail className="w-16 h-16 text-primary-500 mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Vérifiez votre boîte mail</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Vérifie ta boîte mail</h1>
           <p className="text-gray-600 mb-6">
             Nous avons envoyé un lien de connexion à <strong>{email}</strong>
           </p>
@@ -92,7 +92,7 @@ export default function Login() {
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">FoodTruck SaaS</h1>
-          <p className="text-gray-600 mt-2">Connectez-vous à votre espace</p>
+          <p className="text-gray-600 mt-2">Connecte-toi à ton espace</p>
         </div>
 
         {/* Two main action buttons */}
@@ -165,7 +165,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input pl-10 pr-10"
-                  placeholder="Entrez votre mot de passe"
+                  placeholder="Ton mot de passe"
                   required
                   aria-required="true"
                   autoComplete="current-password"

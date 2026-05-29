@@ -22,7 +22,7 @@ const templates: OfferTemplate[] = [
     icon: Package,
     title: 'Menu / Formule',
     example: 'Entrée + Plat + Boisson = 15€',
-    description: 'Créez une formule à prix fixe avec plusieurs choix',
+    description: 'Crée une formule à prix fixe avec plusieurs choix',
     color: 'text-white',
     bgColor: 'bg-white hover:bg-gray-50 border-gray-200 hover:border-primary-500 hover:shadow-md',
     popular: true,
@@ -61,9 +61,9 @@ export function OfferTypeSelector({ onSelect }: OfferTypeSelectorProps) {
     <div className="space-y-4">
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Quel type d'offre voulez-vous créer ?
+          Quel type d'offre veux-tu créer ?
         </h3>
-        <p className="text-sm text-gray-500">Choisissez le modèle qui correspond à votre besoin</p>
+        <p className="text-sm text-gray-500">Choisis le modèle qui correspond à ton besoin</p>
       </div>
 
       <div className="grid gap-3">

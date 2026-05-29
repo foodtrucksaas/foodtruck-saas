@@ -33,7 +33,7 @@ export function RecurringScheduleTab({
   readOnly,
 }: RecurringScheduleTabProps) {
   const disabledTitle = readOnly
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
   return (
     <section>
@@ -57,7 +57,7 @@ export function RecurringScheduleTab({
 
       {locations.length === 0 && (
         <div className="card p-3 sm:p-4 bg-warning-50 border-warning-200 text-warning-700 text-xs sm:text-sm">
-          Créez d'abord un emplacement dans l'onglet "Emplacements" avant d'ajouter des horaires.
+          Crée d'abord un emplacement dans l'onglet "Emplacements" avant d'ajouter des horaires.
         </div>
       )}
 

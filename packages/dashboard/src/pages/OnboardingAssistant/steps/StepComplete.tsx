@@ -209,9 +209,9 @@ export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCom
         {foodtruckUrl && (
           <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
             <div>
-              <h3 className="font-semibold text-gray-900">Partagez votre lien</h3>
+              <h3 className="font-semibold text-gray-900">Partage ton lien</h3>
               <p className="text-sm text-gray-500 mt-1">
-                Vos clients peuvent commander via ce lien.
+                Tes clients peuvent commander via ce lien.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCom
           <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-card">
             <div className="flex items-center gap-2">
               <QrCode className="w-5 h-5 text-primary-500" />
-              <h3 className="font-semibold text-gray-900">Votre QR Code</h3>
+              <h3 className="font-semibold text-gray-900">Ton QR Code</h3>
             </div>
             <div className="flex flex-col items-center gap-3">
               <div
@@ -295,23 +295,21 @@ export function StepComplete({ foodtruck, onComplete, onGoToDashboard }: StepCom
         {/* Next steps checklist */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3 shadow-card">
           <h3 className="font-semibold text-gray-900">Prochaines étapes</h3>
-          <p className="text-sm text-gray-500">
-            Complétez votre profil pour attirer plus de clients.
-          </p>
+          <p className="text-sm text-gray-500">Complète ton profil pour attirer plus de clients.</p>
           <div className="space-y-2">
             {[
               {
                 icon: FileText,
-                label: 'Ajoutez une description à votre foodtruck',
+                label: 'Ajoute une description à ton foodtruck',
                 to: '/settings',
               },
               {
                 icon: UtensilsCrossed,
-                label: 'Ajoutez des descriptions à vos articles',
+                label: 'Ajoute des descriptions à tes articles',
                 to: '/menu',
               },
-              { icon: Heart, label: 'Configurez votre programme de fidélité', to: '/settings' },
-              { icon: QrCode, label: 'Téléchargez votre QR code', to: '/settings' },
+              { icon: Heart, label: 'Configure ton programme de fidélité', to: '/settings' },
+              { icon: QrCode, label: 'Télécharge ton QR code', to: '/settings' },
             ].map(({ icon: Icon, label, to }) => (
               <button
                 key={label}

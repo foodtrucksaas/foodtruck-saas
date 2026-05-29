@@ -20,8 +20,8 @@ export default function ForgotPassword() {
 
     if (resetError) {
       const translations: Record<string, string> = {
-        'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
-        'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+        'Too many requests': 'Trop de tentatives, réessaie plus tard',
+        'Email rate limit exceeded': "Trop d'emails envoyés, réessaie plus tard",
         'User not found': 'Aucun compte associé à cet email.',
       };
       setError(translations[resetError.message] || resetError.message);
@@ -41,11 +41,11 @@ export default function ForgotPassword() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Email envoyé</h2>
           <p className="text-gray-600 mb-6">
-            Si un compte existe avec l'adresse <strong>{email}</strong>, vous recevrez un lien pour
-            réinitialiser votre mot de passe.
+            Si un compte existe avec l'adresse <strong>{email}</strong>, tu recevras un lien pour
+            réinitialiser ton mot de passe.
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Pensez à vérifier vos spams si vous ne trouvez pas l'email.
+            Pense à vérifier tes spams si tu ne trouves pas l'email.
           </p>
           <Link
             to="/login"
@@ -68,7 +68,7 @@ export default function ForgotPassword() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Mot de passe oublié</h1>
           <p className="text-gray-600 mt-2">
-            Entrez votre email pour recevoir un lien de réinitialisation
+            Entre ton email pour recevoir un lien de réinitialisation
           </p>
         </div>
 

@@ -91,7 +91,7 @@ export function OrderSettingsSection({
                   value: false,
                   icon: Hand,
                   title: 'Manuelle',
-                  description: 'Vous validez chaque commande reçue',
+                  description: 'Tu valides chaque commande reçue',
                 },
                 {
                   value: true,
@@ -322,7 +322,7 @@ export function OrderSettingsSection({
                       value: false,
                       icon: Clock,
                       title: "Heures d'ouverture",
-                      description: 'Les clients ne peuvent commander que si vous êtes ouvert',
+                      description: 'Les clients ne peuvent commander que si tu es ouvert',
                     },
                   ]}
                 />
@@ -389,7 +389,7 @@ export function OrderSettingsSection({
               <p className="text-sm text-gray-500 mb-3">
                 {foodtruck?.auto_accept_orders
                   ? 'En mode automatique, la commande est placée sur le premier créneau disponible.'
-                  : 'En mode manuel, vous choisissez l\'heure de retrait pour chaque commande "Au plus vite".'}
+                  : 'En mode manuel, tu choisis l\'heure de retrait pour chaque commande "Au plus vite".'}
               </p>
               <ToggleCards
                 currentValue={editForm.allow_asap_orders}

@@ -167,7 +167,7 @@ export function useSettings() {
               editForm.slug.length > 50
             ) {
               setEditError(
-                'Format invalide. Utilisez uniquement des lettres minuscules, chiffres et tirets (3-50 caractères)'
+                'Format invalide. Utilise uniquement des lettres minuscules, chiffres et tirets (3-50 caractères)'
               );
               setEditLoading(false);
               return;

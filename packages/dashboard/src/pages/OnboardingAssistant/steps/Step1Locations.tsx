@@ -163,7 +163,7 @@ export function Step1Locations({ foodtruckId, onNext }: Step1LocationsProps) {
       <StepContainer onNext={handleContinue} nextLabel="Continuer" showBack={false}>
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Vos emplacements</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Tes emplacements</h2>
             <p className="text-sm text-gray-500 mt-1">
               {locations.length} emplacement{locations.length > 1 ? 's' : ''} configure
               {locations.length > 1 ? 's' : ''}
@@ -234,12 +234,12 @@ export function Step1Locations({ foodtruckId, onNext }: Step1LocationsProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {locations.length === 0 ? 'Ou etes-vous installe ?' : 'Nouvel emplacement'}
+            {locations.length === 0 ? 'Où es-tu installé ?' : 'Nouvel emplacement'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {locations.length === 0
-              ? 'Ajoutez votre premier emplacement.'
-              : 'Ajoutez un emplacement supplementaire.'}
+              ? 'Ajoute ton premier emplacement.'
+              : 'Ajoute un emplacement supplémentaire.'}
           </p>
         </div>
 

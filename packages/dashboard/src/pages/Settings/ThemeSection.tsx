@@ -41,7 +41,7 @@ export default function ThemeSection() {
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-bold text-gray-900">Thème de couleur</h2>
-          <p className="text-sm text-gray-500">Personnalisez l'apparence de votre page client</p>
+          <p className="text-sm text-gray-500">Personnalise l'apparence de ta page client</p>
         </div>
         {saving && <Loader2 className="w-5 h-5 animate-spin text-primary-500 flex-shrink-0" />}
         {success && (
@@ -89,7 +89,7 @@ export default function ThemeSection() {
       </div>
 
       <p className="text-xs text-gray-400 mt-4">
-        Le thème s'applique à votre page de commande vue par les clients. Le dashboard conserve
+        Le thème s'applique à ta page de commande vue par les clients. Le dashboard conserve
         toujours le thème par défaut.
       </p>
     </div>

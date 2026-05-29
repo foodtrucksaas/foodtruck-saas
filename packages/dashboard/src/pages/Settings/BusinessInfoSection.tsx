@@ -118,7 +118,7 @@ export function BusinessInfoSection({ foodtruck }: BusinessInfoSectionProps) {
             )}
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            Affiché sur votre page pour rassurer vos clients
+            Affiché sur ta page pour rassurer tes clients
           </p>
           {error && <ErrorAlert className="mt-2">{error}</ErrorAlert>}
           {successMessage && <SuccessAlert className="mt-2">{successMessage}</SuccessAlert>}

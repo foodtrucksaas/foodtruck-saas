@@ -7,10 +7,10 @@ import { isValidPassword } from '@foodtruck/shared';
 function translateAuthError(message: string): string {
   const translations: Record<string, string> = {
     'Invalid login credentials': 'Email ou mot de passe incorrect',
-    'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
+    'Email not confirmed': 'Confirme ton email avant de te connecter',
     'User not found': 'Aucun compte associé à cet email.',
-    'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
-    'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
+    'Too many requests': 'Trop de tentatives, réessaie plus tard',
+    'Email rate limit exceeded': "Trop d'emails envoyés, réessaie plus tard",
     'User already registered': 'Un compte existe déjà avec cet email',
     'Password should be at least 6 characters':
       'Le mot de passe doit contenir au moins 6 caractères',
@@ -51,7 +51,7 @@ export default function Register() {
     if (signUpError) {
       setError(translateAuthError(signUpError.message));
     } else {
-      setSuccess('Compte créé ! Vérifiez votre email pour confirmer.');
+      setSuccess('Compte créé ! Vérifie ton email pour confirmer.');
       setTimeout(() => navigate('/login'), 2000);
     }
 
@@ -66,7 +66,7 @@ export default function Register() {
             <UtensilsCrossed className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Créer un compte</h1>
-          <p className="text-gray-600 mt-2">Digitalisez vos pré-commandes en 5 minutes</p>
+          <p className="text-gray-600 mt-2">Digitalise tes pré-commandes en 5 minutes</p>
         </div>
 
         <div className="card p-6">
@@ -111,7 +111,7 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input pl-10 pr-10"
-                  placeholder="Votre mot de passe"
+                  placeholder="Ton mot de passe"
                   required
                 />
                 <button
@@ -159,7 +159,7 @@ export default function Register() {
 
           {/* Legal */}
           <p className="text-center text-xs text-gray-400 mt-3">
-            En créant un compte, vous acceptez nos{' '}
+            En créant un compte, tu acceptes nos{' '}
             <a
               href="https://onmange.app/cgu"
               target="_blank"

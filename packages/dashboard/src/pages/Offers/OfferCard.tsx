@@ -110,7 +110,7 @@ export function OfferCard({
   readOnly,
 }: OfferCardProps) {
   const disabledTitle = readOnly
-    ? 'Réactivez votre abonnement pour utiliser cette fonctionnalité.'
+    ? 'Réactive ton abonnement pour utiliser cette fonctionnalité.'
     : undefined;
   const Icon = typeIcons[offer.offer_type];
   const colorClass = typeColors[offer.offer_type];

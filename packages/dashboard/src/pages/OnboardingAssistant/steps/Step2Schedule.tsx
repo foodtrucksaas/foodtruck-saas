@@ -175,10 +175,9 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
     <StepContainer onBack={onBack} onNext={onNext} nextLabel="Continuer" nextDisabled={!hasSlots}>
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Votre planning</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Ton planning</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Configurez vos jours et horaires de travail. Vous pouvez ajouter plusieurs creneaux par
-            jour.
+            Configure tes jours et horaires de travail. Tu peux ajouter plusieurs créneaux par jour.
           </p>
         </div>
 
@@ -334,7 +333,7 @@ export function Step2Schedule({ foodtruckId, onNext, onBack }: Step2ScheduleProp
 
         {/* Info */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-800">
-          <span className="font-medium">Bon a savoir :</span> vous pourrez gerer les exceptions
+          <span className="font-medium">Bon à savoir :</span> tu pourras gérer les exceptions
           (vacances, jours feries) depuis la page Planning du tableau de bord.
         </div>
       </div>

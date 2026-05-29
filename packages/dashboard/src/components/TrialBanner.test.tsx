@@ -102,7 +102,7 @@ describe('TrialBanner', () => {
 
     const banner = screen.getByTestId('trial-banner');
     expect(banner.className).toContain('bg-red-50');
-    expect(screen.getByText('Votre essai se termine demain')).toBeDefined();
+    expect(screen.getByText('Ton essai se termine demain')).toBeDefined();
   });
 
   it('renders red banner for 0 days (today)', () => {
@@ -115,7 +115,7 @@ describe('TrialBanner', () => {
     mockSubscription.daysRemainingInTrial = 0;
     renderBanner();
 
-    expect(screen.getByText("Votre essai se termine aujourd'hui")).toBeDefined();
+    expect(screen.getByText("Ton essai se termine aujourd'hui")).toBeDefined();
   });
 
   it('shows "Ajouter ma carte bancaire" link when no stripe subscription', () => {
