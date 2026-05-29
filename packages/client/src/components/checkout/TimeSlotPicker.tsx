@@ -78,7 +78,7 @@ export function TimeSlotPicker({
   return (
     <div
       className="bg-white rounded-2xl border border-gray-100 p-5"
-      style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+      style={{ boxShadow: '0 4px 12px rgba(45, 45, 45, 0.08)' }}
     >
       {/* Date Picker - Compact display */}
       {availableDates.length > 0 ? (

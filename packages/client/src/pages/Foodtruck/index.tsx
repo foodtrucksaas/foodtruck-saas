@@ -371,7 +371,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
         <div className="px-4 -mt-8 relative z-10">
           <div
             className="bg-white rounded-2xl border border-gray-100/80 p-4"
-            style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)' }}
+            style={{ boxShadow: '0 4px 20px rgba(45, 45, 45, 0.06)' }}
           >
             <div className="flex gap-3">
               {foodtruck.logo_url ? (
@@ -438,7 +438,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             /* Itinerant: show all locations for today */
             <div
               className="bg-white rounded-xl border border-gray-100 p-3"
-              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+              style={{ boxShadow: '0 2px 8px rgba(45, 45, 45, 0.06)' }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
@@ -477,7 +477,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             /* Fixed: just show hours */
             <div
               className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3"
-              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+              style={{ boxShadow: '0 2px 8px rgba(45, 45, 45, 0.06)' }}
             >
               <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-primary-500" />

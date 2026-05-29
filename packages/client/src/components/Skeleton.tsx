@@ -20,7 +20,8 @@ export function Skeleton({
   className = '',
   ...props
 }: SkeletonProps) {
-  const baseClasses = 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer';
+  const baseClasses =
+    'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer';
 
   const getStyle = () => {
     const style: React.CSSProperties = {};
@@ -77,7 +78,7 @@ export function MenuItemCardSkeleton({ showPhoto = true }: { showPhoto?: boolean
     <div
       aria-hidden="true"
       className="bg-white rounded-xl p-4 flex gap-4 border border-gray-100"
-      style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}
+      style={{ boxShadow: '0 2px 8px rgba(45, 45, 45, 0.04)' }}
     >
       {/* Image skeleton */}
       {showPhoto && (
@@ -115,7 +116,13 @@ export function MenuItemCardSkeleton({ showPhoto = true }: { showPhoto?: boolean
 /**
  * Skeleton for category section with title and menu items
  */
-export function CategorySkeleton({ itemCount = 3, showPhoto = true }: { itemCount?: number; showPhoto?: boolean }) {
+export function CategorySkeleton({
+  itemCount = 3,
+  showPhoto = true,
+}: {
+  itemCount?: number;
+  showPhoto?: boolean;
+}) {
   return (
     <div aria-hidden="true">
       {/* Category title */}
@@ -138,10 +145,7 @@ export function CategorySkeleton({ itemCount = 3, showPhoto = true }: { itemCoun
  */
 export function OrderCardSkeleton() {
   return (
-    <div
-      aria-hidden="true"
-      className="bg-white rounded-xl shadow-card border border-gray-100 p-4"
-    >
+    <div aria-hidden="true" className="bg-white rounded-xl shadow-card border border-gray-100 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           {/* Order ID and status */}
@@ -290,7 +294,7 @@ export function FoodtruckHeaderSkeleton() {
       <div className="px-4 -mt-10 relative z-10">
         <div
           className="bg-white rounded-xl border border-gray-100 p-3"
-          style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+          style={{ boxShadow: '0 4px 12px rgba(45, 45, 45, 0.08)' }}
         >
           <div className="flex gap-3">
             <Skeleton

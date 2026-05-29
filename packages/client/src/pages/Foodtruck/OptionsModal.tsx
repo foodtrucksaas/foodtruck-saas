@@ -241,7 +241,7 @@ export default function OptionsModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-100 p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div className="flex-shrink-0 bg-white border-t border-gray-100 p-4 shadow-[0_-4px_12px_rgba(45,45,45,0.05)]">
           <button
             onClick={handleConfirm}
             disabled={!isValid()}

@@ -24,7 +24,7 @@ export function PromoCodeSection({
   return (
     <div
       className="bg-white rounded-2xl border border-gray-100 p-5"
-      style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+      style={{ boxShadow: '0 4px 12px rgba(45, 45, 45, 0.08)' }}
     >
       <h2 className="font-bold text-anthracite mb-4 flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-info-50 flex items-center justify-center">

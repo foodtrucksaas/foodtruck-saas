@@ -621,7 +621,7 @@ export default function BundleBuilder({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.1)]">
+        <div className="sticky bottom-0 bg-white border-t px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(45,45,45,0.1)]">
           {/* Summary */}
           {selections.some((s) => s !== null) && (
             <div className="mb-3 p-3 bg-gray-50 rounded-xl">

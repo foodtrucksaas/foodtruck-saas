@@ -4,22 +4,6 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      // Semantic colors — kept from existing config until Sprint B3 migration
-      colors: {
-        success: {
-          50: '#ECFDF5',
-          100: '#D1FAE5',
-          200: '#A7F3D0',
-          500: '#10B981',
-          600: '#059669',
-          700: '#047857',
-        },
-        error: {
-          50: '#FEF2F2',
-          500: '#EF4444',
-          600: '#DC2626',
-        },
-      },
       animation: {
         'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
         'fade-in': 'fadeIn 0.4s ease-out forwards',

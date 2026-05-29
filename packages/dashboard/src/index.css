@@ -42,7 +42,7 @@
   button,
   a,
   [role='button'] {
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-tap-highlight-color: rgba(45, 45, 45, 0.1);
     touch-action: manipulation;
   }
 
@@ -122,14 +122,14 @@
 
   .btn-primary {
     @apply btn bg-primary-500 text-white focus:ring-primary-500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
   .btn-primary:hover:not(:disabled):not([aria-disabled='true']) {
     @apply bg-primary-600;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.12);
   }
   .btn-primary:active:not(:disabled):not([aria-disabled='true']) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
   .btn-primary:disabled,
   .btn-primary[aria-disabled='true'] {
@@ -149,16 +149,15 @@
   }
 
   .btn-danger {
-    @apply btn text-white focus:ring-red-500;
-    background-color: #ef4444;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    @apply btn text-white bg-error-500 focus:ring-error-500;
+    box-shadow: 0 4px 12px rgba(194, 85, 61, 0.2);
   }
   .btn-danger:hover:not(:disabled):not([aria-disabled='true']) {
-    background-color: #dc2626;
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+    @apply bg-error-600;
+    box-shadow: 0 8px 24px rgba(194, 85, 61, 0.25);
   }
   .btn-danger:active:not(:disabled):not([aria-disabled='true']) {
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    box-shadow: 0 4px 12px rgba(194, 85, 61, 0.2);
   }
   .btn-danger:disabled,
   .btn-danger[aria-disabled='true'] {
@@ -167,16 +166,15 @@
   }
 
   .btn-success {
-    @apply btn text-white focus:ring-green-500;
-    background-color: #10b981;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    @apply btn text-white bg-success-500 focus:ring-success-500;
+    box-shadow: 0 4px 12px rgba(122, 148, 96, 0.2);
   }
   .btn-success:hover:not(:disabled):not([aria-disabled='true']) {
-    background-color: #059669;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    @apply bg-success-600;
+    box-shadow: 0 8px 24px rgba(122, 148, 96, 0.25);
   }
   .btn-success:active:not(:disabled):not([aria-disabled='true']) {
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(122, 148, 96, 0.2);
   }
   .btn-success:disabled,
   .btn-success[aria-disabled='true'] {
@@ -205,7 +203,7 @@
 
   .card {
     @apply bg-white rounded-2xl border border-gray-100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
@@ -217,52 +215,36 @@
   }
 
   .badge-success {
-    @apply badge;
-    background-color: #ecfdf5;
-    color: #059669;
+    @apply badge bg-success-50 text-success-800;
   }
 
   .badge-warning {
-    @apply badge;
-    background-color: #fffbeb;
-    color: #d97706;
+    @apply badge bg-warning-50 text-warning-800;
   }
 
   .badge-error {
-    @apply badge;
-    background-color: #fef2f2;
-    color: #dc2626;
+    @apply badge bg-error-50 text-error-800;
   }
 
   .badge-info {
-    @apply badge;
-    background-color: #eff6ff;
-    color: #2563eb;
+    @apply badge bg-info-50 text-info-800;
   }
 
   /* Order status badges */
   .badge-pending {
-    @apply badge;
-    background-color: #fffbeb;
-    color: #d97706;
+    @apply badge bg-pending-50 text-pending-800;
   }
 
   .badge-confirmed {
-    @apply badge;
-    background-color: #eff6ff;
-    color: #2563eb;
+    @apply badge bg-info-50 text-info-800;
   }
 
   .badge-ready {
-    @apply badge;
-    background-color: #ecfdf5;
-    color: #059669;
+    @apply badge bg-success-50 text-success-800;
   }
 
   .badge-done {
-    @apply badge;
-    background-color: #f3f4f6;
-    color: #6b7280;
+    @apply badge bg-sand-200 text-anthracite;
   }
 
   /* Status dots for order cards */
@@ -271,15 +253,15 @@
   }
 
   .status-dot-pending {
-    @apply bg-warning-500 ring-warning-100;
+    @apply bg-warning-500 ring-warning-50;
   }
 
   .status-dot-confirmed {
-    @apply bg-info-500 ring-info-100;
+    @apply bg-info-500 ring-info-50;
   }
 
   .status-dot-ready {
-    @apply bg-success-500 ring-success-100;
+    @apply bg-success-500 ring-success-50;
   }
 
   .status-dot-done {
@@ -292,12 +274,12 @@
   }
   .card-interactive:hover {
     @apply border-gray-200;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.1);
     transform: translateY(-2px);
   }
   .card-interactive:active {
     transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
 
   /* Button with loading spinner */

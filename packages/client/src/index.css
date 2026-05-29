@@ -31,22 +31,22 @@
 
   .btn-primary {
     @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
   .btn-primary:hover:not(:disabled) {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.12);
   }
   .btn-primary:active:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
 
   .btn-secondary {
     @apply btn text-white hover:bg-gray-800 focus:ring-gray-500;
     background-color: #2d2d2d;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.1);
   }
   .btn-secondary:hover:not(:disabled) {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.15);
   }
 
   .btn-outline {
@@ -77,15 +77,15 @@
 
   .card {
     @apply bg-white rounded-2xl border border-gray-100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
 
   .card-hover {
     @apply bg-white rounded-2xl border border-gray-100 transition-shadow;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
   .card-hover:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.12);
   }
 
   /* Status badges */
@@ -95,27 +95,19 @@
   }
 
   .badge-success {
-    @apply badge;
-    background-color: #ecfdf5;
-    color: #059669;
+    @apply badge bg-success-50 text-success-800;
   }
 
   .badge-warning {
-    @apply badge;
-    background-color: #fffbeb;
-    color: #d97706;
+    @apply badge bg-warning-50 text-warning-800;
   }
 
   .badge-error {
-    @apply badge;
-    background-color: #fef2f2;
-    color: #dc2626;
+    @apply badge bg-error-50 text-error-800;
   }
 
   .badge-info {
-    @apply badge;
-    background-color: #eff6ff;
-    color: #2563eb;
+    @apply badge bg-info-50 text-info-800;
   }
 
   /* Animated card with hover effects */
@@ -124,12 +116,12 @@
   }
   .card-interactive:hover {
     @apply border-gray-200;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(45, 45, 45, 0.1);
     transform: translateY(-2px);
   }
   .card-interactive:active {
     transform: translateY(0) scale(0.98);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
 
   /* Button with press animation */

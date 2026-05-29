@@ -52,7 +52,7 @@ const MenuItemCard = memo(function MenuItemCard({
       style={{
         boxShadow: isInCart
           ? '0 2px 12px rgba(249, 112, 102, 0.08)'
-          : '0 1px 4px rgba(0, 0, 0, 0.04)',
+          : '0 1px 4px rgba(45, 45, 45, 0.04)',
       }}
     >
       {/* Content */}

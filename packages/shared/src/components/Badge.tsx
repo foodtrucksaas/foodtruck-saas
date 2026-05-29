@@ -1,6 +1,14 @@
 import { ReactNode } from 'react';
 
-export type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary';
+export type BadgeVariant =
+  | 'default'
+  | 'corail'
+  | 'marine'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info'
+  | 'pending';
 export type BadgeSize = 'sm' | 'md';
 
 export interface BadgeProps {
@@ -12,12 +20,14 @@ export interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-gray-100 text-gray-700',
-  success: 'bg-green-50 text-green-700',
-  warning: 'bg-amber-50 text-amber-700',
-  error: 'bg-red-50 text-red-700',
-  info: 'bg-blue-50 text-blue-700',
-  primary: 'bg-primary-50 text-primary-700',
+  default: 'bg-sand-200 text-anthracite',
+  corail: 'bg-corail-50 text-corail-800',
+  marine: 'bg-marine-50 text-marine-800',
+  success: 'bg-success-50 text-success-800',
+  warning: 'bg-warning-50 text-warning-800',
+  error: 'bg-error-50 text-error-800',
+  info: 'bg-marine-50 text-marine-800',
+  pending: 'bg-pending-50 text-pending-800',
 };
 
 const sizeClasses: Record<BadgeSize, string> = {
@@ -50,9 +60,9 @@ export function Badge({
 // Preset badges for common statuses
 export function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { variant: BadgeVariant; label: string }> = {
-    pending: { variant: 'warning', label: 'En attente' },
+    pending: { variant: 'pending', label: 'En attente' },
     confirmed: { variant: 'info', label: 'Confirmée' },
-    preparing: { variant: 'primary', label: 'En préparation' },
+    preparing: { variant: 'corail', label: 'En préparation' },
     ready: { variant: 'success', label: 'Prête' },
     completed: { variant: 'default', label: 'Retirée' },
     cancelled: { variant: 'error', label: 'Annulée' },

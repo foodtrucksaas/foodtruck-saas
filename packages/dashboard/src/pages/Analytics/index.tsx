@@ -215,7 +215,7 @@ export default function Analytics() {
                       border: '1px solid #e5e7eb',
                       borderRadius: '12px',
                       padding: '12px 16px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      boxShadow: '0 4px 12px rgba(45,45,45,0.15)',
                       fontSize: '14px',
                     }}
                     cursor={{ fill: 'rgba(30, 58, 95, 0.08)' }}
@@ -254,7 +254,7 @@ export default function Analytics() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '12px',
                     padding: '12px 16px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    boxShadow: '0 4px 12px rgba(45,45,45,0.15)',
                     fontSize: '14px',
                   }}
                   cursor={{ fill: 'rgba(249, 112, 102, 0.1)' }}
@@ -298,7 +298,7 @@ export default function Analytics() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '12px',
                     padding: '10px 14px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    boxShadow: '0 4px 12px rgba(45,45,45,0.15)',
                     fontSize: '13px',
                   }}
                   cursor={{ fill: 'rgba(30, 58, 95, 0.06)' }}
