@@ -14,7 +14,7 @@ export default function TrustSection() {
     <section className="py-16 lg:py-24 bg-gray-50/50">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-anthracite mb-4">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite mb-4">
             Rejoignez les premiers foodtrucks a{' '}
             <span className="text-primary-500">digitaliser</span> leurs commandes
           </h2>

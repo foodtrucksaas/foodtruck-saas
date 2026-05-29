@@ -35,7 +35,7 @@ export default function HowItWorks() {
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
             Simple comme bonjour
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             Lancez-vous en <span className="text-primary-500">3 étapes</span>
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">

@@ -22,7 +22,7 @@ export default function Hero() {
               Essai gratuit — 14 jours offerts
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-anthracite leading-[1.1] tracking-tight animate-fade-in-up">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-anthracite leading-[1.1] tracking-tight animate-fade-in-up">
               Recevez des commandes{' '}
               <span className="relative">
                 <span className="text-primary-500">avant même d'ouvrir</span>

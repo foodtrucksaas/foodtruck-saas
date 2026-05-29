@@ -75,7 +75,7 @@ export default function FAQ() {
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
             Vos questions
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             On répond à vos objections
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">

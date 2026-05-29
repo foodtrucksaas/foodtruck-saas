@@ -40,7 +40,7 @@ export default function Pricing() {
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
             Tarif transparent
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             Un seul tarif, <span className="text-primary-500">tout inclus</span>
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">

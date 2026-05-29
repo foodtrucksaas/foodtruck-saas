@@ -33,7 +33,7 @@ export default function ProductDemo() {
     <section id="product-demo" className="py-20 lg:py-28 bg-gray-50/60">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             Découvrez OnMange <span className="text-primary-500">en action</span>
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">

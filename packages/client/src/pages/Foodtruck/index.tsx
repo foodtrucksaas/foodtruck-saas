@@ -302,7 +302,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
             <div className="absolute -bottom-20 -left-10 w-60 h-60 bg-white/5 rounded-full" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full px-4">
-              <h1 className="text-white text-2xl font-bold drop-shadow-lg">{foodtruck.name}</h1>
+              <h1 className="font-serif text-white text-2xl font-semibold drop-shadow-lg">
+                {foodtruck.name}
+              </h1>
               <p className="text-white/80 text-sm mt-1">{foodtruck.cuisine_types?.join(' - ')}</p>
               {/* Today's schedule info */}
               <div className="mt-3">
@@ -400,7 +402,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold text-anthracite truncate">{foodtruck.name}</h1>
+                <h1 className="font-serif text-lg font-semibold text-anthracite truncate">
+                  {foodtruck.name}
+                </h1>
                 <p className="text-primary-500 font-medium text-sm">
                   {foodtruck.cuisine_types?.join(' - ') || 'Non specifie'}
                 </p>

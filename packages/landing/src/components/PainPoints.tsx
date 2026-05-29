@@ -36,7 +36,7 @@ export default function PainPoints() {
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
             Le problème
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             Vous laissez du chiffre d'affaires{' '}
             <span className="text-primary-500">sur la table</span>
           </h2>

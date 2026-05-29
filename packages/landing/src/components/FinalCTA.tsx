@@ -19,7 +19,7 @@ export default function FinalCTA() {
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-4">
             C'est le moment
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-anthracite max-w-3xl mx-auto leading-tight">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-anthracite max-w-3xl mx-auto leading-tight">
             Chaque jour sans OnMange, ce sont des{' '}
             <span className="text-primary-500">commandes que vous ne recevez pas</span>
           </h2>

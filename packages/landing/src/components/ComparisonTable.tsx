@@ -110,7 +110,7 @@ export default function ComparisonTable() {
     <section id="comparison" className="py-16 lg:py-24 bg-white">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             OnMange vs les alternatives
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">

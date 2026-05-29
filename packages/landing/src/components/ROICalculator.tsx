@@ -36,7 +36,7 @@ export default function ROICalculator() {
             <Calculator className="w-4 h-4" />
             Simulateur de rentabilité
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-anthracite">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             OnMange se rentabilise en{' '}
             <span className="text-primary-500">2 à 3 commandes par semaine</span>
           </h2>
