@@ -1,5 +1,5 @@
 :root {
-  /* Primary — Corail */
+  /* Primary — Corail (named color, fixed) */
   --color-corail-50: #fff1e8;
   --color-corail-100: #ffe4e1;
   --color-corail-200: #ffccc7;
@@ -10,6 +10,30 @@
   --color-corail-700: #c44038;
   --color-corail-800: #a33530;
   --color-corail-900: #862d2b;
+
+  /* Dynamic primary — RGB channels for Tailwind opacity support.
+     Defaults to corail palette; overridden by applyTheme() at runtime. */
+  --primary-50: 255 241 239;
+  --primary-100: 255 224 220;
+  --primary-200: 255 197 189;
+  --primary-300: 255 160 148;
+  --primary-400: 251 132 119;
+  --primary-500: 249 112 102;
+  --primary-600: 229 83 74;
+  --primary-700: 196 64 56;
+
+  /* Hex variants for direct use (box-shadow, SVG fill, etc.) */
+  --color-primary-50: #fff1ef;
+  --color-primary-100: #ffe0dc;
+  --color-primary-200: #ffc5bd;
+  --color-primary-300: #ffa094;
+  --color-primary-400: #fb8477;
+  --color-primary-500: #f97066;
+  --color-primary-600: #e5534a;
+  --color-primary-700: #c44038;
+
+  /* Text color on primary accent background (white for most themes, dark for Safran) */
+  --color-primary-on: #ffffff;
 
   /* Secondary — Marine */
   --color-marine-50: #eef2f7;

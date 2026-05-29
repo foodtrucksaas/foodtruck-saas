@@ -16,20 +16,17 @@ module.exports = {
           900: '#862D2B',
           950: '#491413',
         },
-        // Backward compat — existing code uses `primary-*` everywhere.
-        // Will be removed once migration to `corail-*` is complete.
+        // Dynamic primary — driven by CSS vars so applyTheme() can swap palettes.
+        // Defaults (corail) are set in tokens.css; overridden at runtime per food truck.
         primary: {
-          50: '#FFF1E8',
-          100: '#FFE4E1',
-          200: '#FFCCC7',
-          300: '#FFA69E',
-          400: '#FF8075',
-          500: '#F97066',
-          600: '#E65A50',
-          700: '#C44038',
-          800: '#A33530',
-          900: '#862D2B',
-          950: '#491413',
+          50: 'rgb(var(--primary-50) / <alpha-value>)',
+          100: 'rgb(var(--primary-100) / <alpha-value>)',
+          200: 'rgb(var(--primary-200) / <alpha-value>)',
+          300: 'rgb(var(--primary-300) / <alpha-value>)',
+          400: 'rgb(var(--primary-400) / <alpha-value>)',
+          500: 'rgb(var(--primary-500) / <alpha-value>)',
+          600: 'rgb(var(--primary-600) / <alpha-value>)',
+          700: 'rgb(var(--primary-700) / <alpha-value>)',
         },
         marine: {
           50: '#EEF2F7',

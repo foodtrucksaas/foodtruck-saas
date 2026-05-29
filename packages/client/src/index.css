@@ -30,7 +30,8 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+    @apply btn bg-primary-500 hover:bg-primary-600 focus:ring-primary-500;
+    color: var(--color-primary-on, #ffffff);
     box-shadow: 0 4px 12px rgba(45, 45, 45, 0.08);
   }
   .btn-primary:hover:not(:disabled) {
