@@ -425,7 +425,7 @@ export default function BundleBuilder({
                   onClick={() => setCurrentStep(index)}
                   className={`flex-1 py-3 px-3 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
                     isCurrent
-                      ? 'bg-primary-500 text-white'
+                      ? 'bg-primary-500 text-on-accent'
                       : isComplete
                         ? 'bg-emerald-100 text-emerald-700'
                         : 'bg-gray-200 text-gray-500'
@@ -677,7 +677,7 @@ export default function BundleBuilder({
             {isSupplementPhase ? (
               <button
                 onClick={handleConfirmSupplements}
-                className="flex-1 py-3 rounded-xl font-semibold bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98] transition-all"
+                className="flex-1 py-3 rounded-xl font-semibold bg-primary-500 text-on-accent hover:bg-primary-600 active:scale-[0.98] transition-all"
               >
                 Continuer
               </button>
@@ -687,7 +687,7 @@ export default function BundleBuilder({
                 disabled={!allSelected}
                 className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                   allSelected
-                    ? 'bg-primary-500 text-white hover:bg-primary-600 active:scale-[0.98]'
+                    ? 'bg-primary-500 text-on-accent hover:bg-primary-600 active:scale-[0.98]'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >

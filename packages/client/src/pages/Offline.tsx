@@ -41,7 +41,7 @@ export default function Offline() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       {/* Header */}
-      <div className="bg-primary-500 text-white px-4 pt-12 pb-8">
+      <div className="bg-primary-500 text-on-accent px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto text-center">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <WifiOff className="w-8 h-8 text-white" />

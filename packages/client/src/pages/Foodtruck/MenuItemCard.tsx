@@ -62,7 +62,7 @@ const MenuItemCard = memo(function MenuItemCard({
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-anthracite text-[15px] leading-tight">{item.name}</h3>
             {isInCart && hasOptions && (
-              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary-600 text-white text-xs font-bold flex items-center justify-center animate-bounce-in">
+              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary-600 text-on-accent text-xs font-bold flex items-center justify-center animate-bounce-in">
                 {quantity}
               </span>
             )}
@@ -113,7 +113,7 @@ const MenuItemCard = memo(function MenuItemCard({
                   type="button"
                   onClick={() => onUpdate(1)}
                   aria-label={`Ajouter un ${item.name}`}
-                  className="w-11 h-11 rounded-full bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
+                  className="w-11 h-11 rounded-full bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent flex items-center justify-center transition-all active:scale-95 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
                 >
                   <Plus className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -141,7 +141,7 @@ const MenuItemCard = memo(function MenuItemCard({
                       ? `Choisir les options pour ${item.name}`
                       : `Ajouter ${item.name} au panier`
                   }
-                  className="h-11 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                  className="h-11 px-5 rounded-lg text-sm font-semibold transition-all active:scale-95 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
                   {hasOptions ? 'Choisir' : 'Ajouter'}
                 </button>

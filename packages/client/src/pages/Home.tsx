@@ -48,7 +48,7 @@ export default function Home() {
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}
-      <div className="bg-primary-500 text-white px-4 pt-12 pb-8">
+      <div className="bg-primary-500 text-on-accent px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
           <h1 className="text-2xl font-bold mb-2">FoodTruck</h1>
           <p className="text-primary-100 mb-6">
@@ -113,7 +113,7 @@ export default function Home() {
             <p className="text-gray-700 mb-4">{error}</p>
             <button
               onClick={fetchFoodtrucks}
-              className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] bg-primary-500 text-on-accent rounded-xl font-medium hover:bg-primary-600 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Réessayer

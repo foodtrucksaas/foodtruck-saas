@@ -189,7 +189,7 @@ export default function LocationCard({
         <div className="p-4 bg-gray-50/50">
           <button
             onClick={openNavigation}
-            className="w-full flex items-center justify-center gap-2 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-on-accent rounded-xl font-semibold transition-colors active:scale-[0.98]"
           >
             <Navigation className="w-5 h-5" />
             Itinéraire

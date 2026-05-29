@@ -163,7 +163,7 @@ export function TimeSlotPicker({
                 isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
               }`}
             >
-              <Zap className={`w-5 h-5 ${isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
+              <Zap className={`w-5 h-5 ${isAsapSelected ? 'text-on-accent' : 'text-gray-500'}`} />
             </div>
             <div className="text-left flex-1">
               <p
@@ -196,7 +196,9 @@ export function TimeSlotPicker({
                 !isAsapSelected ? 'bg-primary-500' : 'bg-gray-100'
               }`}
             >
-              <Clock className={`w-5 h-5 ${!isAsapSelected ? 'text-white' : 'text-gray-500'}`} />
+              <Clock
+                className={`w-5 h-5 ${!isAsapSelected ? 'text-on-accent' : 'text-gray-500'}`}
+              />
             </div>
             <div className="text-left flex-1">
               <p

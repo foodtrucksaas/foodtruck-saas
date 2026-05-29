@@ -485,7 +485,7 @@ export default function Checkout({ slug }: CheckoutProps) {
         <p className="text-gray-500 mb-4">Votre panier est vide</p>
         <Link
           to={slug ? '/' : `/${urlIdentifier}`}
-          className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-on-accent font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Voir le menu
         </Link>
@@ -629,7 +629,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                   onClick={() => setForm({ ...form, isAsap: !form.isAsap })}
                   className={`px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all active:scale-95 ${
                     form.isAsap
-                      ? 'bg-primary-500 text-white'
+                      ? 'bg-primary-500 text-on-accent'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -793,7 +793,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                 <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                   {form.emailOptIn && (
                     <svg
-                      className="w-4 h-4 text-white"
+                      className="w-4 h-4 text-on-accent"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -818,7 +818,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                   <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                     {form.smsOptIn && (
                       <svg
-                        className="w-4 h-4 text-white"
+                        className="w-4 h-4 text-on-accent"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -854,7 +854,7 @@ export default function Checkout({ slug }: CheckoutProps) {
                       <div className="w-6 h-6 rounded-md border-2 border-gray-300 peer-checked:border-primary-500 peer-checked:bg-primary-500 transition-all flex items-center justify-center bg-white">
                         {form.loyaltyOptIn && (
                           <svg
-                            className="w-4 h-4 text-white"
+                            className="w-4 h-4 text-on-accent"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -890,7 +890,7 @@ export default function Checkout({ slug }: CheckoutProps) {
           onClick={handleSubmit}
           disabled={submitting || (!form.isAsap && (!form.pickupTime || slots.length === 0))}
           aria-busy={submitting}
-          className="w-full py-3.5 min-h-[52px] rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          className="w-full py-3.5 min-h-[52px] rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-primary-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           {submitting ? (
             <>
@@ -900,7 +900,7 @@ export default function Checkout({ slug }: CheckoutProps) {
           ) : (
             <>
               <span>Confirmer la commande</span>
-              <span className="text-white/60" aria-hidden="true">
+              <span className="opacity-60" aria-hidden="true">
                 .
               </span>
               <span>{formatPrice(finalTotal)}</span>

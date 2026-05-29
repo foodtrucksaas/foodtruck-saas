@@ -667,7 +667,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             <span className="font-bold text-primary-600 whitespace-nowrap">
                               {formatPrice(bundle.config.fixed_price)}
                             </span>
-                            <span className="text-xs px-2.5 py-1 bg-primary-500 text-white rounded-full font-medium">
+                            <span className="text-xs px-2.5 py-1 bg-primary-500 text-on-accent rounded-full font-medium">
                               Composer
                             </span>
                           </div>
@@ -1006,7 +1006,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             {DAY_NAMES[day]}
                           </span>
                           {isToday && (
-                            <span className="text-xs bg-primary-500 text-white px-2.5 py-1 rounded-full font-semibold">
+                            <span className="text-xs bg-primary-500 text-on-accent px-2.5 py-1 rounded-full font-semibold">
                               Aujourd'hui
                             </span>
                           )}
@@ -1071,7 +1071,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
         <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
           <Link
             to={checkoutPath}
-            className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-white font-semibold transition-all active:scale-[0.98] block overflow-hidden"
+            className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent font-semibold transition-all active:scale-[0.98] block overflow-hidden"
             style={{ boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }}
           >
             {/* Discount banner integrated in button */}

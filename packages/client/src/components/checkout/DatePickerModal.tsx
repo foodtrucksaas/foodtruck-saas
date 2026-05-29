@@ -82,7 +82,7 @@ export function DatePickerModal({
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center ${
-                      isSelected ? 'bg-primary-500 text-white' : 'bg-gray-100 text-anthracite'
+                      isSelected ? 'bg-primary-500 text-on-accent' : 'bg-gray-100 text-anthracite'
                     }`}
                   >
                     <span className="text-xs font-medium uppercase leading-none">

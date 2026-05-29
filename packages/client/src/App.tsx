@@ -49,7 +49,7 @@ function NotFound() {
         <p className="text-gray-500 mb-6">Cette page n'existe pas ou a été déplacée.</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-5 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-3 bg-primary-500 text-on-accent rounded-xl font-medium hover:bg-primary-600 transition-colors"
         >
           <HomeIcon className="w-4 h-4" />
           Retour à l'accueil
@@ -64,7 +64,7 @@ function SkipLink() {
   return (
     <a
       href="#main-content"
-      className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+      className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-on-accent focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
     >
       Aller au contenu principal
     </a>

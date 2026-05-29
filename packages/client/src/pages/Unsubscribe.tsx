@@ -124,7 +124,7 @@ export default function Unsubscribe() {
               </p>
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-on-accent rounded-xl font-semibold transition-colors active:scale-[0.98]"
               >
                 <Home className="w-5 h-5" />
                 Retour à l'accueil
@@ -144,7 +144,7 @@ export default function Unsubscribe() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => setStatus('confirm')}
-                  className="w-full py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors active:scale-[0.98]"
+                  className="w-full py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-on-accent rounded-xl font-semibold transition-colors active:scale-[0.98]"
                 >
                   Réessayer
                 </button>

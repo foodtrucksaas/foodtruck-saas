@@ -51,7 +51,7 @@
   }
 
   .btn-outline {
-    @apply btn bg-transparent text-primary-500 border-2 border-primary-500 hover:bg-primary-500 hover:text-white focus:ring-primary-500;
+    @apply btn bg-transparent text-primary-500 border-2 border-primary-500 hover:bg-primary-500 hover:text-on-accent focus:ring-primary-500;
   }
   .btn-outline:hover:not(:disabled) {
     box-shadow: 0 4px 16px rgba(249, 112, 102, 0.25);

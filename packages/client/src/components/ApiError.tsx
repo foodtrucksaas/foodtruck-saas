@@ -166,7 +166,7 @@ export function ApiError({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-primary-500 hover:bg-primary-600 text-on-accent font-medium rounded-xl transition-colors active:scale-[0.98]"
         >
           <RefreshCw className="w-4 h-4" />
           {retryLabel}

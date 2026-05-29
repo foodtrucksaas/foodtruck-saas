@@ -40,6 +40,7 @@ module.exports = {
           800: '#0B1A29',
           900: '#060D17',
         },
+        'on-accent': 'var(--color-primary-on, #FFFFFF)',
         canvas: '#FFFBF5',
         surface: '#FFFFFF',
         sand: {

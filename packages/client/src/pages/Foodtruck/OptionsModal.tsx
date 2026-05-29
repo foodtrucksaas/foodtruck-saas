@@ -217,7 +217,7 @@ export default function OptionsModal({
               <button
                 type="button"
                 onClick={() => setQuantity((q) => q + 1)}
-                className="w-11 h-11 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors shadow-sm active:scale-95"
+                className="w-11 h-11 rounded-full bg-primary-500 hover:bg-primary-600 text-on-accent flex items-center justify-center transition-colors shadow-sm active:scale-95"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -245,7 +245,7 @@ export default function OptionsModal({
           <button
             onClick={handleConfirm}
             disabled={!isValid()}
-            className="w-full py-3.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-semibold flex items-center justify-between px-5 transition-all shadow-card disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full py-3.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-on-accent font-semibold flex items-center justify-between px-5 transition-all shadow-card disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             <span>Ajouter au panier</span>
             <span className="font-bold text-lg">{formatPrice(calculateTotal())}</span>
