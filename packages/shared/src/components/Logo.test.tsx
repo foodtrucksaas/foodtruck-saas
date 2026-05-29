@@ -26,12 +26,14 @@ describe('Logo', () => {
     expect(logo.querySelector('svg')).toBeInTheDocument();
   });
 
-  it('renders monogram with M letter', () => {
+  it('renders monogram with cutlery icon (fork + knife)', () => {
     render(<Logo variant="monogram" />);
     const logo = screen.getByRole('img', { name: 'OnMange' });
-    const text = logo.querySelector('text');
-    expect(text).toBeInTheDocument();
-    expect(text?.textContent).toBe('M');
+    const svg = logo.querySelector('svg');
+    expect(svg?.querySelector('circle')).toBeInTheDocument();
+    // Fork and knife are rendered as line/path elements inside rotated groups
+    const lines = svg?.querySelectorAll('line');
+    expect(lines?.length).toBeGreaterThanOrEqual(4);
   });
 
   it('applies light theme by default', () => {
