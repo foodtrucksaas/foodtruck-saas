@@ -23,7 +23,7 @@ export default function Footer() {
               <Logo theme="dark" size="lg" />
             </div>
             <p className="text-gray-400 text-sm max-w-xs">
-              La solution de pré-commandes pour les food trucks. Simple, sans commission, efficace.
+              La solution de pré-commandes pour les foodtrucks. Simple, sans commission, efficace.
             </p>
           </div>
 

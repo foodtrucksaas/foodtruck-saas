@@ -13,7 +13,7 @@ interface Row {
 
 const ROWS: Row[] = [
   {
-    label: 'Conçu pour les food trucks',
+    label: 'Conçu pour les foodtrucks',
     sublabel: 'Itinérant, multi-emplacements',
     onmange: true,
     telephone: 'N/A',
@@ -107,7 +107,7 @@ function CellContent({ value, isOnMange }: { value: CellValue; isOnMange?: boole
 
 export default function ComparisonTable() {
   return (
-    <section id="comparison" className="py-16 lg:py-24 bg-white">
+    <section id="comparison" className="py-16 lg:py-24 bg-canvas">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">

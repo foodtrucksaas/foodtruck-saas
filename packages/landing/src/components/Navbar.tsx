@@ -35,7 +35,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-gray-600 hover:text-primary-500 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-marine-600 transition-colors"
               >
                 {link.label}
               </a>
@@ -46,7 +46,7 @@ export default function Navbar() {
             {/* Login link for existing users */}
             <a
               href="/dashboard/login"
-              className="hidden sm:inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-primary-500 transition-colors"
+              className="hidden sm:inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-marine-600 transition-colors"
             >
               Se connecter
             </a>
@@ -62,7 +62,7 @@ export default function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-primary-500 transition-colors"
+              className="md:hidden p-2 text-gray-600 hover:text-marine-600 transition-colors"
               aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={mobileOpen}
             >
@@ -80,7 +80,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="text-base font-medium text-gray-600 hover:text-primary-500 transition-colors py-2"
+                  className="text-base font-medium text-gray-600 hover:text-marine-600 transition-colors py-2"
                 >
                   {link.label}
                 </a>

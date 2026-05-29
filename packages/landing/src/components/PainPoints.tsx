@@ -30,10 +30,10 @@ const PROBLEMS = [
 
 export default function PainPoints() {
   return (
-    <section id="pain-points" className="py-20 lg:py-28">
+    <section id="pain-points" className="py-20 lg:py-28 bg-canvas">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
-          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+          <p className="text-sm font-semibold text-marine-500 uppercase tracking-wider mb-3">
             Le problème
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
@@ -41,7 +41,7 @@ export default function PainPoints() {
             <span className="text-primary-500">sur la table</span>
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            Les food trucks perdent en moyenne 20% de commandes potentielles. Voici pourquoi.
+            Les foodtrucks perdent en moyenne 20% de commandes potentielles. Voici pourquoi.
           </p>
         </AnimatedSection>
 

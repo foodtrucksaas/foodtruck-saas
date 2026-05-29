@@ -16,7 +16,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     q: '"Mes clients n\'utiliseront jamais ça"',
-    a: "Vos clients n'ont rien à installer. Ils cliquent sur un lien ou scannent un QR code et commandent depuis leur navigateur — comme quand ils consultent un site web. 2 minutes, c'est plié. Les food trucks qui utilisent OnMange voient 20% de commandes en plus.",
+    a: "Vos clients n'ont rien à installer. Ils cliquent sur un lien ou scannent un QR code et commandent depuis leur navigateur — comme quand ils consultent un site web. 2 minutes, c'est plié. Les foodtrucks qui utilisent OnMange voient 20% de commandes en plus.",
   },
   {
     q: '"Mon téléphone me suffit"',
@@ -69,25 +69,24 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-16 lg:py-24 bg-white">
+    <section id="faq" className="py-16 lg:py-24 bg-canvas">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-12">
-          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+          <p className="text-sm font-semibold text-marine-500 uppercase tracking-wider mb-3">
             Vos questions
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
             On répond à vos objections
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            Ce que les food trucks nous disent avant de s'inscrire — et pourquoi ils changent
-            d'avis.
+            Ce que les foodtrucks nous disent avant de s'inscrire — et pourquoi ils changent d'avis.
           </p>
         </AnimatedSection>
 
         <div className="max-w-3xl mx-auto">
           {FAQ_ITEMS.map((item, i) => (
             <AnimatedSection key={i} delay={i * 50}>
-              <div className="border-b border-gray-200 last:border-0">
+              <div className="border-b border-marine-100 last:border-0">
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full flex items-center justify-between py-5 text-left group"

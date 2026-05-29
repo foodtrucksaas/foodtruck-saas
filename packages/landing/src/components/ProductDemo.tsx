@@ -30,7 +30,7 @@ const SCREENSHOTS = [
 
 export default function ProductDemo() {
   return (
-    <section id="product-demo" className="py-20 lg:py-28 bg-gray-50/60">
+    <section id="product-demo" className="py-20 lg:py-28 bg-sand-100">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">

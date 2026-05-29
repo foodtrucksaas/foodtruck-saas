@@ -24,7 +24,7 @@ export default function FinalCTA() {
             <span className="text-primary-500">commandes que vous ne recevez pas</span>
           </h2>
           <p className="mt-5 text-lg text-gray-600 max-w-xl mx-auto">
-            Rejoignez les food trucks qui ont choisi de ne plus dépendre du téléphone. Commencez
+            Rejoignez les foodtrucks qui ont choisi de ne plus dépendre du téléphone. Commencez
             gratuitement, voyez les résultats.
           </p>
 

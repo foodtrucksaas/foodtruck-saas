@@ -18,7 +18,7 @@ const FEATURES = [
   { label: 'Prise de commande sur place (POS)', bold: true },
   { label: 'Email de confirmation & rappel client', bold: false },
   { label: 'Analytics & statistiques', bold: false },
-  { label: 'Codes promo & offres', bold: false },
+  { label: 'Offres & promotions', bold: false },
   { label: 'CRM clients', bold: false },
   { label: 'App iOS & Android', bold: false },
   { label: 'Support par email', bold: false },
@@ -34,7 +34,7 @@ const TRUST_BADGES = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-20 lg:py-28 bg-gray-50/70">
+    <section id="pricing" className="py-20 lg:py-28 bg-sand-100">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">
           <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
@@ -144,7 +144,7 @@ export default function Pricing() {
               ))}
             </div>
             <p className="mt-8 text-gray-500 max-w-lg mx-auto">
-              TVA 20 % applicable, récupérable pour les food trucks assujettis à la TVA.
+              TVA 20 % applicable, récupérable pour les foodtrucks assujettis à la TVA.
               <br />
               Annulation à tout moment, en un clic, depuis votre espace.
             </p>

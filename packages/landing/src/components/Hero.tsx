@@ -7,7 +7,7 @@ export default function Hero() {
   return (
     <section id="hero" className="relative pt-28 pb-16 lg:pt-36 lg:pb-28 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-orange-50/30 -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-sand-100 via-canvas to-primary-50/30 -z-10" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-100/30 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2" />
 
       <div className="section-container section-padding">
@@ -109,7 +109,7 @@ export default function Hero() {
                     <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <span className="text-xs">Rejoint par des food trucks partout en France</span>
+                <span className="text-xs">Rejoint par des foodtrucks partout en France</span>
               </div>
             </div>
           </div>

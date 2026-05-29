@@ -28,7 +28,7 @@ export default function ROICalculator() {
   return (
     <section
       id="roi-calculator"
-      className="py-20 lg:py-28 bg-gradient-to-b from-primary-50/60 to-white"
+      className="py-20 lg:py-28 bg-gradient-to-b from-primary-50/60 to-canvas"
     >
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14">

@@ -29,10 +29,10 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 lg:py-28">
+    <section id="how-it-works" className="py-20 lg:py-28 bg-canvas">
       <div className="section-container section-padding">
         <AnimatedSection className="text-center mb-14 lg:mb-20">
-          <p className="text-sm font-semibold text-primary-500 uppercase tracking-wider mb-3">
+          <p className="text-sm font-semibold text-marine-500 uppercase tracking-wider mb-3">
             Simple comme bonjour
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-anthracite">
