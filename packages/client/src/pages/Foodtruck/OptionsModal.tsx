@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Minus } from 'lucide-react';
 import { formatPrice, computeMenuItemPrice, type PricingOptionGroup } from '@foodtruck/shared';
 import type {
@@ -49,6 +49,12 @@ export default function OptionsModal({
   });
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    const handle = requestIdleCallback(() => setContentReady(true), { timeout: 400 });
+    return () => cancelIdleCallback(handle);
+  }, []);
 
   const pricingGroups = toPricingGroups(optionGroups);
 
@@ -139,102 +145,119 @@ export default function OptionsModal({
 
         {/* Option Groups */}
         <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 space-y-6">
-          {optionGroups
-            .filter((g) => g.menu_item_options?.some((o) => o.is_available))
-            .sort((a, b) => {
-              // Obligatoires (is_required) en premier
-              if (a.is_required !== b.is_required) {
-                return a.is_required ? -1 : 1;
-              }
-              // Puis par display_order
-              return (a.display_order ?? 0) - (b.display_order ?? 0);
-            })
-            .map((group) => (
-              <div key={group.id}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-anthracite">{group.name}</span>
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                      group.is_multiple
-                        ? 'bg-success-50 text-success-600'
-                        : 'bg-primary-50 text-primary-600'
-                    }`}
-                  >
-                    {group.is_multiple ? 'Optionnel' : 'Obligatoire'}
-                  </span>
+          {!contentReady ? (
+            <div className="space-y-6 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 w-24 bg-gray-200/60 rounded" />
+                    <div className="h-5 w-16 bg-gray-200/60 rounded-full" />
+                  </div>
+                  <div className="h-12 bg-gray-100/60 rounded-xl" />
+                  <div className="h-12 bg-gray-100/60 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  {(group.menu_item_options || [])
-                    .filter((opt) => opt.is_available)
-                    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
-                    .map((option) => {
-                      const isSelected = (selections[group.id] || []).includes(option.id);
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() =>
-                            handleOptionToggle(group.id, option.id, group.is_multiple ?? false)
-                          }
-                          className={`w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
-                            isSelected
-                              ? 'border-primary-500 bg-primary-50 shadow-sm'
-                              : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
-                          }`}
-                        >
-                          <span
-                            className={`font-medium ${isSelected ? 'text-primary-600' : 'text-anthracite'}`}
-                          >
-                            {option.name}
-                          </span>
-                          <span
-                            className={`text-sm font-semibold min-w-[70px] text-right ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
-                          >
-                            {formatOptionPrice(group, option.id)}
-                          </span>
-                        </button>
-                      );
-                    })}
+              ))}
+            </div>
+          ) : (
+            <>
+              {optionGroups
+                .filter((g) => g.menu_item_options?.some((o) => o.is_available))
+                .sort((a, b) => {
+                  if (a.is_required !== b.is_required) {
+                    return a.is_required ? -1 : 1;
+                  }
+                  return (a.display_order ?? 0) - (b.display_order ?? 0);
+                })
+                .map((group) => (
+                  <div key={group.id}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold text-anthracite">{group.name}</span>
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          group.is_multiple
+                            ? 'bg-success-50 text-success-600'
+                            : 'bg-primary-50 text-primary-600'
+                        }`}
+                      >
+                        {group.is_multiple ? 'Optionnel' : 'Obligatoire'}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {(group.menu_item_options || [])
+                        .filter((opt) => opt.is_available)
+                        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+                        .map((option) => {
+                          const isSelected = (selections[group.id] || []).includes(option.id);
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() =>
+                                handleOptionToggle(group.id, option.id, group.is_multiple ?? false)
+                              }
+                              className={`w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-200 active:scale-[0.98] ${
+                                isSelected
+                                  ? 'border-primary-500 bg-primary-50 shadow-sm'
+                                  : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 bg-white'
+                              }`}
+                            >
+                              <span
+                                className={`font-medium ${isSelected ? 'text-primary-600' : 'text-anthracite'}`}
+                              >
+                                {option.name}
+                              </span>
+                              <span
+                                className={`text-sm font-semibold min-w-[70px] text-right ${isSelected ? 'text-primary-500' : 'text-gray-500'}`}
+                              >
+                                {formatOptionPrice(group, option.id)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
+
+              {/* Quantity */}
+              <div className="flex items-center justify-between py-4 border-t border-gray-100">
+                <span className="font-semibold text-anthracite">Quantité</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
+                  >
+                    <Minus className="w-4 h-4 text-anthracite" />
+                  </button>
+                  <span className="w-8 text-center font-bold text-anthracite text-lg">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="w-11 h-11 rounded-full bg-primary-500 hover:bg-primary-600 text-on-accent flex items-center justify-center transition-colors shadow-sm active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ))}
 
-          {/* Quantity */}
-          <div className="flex items-center justify-between py-4 border-t border-gray-100">
-            <span className="font-semibold text-anthracite">Quantité</span>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
-              >
-                <Minus className="w-4 h-4 text-anthracite" />
-              </button>
-              <span className="w-8 text-center font-bold text-anthracite text-lg">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => q + 1)}
-                className="w-11 h-11 rounded-full bg-primary-500 hover:bg-primary-600 text-on-accent flex items-center justify-center transition-colors shadow-sm active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Notes / Comment */}
-          <div className="py-4 border-t border-gray-100">
-            <label className="block font-semibold text-anthracite mb-2">
-              Commentaire <span className="font-normal text-gray-400">(optionnel)</span>
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: sans oignon, bien cuit..."
-              className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:border-transparent transition-all duration-200 hover:border-gray-300"
-              rows={2}
-              maxLength={200}
-            />
-          </div>
+              {/* Notes / Comment */}
+              <div className="py-4 border-t border-gray-100">
+                <label className="block font-semibold text-anthracite mb-2">
+                  Commentaire <span className="font-normal text-gray-400">(optionnel)</span>
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex: sans oignon, bien cuit..."
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  rows={2}
+                  maxLength={200}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}

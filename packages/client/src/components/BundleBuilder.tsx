@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, Check, ChevronRight, ChevronLeft, Package, Plus, Minus } from 'lucide-react';
 import { formatPrice, calculateBundlePrice } from '@foodtruck/shared';
 import type {
@@ -53,6 +53,12 @@ export default function BundleBuilder({
     bundleCategories.map(() => null)
   );
   const [quantity, setQuantity] = useState(1);
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    const handle = requestIdleCallback(() => setContentReady(true), { timeout: 400 });
+    return () => cancelIdleCallback(handle);
+  }, []);
 
   // Sub-step within a bundle category: item → required groups one by one → supplements
   const [pendingItem, setPendingItem] = useState<{
@@ -475,149 +481,164 @@ export default function BundleBuilder({
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Sub-step header with back button */}
-          {pendingItem && (
-            <div className="flex items-center gap-3 mb-4">
-              <button
-                onClick={handleBack}
-                className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors active:scale-95"
-                aria-label="Retour"
-              >
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {pendingItem.item.name}
-                </p>
-                {Object.keys(pendingItem.optionSelections).length > 0 && (
-                  <p className="text-xs text-gray-400 truncate">
-                    {Object.values(pendingItem.optionSelections)
-                      .map((s) => s.option.name)
-                      .join(' · ')}
-                  </p>
-                )}
-              </div>
+          {!contentReady ? (
+            <div className="space-y-3 animate-pulse">
+              <div className="h-4 w-32 bg-gray-200/60 rounded mb-4" />
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-12 bg-gray-100/60 rounded-xl" />
+              ))}
             </div>
-          )}
-
-          <h3 className="text-sm font-medium text-gray-500 mb-3">{getSubStepTitle()}</h3>
-
-          <div className="space-y-2">
-            {/* ── Phase 1: Item selection ── */}
-            {isItemPhase &&
-              !selections[currentStep] &&
-              availableItems.map((item) => {
-                const supplement = getSupplement(currentBundleCat, item.id);
-                return (
+          ) : (
+            <>
+              {/* Sub-step header with back button */}
+              {pendingItem && (
+                <div className="flex items-center gap-3 mb-4">
                   <button
-                    key={item.id}
-                    onClick={() => handleSelectItem(item)}
-                    className="w-full px-4 py-3 rounded-xl border flex items-center justify-between hover:bg-gray-50 transition-colors active:scale-[0.99]"
+                    onClick={handleBack}
+                    className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors active:scale-95"
+                    aria-label="Retour"
                   >
-                    <span className="text-gray-900 font-medium">{item.name}</span>
-                    <div className="flex items-center gap-2">
-                      {supplement > 0 && (
-                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
-                          +{formatPrice(supplement)}
-                        </span>
-                      )}
-                      <ChevronRight className="w-5 h-5 text-gray-300" />
-                    </div>
+                    <ChevronLeft className="w-4 h-4 text-gray-600" />
                   </button>
-                );
-              })}
-
-            {/* ── Phase 2: Required option group (one at a time) ── */}
-            {currentOptionGroup &&
-              currentOptionGroup.options.map((opt) => {
-                if (isSizeExcluded(currentBundleCat, pendingItem!.item.id, opt.id)) {
-                  return (
-                    <div
-                      key={opt.id}
-                      className="px-4 py-3 rounded-xl border flex items-center justify-between opacity-50"
-                    >
-                      <span className="text-gray-400 line-through">{opt.name}</span>
-                      <span className="text-xs text-gray-400">Non disponible</span>
-                    </div>
-                  );
-                }
-
-                const optSupplement = getSupplement(currentBundleCat, pendingItem!.item.id, opt.id);
-
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleSelectOption(currentOptionGroup.group, opt)}
-                    className="w-full px-4 py-3 rounded-xl border flex items-center justify-between hover:bg-gray-50 transition-colors active:scale-[0.99]"
-                  >
-                    <span className="text-gray-900">{opt.name}</span>
-                    <div className="flex items-center gap-2">
-                      {optSupplement > 0 && (
-                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
-                          +{formatPrice(optSupplement)}
-                        </span>
-                      )}
-                      <ChevronRight className="w-5 h-5 text-gray-300" />
-                    </div>
-                  </button>
-                );
-              })}
-
-            {/* ── Phase 3: Supplements (optional, multi-select) ── */}
-            {isSupplementPhase &&
-              supplementGroups.map(({ group, options: groupOptions }) => (
-                <div key={group.id} className="space-y-2">
-                  <div className="flex items-center justify-between px-1 pt-2">
-                    {supplementGroups.length > 1 && (
-                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-                        {group.name}
-                      </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {pendingItem.item.name}
+                    </p>
+                    {Object.keys(pendingItem.optionSelections).length > 0 && (
+                      <p className="text-xs text-gray-400 truncate">
+                        {Object.values(pendingItem.optionSelections)
+                          .map((s) => s.option.name)
+                          .join(' · ')}
+                      </p>
                     )}
-                    <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full font-medium ml-auto">
-                      Optionnel
-                    </span>
                   </div>
-                  {groupOptions.map((opt) => {
-                    const isOptSelected = (
-                      pendingItem?.supplementSelections[group.id] || []
-                    ).includes(opt.id);
+                </div>
+              )}
+
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{getSubStepTitle()}</h3>
+
+              <div className="space-y-2">
+                {/* ── Phase 1: Item selection ── */}
+                {isItemPhase &&
+                  !selections[currentStep] &&
+                  availableItems.map((item) => {
+                    const supplement = getSupplement(currentBundleCat, item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleSelectItem(item)}
+                        className="w-full px-4 py-3 rounded-xl border flex items-center justify-between hover:bg-gray-50 transition-colors active:scale-[0.99]"
+                      >
+                        <span className="text-gray-900 font-medium">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          {supplement > 0 && (
+                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
+                              +{formatPrice(supplement)}
+                            </span>
+                          )}
+                          <ChevronRight className="w-5 h-5 text-gray-300" />
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                {/* ── Phase 2: Required option group (one at a time) ── */}
+                {currentOptionGroup &&
+                  currentOptionGroup.options.map((opt) => {
+                    if (isSizeExcluded(currentBundleCat, pendingItem!.item.id, opt.id)) {
+                      return (
+                        <div
+                          key={opt.id}
+                          className="px-4 py-3 rounded-xl border flex items-center justify-between opacity-50"
+                        >
+                          <span className="text-gray-400 line-through">{opt.name}</span>
+                          <span className="text-xs text-gray-400">Non disponible</span>
+                        </div>
+                      );
+                    }
+
+                    const optSupplement = getSupplement(
+                      currentBundleCat,
+                      pendingItem!.item.id,
+                      opt.id
+                    );
 
                     return (
                       <button
                         key={opt.id}
-                        onClick={() => handleSupplementToggle(group.id, opt.id)}
-                        className={`w-full px-4 py-3 rounded-xl border-2 flex items-center justify-between transition-all active:scale-[0.99] ${
-                          isOptSelected
-                            ? 'border-primary-500 bg-primary-50'
-                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
-                        }`}
+                        onClick={() => handleSelectOption(currentOptionGroup.group, opt)}
+                        className="w-full px-4 py-3 rounded-xl border flex items-center justify-between hover:bg-gray-50 transition-colors active:scale-[0.99]"
                       >
-                        <span
-                          className={
-                            isOptSelected ? 'text-primary-700 font-medium' : 'text-gray-900'
-                          }
-                        >
-                          {opt.name}
-                        </span>
-                        <span
-                          className={`text-xs font-medium ${isOptSelected ? 'text-primary-500' : 'text-gray-400'}`}
-                        >
-                          {(opt.price_modifier ?? 0) > 0
-                            ? `+${formatPrice(opt.price_modifier ?? 0)}`
-                            : 'Gratuit'}
-                        </span>
+                        <span className="text-gray-900">{opt.name}</span>
+                        <div className="flex items-center gap-2">
+                          {optSupplement > 0 && (
+                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
+                              +{formatPrice(optSupplement)}
+                            </span>
+                          )}
+                          <ChevronRight className="w-5 h-5 text-gray-300" />
+                        </div>
                       </button>
                     );
                   })}
-                </div>
-              ))}
 
-            {availableItems.length === 0 && isItemPhase && (
-              <p className="text-center text-gray-500 py-8">
-                Aucun article disponible pour cette catégorie
-              </p>
-            )}
-          </div>
+                {/* ── Phase 3: Supplements (optional, multi-select) ── */}
+                {isSupplementPhase &&
+                  supplementGroups.map(({ group, options: groupOptions }) => (
+                    <div key={group.id} className="space-y-2">
+                      <div className="flex items-center justify-between px-1 pt-2">
+                        {supplementGroups.length > 1 && (
+                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                            {group.name}
+                          </span>
+                        )}
+                        <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-full font-medium ml-auto">
+                          Optionnel
+                        </span>
+                      </div>
+                      {groupOptions.map((opt) => {
+                        const isOptSelected = (
+                          pendingItem?.supplementSelections[group.id] || []
+                        ).includes(opt.id);
+
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => handleSupplementToggle(group.id, opt.id)}
+                            className={`w-full px-4 py-3 rounded-xl border-2 flex items-center justify-between transition-all active:scale-[0.99] ${
+                              isOptSelected
+                                ? 'border-primary-500 bg-primary-50'
+                                : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span
+                              className={
+                                isOptSelected ? 'text-primary-700 font-medium' : 'text-gray-900'
+                              }
+                            >
+                              {opt.name}
+                            </span>
+                            <span
+                              className={`text-xs font-medium ${isOptSelected ? 'text-primary-500' : 'text-gray-400'}`}
+                            >
+                              {(opt.price_modifier ?? 0) > 0
+                                ? `+${formatPrice(opt.price_modifier ?? 0)}`
+                                : 'Gratuit'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+
+                {availableItems.length === 0 && isItemPhase && (
+                  <p className="text-center text-gray-500 py-8">
+                    Aucun article disponible pour cette catégorie
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
