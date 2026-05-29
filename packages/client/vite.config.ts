@@ -14,7 +14,7 @@ export default defineConfig({
         name: 'FoodTruck - Commander',
         short_name: 'FoodTruck',
         description: 'Commandez auprès de votre food truck préféré',
-        theme_color: '#ed7b20',
+        theme_color: '#F97066',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/client/',

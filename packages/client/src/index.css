@@ -118,12 +118,6 @@
     color: #2563eb;
   }
 
-  .badge-primary {
-    @apply badge;
-    background-color: #fff7ed;
-    color: #e55a2b;
-  }
-
   /* Animated card with hover effects */
   .card-interactive {
     @apply card transition-all duration-200 ease-out;

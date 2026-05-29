@@ -19,9 +19,9 @@ function getSnippet(link: string, style: StyleId): string {
   const base = `font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;font-weight:600;padding:12px 24px;border-radius:12px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.2s`;
 
   const styles: Record<StyleId, string> = {
-    filled: `${base};background:#e85d4a;color:#fff;border:none`,
-    outline: `${base};background:transparent;color:#e85d4a;border:2px solid #e85d4a`,
-    minimal: `${base};background:transparent;color:#e85d4a;border:none;text-decoration:underline`,
+    filled: `${base};background:#F97066;color:#fff;border:none`,
+    outline: `${base};background:transparent;color:#F97066;border:2px solid #F97066`,
+    minimal: `${base};background:transparent;color:#F97066;border:none;text-decoration:underline`,
   };
 
   return `<a href="${link}" target="_blank" rel="noopener noreferrer" style="${styles[style]}">Commander en ligne &#x2197;</a>`;
