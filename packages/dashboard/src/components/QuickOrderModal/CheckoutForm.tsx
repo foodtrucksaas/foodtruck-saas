@@ -151,7 +151,7 @@ export function DesktopCheckoutStep(props: CheckoutFormProps) {
             onClick={props.onBack}
             className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1 min-h-[44px] active:scale-95 transition-transform"
           >
-            ← Retour aux produits
+            ← Retour aux articles
           </button>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">

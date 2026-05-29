@@ -161,7 +161,7 @@ export function AccountSection() {
               {success ? (
                 <div className="flex items-center gap-2 p-3 bg-success-50 text-success-700 rounded-lg">
                   <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">Mot de passe modifié avec succès</span>
+                  <span className="text-sm font-medium">Mot de passe modifié.</span>
                 </div>
               ) : (
                 <>

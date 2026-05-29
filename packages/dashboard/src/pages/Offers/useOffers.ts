@@ -272,17 +272,17 @@ export function useOffers() {
       case 'buy_x_get_y':
         if (form.buyXGetYType === 'category_choice') {
           if (form.triggerCategoryIds.length === 0) {
-            return 'Sélectionnez au moins une catégorie déclencheur';
+            return 'Choisis au moins une catégorie déclencheur.';
           }
           if (form.rewardCategoryIds.length === 0) {
-            return 'Sélectionnez au moins une catégorie récompense';
+            return 'Choisis au moins une catégorie récompense.';
           }
         } else {
           if (form.triggerItems.length === 0) {
-            return 'Sélectionnez au moins un article déclencheur';
+            return "Choisis au moins un article qui déclenche l'offre.";
           }
           if (form.rewardItems.length === 0) {
-            return 'Sélectionnez au moins un article récompense';
+            return 'Choisis au moins un article récompense.';
           }
         }
         break;
@@ -396,7 +396,7 @@ export function useOffers() {
       await loadData();
       closeWizard();
     } catch {
-      toast.error("Erreur lors de la sauvegarde de l'offre");
+      toast.error("L'offre n'a pas pu être enregistrée. Vérifie les champs en rouge.");
     } finally {
       setSaving(false);
     }

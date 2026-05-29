@@ -117,10 +117,10 @@ export function getValidationErrors(form: OfferFormState): string[] {
 
   if (form.offerType === 'buy_x_get_y') {
     if (form.triggerCategoryIds.length === 0) {
-      errors.push('Sélectionnez les catégories à acheter');
+      errors.push('Choisis les catégories à acheter.');
     }
     if (form.rewardCategoryIds.length === 0) {
-      errors.push('Sélectionnez les catégories offertes');
+      errors.push('Choisis les catégories offertes.');
     }
   }
 

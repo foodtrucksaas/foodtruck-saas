@@ -263,7 +263,7 @@ export function CategoryManager({
               Annuler
             </Button>
             <Button type="submit" variant="primary" className="flex-1">
-              Sauvegarder
+              Enregistrer
             </Button>
           </div>
         </form>

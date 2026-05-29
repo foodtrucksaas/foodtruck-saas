@@ -52,7 +52,7 @@ export function MenuItemForm({
         Annuler
       </Button>
       <Button type="submit" form="menu-item-form" variant="primary" className="flex-1">
-        Sauvegarder
+        Enregistrer
       </Button>
     </div>
   );

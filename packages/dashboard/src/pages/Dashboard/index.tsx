@@ -350,7 +350,7 @@ export default function Dashboard() {
             <span className="text-xs font-semibold text-gray-700">Offres actives</span>
           </div>
           {activeOffers.length === 0 ? (
-            <p className="text-xs text-gray-400">Aucune offre active</p>
+            <p className="text-xs text-gray-400">Aucune offre active pour le moment.</p>
           ) : activeOffers.length <= 5 ? (
             <ul className="space-y-0.5 mt-1">
               {activeOffers.map((offer) => (

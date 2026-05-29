@@ -71,7 +71,7 @@ export default function ResetPassword() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe modifié</h2>
           <p className="text-gray-600 mb-6">
-            Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé...
+            Ton mot de passe a été réinitialisé. Redirection en cours…
           </p>
           <Link to="/" className="text-primary-600 hover:text-primary-700 font-medium">
             Accéder au tableau de bord

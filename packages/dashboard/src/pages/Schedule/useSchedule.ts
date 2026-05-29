@@ -232,7 +232,7 @@ export function useSchedule() {
 
     // Validate: require location when in override mode
     if (dayModalForm.mode === 'override' && !dayModalForm.location_id) {
-      toast.error('Sélectionnez un emplacement');
+      toast.error('Sélectionne un emplacement.');
       return;
     }
 

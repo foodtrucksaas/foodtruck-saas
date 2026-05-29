@@ -129,7 +129,7 @@ export function LocationsTab({
             ) : (
               form.address && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Sélectionnez une suggestion pour activer l'itinéraire
+                  Sélectionne une suggestion pour activer l'itinéraire
                 </p>
               )
             )}
@@ -145,7 +145,7 @@ export function LocationsTab({
               Annuler
             </button>
             <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98] flex-1">
-              Sauvegarder
+              Enregistrer
             </button>
           </div>
         </form>
@@ -250,9 +250,9 @@ export function LocationsTab({
         {locations.length === 0 && (
           <div className="text-center py-8">
             <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Aucun emplacement configuré</p>
+            <p className="text-gray-500 text-sm">Aucun emplacement renseigné.</p>
             <p className="text-gray-400 text-xs mt-1">
-              Ajoutez vos points de vente pour créer votre planning
+              Ajoute le lieu où tu seras pour qu'on te trouve.
             </p>
           </div>
         )}

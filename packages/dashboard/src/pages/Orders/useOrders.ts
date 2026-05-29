@@ -150,13 +150,13 @@ export function useOrders() {
 
       if (error) {
         console.error('Error fetching orders:', error);
-        toast.error('Erreur de chargement des commandes');
+        toast.error('Impossible de charger les commandes. Réessaie dans un instant.');
       } else if (data) {
         setOrders(data as unknown as OrderWithItemsAndOptions[]);
       }
     } catch (err) {
       console.error('Error fetching orders:', err);
-      toast.error('Erreur de chargement des commandes');
+      toast.error('Impossible de charger les commandes. Réessaie dans un instant.');
     } finally {
       setLoading(false);
     }
@@ -218,7 +218,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error cancelling order:', error.message);
-        toast.error("Erreur lors de l'annulation");
+        toast.error("L'annulation n'a pas pu être enregistrée. Vérifie ta connexion et réessaie.");
         return;
       }
 
@@ -243,7 +243,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error marking order as ready:', error.message);
-        toast.error('Erreur de mise à jour du statut');
+        toast.error("Le statut n'a pas pu être mis à jour. Réessaie.");
         return;
       }
 
@@ -268,7 +268,7 @@ export function useOrders() {
 
       if (error) {
         console.error('Error marking order as picked up:', error.message);
-        toast.error('Erreur de mise à jour du statut');
+        toast.error("Le statut n'a pas pu être mis à jour. Réessaie.");
         return;
       }
 

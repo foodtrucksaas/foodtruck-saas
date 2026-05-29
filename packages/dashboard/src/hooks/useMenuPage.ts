@@ -201,9 +201,9 @@ export function useMenuPage() {
           config: JSON.parse(JSON.stringify({ groups })),
         });
         setOptionTemplates((prev) => [...prev, template]);
-        toast.success('Template sauvegardé');
+        toast.success('Template enregistré.');
       } catch {
-        toast.error('Erreur lors de la sauvegarde du template');
+        toast.error("Le template n'a pas pu être enregistré. Réessaie.");
       }
     },
     [foodtruck, formData.optionGroups]

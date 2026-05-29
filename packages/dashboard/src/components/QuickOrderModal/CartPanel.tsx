@@ -144,7 +144,7 @@ export function DesktopCartPanel({
           <div className="text-center py-12 text-gray-400">
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-50" />
             <p className="text-sm">Panier vide</p>
-            <p className="text-xs mt-1">Cliquez sur un produit pour l'ajouter</p>
+            <p className="text-xs mt-1">Clique sur un article pour l'ajouter</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -229,7 +229,7 @@ export function MobileCartOverlay({
           <div className="text-center py-12 text-gray-400">
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-50" />
             <p className="text-sm">Panier vide</p>
-            <p className="text-xs mt-1">Cliquez sur un produit pour l'ajouter</p>
+            <p className="text-xs mt-1">Clique sur un article pour l'ajouter</p>
           </div>
         ) : (
           <div className="space-y-3">

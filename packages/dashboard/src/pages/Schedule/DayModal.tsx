@@ -191,7 +191,7 @@ export function DayModal({
             }
             className="flex-1 btn-primary min-h-[48px] sm:min-h-[44px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sauvegarder
+            Enregistrer
           </button>
         </div>
       </div>

@@ -256,7 +256,7 @@ export default function Menu() {
           {showArchivedSection && (
             <div className="mt-3 sm:mt-4">
               {archivedItems.length === 0 ? (
-                <p className="text-xs sm:text-sm text-gray-400 italic">Aucun article supprimé</p>
+                <p className="text-xs sm:text-sm text-gray-400 italic">La corbeille est vide.</p>
               ) : (
                 <div className="grid gap-2">
                   {archivedItems.map((item) => (

@@ -68,7 +68,7 @@ export function ProductsGrid({
         ) : items.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun produit trouvé</p>
+            <p>Aucun article trouvé</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">

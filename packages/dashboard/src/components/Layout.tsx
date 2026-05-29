@@ -48,7 +48,7 @@ const navigation: NavItem[] = [
   { type: 'separator', label: 'Opérations' },
   { type: 'link', name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
   { type: 'link', name: 'Commandes', href: '/orders', icon: ClipboardList },
-  { type: 'link', name: 'Carte', href: '/menu', icon: UtensilsCrossed },
+  { type: 'link', name: 'Menu', href: '/menu', icon: UtensilsCrossed },
   { type: 'link', name: 'Planning', href: '/schedule', icon: Calendar },
   { type: 'link', name: 'Offres', href: '/offers', icon: Sparkles },
   // Performance & Clients

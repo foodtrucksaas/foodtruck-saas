@@ -36,17 +36,17 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
 
       // Ensure at least one method is selected
       if (newMethods.length === 0) {
-        setError('Sélectionnez au moins un moyen de paiement');
+        setError('Choisis au moins un moyen de paiement.');
         setTimeout(() => setError(null), 3000);
         setLoading(false);
         return;
       }
 
       await updateFoodtruck({ payment_methods: newMethods });
-      setSuccessMessage('Moyens de paiement mis a jour');
+      setSuccessMessage('Moyens de paiement mis à jour.');
       setTimeout(() => setSuccessMessage(null), 2000);
     } catch {
-      setError('Erreur lors de la mise a jour');
+      setError('La mise à jour a échoué. Réessaie.');
       setTimeout(() => setError(null), 3000);
     }
     setLoading(false);
@@ -60,8 +60,8 @@ export function PaymentMethodsSection({ foodtruck }: PaymentMethodsSectionProps)
       </div>
 
       <p className="text-sm text-gray-500 mb-4">
-        Sélectionnez les moyens de paiement que vous acceptez. Ces informations seront affichées à
-        vos clients.
+        Sélectionne les moyens de paiement que tu acceptes. Ces informations seront affichées à tes
+        clients.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">

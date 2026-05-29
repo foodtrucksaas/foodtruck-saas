@@ -268,7 +268,7 @@ export function CampaignModal({
             onClick={onSave}
             className="px-6 py-3 min-h-[48px] bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors active:scale-[0.98] shadow-lg shadow-primary-500/25"
           >
-            {isEditing ? 'Sauvegarder' : 'Créer la campagne'}
+            {isEditing ? 'Enregistrer' : 'Créer la campagne'}
           </button>
         </div>
       </div>

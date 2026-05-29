@@ -326,7 +326,9 @@ export default function Analytics() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm text-center py-8">Aucune donnée</p>
+            <p className="text-gray-400 text-sm text-center py-8">
+              Pas encore assez de données pour afficher des stats. Reviens dans quelques jours.
+            </p>
           )}
         </div>
         <div className="card p-4 sm:p-6">
@@ -360,7 +362,9 @@ export default function Analytics() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm text-center py-8">Aucune offre utilisée</p>
+            <p className="text-gray-400 text-sm text-center py-8">
+              Aucune offre utilisée sur cette période.
+            </p>
           )}
         </div>
       </div>
@@ -368,7 +372,7 @@ export default function Analytics() {
       {/* Top Items */}
       <div className="card p-4 sm:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-          Produits les plus vendus
+          Articles les plus vendus
         </h2>
         {analytics?.topItems && analytics.topItems.length > 0 ? (
           <div className="space-y-4">

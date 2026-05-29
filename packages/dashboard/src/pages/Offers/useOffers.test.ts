@@ -649,7 +649,9 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(mockToastError).toHaveBeenCalledWith('Sélectionnez au moins un article déclencheur');
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Choisis au moins un article qui déclenche l'offre."
+      );
     });
 
     it('should require trigger categories for category_choice mode', async () => {
@@ -674,9 +676,7 @@ describe('useOffers', () => {
         await result.current.handleSubmit();
       });
 
-      expect(mockToastError).toHaveBeenCalledWith(
-        'Sélectionnez au moins une catégorie déclencheur'
-      );
+      expect(mockToastError).toHaveBeenCalledWith('Choisis au moins une catégorie déclencheur.');
     });
   });
 });

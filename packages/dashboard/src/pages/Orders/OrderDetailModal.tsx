@@ -7,7 +7,7 @@ import { useCanWrite } from '../../hooks/useCanWrite';
 
 const CANCEL_REASONS = [
   "Client a demandé l'annulation",
-  'Produit indisponible',
+  'Article indisponible',
   'Créneau complet',
   'Fermeture exceptionnelle',
   'Client injoignable',

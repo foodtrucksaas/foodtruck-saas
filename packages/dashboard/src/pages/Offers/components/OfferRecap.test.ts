@@ -229,8 +229,8 @@ describe('getValidationErrors', () => {
       rewardCategoryIds: [],
     });
     const errors = getValidationErrors(form);
-    expect(errors).toContain('Sélectionnez les catégories à acheter');
-    expect(errors).toContain('Sélectionnez les catégories offertes');
+    expect(errors).toContain('Choisis les catégories à acheter.');
+    expect(errors).toContain('Choisis les catégories offertes.');
   });
 
   it('returns threshold error for missing minimum', () => {

@@ -155,7 +155,7 @@ export function RecurringScheduleTab({
               Annuler
             </button>
             <button type="submit" className="btn-primary min-h-[44px] active:scale-[0.98] flex-1">
-              Sauvegarder
+              Enregistrer
             </button>
           </div>
         </form>
@@ -207,7 +207,9 @@ export function RecurringScheduleTab({
           </div>
         ))}
         {schedules.length === 0 && (
-          <p className="text-gray-500 text-xs sm:text-sm">Aucun horaire configuré</p>
+          <p className="text-gray-500 text-xs sm:text-sm">
+            Tu n'as pas encore configuré tes horaires. Dis aux clients quand tu es ouvert.
+          </p>
         )}
       </div>
     </section>

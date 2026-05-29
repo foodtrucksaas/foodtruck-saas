@@ -22,7 +22,7 @@ export default function ForgotPassword() {
       const translations: Record<string, string> = {
         'Too many requests': 'Trop de tentatives, veuillez réessayer plus tard',
         'Email rate limit exceeded': "Trop d'emails envoyés, veuillez réessayer plus tard",
-        'User not found': 'Aucun compte trouvé avec cet email',
+        'User not found': 'Aucun compte associé à cet email.',
       };
       setError(translations[resetError.message] || resetError.message);
     } else {

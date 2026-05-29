@@ -716,7 +716,7 @@ describe('useMenuPage', () => {
           name: 'My Template',
         })
       );
-      expect(mockToastSuccess).toHaveBeenCalledWith('Template sauvegardé');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Template enregistré.');
     });
   });
 

@@ -435,10 +435,11 @@ export default function Orders() {
           <div className="card p-12 text-center">
             <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
             <p className="text-lg font-semibold text-gray-900 mb-2">
-              Aucune commande pour le moment
+              Pas encore de commande aujourd'hui
             </p>
             <p className="text-sm text-gray-500">
-              Partagez votre lien avec vos clients pour recevoir vos premières commandes
+              Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières
+              pré-commandes.
             </p>
           </div>
         ) : (
@@ -476,10 +477,11 @@ export default function Orders() {
           <div className="card p-12 text-center">
             <ShoppingBag className="w-12 h-12 mx-auto text-gray-300 mb-4" />
             <p className="text-lg font-semibold text-gray-900 mb-2">
-              Aucune commande pour le moment
+              Pas encore de commande aujourd'hui
             </p>
             <p className="text-sm text-gray-500">
-              Partagez votre lien avec vos clients pour recevoir vos premières commandes
+              Elles vont arriver. Partage ton lien avec tes clients pour recevoir tes premières
+              pré-commandes.
             </p>
           </div>
         ) : (

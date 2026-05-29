@@ -195,9 +195,9 @@ export default function Customers() {
         ) : (
           <div className="card p-12 text-center">
             <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">Aucun client trouvé</p>
+            <p className="text-gray-500">Aucun client ne correspond à ta recherche.</p>
             <p className="text-sm text-gray-400 mt-1">
-              Les clients apparaîtront ici après leur première commande
+              Les clients apparaissent ici après leur première pré-commande.
             </p>
           </div>
         )

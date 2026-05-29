@@ -30,7 +30,7 @@ export function OptionsStep({
           onClick={onCancel}
           className="min-h-[44px] text-sm text-gray-500 hover:text-gray-700 mb-3 flex items-center gap-1 active:scale-95 transition-transform"
         >
-          ← Retour aux produits
+          ← Retour aux articles
         </button>
 
         <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm">
