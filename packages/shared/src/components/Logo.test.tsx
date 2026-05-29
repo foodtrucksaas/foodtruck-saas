@@ -26,14 +26,14 @@ describe('Logo', () => {
     expect(logo.querySelector('svg')).toBeInTheDocument();
   });
 
-  it('renders monogram with cutlery icon (fork + knife)', () => {
+  it('renders monogram with fork icon on squircle', () => {
     render(<Logo variant="monogram" />);
     const logo = screen.getByRole('img', { name: 'OnMange' });
     const svg = logo.querySelector('svg');
-    expect(svg?.querySelector('circle')).toBeInTheDocument();
-    // Fork and knife are rendered as line/path elements inside rotated groups
-    const lines = svg?.querySelectorAll('line');
-    expect(lines?.length).toBeGreaterThanOrEqual(4);
+    expect(svg?.querySelector('rect[rx="14"]')).toBeInTheDocument();
+    // Fork is rendered as filled rect elements (tines) + path (base/handle)
+    const rects = svg?.querySelectorAll('g rect');
+    expect(rects?.length).toBe(3);
   });
 
   it('applies light theme by default', () => {
@@ -91,16 +91,16 @@ describe('Logo', () => {
     expect(wordmark?.style.letterSpacing).toBe('-0.02em');
   });
 
-  it('monogram light theme has corail background', () => {
+  it('monogram light theme has marine background', () => {
     render(<Logo variant="monogram" theme="light" />);
-    const circle = screen.getByRole('img', { name: 'OnMange' }).querySelector('circle');
-    expect(circle?.getAttribute('fill')).toContain('--color-corail-500');
+    const bg = screen.getByRole('img', { name: 'OnMange' }).querySelector('rect[rx="14"]');
+    expect(bg?.getAttribute('fill')).toContain('--color-marine-500');
   });
 
   it('monogram dark theme has white background', () => {
     render(<Logo variant="monogram" theme="dark" />);
-    const circle = screen.getByRole('img', { name: 'OnMange' }).querySelector('circle');
-    expect(circle?.getAttribute('fill')).toBe('#FFFFFF');
+    const bg = screen.getByRole('img', { name: 'OnMange' }).querySelector('rect[rx="14"]');
+    expect(bg?.getAttribute('fill')).toBe('#FFFFFF');
   });
 
   it('wordmark uses Fraunces font-family explicitly', () => {

@@ -44,8 +44,8 @@ function Wordmark({ height, theme }: { height: number; theme: LogoTheme }) {
 }
 
 function Monogram({ size, theme }: { size: number; theme: LogoTheme }) {
-  const bgColor = theme === 'dark' ? '#FFFFFF' : 'var(--color-corail-500, #F97066)';
-  const strokeColor = theme === 'dark' ? 'var(--color-corail-500, #F97066)' : '#FFFFFF';
+  const bgColor = theme === 'dark' ? '#FFFFFF' : 'var(--color-marine-500, #1E3A5F)';
+  const forkColor = theme === 'dark' ? 'var(--color-corail-500, #F97066)' : '#FFFFFF';
 
   return (
     <svg
@@ -56,26 +56,12 @@ function Monogram({ size, theme }: { size: number; theme: LogoTheme }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <circle cx="32" cy="32" r="32" fill={bgColor} />
-      <g
-        stroke={strokeColor}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        strokeWidth="2.8"
-      >
-        {/* Fork */}
-        <g transform="rotate(-12 32 32)">
-          <line x1="32" y1="14" x2="32" y2="50" />
-          <line x1="28" y1="14" x2="28" y2="22" />
-          <line x1="36" y1="14" x2="36" y2="22" />
-          <path d="M28 22 Q28 27 32 27 Q36 27 36 22" />
-        </g>
-        {/* Knife */}
-        <g transform="rotate(12 32 32)">
-          <line x1="32" y1="50" x2="32" y2="24" />
-          <path d="M32 24 Q32 14 36 14 L36 24 Z" />
-        </g>
+      <rect width="64" height="64" rx="14" fill={bgColor} />
+      <g fill={forkColor}>
+        <rect x="22" y="14" width="3.5" height="14" rx="1.75" />
+        <rect x="30.25" y="14" width="3.5" height="14" rx="1.75" />
+        <rect x="38.5" y="14" width="3.5" height="14" rx="1.75" />
+        <path d="M20.5 26 Q20.5 33 26 35 L26 50 Q26 52 28 52 L36 52 Q38 52 38 50 L38 35 Q43.5 33 43.5 26 Z" />
       </g>
     </svg>
   );
