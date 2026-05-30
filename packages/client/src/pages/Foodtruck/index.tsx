@@ -309,7 +309,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
               {/* Today's schedule info */}
               <div className="mt-3">
                 {todaySchedules.length > 0 ? (
-                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                  <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-3 py-1.5">
                     <Clock className="w-3.5 h-3.5 text-white" />
                     <span className="text-white text-xs font-medium">
                       {todaySchedules.length === 1 ? (
@@ -327,7 +327,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                     </span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                  <div className="inline-flex items-center gap-2 bg-black/20 rounded-full px-3 py-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-400" />
                     <span className="text-white/90 text-xs font-medium">Fermé aujourd'hui</span>
                   </div>
@@ -340,7 +340,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
           onClick={navigateBack}
           type="button"
           aria-label="Retour"
-          className="absolute top-3 left-3 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          className="absolute top-3 left-3 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           <ArrowLeft className="w-5 h-5 text-anthracite" aria-hidden="true" />
         </button>
@@ -569,7 +569,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       {/* Category Quick Nav - only show if menu tab active and multiple categories */}
       {activeTab === 'menu' &&
         categories.filter((c) => groupedItems[c.id]?.length > 0).length > 1 && (
-          <div className="sticky top-0 z-10 relative bg-[#FAFAFA]/95 backdrop-blur-sm px-4 py-2 border-b border-gray-100/50">
+          <div className="sticky top-0 z-10 relative bg-[#FAFAFA] px-4 py-2 border-b border-gray-100">
             <nav
               className="flex gap-2 overflow-x-auto no-scrollbar"
               aria-label="Categories du menu"
@@ -1068,7 +1068,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
 
       {/* Cart Bar */}
       {isActive && itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100 animate-slide-in-up">
+        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-white border-t border-gray-100 animate-slide-in-up">
           <Link
             to={checkoutPath}
             className="w-full rounded-xl bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent font-semibold transition-all active:scale-[0.98] block overflow-hidden"
