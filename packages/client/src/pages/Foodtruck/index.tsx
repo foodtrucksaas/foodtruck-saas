@@ -788,7 +788,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                     ref={(el) => {
                       categoryRefs.current[category.id] = el;
                     }}
-                    className="scroll-mt-[120px]"
+                    className="scroll-mt-[120px] [content-visibility:auto] [contain-intrinsic-size:auto_500px]"
                   >
                     <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
                     <div className="grid gap-3 stagger-children">
@@ -815,9 +815,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                             hasOptions={!!groups}
                             startingPrice={startingPrice}
                             quantity={isActive ? getItemQuantity(item.id) : 0}
-                            onAdd={() => isActive && handleAddItem(item)}
-                            onUpdate={(delta) => isActive && handleUpdateQuantity(item.id, delta)}
-                            disabled={!isActive}
+                            isActive={isActive}
+                            onAdd={handleAddItem}
+                            onUpdate={handleUpdateQuantity}
                           />
                         );
                       })}

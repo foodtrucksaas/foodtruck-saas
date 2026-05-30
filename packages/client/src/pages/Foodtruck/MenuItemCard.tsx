@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { formatPrice } from '@foodtruck/shared';
 import type { MenuItem } from '@foodtruck/shared';
@@ -7,9 +7,9 @@ interface MenuItemCardProps {
   item: MenuItem;
   hasOptions: boolean;
   quantity: number;
-  onAdd: () => void;
-  onUpdate: (delta: number) => void;
-  disabled?: boolean;
+  isActive: boolean;
+  onAdd: (item: MenuItem) => void;
+  onUpdate: (itemId: string, delta: number) => void;
   startingPrice?: number | null;
 }
 
@@ -17,18 +17,29 @@ const MenuItemCard = memo(function MenuItemCard({
   item,
   hasOptions,
   quantity,
+  isActive,
   onAdd,
   onUpdate,
-  disabled,
   startingPrice,
 }: MenuItemCardProps) {
   const isInCart = quantity > 0;
 
+  const handleAdd = useCallback(() => {
+    if (isActive) onAdd(item);
+  }, [isActive, onAdd, item]);
+
+  const handleDelta = useCallback(
+    (delta: number) => {
+      if (isActive) onUpdate(item.id, delta);
+    },
+    [isActive, onUpdate, item.id]
+  );
+
   // Handle card click - add item if not in cart or has options
   const handleCardClick = () => {
-    if (disabled) return;
+    if (!isActive) return;
     if (!isInCart || hasOptions) {
-      onAdd();
+      handleAdd();
     }
   };
 
@@ -41,8 +52,8 @@ const MenuItemCard = memo(function MenuItemCard({
           handleCardClick();
         }
       }}
-      tabIndex={disabled ? -1 : 0}
-      role={disabled ? undefined : 'button'}
+      tabIndex={isActive ? 0 : -1}
+      role={isActive ? 'button' : undefined}
       aria-label={`${item.name}, ${formatPrice(item.price)}${item.description ? `, ${item.description}` : ''}${isInCart ? `, ${quantity} dans le panier` : ''}`}
       className={`bg-white rounded-2xl p-4 flex gap-4 cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
         isInCart
@@ -96,7 +107,7 @@ const MenuItemCard = memo(function MenuItemCard({
               >
                 <button
                   type="button"
-                  onClick={() => onUpdate(-1)}
+                  onClick={() => handleDelta(-1)}
                   aria-label={`Retirer un ${item.name}`}
                   className="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
@@ -111,7 +122,7 @@ const MenuItemCard = memo(function MenuItemCard({
                 </span>
                 <button
                   type="button"
-                  onClick={() => onUpdate(1)}
+                  onClick={() => handleDelta(1)}
                   aria-label={`Ajouter un ${item.name}`}
                   className="w-11 h-11 rounded-full bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 text-on-accent flex items-center justify-center transition-all active:scale-95 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
                 >
@@ -129,12 +140,12 @@ const MenuItemCard = memo(function MenuItemCard({
                   {formatPrice(startingPrice ?? item.price)}
                 </span>
               </div>
-              {!disabled && (
+              {isActive && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onAdd();
+                    handleAdd();
                   }}
                   aria-label={
                     hasOptions
