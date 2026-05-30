@@ -29,6 +29,8 @@
     "test:integration": "node scripts/check-integration-env.js && vitest run -c tests/integration/vitest.config.ts tests/integration/",
     "test:integration:watch": "node scripts/check-integration-env.js && vitest -c tests/integration/vitest.config.ts tests/integration/",
     "test:integration:check": "node scripts/check-integration-env.js",
+    "test:unit": "vitest run -c tests/unit/vitest.config.ts",
+    "test:unit:watch": "vitest -c tests/unit/vitest.config.ts",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
