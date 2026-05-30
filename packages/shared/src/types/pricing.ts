@@ -21,7 +21,7 @@ export interface PreviewOrderPayload {
   loyalty_reward_count?: number;
 }
 
-export type DiscountType =
+export type EngineDiscountType =
   | 'bundle'
   | 'buy_x_get_y'
   | 'happy_hour'
@@ -30,7 +30,7 @@ export type DiscountType =
   | 'loyalty_reward';
 
 export interface DiscountResult {
-  type: DiscountType;
+  type: EngineDiscountType;
   label: string;
   amount: number;
   offer_id?: string;

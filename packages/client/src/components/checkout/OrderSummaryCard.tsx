@@ -30,6 +30,9 @@ interface OrderSummaryCardProps {
   loyaltyOptIn?: boolean;
   useLoyaltyReward?: boolean;
   onToggleUseLoyaltyReward?: (use: boolean) => void;
+  loyaltyPointsEarned?: number;
+  // Preview loading
+  previewLoading?: boolean;
   // Promo code props
   showPromoSection?: boolean;
   promoCode?: string;
@@ -62,6 +65,9 @@ export function OrderSummaryCard({
   loyaltyOptIn,
   useLoyaltyReward,
   onToggleUseLoyaltyReward,
+  loyaltyPointsEarned: loyaltyPointsEarnedProp,
+  // Preview
+  previewLoading,
   // Promo
   showPromoSection,
   promoCode = '',
@@ -224,7 +230,7 @@ export function OrderSummaryCard({
     }
   };
 
-  // Loyalty calculations - use finalTotal (actual amount to pay) for points
+  // Loyalty calculations - use preview value when available, else compute locally
   const currentPoints = loyaltyInfo?.loyalty_points || 0;
   // Ensure threshold is never 0 to prevent division by zero
   const threshold =
@@ -232,7 +238,7 @@ export function OrderSummaryCard({
       ? loyaltyInfo.loyalty_threshold
       : 50;
   const pointsPerEuro = loyaltyInfo?.loyalty_points_per_euro || 1;
-  const pointsToEarn = Math.floor((finalTotal / 100) * pointsPerEuro);
+  const pointsToEarn = loyaltyPointsEarnedProp ?? Math.floor((finalTotal / 100) * pointsPerEuro);
   const futurePoints = currentPoints + pointsToEarn;
   const willReachReward = futurePoints >= threshold && !loyaltyInfo?.can_redeem;
 
@@ -823,7 +829,9 @@ export function OrderSummaryCard({
               <p className="text-xs text-gray-400">à régler sur place</p>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-gray-900 tabular-nums">
+              <p
+                className={`text-xl font-bold text-gray-900 tabular-nums transition-opacity ${previewLoading ? 'opacity-50' : ''}`}
+              >
                 {formatPrice(finalTotal)}
               </p>
               {hasDiscounts && (

@@ -23,7 +23,7 @@ import {
   usePromoCode,
   useLoyalty,
   useOffers,
-  calculateLoyaltyDiscount,
+  useOrderPreview,
 } from '../hooks';
 
 // Components
@@ -149,6 +149,21 @@ export default function Checkout({ slug }: CheckoutProps) {
     form.email
   );
 
+  // Server-side preview: authoritative pricing
+  const {
+    data: previewData,
+    isLoading: previewLoading,
+    warnings: previewWarnings,
+  } = useOrderPreview({
+    foodtruckId,
+    items,
+    customer: { email: form.email, phone: form.phone },
+    promoCode: appliedPromo?.code,
+    useLoyaltyReward: useLoyaltyReward && form.loyaltyOptIn,
+    loyaltyRewardCount: loyaltyInfo?.redeemable_count,
+    enabled: items.length > 0,
+  });
+
   // Set initial selected date when available dates are loaded
   useEffect(() => {
     if (availableDates.length > 0 && !loading) {
@@ -233,29 +248,24 @@ export default function Checkout({ slug }: CheckoutProps) {
     return () => clearTimeout(timer);
   }, [bundleDecomposedMsg]);
 
-  // Calculate discounts
-  const { discount: loyaltyDiscount, rewardCount: loyaltyRewardCount } = calculateLoyaltyDiscount(
-    loyaltyInfo,
-    useLoyaltyReward,
-    form.loyaltyOptIn
-  );
-
+  // Derive totals from server-side preview (authoritative) with local fallback
   const appliedOfferDiscount = totalOfferDiscount || 0;
 
-  const postOfferTotal = Math.max(0, total - appliedOfferDiscount);
-  const postLoyaltyTotal = Math.max(0, postOfferTotal - loyaltyDiscount);
+  // Extract individual discount amounts from preview data
+  const previewPromoDiscount =
+    previewData?.discounts
+      .filter((d) => d.type === 'promo_code')
+      .reduce((s, d) => s + d.amount, 0) ?? 0;
+  const previewLoyaltyDiscount =
+    previewData?.discounts
+      .filter((d) => d.type === 'loyalty_reward')
+      .reduce((s, d) => s + d.amount, 0) ?? 0;
 
-  let promoDiscount = 0;
-  if (appliedPromo) {
-    if (appliedPromo.discountType === 'percentage') {
-      promoDiscount = Math.round(postLoyaltyTotal * (appliedPromo.discountValue / 100));
-    } else {
-      promoDiscount = appliedPromo.discount;
-    }
-    promoDiscount = Math.min(promoDiscount, postLoyaltyTotal);
-  }
-
-  const finalTotal = Math.max(0, postLoyaltyTotal - promoDiscount);
+  // Use preview total when available, otherwise fall back to local calculation
+  const finalTotal = previewData?.total ?? Math.max(0, total - appliedOfferDiscount);
+  const promoDiscount = previewPromoDiscount;
+  const loyaltyDiscount = previewLoyaltyDiscount;
+  const loyaltyRewardCount = loyaltyInfo?.redeemable_count ?? 0;
 
   // Date label for display
   const isToday = selectedDate.toDateString() === new Date().toDateString();
@@ -540,6 +550,18 @@ export default function Checkout({ slug }: CheckoutProps) {
           </div>
         )}
 
+        {/* Preview warnings (item unavailable, etc.) */}
+        {previewWarnings.length > 0 &&
+          previewWarnings.map((warning, i) => (
+            <div
+              key={i}
+              className="mx-4 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm animate-fade-in-up"
+              role="status"
+            >
+              {warning}
+            </div>
+          ))}
+
         {/* Bundle decomposition notice */}
         {bundleDecomposedMsg && (
           <div
@@ -563,12 +585,14 @@ export default function Checkout({ slug }: CheckoutProps) {
             getCartKey={getCartKey}
             onUpdateQuantity={updateQuantity}
             onRemoveItem={handleRemoveItem}
+            previewLoading={previewLoading}
             // Loyalty
             loyaltyInfo={loyaltyInfo}
             loyaltyLoading={loyaltyLoading}
             loyaltyOptIn={form.loyaltyOptIn}
             useLoyaltyReward={useLoyaltyReward}
             onToggleUseLoyaltyReward={setUseLoyaltyReward}
+            loyaltyPointsEarned={previewData?.loyalty_points_earned}
             // Promo code
             showPromoSection={canShowPromo}
             promoCode={promoCode}
@@ -903,7 +927,7 @@ export default function Checkout({ slug }: CheckoutProps) {
               <span className="opacity-60" aria-hidden="true">
                 .
               </span>
-              <span>{formatPrice(finalTotal)}</span>
+              <span className={previewLoading ? 'opacity-50' : ''}>{formatPrice(finalTotal)}</span>
             </>
           )}
         </button>
