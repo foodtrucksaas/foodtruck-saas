@@ -13,6 +13,7 @@ import {
   createTestFoodtruck,
   cleanupTestFoodtruck,
   callEdgeFunction,
+  SUPABASE_SERVICE_ROLE_KEY,
 } from './setup';
 
 describe('create-order Edge Function', () => {
@@ -62,7 +63,7 @@ describe('create-order Edge Function', () => {
 
     const { data, error, status } = await callEdgeFunction(
       'create-order',
-      ownerUser.session.access_token,
+      SUPABASE_SERVICE_ROLE_KEY!,
       orderData
     );
 
@@ -95,7 +96,7 @@ describe('create-order Edge Function', () => {
 
     const { error, status } = await callEdgeFunction(
       'create-order',
-      ownerUser.session.access_token,
+      SUPABASE_SERVICE_ROLE_KEY!,
       invalidOrderData
     );
 
@@ -121,7 +122,7 @@ describe('create-order Edge Function', () => {
 
     const { error, status } = await callEdgeFunction(
       'create-order',
-      ownerUser.session.access_token,
+      SUPABASE_SERVICE_ROLE_KEY!,
       orderData
     );
 

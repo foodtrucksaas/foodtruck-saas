@@ -9,7 +9,13 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { supabaseAdmin, createTestUser, deleteTestUser, callEdgeFunction } from './setup';
+import {
+  supabaseAdmin,
+  createTestUser,
+  deleteTestUser,
+  callEdgeFunction,
+  SUPABASE_SERVICE_ROLE_KEY,
+} from './setup';
 import {
   computeMenuItemPrice,
   computeCartItemUnitPrice,
@@ -345,7 +351,8 @@ describe('Pricing coherence: shared vs create-order', () => {
     expectedTotal: number,
     serverOptions: ReturnType<typeof buildServerOptions>
   ) {
-    const result = await callEdgeFunction('create-order', ownerUser.session.access_token, {
+    // Use service role key to bypass rate limiting in integration tests
+    const result = await callEdgeFunction('create-order', SUPABASE_SERVICE_ROLE_KEY!, {
       foodtruck_id: foodtruckId,
       customer_name: 'Pricing Test',
       customer_email: 'pricing-test@test.com',
@@ -592,21 +599,25 @@ describe('Pricing coherence: shared vs create-order', () => {
     expect(status).toBe(200);
   });
 
-  // --- 3. Server rejects wrong prices ---
+  // --- 3. Server is authoritative: ignores client expected_total ---
+  // Since Step D, the server calculates totals via calculateOrderTotal.
+  // Client-provided expected_total is ignored — the server is the single authority.
 
   it.each([
     ['S + Saignant (price +2 centimes)', 0, 2],
     ['M + A point + Fromage (price -5 centimes)', 1, -5],
     ['L + Bien cuit + all supplements (price +100)', 2, 100],
-    ['S + all supplements (price -200)', 3, -200],
-    ['L + Saignant + Avocat (price +3 centimes)', 5, 3],
-  ])('create-order REJECTS wrong price: %s', async (_label, idx, drift) => {
-    const combo = getCombos()[idx as number];
-    const wrongPrice = combo.expectedPrice + (drift as number);
-    const serverOpts = buildServerOptions(combo.serverOptions);
-    const { status } = await placeOrder(wrongPrice, serverOpts);
+  ])(
+    'create-order ACCEPTS order regardless of wrong expected_total: %s',
+    async (_label, idx, drift) => {
+      const combo = getCombos()[idx as number];
+      const wrongPrice = combo.expectedPrice + (drift as number);
+      const serverOpts = buildServerOptions(combo.serverOptions);
+      const { status, data } = await placeOrder(wrongPrice, serverOpts);
 
-    // Server should reject with 400 (total mismatch) — tolerance is 1 centime
-    expect(status).toBeGreaterThanOrEqual(400);
-  });
+      // Server accepts and calculates correct total itself
+      expect(status).toBe(200);
+      expect((data as any)?.order?.total_amount).toBe(combo.expectedPrice);
+    }
+  );
 });

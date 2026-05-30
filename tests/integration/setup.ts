@@ -303,6 +303,7 @@ export async function cleanupTestFoodtruck(foodtruckId: string): Promise<void> {
 
 // URL des Edge Functions
 export const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+export { SUPABASE_SERVICE_ROLE_KEY };
 
 // Helper pour appeler une Edge Function
 export async function callEdgeFunction(
@@ -311,12 +312,17 @@ export async function callEdgeFunction(
   body?: Record<string, unknown>
 ): Promise<{ data: unknown; error: Error | null; status: number }> {
   try {
+    // Use service role key as apikey when authenticating as service role
+    // This allows the Edge Function to detect and bypass rate limiting
+    const apikey =
+      accessToken === SUPABASE_SERVICE_ROLE_KEY ? SUPABASE_SERVICE_ROLE_KEY! : SUPABASE_ANON_KEY!;
+
     const response = await fetch(`${FUNCTIONS_URL}/${functionName}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
-        apikey: SUPABASE_ANON_KEY!, // Required by Supabase Edge Functions
+        apikey, // Required by Supabase Edge Functions
       },
       body: body ? JSON.stringify(body) : undefined,
     });

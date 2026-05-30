@@ -7,7 +7,8 @@ export default defineConfig({
     hookTimeout: 60000,
 
     // Exécuter les tests séquentiellement (pas en parallèle)
-    // car ils partagent la même base de données
+    // car ils partagent la même base de données et le même rate limit
+    fileParallelism: false,
     sequence: {
       concurrent: false,
     },
