@@ -49,7 +49,7 @@ export async function resolveLineItems(
     const { data: options, error: optError } = await supabase
       .from('menu_item_options')
       .select(
-        'id, name, price_modifier, is_available, group_id:menu_item_option_group_id, group:menu_item_option_groups(id, name, price_mode)'
+        'id, name, price_modifier, is_available, group_id, group:menu_item_option_groups(id, name, price_mode)'
       )
       .in('id', allOptionIds);
 

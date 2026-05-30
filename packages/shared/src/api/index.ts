@@ -14,6 +14,13 @@ export type { TypedSupabaseClient } from './client';
 export type { SchedulesApi } from './schedules';
 export type { LocationsApi } from './locations';
 export type { OrdersApi, OrderFilters } from './orders';
+export type {
+  PreviewOrderPayload,
+  OrderCalculation,
+  DiscountResult,
+  ResolvedLineItem,
+  ResolvedOption,
+} from '../types/pricing';
 export type { MenuApi } from './menu';
 export type { FoodtrucksApi } from './foodtrucks';
 export type { LoyaltyApi } from './loyalty';

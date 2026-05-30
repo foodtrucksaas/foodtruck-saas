@@ -1,6 +1,7 @@
 import type { TypedSupabaseClient } from './client';
-import { handleResponse, handleOptionalResponse } from './client';
+import { handleResponse, handleOptionalResponse, ApiError } from './client';
 import type { Order, OrderUpdate, OrderWithItemsAndOptions, OrderStatus } from '../types';
+import type { PreviewOrderPayload, OrderCalculation } from '../types/pricing';
 import { formatLocalDate } from '../utils/time';
 
 export interface OrderFilters {
@@ -138,6 +139,37 @@ export function createOrdersApi(supabase: TypedSupabaseClient) {
       return this.getByFoodtruck(foodtruckId, {
         fromDate: `${todayStr}T00:00:00`,
       });
+    },
+
+    // Preview order total (public, no auth required)
+    async previewOrder(payload: PreviewOrderPayload): Promise<OrderCalculation> {
+      const supabaseUrl = (supabase as unknown as { rest: { url: string } }).rest.url.replace(
+        /\/rest\/v1$/,
+        ''
+      );
+
+      // Extract anon key from the supabase client headers
+      const supabaseHeaders = (supabase as unknown as { rest: { headers: Record<string, string> } })
+        .rest.headers;
+      const anonKey = supabaseHeaders?.apikey ?? '';
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/preview-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new ApiError(data.error || `HTTP ${response.status}`);
+      }
+
+      return data as OrderCalculation;
     },
 
     // Subscribe to order changes (realtime)
