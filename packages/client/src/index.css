@@ -150,41 +150,6 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Staggered list items */
-  .stagger-children > * {
-    @apply opacity-0 animate-stagger-in;
-  }
-  .stagger-children > *:nth-child(1) {
-    animation-delay: 0ms;
-  }
-  .stagger-children > *:nth-child(2) {
-    animation-delay: 50ms;
-  }
-  .stagger-children > *:nth-child(3) {
-    animation-delay: 100ms;
-  }
-  .stagger-children > *:nth-child(4) {
-    animation-delay: 150ms;
-  }
-  .stagger-children > *:nth-child(5) {
-    animation-delay: 200ms;
-  }
-  .stagger-children > *:nth-child(6) {
-    animation-delay: 250ms;
-  }
-  .stagger-children > *:nth-child(7) {
-    animation-delay: 300ms;
-  }
-  .stagger-children > *:nth-child(8) {
-    animation-delay: 350ms;
-  }
-  .stagger-children > *:nth-child(9) {
-    animation-delay: 400ms;
-  }
-  .stagger-children > *:nth-child(10) {
-    animation-delay: 450ms;
-  }
-
   /* Modal/sheet backdrop */
   .modal-backdrop {
     @apply fixed inset-0 bg-anthracite/60 backdrop-blur-sm animate-backdrop-in;
@@ -254,10 +219,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .stagger-children > * {
-    opacity: 1;
-    animation: none;
   }
 }

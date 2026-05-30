@@ -791,7 +791,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                     className="scroll-mt-[120px] [content-visibility:auto] [contain-intrinsic-size:auto_500px]"
                   >
                     <h2 className="text-lg font-bold text-gray-900 mb-4 mt-2">{category.name}</h2>
-                    <div className="grid gap-3 stagger-children">
+                    <div className="grid gap-3">
                       {groupedItems[category.id].map((item) => {
                         const groups = getItemOptionGroups(item.id);
                         const startingPrice = groups

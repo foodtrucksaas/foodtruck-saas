@@ -28,7 +28,6 @@ export default {
         'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'shimmer': 'shimmer 1.5s infinite',
         'spinner': 'spinner 0.8s linear infinite',
-        'stagger-in': 'staggerIn 0.3s ease-out forwards',
         'status-pulse': 'statusPulse 2s ease-in-out infinite',
         'cart-bounce': 'cartBounce 0.4s ease-out',
         'add-to-cart': 'addToCart 0.3s ease-out',
@@ -138,10 +137,6 @@ export default {
         spinner: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
-        },
-        staggerIn: {
-          '0%': { opacity: '0', transform: 'translateY(12px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         statusPulse: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
