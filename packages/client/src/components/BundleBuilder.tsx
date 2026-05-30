@@ -56,8 +56,8 @@ export default function BundleBuilder({
   const [contentReady, setContentReady] = useState(false);
 
   useEffect(() => {
-    const handle = requestIdleCallback(() => setContentReady(true), { timeout: 400 });
-    return () => cancelIdleCallback(handle);
+    const timer = setTimeout(() => setContentReady(true), 350);
+    return () => clearTimeout(timer);
   }, []);
 
   // Sub-step within a bundle category: item → required groups one by one → supplements

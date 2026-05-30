@@ -52,8 +52,8 @@ export default function OptionsModal({
   const [contentReady, setContentReady] = useState(false);
 
   useEffect(() => {
-    const handle = requestIdleCallback(() => setContentReady(true), { timeout: 400 });
-    return () => cancelIdleCallback(handle);
+    const timer = setTimeout(() => setContentReady(true), 350);
+    return () => clearTimeout(timer);
   }, []);
 
   const pricingGroups = toPricingGroups(optionGroups);
