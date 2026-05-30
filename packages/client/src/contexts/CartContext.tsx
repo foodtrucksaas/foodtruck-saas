@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from 'react';
 import { calculateBundlePrice, computeCartItemUnitPrice } from '@foodtruck/shared';
 import type { CartItem, MenuItem, SelectedOption, BundleCartInfo } from '@foodtruck/shared';
 
@@ -78,46 +86,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, foodtruckId]);
 
-  const getCartKey = (
-    menuItemId: string,
-    selectedOptions?: SelectedOption[],
-    bundleId?: string
-  ) => {
-    return generateCartKey(menuItemId, selectedOptions, bundleId);
-  };
+  const getCartKey = useCallback(
+    (menuItemId: string, selectedOptions?: SelectedOption[], bundleId?: string) => {
+      return generateCartKey(menuItemId, selectedOptions, bundleId);
+    },
+    []
+  );
 
-  const addItem = (
-    menuItem: MenuItem,
-    quantity: number,
-    notes?: string,
-    selectedOptions?: SelectedOption[]
-  ) => {
-    setItems((prev) => {
-      const cartKey = generateCartKey(menuItem.id, selectedOptions);
-      const existing = prev.find(
-        (item) =>
-          !item.bundleInfo && generateCartKey(item.menuItem.id, item.selectedOptions) === cartKey
-      );
-
-      if (existing) {
-        return prev.map((item) =>
-          !item.bundleInfo && generateCartKey(item.menuItem.id, item.selectedOptions) === cartKey
-            ? { ...item, quantity: item.quantity + quantity, notes: notes || item.notes }
-            : item
+  const addItem = useCallback(
+    (menuItem: MenuItem, quantity: number, notes?: string, selectedOptions?: SelectedOption[]) => {
+      setItems((prev) => {
+        const cartKey = generateCartKey(menuItem.id, selectedOptions);
+        const existing = prev.find(
+          (item) =>
+            !item.bundleInfo && generateCartKey(item.menuItem.id, item.selectedOptions) === cartKey
         );
-      }
-      return [...prev, { menuItem, quantity, notes, selectedOptions }];
-    });
-  };
 
-  const addBundleItem = (bundleInfo: BundleCartInfo, quantity: number) => {
+        if (existing) {
+          return prev.map((item) =>
+            !item.bundleInfo && generateCartKey(item.menuItem.id, item.selectedOptions) === cartKey
+              ? { ...item, quantity: item.quantity + quantity, notes: notes || item.notes }
+              : item
+          );
+        }
+        return [...prev, { menuItem, quantity, notes, selectedOptions }];
+      });
+    },
+    []
+  );
+
+  const addBundleItem = useCallback((bundleInfo: BundleCartInfo, quantity: number) => {
     setItems((prev) => {
-      // Use first selection's menuItem as the "representative" item for the bundle
-      // This is just for cart key generation
       const firstSelection = bundleInfo.selections[0];
       if (!firstSelection) return prev;
 
-      // Create a unique key based on bundle and all selections
       const allOptionIds = bundleInfo.selections
         .flatMap((s) => s.selectedOptions?.map((o) => o.optionId) || [])
         .sort()
@@ -130,8 +132,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           generateCartKey(item.menuItem.id, undefined, item.bundleInfo?.bundleId) === cartKey
       );
 
-      // For bundles, we don't merge - each bundle addition is unique
-      // unless exact same selections
       if (existing) {
         return prev.map((item) =>
           item.bundleInfo?.bundleId === bundleInfo.bundleId &&
@@ -141,14 +141,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Create a "virtual" menu item for the bundle
       const bundleMenuItem: MenuItem = {
         id: `bundle-${bundleInfo.bundleId}-${Date.now()}`,
         foodtruck_id: firstSelection.menuItem.foodtruck_id,
         category_id: null,
         name: bundleInfo.bundleName,
         description: bundleInfo.selections.map((s) => s.menuItem.name).join(' + '),
-        price: bundleInfo.fixedPrice, // Will be recalculated in total
+        price: bundleInfo.fixedPrice,
         is_available: true,
         is_archived: false,
         is_daily_special: false,
@@ -170,9 +169,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
       ];
     });
-  };
+  }, []);
 
-  const decomposeBundleItem = (cartKey: string) => {
+  const decomposeBundleItem = useCallback((cartKey: string) => {
     setItems((prev) => {
       const bundleItem = prev.find(
         (item) =>
@@ -180,12 +179,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       );
       if (!bundleItem?.bundleInfo) return prev;
 
-      // Remove the bundle item
       const withoutBundle = prev.filter(
         (item) => generateCartKey(item.menuItem.id, item.selectedOptions) !== cartKey
       );
 
-      // Add each selection as an individual item
       const newItems: CartItem[] = bundleItem.bundleInfo.selections.map((sel) => ({
         menuItem: sel.menuItem,
         quantity: bundleItem.quantity,
@@ -194,17 +191,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       return [...withoutBundle, ...newItems];
     });
-  };
+  }, []);
 
-  const removeItem = (cartKey: string) => {
+  const removeItem = useCallback((cartKey: string) => {
     setItems((prev) =>
       prev.filter((item) => generateCartKey(item.menuItem.id, item.selectedOptions) !== cartKey)
     );
-  };
+  }, []);
 
-  const updateQuantity = (cartKey: string, quantity: number) => {
+  const updateQuantity = useCallback((cartKey: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(cartKey);
+      setItems((prev) =>
+        prev.filter((item) => generateCartKey(item.menuItem.id, item.selectedOptions) !== cartKey)
+      );
       return;
     }
     setItems((prev) =>
@@ -214,56 +213,75 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : item
       )
     );
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
     setFoodtruckId(null);
-  };
+  }, []);
 
-  const setFoodtruck = (id: string) => {
-    if (foodtruckId !== id) {
-      // Clear cart if switching foodtrucks (or if foodtruckId was null from fresh load)
-      if (foodtruckId !== null || items.some((item) => item.menuItem.foodtruck_id !== id)) {
-        setItems([]);
+  const setFoodtruck = useCallback((id: string) => {
+    setFoodtruckId((prevFoodtruckId) => {
+      if (prevFoodtruckId !== id) {
+        if (prevFoodtruckId !== null) {
+          setItems([]);
+        } else {
+          // First load — clear only if items belong to a different foodtruck
+          setItems((prevItems) =>
+            prevItems.some((item) => item.menuItem.foodtruck_id !== id) ? [] : prevItems
+          );
+        }
       }
-    }
-    setFoodtruckId(id);
-  };
+      return id;
+    });
+  }, []);
 
-  const total = items.reduce((sum, item) => {
-    // Bundle items have special pricing
-    if (item.bundleInfo) {
-      return sum + calculateBundlePrice(item.bundleInfo, item.quantity).total;
-    }
-
-    // Regular items — use shared pricing (supports both priceMode and legacy isSizeOption)
-    const unitPrice = computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
-    return sum + unitPrice * item.quantity;
-  }, 0);
-
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        foodtruckId,
-        addItem,
-        addBundleItem,
-        decomposeBundleItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        setFoodtruck,
-        total,
-        itemCount,
-        getCartKey,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const total = useMemo(
+    () =>
+      items.reduce((sum, item) => {
+        if (item.bundleInfo) {
+          return sum + calculateBundlePrice(item.bundleInfo, item.quantity).total;
+        }
+        const unitPrice = computeCartItemUnitPrice(item.menuItem.price, item.selectedOptions);
+        return sum + unitPrice * item.quantity;
+      }, 0),
+    [items]
   );
+
+  const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
+
+  const value = useMemo(
+    () => ({
+      items,
+      foodtruckId,
+      addItem,
+      addBundleItem,
+      decomposeBundleItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      setFoodtruck,
+      total,
+      itemCount,
+      getCartKey,
+    }),
+    [
+      items,
+      foodtruckId,
+      addItem,
+      addBundleItem,
+      decomposeBundleItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      setFoodtruck,
+      total,
+      itemCount,
+      getCartKey,
+    ]
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
