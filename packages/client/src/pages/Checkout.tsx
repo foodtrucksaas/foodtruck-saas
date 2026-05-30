@@ -142,7 +142,7 @@ export default function Checkout({ slug }: CheckoutProps) {
     setUseLoyaltyReward,
   } = useLoyalty(foodtruckId, form.email);
 
-  const { applicableOffers, appliedOffers, bestOffer, totalOfferDiscount } = useOffers(
+  const { applicableOffers, appliedOffers, totalOfferDiscount } = useOffers(
     foodtruckId,
     items,
     total,
@@ -331,13 +331,7 @@ export default function Checkout({ slug }: CheckoutProps) {
       pickupDateTime = pickupDate.toISOString();
     }
 
-    const bundlesUsed = items
-      .filter((item) => item.bundleInfo)
-      .map((item) => ({
-        bundle_id: item.bundleInfo!.bundleId,
-        quantity: item.quantity,
-      }));
-
+    // Simplified payload: IDs + quantities only. Server calculates all prices.
     const orderData = {
       foodtruck_id: foodtruckId,
       customer_email: form.email,
@@ -349,66 +343,37 @@ export default function Checkout({ slug }: CheckoutProps) {
       email_opt_in: form.emailOptIn,
       sms_opt_in: form.smsOptIn && !!form.phone,
       loyalty_opt_in: form.loyaltyOptIn,
-      promo_code_id: appliedPromo?.id,
-      discount_amount: promoDiscount + loyaltyDiscount + appliedOfferDiscount,
-      use_loyalty_reward: loyaltyDiscount > 0,
-      loyalty_customer_id: loyaltyDiscount > 0 ? loyaltyInfo?.customer_id : undefined,
-      loyalty_reward_count: loyaltyRewardCount,
-      deal_id: appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.offer_id : undefined,
-      deal_discount:
-        appliedOfferDiscount > 0 && !appliedOffers.length ? appliedOfferDiscount : undefined,
-      deal_free_item_name:
-        appliedOfferDiscount > 0 && !appliedOffers.length ? bestOffer?.free_item_name : undefined,
-      applied_offers:
-        appliedOffers.length > 0
-          ? appliedOffers.map((o) => ({
-              offer_id: o.offer_id,
-              times_applied: o.times_applied,
-              discount_amount: o.discount_amount,
-              items_consumed: o.items_consumed,
-              free_item_name: o.free_item_name,
-            }))
-          : undefined,
-      bundles_used: bundlesUsed.length > 0 ? bundlesUsed : undefined,
-      items: items.flatMap((item) => {
-        if (item.bundleInfo) {
-          return item.bundleInfo.selections.map((sel, selIndex) => ({
-            menu_item_id: sel.menuItem.id,
-            quantity: item.quantity,
-            notes: undefined,
-            selected_options: sel.selectedOptions?.map((opt) => ({
-              option_id: opt.optionId,
-              option_group_id: opt.optionGroupId,
-              name: opt.name,
-              group_name: opt.groupName,
-              price_modifier: opt.priceModifier,
-              is_size_option: opt.priceMode === 'absolute' || opt.isSizeOption || false,
-              price_mode: opt.priceMode || (opt.isSizeOption ? 'absolute' : 'modifier'),
-            })),
-            bundle_id: item.bundleInfo!.bundleId,
-            bundle_name: item.bundleInfo!.bundleName,
-            bundle_fixed_price: selIndex === 0 ? item.bundleInfo!.fixedPrice : 0,
-            bundle_supplement: sel.supplement,
-            bundle_free_options: item.bundleInfo!.freeOptions,
-          }));
+      promo_code: appliedPromo?.code || undefined,
+      use_loyalty_reward: useLoyaltyReward && form.loyaltyOptIn,
+      loyalty_reward_count: loyaltyRewardCount || undefined,
+      items: items.flatMap(
+        (
+          item
+        ): Array<{
+          menu_item_id: string;
+          quantity: number;
+          selected_option_ids: string[];
+          notes?: string;
+          bundle_id?: string;
+        }> => {
+          if (item.bundleInfo) {
+            return item.bundleInfo.selections.map((sel) => ({
+              menu_item_id: sel.menuItem.id,
+              quantity: item.quantity,
+              selected_option_ids: (sel.selectedOptions || []).map((o) => o.optionId),
+              bundle_id: item.bundleInfo!.bundleId,
+            }));
+          }
+          return [
+            {
+              menu_item_id: item.menuItem.id,
+              quantity: item.quantity,
+              selected_option_ids: (item.selectedOptions || []).map((o) => o.optionId),
+              notes: item.notes,
+            },
+          ];
         }
-        return [
-          {
-            menu_item_id: item.menuItem.id,
-            quantity: item.quantity,
-            notes: item.notes,
-            selected_options: item.selectedOptions?.map((opt) => ({
-              option_id: opt.optionId,
-              option_group_id: opt.optionGroupId,
-              name: opt.name,
-              group_name: opt.groupName,
-              price_modifier: opt.priceModifier,
-              is_size_option: opt.priceMode === 'absolute' || opt.isSizeOption || false,
-              price_mode: opt.priceMode || (opt.isSizeOption ? 'absolute' : 'modifier'),
-            })),
-          },
-        ];
-      }),
+      ),
     };
 
     try {
