@@ -20,6 +20,10 @@ import {
   Building,
   Download,
   X,
+  Package,
+  Gift,
+  Percent,
+  Check,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -608,19 +612,18 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
       <div className="px-4 py-3">
         {activeTab === 'menu' ? (
           <div className="space-y-8">
-            {/* Unified Offers Section - Clean white */}
+            {/* Offers Section */}
             {(bundles.length > 0 ||
               specificItemsBundles.length > 0 ||
               buyXGetYOffers.length > 0 ||
               visibleOffers.filter((o) => o.offer_type !== 'bundle').length > 0) && (
               <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-4">
                   <Tag className="w-4 h-4 text-primary-500" />
                   <h2 className="text-base font-bold text-gray-900">Nos offres</h2>
                 </div>
-                <p className="text-xs text-gray-400 mb-4">S'appliquent automatiquement au panier</p>
                 <div className="space-y-2">
-                  {/* Bundle offers - clickable to open builder */}
+                  {/* Bundle offers (category choice) - clickable to open builder */}
                   {bundles.map((bundle) => {
                     const bundleCats = bundle.config.bundle_categories || [];
                     const categoryNames =
@@ -643,25 +646,28 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                         className="w-full bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-3 active:scale-[0.98] transition-all text-left"
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
-                            {categoryNames && (
-                              <p className="text-xs text-gray-500 mt-0.5">{categoryNames}</p>
-                            )}
-                            {formatBundleRestrictions(
-                              bundle.time_start,
-                              bundle.time_end,
-                              bundle.days_of_week
-                            ) && (
-                              <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
-                                <Clock className="w-3 h-3 shrink-0" />
-                                {formatBundleRestrictions(
-                                  bundle.time_start,
-                                  bundle.time_end,
-                                  bundle.days_of_week
-                                )}
-                              </p>
-                            )}
+                          <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                            <Package className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
+                              {categoryNames && (
+                                <p className="text-xs text-gray-500 mt-0.5">{categoryNames}</p>
+                              )}
+                              {formatBundleRestrictions(
+                                bundle.time_start,
+                                bundle.time_end,
+                                bundle.days_of_week
+                              ) && (
+                                <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
+                                  <Clock className="w-3 h-3 shrink-0" />
+                                  {formatBundleRestrictions(
+                                    bundle.time_start,
+                                    bundle.time_end,
+                                    bundle.days_of_week
+                                  )}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-primary-600 whitespace-nowrap">
@@ -689,11 +695,14 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                     return (
                       <div key={bundle.id} className="bg-gray-50 rounded-xl px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
-                            {itemNames && (
-                              <p className="text-xs text-gray-500 mt-0.5">{itemNames}</p>
-                            )}
+                          <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                            <Package className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 text-sm">{bundle.name}</p>
+                              {itemNames && (
+                                <p className="text-xs text-gray-500 mt-0.5">{itemNames}</p>
+                              )}
+                            </div>
                           </div>
                           <span className="font-bold text-primary-600 whitespace-nowrap">
                             {formatPrice(bundle.config.fixed_price)}
@@ -703,19 +712,58 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                     );
                   })}
 
-                  {/* Buy X Get Y offers */}
-                  {buyXGetYOffers.map((offer) => (
-                    <div key={offer.id} className="bg-gray-50 rounded-xl px-4 py-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">{offer.name}</p>
-                        {offer.description && (
-                          <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  {/* Buy X Get Y offers - with status from applicableOffers */}
+                  {buyXGetYOffers.map((offer) => {
+                    const status = visibleOffers.find(
+                      (o) => o.offer_id === offer.id && o.offer_type === 'buy_x_get_y'
+                    );
+                    const isApplicable = status?.is_applicable ?? false;
+                    const remaining =
+                      status && status.progress_required > 0
+                        ? status.progress_required - status.progress_current
+                        : null;
 
-                  {/* Other offers with progress tracking */}
+                    return (
+                      <div
+                        key={offer.id}
+                        className={`rounded-xl px-4 py-3 ${isApplicable ? 'bg-success-50' : 'bg-gray-50'}`}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <Gift
+                            className={`w-4 h-4 mt-0.5 shrink-0 ${isApplicable ? 'text-success-600' : 'text-gray-400'}`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`font-semibold text-sm ${isApplicable ? 'text-success-700' : 'text-gray-900'}`}
+                            >
+                              {offer.name}
+                            </p>
+                            {offer.description && (
+                              <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
+                            )}
+                            {isApplicable ? (
+                              <p className="text-xs text-success-600 mt-1 flex items-center gap-1">
+                                <Check className="w-3 h-3" />
+                                S'applique automatiquement
+                              </p>
+                            ) : remaining !== null && remaining > 0 ? (
+                              <p className="text-xs text-warning-600 mt-1">
+                                Ajoutez {remaining} article{remaining > 1 ? 's' : ''} pour en
+                                profiter
+                              </p>
+                            ) : null}
+                          </div>
+                          {isApplicable && status && status.calculated_discount > 0 && (
+                            <span className="font-bold text-success-600 whitespace-nowrap">
+                              -{formatPrice(status.calculated_discount)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Threshold discount and other auto offers */}
                   {visibleOffers
                     .filter((o) => o.offer_type !== 'bundle' && o.offer_type !== 'buy_x_get_y')
                     .map((offer) => {
@@ -725,31 +773,42 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
                         offer.progress_required > 0
                           ? Math.min(100, (offer.progress_current / offer.progress_required) * 100)
                           : 0;
+                      const remaining = hasProgress
+                        ? offer.progress_required - offer.progress_current
+                        : 0;
+                      const OfferIcon = offer.offer_type === 'threshold_discount' ? Percent : Tag;
 
                       return (
                         <div
                           key={offer.offer_id}
-                          className={`rounded-xl px-4 py-3 ${isApplicable ? 'bg-emerald-50' : 'bg-gray-50'}`}
+                          className={`rounded-xl px-4 py-3 ${isApplicable ? 'bg-success-50' : 'bg-gray-50'}`}
                         >
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-start gap-2.5">
+                            <OfferIcon
+                              className={`w-4 h-4 mt-0.5 shrink-0 ${isApplicable ? 'text-success-600' : 'text-gray-400'}`}
+                            />
                             <div className="flex-1 min-w-0">
                               <p
-                                className={`font-semibold text-sm ${isApplicable ? 'text-emerald-700' : 'text-gray-900'}`}
+                                className={`font-semibold text-sm ${isApplicable ? 'text-success-700' : 'text-gray-900'}`}
                               >
                                 {offer.offer_name}
                               </p>
+                              {offer.description && (
+                                <p className="text-xs text-gray-500 mt-0.5">{offer.description}</p>
+                              )}
                               {isApplicable ? (
-                                <p className="text-xs text-emerald-600 mt-0.5">
-                                  Appliquée à votre panier
+                                <p className="text-xs text-success-600 mt-1 flex items-center gap-1">
+                                  <Check className="w-3 h-3" />
+                                  S'applique automatiquement
                                 </p>
-                              ) : hasProgress ? (
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                  {offer.progress_current}/{offer.progress_required} articles
+                              ) : hasProgress && remaining > 0 ? (
+                                <p className="text-xs text-warning-600 mt-1">
+                                  Encore {formatPrice(remaining)} pour en profiter
                                 </p>
                               ) : null}
                             </div>
                             {isApplicable && offer.calculated_discount > 0 && (
-                              <span className="font-bold text-emerald-600 whitespace-nowrap">
+                              <span className="font-bold text-success-600 whitespace-nowrap">
                                 -{formatPrice(offer.calculated_discount)}
                               </span>
                             )}
