@@ -47,26 +47,13 @@ interface OrderRequest {
   use_loyalty_reward?: boolean;
   loyalty_customer_id?: string;
   loyalty_reward_count?: number;
-  // Legacy single offer (backward compatibility)
-  deal_id?: string;
-  deal_discount?: number;
-  deal_free_item_name?: string;
-  // NEW: Multiple applied offers (optimized combination)
   applied_offers?: AppliedOfferRequest[];
   items: {
     menu_item_id: string;
     quantity: number;
     notes?: string;
     selected_options?: SelectedOptionRequest[];
-    // Bundle info (for items that are part of a bundle offer)
-    bundle_id?: string;
-    bundle_name?: string;
-    bundle_fixed_price?: number; // Set only on first item of bundle
-    bundle_supplement?: number;
-    bundle_free_options?: boolean;
   }[];
-  // Bundles used in this order (for tracking)
-  bundles_used?: { bundle_id: string; quantity: number }[];
 }
 
 // Validation patterns
@@ -215,15 +202,6 @@ export function validatePickupTime(pickupTime: string): Response | null {
   return null;
 }
 
-// validatePrices — REMOVED in Step D (pricing engine resolves from DB)
-
-// validatePromoCode — REMOVED in Step D (PromoCodeEngine handles validation)
-// validateDeal — REMOVED in Step D (legacy, engines handle all offer types)
-// validateAppliedOffers — REMOVED in Step D (engines handle all offer types)
-
-// validateOrderTotal — REMOVED in Step D (calculateOrderTotal is the single authority)
-// calculateOrder — REMOVED in Step D (replaced by calculateOrderTotal + resolveLineItems)
-
 export async function createOrder(
   data: Omit<OrderRequest, 'items'>,
   orderItems: any[],
@@ -254,8 +232,6 @@ export async function createOrder(
       total_amount: finalAmount,
       discount_amount: discountAmount,
       promo_code_id: data.promo_code_id || null,
-      deal_id: data.deal_id || null,
-      deal_discount: data.deal_discount || null,
       offer_discount: offerDiscount > 0 ? offerDiscount : 0,
       status,
       notes: data.notes || null,
@@ -353,23 +329,7 @@ export async function createOrder(
     }
   }
 
-  // Apply deal if provided (legacy single offer)
-  if (data.deal_id && data.deal_discount && data.deal_discount > 0) {
-    try {
-      await supabase.rpc('apply_deal', {
-        p_deal_id: data.deal_id,
-        p_order_id: order.id,
-        p_customer_email: data.customer_email,
-        p_discount_applied: data.deal_discount,
-        p_free_item_name: data.deal_free_item_name || null,
-      });
-    } catch (e) {
-      console.error('Failed to apply deal:', e);
-      // Don't fail the order for this, just log
-    }
-  }
-
-  // Track applied offers if provided (new optimized combination system)
+  // Track applied offers if provided (from pricing engine)
   if (data.applied_offers && data.applied_offers.length > 0) {
     for (const appliedOffer of data.applied_offers) {
       // Skip offers with invalid times_applied to prevent division by zero
@@ -440,33 +400,6 @@ export async function createOrder(
     } catch (e) {
       console.error('Failed to redeem loyalty reward:', e);
       // Don't fail the order for this, just log
-    }
-  }
-
-  // Track bundle usage if bundles were used
-  if (data.bundles_used && data.bundles_used.length > 0) {
-    for (const bundle of data.bundles_used) {
-      try {
-        // Insert into offer_uses
-        await supabase.from('offer_uses').insert({
-          offer_id: bundle.bundle_id,
-          order_id: order.id,
-          customer_email: data.customer_email,
-          discount_amount: 0, // Bundles don't have a "discount" per se, they have a fixed price
-        });
-
-        // Update offer stats atomically (increment current_uses)
-        await supabase.rpc('increment_offer_uses', {
-          p_offer_id: bundle.bundle_id,
-          p_count: bundle.quantity,
-          p_discount_amount: 0, // Bundles use fixed price, not discount
-        });
-
-        console.log(`Tracked bundle usage: ${bundle.bundle_id} x${bundle.quantity}`);
-      } catch (e) {
-        console.error('Failed to track bundle usage:', e);
-        // Don't fail the order for this, just log
-      }
     }
   }
 

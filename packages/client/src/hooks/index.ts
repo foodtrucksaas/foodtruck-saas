@@ -7,7 +7,7 @@ export type { SlotWithLocation } from './useTimeSlots';
 export { usePromoCode } from './usePromoCode';
 export type { AppliedPromo } from './usePromoCode';
 
-export { useLoyalty, calculateLoyaltyDiscount } from './useLoyalty';
+export { useLoyalty } from './useLoyalty';
 
 export { useOffers } from './useOffers';
 

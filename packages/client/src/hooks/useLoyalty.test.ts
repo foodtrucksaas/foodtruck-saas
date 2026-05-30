@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 // Using fake timers, so no waitFor needed
-import { useLoyalty, calculateLoyaltyDiscount } from './useLoyalty';
+import { useLoyalty } from './useLoyalty';
 import type { CustomerLoyaltyInfo } from '@foodtruck/shared';
 
 // Mock the api module
@@ -67,9 +67,7 @@ describe('useLoyalty', () => {
 
   describe('initialization', () => {
     it('should initialize with default values', () => {
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       expect(result.current.loyaltyInfo).toBeNull();
       expect(result.current.loading).toBe(false);
@@ -77,9 +75,7 @@ describe('useLoyalty', () => {
     });
 
     it('should not fetch when foodtruckId is undefined', async () => {
-      const { result } = renderHook(() =>
-        useLoyalty(undefined, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(undefined, mockEmail));
 
       // Advance timers past debounce
       await act(async () => {
@@ -92,9 +88,7 @@ describe('useLoyalty', () => {
     });
 
     it('should not fetch when email is empty', async () => {
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, '')
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, ''));
 
       // Advance timers past debounce
       await act(async () => {
@@ -107,9 +101,7 @@ describe('useLoyalty', () => {
     });
 
     it('should not fetch when email is invalid', async () => {
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, 'invalid-email')
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, 'invalid-email'));
 
       // Advance timers past debounce
       await act(async () => {
@@ -126,9 +118,7 @@ describe('useLoyalty', () => {
     it('should fetch loyalty info when email is valid', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfo);
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Advance timers past debounce and flush promises
       await advanceTimersAndFlush(600);
@@ -146,9 +136,7 @@ describe('useLoyalty', () => {
           })
       );
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Advance timers past debounce
       await act(async () => {
@@ -172,10 +160,9 @@ describe('useLoyalty', () => {
     it('should debounce email changes', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfo);
 
-      const { result, rerender } = renderHook(
-        ({ email }) => useLoyalty(mockFoodtruckId, email),
-        { initialProps: { email: 'test@example.com' } }
-      );
+      const { result, rerender } = renderHook(({ email }) => useLoyalty(mockFoodtruckId, email), {
+        initialProps: { email: 'test@example.com' },
+      });
 
       // Change email multiple times quickly
       rerender({ email: 'test2@example.com' });
@@ -202,9 +189,7 @@ describe('useLoyalty', () => {
     it('should handle customer with rewards available', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfoWithReward);
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Advance timers past debounce
       await advanceTimersAndFlush(600);
@@ -219,9 +204,7 @@ describe('useLoyalty', () => {
     it('should handle null response (loyalty disabled)', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(null);
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Advance timers past debounce
       await advanceTimersAndFlush(600);
@@ -230,9 +213,7 @@ describe('useLoyalty', () => {
     });
 
     it('should reset loyalty info when switching to foodtruck without loyalty', async () => {
-      mockGetCustomerLoyalty
-        .mockResolvedValueOnce(mockLoyaltyInfo)
-        .mockResolvedValueOnce(null);
+      mockGetCustomerLoyalty.mockResolvedValueOnce(mockLoyaltyInfo).mockResolvedValueOnce(null);
 
       const { result, rerender } = renderHook(
         ({ foodtruckId }) => useLoyalty(foodtruckId, mockEmail),
@@ -255,9 +236,7 @@ describe('useLoyalty', () => {
     it('should allow toggling useLoyaltyReward', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfoWithReward);
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Initially true
       expect(result.current.useLoyaltyReward).toBe(true);
@@ -280,10 +259,9 @@ describe('useLoyalty', () => {
     it('should maintain useLoyaltyReward state across loyalty info fetches', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfoWithReward);
 
-      const { result, rerender } = renderHook(
-        ({ email }) => useLoyalty(mockFoodtruckId, email),
-        { initialProps: { email: 'test@example.com' } }
-      );
+      const { result, rerender } = renderHook(({ email }) => useLoyalty(mockFoodtruckId, email), {
+        initialProps: { email: 'test@example.com' },
+      });
 
       // Toggle off
       act(() => {
@@ -306,9 +284,7 @@ describe('useLoyalty', () => {
     it('should handle API errors gracefully', async () => {
       mockGetCustomerLoyalty.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Advance timers past debounce
       await advanceTimersAndFlush(600);
@@ -320,9 +296,7 @@ describe('useLoyalty', () => {
     it('should reset loading state on error', async () => {
       mockGetCustomerLoyalty.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { result } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       await advanceTimersAndFlush(600);
 
@@ -335,10 +309,9 @@ describe('useLoyalty', () => {
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce(mockLoyaltyInfo);
 
-      const { result, rerender } = renderHook(
-        ({ email }) => useLoyalty(mockFoodtruckId, email),
-        { initialProps: { email: 'test@example.com' } }
-      );
+      const { result, rerender } = renderHook(({ email }) => useLoyalty(mockFoodtruckId, email), {
+        initialProps: { email: 'test@example.com' },
+      });
 
       // First fetch (error)
       await advanceTimersAndFlush(600);
@@ -357,9 +330,7 @@ describe('useLoyalty', () => {
     it('should cancel pending fetch on unmount', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfo);
 
-      const { unmount } = renderHook(() =>
-        useLoyalty(mockFoodtruckId, mockEmail)
-      );
+      const { unmount } = renderHook(() => useLoyalty(mockFoodtruckId, mockEmail));
 
       // Unmount before debounce completes
       unmount();
@@ -376,10 +347,9 @@ describe('useLoyalty', () => {
     it('should clear loyalty info when email becomes invalid', async () => {
       mockGetCustomerLoyalty.mockResolvedValue(mockLoyaltyInfo);
 
-      const { result, rerender } = renderHook(
-        ({ email }) => useLoyalty(mockFoodtruckId, email),
-        { initialProps: { email: 'valid@example.com' } }
-      );
+      const { result, rerender } = renderHook(({ email }) => useLoyalty(mockFoodtruckId, email), {
+        initialProps: { email: 'valid@example.com' },
+      });
 
       // First fetch
       await advanceTimersAndFlush(600);
@@ -390,123 +360,6 @@ describe('useLoyalty', () => {
 
       // Should immediately clear loyalty info
       expect(result.current.loyaltyInfo).toBeNull();
-    });
-  });
-});
-
-describe('calculateLoyaltyDiscount', () => {
-  const mockLoyaltyInfo: CustomerLoyaltyInfo = {
-    customer_id: 'customer-123',
-    loyalty_points: 100,
-    loyalty_threshold: 50,
-    loyalty_reward: 500,
-    loyalty_allow_multiple: true,
-    loyalty_points_per_euro: 1,
-    loyalty_opt_in: true,
-    can_redeem: true,
-    redeemable_count: 2,
-    max_discount: 1000,
-    progress_percent: 100,
-  };
-
-  describe('max discount calculation', () => {
-    it('should return max discount when all conditions are met', () => {
-      const result = calculateLoyaltyDiscount(mockLoyaltyInfo, true, true);
-
-      expect(result.discount).toBe(1000);
-      expect(result.rewardCount).toBe(2);
-    });
-
-    it('should return zero discount when loyalty is not opted in', () => {
-      const result = calculateLoyaltyDiscount(mockLoyaltyInfo, true, false);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should return zero discount when useLoyaltyReward is false', () => {
-      const result = calculateLoyaltyDiscount(mockLoyaltyInfo, false, true);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should return zero discount when loyaltyInfo is null', () => {
-      const result = calculateLoyaltyDiscount(null, true, true);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should return zero discount when customer cannot redeem', () => {
-      const infoWithNoRedeem: CustomerLoyaltyInfo = {
-        ...mockLoyaltyInfo,
-        can_redeem: false,
-        redeemable_count: 0,
-        max_discount: 0,
-      };
-
-      const result = calculateLoyaltyDiscount(infoWithNoRedeem, true, true);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should handle single reward redemption', () => {
-      const singleRewardInfo: CustomerLoyaltyInfo = {
-        ...mockLoyaltyInfo,
-        loyalty_allow_multiple: false,
-        redeemable_count: 1,
-        max_discount: 500,
-      };
-
-      const result = calculateLoyaltyDiscount(singleRewardInfo, true, true);
-
-      expect(result.discount).toBe(500);
-      expect(result.rewardCount).toBe(1);
-    });
-  });
-
-  describe('edge cases', () => {
-    it('should handle customer with partial progress', () => {
-      const partialProgressInfo: CustomerLoyaltyInfo = {
-        ...mockLoyaltyInfo,
-        loyalty_points: 25,
-        can_redeem: false,
-        redeemable_count: 0,
-        max_discount: 0,
-        progress_percent: 50,
-      };
-
-      const result = calculateLoyaltyDiscount(partialProgressInfo, true, true);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should handle new customer without loyalty opt-in', () => {
-      const newCustomerInfo: CustomerLoyaltyInfo = {
-        ...mockLoyaltyInfo,
-        customer_id: null,
-        loyalty_points: 0,
-        loyalty_opt_in: null,
-        can_redeem: false,
-        redeemable_count: 0,
-        max_discount: 0,
-        progress_percent: 0,
-      };
-
-      const result = calculateLoyaltyDiscount(newCustomerInfo, true, true);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
-    });
-
-    it('should handle all false conditions', () => {
-      const result = calculateLoyaltyDiscount(null, false, false);
-
-      expect(result.discount).toBe(0);
-      expect(result.rewardCount).toBe(0);
     });
   });
 });

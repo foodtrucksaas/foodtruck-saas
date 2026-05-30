@@ -369,16 +369,6 @@ export interface PromoCodeUse {
   created_at: string;
 }
 
-export interface ValidatePromoCodeResult {
-  is_valid: boolean;
-  promo_code_id: string | null;
-  discount_type: DiscountType | null;
-  discount_value: number | null;
-  max_discount: number | null;
-  calculated_discount: number | null;
-  error_message: string | null;
-}
-
 // ============================================
 // Loyalty Types
 // ============================================

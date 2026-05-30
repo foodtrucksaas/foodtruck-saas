@@ -36,7 +36,7 @@ import LocationCard from '../../components/LocationCard';
 import { OptimizedImage } from '@foodtruck/shared';
 import BundleBuilder from '../../components/BundleBuilder';
 import { useCart } from '../../contexts/CartContext';
-import { useOffers, useBundleDetection, useDocumentMeta } from '../../hooks';
+import { useOffers, useDocumentMeta } from '../../hooks';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { getCheapestAbsolutePrice } from '@foodtruck/shared';
 import { useFoodtruck, type BundleOffer } from './useFoodtruck';
@@ -102,7 +102,7 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   const { items, addBundleItem } = useCart();
 
   // Detect applicable offers in real-time (use foodtruck.id UUID, not slug)
-  const { applicableOffers, appliedOffers, bestOffer, totalOfferDiscount } = useOffers(
+  const { applicableOffers, appliedOffers, totalOfferDiscount } = useOffers(
     foodtruck?.id,
     items,
     total
@@ -111,23 +111,9 @@ export default function FoodtruckPage({ slug }: FoodtruckPageProps) {
   // Filter offers to show (exclude promo codes)
   const visibleOffers = applicableOffers.filter((o) => o.offer_type !== 'promo_code');
 
-  // useBundleDetection is only for UI hints, not for discount calculation
-  // get_optimized_offers already handles bundle discounts
-  const { bestBundle: _bestBundle, totalBundleSavings: _totalBundleSavings } = useBundleDetection(
-    foodtruck?.id,
-    items
-  );
-  void _bestBundle;
-  void _totalBundleSavings; // Suppress unused warnings
-
-  // get_optimized_offers already handles ALL offers including bundles
-  // So we just use totalOfferDiscount directly
   const appliedDiscount = totalOfferDiscount || 0;
-  // For display name, check if we have applied offers from the API
   const appliedDiscountName =
-    appliedOffers.length > 0
-      ? appliedOffers.map((o) => o.offer_name).join(' + ')
-      : bestOffer?.offer_name;
+    appliedOffers.length > 0 ? appliedOffers.map((o) => o.offer_name).join(' + ') : undefined;
   const finalTotal = Math.max(0, total - appliedDiscount);
 
   // SEO: dynamic meta tags + JSON-LD structured data

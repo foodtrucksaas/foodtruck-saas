@@ -77,6 +77,10 @@ function isServiceRoleRequest(req: Request): boolean {
  *
  * Legacy: items have selected_options objects with price details
  * New:    items have selected_option_ids (string array of UUIDs)
+ *
+ * TODO: Remove once dashboard QuickOrder sends new format (selected_option_ids).
+ * Currently dashboard/src/components/QuickOrderModal/useQuickOrder.ts still sends
+ * selected_options objects.
  */
 function isLegacyPayload(body: any): boolean {
   if (body.applied_offers?.length > 0) return true;
@@ -422,16 +426,9 @@ serve(async (req) => {
     // Synthesize body for createOrder (preserves side effects like opt-in, tracking)
     const engineBody = {
       ...body,
-      // Engine-calculated values override client values
       discount_amount: totalDiscount,
-      // Promo code: keep legacy promo_code_id for FK, or null for new format
       promo_code_id: legacy ? body.promo_code_id : promoDiscount?.offer_id || null,
-      // Offer discount for orders.offer_discount column
       offer_discount: offerDiscountTotal,
-      // Clear legacy deal fields (now handled by engines)
-      deal_id: undefined,
-      deal_discount: undefined,
-      // Loyalty from engine metadata
       use_loyalty_reward: !!loyaltyDiscount,
       loyalty_customer_id:
         (loyaltyDiscount?.metadata?.loyalty_customer_id as string) ||
@@ -439,7 +436,6 @@ serve(async (req) => {
         undefined,
       loyalty_reward_count:
         (loyaltyDiscount?.metadata?.reward_count as number) || body.loyalty_reward_count,
-      // Applied offers from engine (for tracking via offer_uses)
       applied_offers: offerDiscounts
         .filter((d) => d.offer_id)
         .map((d) => ({
@@ -449,8 +445,6 @@ serve(async (req) => {
           items_consumed:
             (d.metadata?.items_consumed as Array<{ menu_item_id: string; quantity: number }>) || [],
         })),
-      // Clear bundles_used — now tracked via applied_offers
-      bundles_used: undefined,
     };
 
     // Auto-accept if auto_accept_orders or manual dashboard order

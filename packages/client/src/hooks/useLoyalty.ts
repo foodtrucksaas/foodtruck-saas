@@ -9,10 +9,7 @@ interface UseLoyaltyResult {
   setUseLoyaltyReward: (use: boolean) => void;
 }
 
-export function useLoyalty(
-  foodtruckId: string | undefined,
-  email: string
-): UseLoyaltyResult {
+export function useLoyalty(foodtruckId: string | undefined, email: string): UseLoyaltyResult {
   const [loyaltyInfo, setLoyaltyInfo] = useState<CustomerLoyaltyInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [useLoyaltyReward, setUseLoyaltyReward] = useState(true);
@@ -42,20 +39,5 @@ export function useLoyalty(
     loading,
     useLoyaltyReward,
     setUseLoyaltyReward,
-  };
-}
-
-// Helper to calculate loyalty discount
-export function calculateLoyaltyDiscount(
-  loyaltyInfo: CustomerLoyaltyInfo | null,
-  useLoyaltyReward: boolean,
-  loyaltyOptIn: boolean
-): { discount: number; rewardCount: number } {
-  if (!loyaltyOptIn || !loyaltyInfo?.can_redeem || !useLoyaltyReward) {
-    return { discount: 0, rewardCount: 0 };
-  }
-  return {
-    discount: loyaltyInfo.max_discount,
-    rewardCount: loyaltyInfo.redeemable_count,
   };
 }

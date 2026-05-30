@@ -145,8 +145,7 @@ export default function Checkout({ slug }: CheckoutProps) {
   const { applicableOffers, appliedOffers, totalOfferDiscount } = useOffers(
     foodtruckId,
     items,
-    total,
-    form.email
+    total
   );
 
   // Server-side preview: authoritative pricing
