@@ -1,12 +1,27 @@
 import { useState, useMemo } from 'react';
-import { Minus, Plus, X, Tag, Check, Loader2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Minus,
+  Plus,
+  X,
+  Tag,
+  Check,
+  Loader2,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Gift,
+  Star,
+} from 'lucide-react';
 import { formatPrice, calculateBundlePrice, computeCartItemUnitPrice } from '@foodtruck/shared';
 import type {
   CartItem,
   AppliedOfferDetail,
   CustomerLoyaltyInfo,
   SelectedOption,
+  OrderCalculation,
 } from '@foodtruck/shared';
+
+type DiscountResult = OrderCalculation['discounts'][number];
 
 /** Check if an option is a modifier (not absolute/size). */
 function isModifierOption(opt: SelectedOption): boolean {
@@ -31,8 +46,9 @@ interface OrderSummaryCardProps {
   useLoyaltyReward?: boolean;
   onToggleUseLoyaltyReward?: (use: boolean) => void;
   loyaltyPointsEarned?: number;
-  // Preview loading
+  // Preview data
   previewLoading?: boolean;
+  previewDiscounts?: DiscountResult[];
   // Promo code props
   showPromoSection?: boolean;
   promoCode?: string;
@@ -68,6 +84,7 @@ export function OrderSummaryCard({
   loyaltyPointsEarned: loyaltyPointsEarnedProp,
   // Preview
   previewLoading,
+  previewDiscounts,
   // Promo
   showPromoSection,
   promoCode = '',
@@ -640,38 +657,63 @@ export function OrderSummaryCard({
           <span className="text-gray-700 tabular-nums">{formatPrice(visualSubtotal)}</span>
         </div>
 
-        {/* Discounts (excluding bundles and buy_x_get_y shown inline) */}
-        {appliedOffers
-          .filter((offer) => offer.offer_type !== 'bundle' && offer.offer_type !== 'buy_x_get_y')
-          .map((offer) => (
-            <div key={offer.offer_id} className="flex justify-between text-sm">
-              <span className="text-emerald-600 truncate pr-2">
-                {offer.offer_name}
-                {offer.times_applied > 1 && (
-                  <span className="opacity-60"> ×{offer.times_applied}</span>
-                )}
-              </span>
-              <span className="text-emerald-600 font-medium tabular-nums whitespace-nowrap">
-                −{formatPrice(offer.discount_amount)}
-              </span>
-            </div>
-          ))}
-        {/* Only show loyalty discount here if NOT showing the checkbox (which already displays it) */}
-        {loyaltyDiscount > 0 && !loyaltyInfo?.can_redeem && (
-          <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">Fidélité</span>
-            <span className="text-emerald-600 font-medium tabular-nums">
-              −{formatPrice(loyaltyDiscount)}
-            </span>
+        {/* Discount breakdown from engine */}
+        {previewDiscounts && previewDiscounts.length > 0 && (
+          <div className="space-y-1.5">
+            {previewDiscounts.map((d, i) => {
+              const Icon =
+                d.type === 'promo_code' ? Tag : d.type === 'loyalty_reward' ? Star : Gift;
+              return (
+                <div key={`${d.type}-${i}`} className="flex items-start justify-between text-sm">
+                  <span className="text-success-600 flex items-center gap-1.5 truncate pr-2">
+                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">{d.label}</span>
+                  </span>
+                  <span className="text-success-600 font-medium tabular-nums whitespace-nowrap">
+                    −{formatPrice(d.amount)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
-        {promoDiscount > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">Code promo</span>
-            <span className="text-emerald-600 font-medium tabular-nums">
-              −{formatPrice(promoDiscount)}
-            </span>
-          </div>
+        {/* Fallback: show client-side discounts when no preview data */}
+        {!previewDiscounts && (
+          <>
+            {appliedOffers
+              .filter(
+                (offer) => offer.offer_type !== 'bundle' && offer.offer_type !== 'buy_x_get_y'
+              )
+              .map((offer) => (
+                <div key={offer.offer_id} className="flex justify-between text-sm">
+                  <span className="text-success-600 truncate pr-2">
+                    {offer.offer_name}
+                    {offer.times_applied > 1 && (
+                      <span className="opacity-60"> ×{offer.times_applied}</span>
+                    )}
+                  </span>
+                  <span className="text-success-600 font-medium tabular-nums whitespace-nowrap">
+                    −{formatPrice(offer.discount_amount)}
+                  </span>
+                </div>
+              ))}
+            {loyaltyDiscount > 0 && !loyaltyInfo?.can_redeem && (
+              <div className="flex justify-between text-sm">
+                <span className="text-success-600">Fidélité</span>
+                <span className="text-success-600 font-medium tabular-nums">
+                  −{formatPrice(loyaltyDiscount)}
+                </span>
+              </div>
+            )}
+            {promoDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-success-600">Code promo</span>
+                <span className="text-success-600 font-medium tabular-nums">
+                  −{formatPrice(promoDiscount)}
+                </span>
+              </div>
+            )}
+          </>
         )}
 
         {/* Loyalty Section */}
@@ -835,7 +877,7 @@ export function OrderSummaryCard({
                 {formatPrice(finalTotal)}
               </p>
               {hasDiscounts && (
-                <p className="text-xs text-emerald-600 font-medium">
+                <p className="text-xs text-success-600 font-medium">
                   {formatPrice(totalSavings)} économisés
                 </p>
               )}

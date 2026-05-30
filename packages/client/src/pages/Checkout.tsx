@@ -551,6 +551,7 @@ export default function Checkout({ slug }: CheckoutProps) {
             onUpdateQuantity={updateQuantity}
             onRemoveItem={handleRemoveItem}
             previewLoading={previewLoading}
+            previewDiscounts={previewData?.discounts}
             // Loyalty
             loyaltyInfo={loyaltyInfo}
             loyaltyLoading={loyaltyLoading}
